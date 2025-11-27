@@ -12,7 +12,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 export default function CustomerhomePage() {
     const logError = (error, info) => {
         // Use an error reporting service here
-        console.error("Error caught:", error, info);
+        console.error("Error caught:", info);
         console.log(error);
     };
     return (

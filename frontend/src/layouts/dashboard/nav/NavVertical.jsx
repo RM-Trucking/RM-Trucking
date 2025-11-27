@@ -88,13 +88,13 @@ export default function NavVertical({ }) {
         open
         variant="permanent"
         PaperProps={{
-          sx: {
+          sx:{
             width: NAV.W_DASHBOARD,
             bgcolor: '#A22',
             border: "none",
             marginTop: 7.4,
             display: { xs: "none", sm: "block" }
-          },
+          }
         }}
       >
         {renderContent}

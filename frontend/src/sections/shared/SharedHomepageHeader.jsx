@@ -1,0 +1,22 @@
+import PropTypes from 'prop-types';
+import { Box, Stack, Typography, Button } from '@mui/material';
+// ----------------------------------------------------------------------
+
+
+SharedHomePageHeader.propTypes = {
+  title : PropTypes.string,
+  buttonText : PropTypes.string,
+};
+
+export default function SharedHomePageHeader({title, buttonText}) {
+  return (
+    <>
+    <Box width = '100%'>
+      <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{padding : 2}}>
+        <Typography variant='subtitle1' sx={{fontWeight : 700}}>{title}</Typography>
+        <Button sx={{bgcolor : '#A22', color : "#fff"}}>{buttonText}</Button>
+      </Stack>
+      </Box>
+    </>
+  );
+}

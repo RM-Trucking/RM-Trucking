@@ -26,6 +26,7 @@ export default function Main({ children, sx, ...other }) {
         px: 2,
         py: `${HEADER.H_DASHBOARD_DESKTOP + SPACING}px`,
         // width: `calc(100% - ${NAV.W_DASHBOARD}px)`,
+        width: `calc(100% - 312px)`,
         position : 'absolute',
         left : {sm: '280px'},
         ...sx,

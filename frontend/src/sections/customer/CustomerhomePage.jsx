@@ -6,6 +6,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ErrorFallback from '../shared/ErrorBoundary';
+import CustomerHomePageTable from './CustomerHomePageTable';
 // ----------------------------------------------------------------------
 
 
@@ -28,6 +29,7 @@ export default function CustomerhomePage() {
                 {/* The components within this boundary are protected */}
                 <SharedHomePageHeader title="Customers" buttonText='New Customer' />
                 <SharedSearchField page="customers" />
+                <CustomerHomePageTable/>
             </ErrorBoundary>
 
         </>

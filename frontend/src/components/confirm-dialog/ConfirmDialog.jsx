@@ -34,7 +34,7 @@ export default function ConfirmDialog({ title, content, action, open, onClose, d
         </DialogContent>
       )}
 
-      <DialogActions {...(dataTestId ? { 'data-testid': `${dataTestId}-actions` } : {})}>
+      <DialogActions sx={{justifyContent : 'flex-start'}} {...(dataTestId ? { 'data-testid': `${dataTestId}-actions` } : {})}>
         {action}
 
         {/* <Button variant="outlined" color="inherit" onClick={onClose}>

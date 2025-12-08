@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // @mui
 import { List, Stack, Button, Collapse } from '@mui/material';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -16,6 +16,12 @@ export default function NavSectionVertical({ data, ...other }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const [open, setOpen] = useState(false);
+
+  useEffect(()=>{
+    if(pathname.split('/').length > 3){
+      setOpen(true);
+    }
+  },[pathname])
 
   const handleCollapseClick = (length, path, title) => {
     navigate(path);

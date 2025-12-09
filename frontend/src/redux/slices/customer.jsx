@@ -13,6 +13,7 @@ const initialState = {
   customerSuccess: false,
   customerRows: [],
   customerSearchStr: "",
+  selectedCustomerRowDetails : {}
 };
 
 const slice = createSlice({
@@ -43,12 +44,16 @@ const slice = createSlice({
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
+    setSelectedCustomerRowDetails(state, action) {
+      state.selectedCustomerRowDetails = action.payload;
+    },
 
   },
 });
 
 export const {
   setCustomerSearchStr,
+  setSelectedCustomerRowDetails
 } = slice.actions;
 export default slice.reducer;
 

@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useLocation } from 'react-router-dom';
 // @mui
 import { Box } from '@mui/material';
 // hooks
@@ -16,7 +17,7 @@ Main.propTypes = {
 };
 
 export default function Main({ children, sx, ...other }) {
-
+   const { pathname } = useLocation();
   return (
     <Box
       component="main"
@@ -30,6 +31,7 @@ export default function Main({ children, sx, ...other }) {
         position : 'absolute',
         left : {sm: '280px'},
         ...sx,
+        bgcolor : (pathname.includes('/maintenance/customer-maintenance/customer-view')) ? 'rgb(229, 229, 229)' : '#fff',
       }}
       {...other}
     >

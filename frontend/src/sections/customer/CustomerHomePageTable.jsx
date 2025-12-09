@@ -7,6 +7,7 @@ import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import {setSelectedCustomerRowDetails} from '../../redux/slices/customer';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
@@ -116,7 +117,10 @@ export default function CustomerHomePageTable() {
                     }}
                 >
                     <Tooltip title={'View'} arrow>
-                        <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView)}/>
+                        <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            dispatch(setSelectedCustomerRowDetails(params?.row));
+                            navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
+                        }}/>
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
                         <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
@@ -198,7 +202,7 @@ export default function CustomerHomePageTable() {
 
 
     return (<>
-        <Box sx={{ height: 400, width: "100%", flex: 1 }}>
+        <Box sx={{ height: 300, width: "100%", flex: 1 }}>
             <DataGrid
                 rows={customerRows}
                 columns={columns}

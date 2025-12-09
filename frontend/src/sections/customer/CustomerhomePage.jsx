@@ -12,7 +12,6 @@ import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ErrorFallback from '../shared/ErrorBoundary';
 import CustomerHomePageTable from './CustomerHomePageTable';
-import Iconify from '../../components/iconify';
 import SharedCustomerDetails from './SharedCustomerDetails';
 // ----------------------------------------------------------------------
 
@@ -62,15 +61,6 @@ export default function CustomerhomePage() {
                         }
                     }}
                 >
-                    <DialogTitle >
-                        <>
-                            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                                <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Details</Typography>
-                                <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
-                            </Stack>
-                            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-                        </>
-                    </DialogTitle>
                     <DialogContent>
                         <SharedCustomerDetails type={'Add'} handleCloseConfirm={handleCloseConfirm}/>
                     </DialogContent>

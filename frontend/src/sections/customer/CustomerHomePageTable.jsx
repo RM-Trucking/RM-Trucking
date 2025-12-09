@@ -1,13 +1,16 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import { Box, Stack, Typography, Button, Chip, Tooltip, Divider } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
+import { PATH_DASHBOARD } from '../../routes/paths';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -113,7 +116,7 @@ export default function CustomerHomePageTable() {
                     }}
                 >
                     <Tooltip title={'View'} arrow>
-                        <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                        <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView)}/>
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
                         <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />

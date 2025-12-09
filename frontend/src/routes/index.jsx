@@ -13,6 +13,8 @@ import {
   DashboardPage,
   ShipmentBuildingPage,
   CustomerMaintenancePage,
+  CustomerViewPage,
+  CustomerLayout,
   WarehouseMaintenancePage,
   RateMaintenancePage,
   ZoneMaintenancePage,
@@ -70,7 +72,14 @@ export default function Router() {
           path: 'maintenance',
           children: [
             { element: <Navigate to="/app/maintenance/customer-maintenance" replace />, index: true },
-            { path: 'customer-maintenance', element: <CustomerMaintenancePage /> },
+            {
+              path: 'customer-maintenance',
+              element: <CustomerLayout />,
+              children: [
+                { index: true, element: <CustomerMaintenancePage /> },
+                { path: 'customer-view', element: <CustomerViewPage /> }
+              ]
+            },
             { path: 'carrier-maintenance', element: <CarrierMaintenancePage /> },
             { path: 'zone-maintenance', element: <ZoneMaintenancePage /> },
             { path: 'rate-maintenance', element: <RateMaintenancePage /> },

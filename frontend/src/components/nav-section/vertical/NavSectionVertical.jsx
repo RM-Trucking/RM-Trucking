@@ -15,18 +15,18 @@ NavSectionVertical.propTypes = {
 export default function NavSectionVertical({ data, ...other }) {
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
-  useEffect(()=>{
-    if(pathname.split('/').length > 3){
-      setOpen(true);
-    }
-  },[pathname])
+  // useEffect(()=>{
+  //   if(pathname.split('/').length > 3){
+  //     setOpen(true);
+  //   }
+  // },[pathname])
 
   const handleCollapseClick = (length, path, title) => {
     navigate(path);
-    if (length) setOpen(!open);
-    if(!pathname.includes(title?.toLowerCase())) setOpen(!open);
+    // if (length) setOpen(!open);
+    // if(!pathname.includes(title?.toLowerCase())) setOpen(!open);
   };
 
   return (
@@ -38,7 +38,7 @@ export default function NavSectionVertical({ data, ...other }) {
             {group?.title && <StyledSubheader disableSticky active={group?.path?.includes(pathname) ? 'true' : undefined} onClick={() => handleCollapseClick(group?.children?.length, group?.path, group?.title)}>{group?.title}</StyledSubheader>}
 
             {group?.children?.map((list,i) => (
-              <Collapse in={open}>
+              <Collapse in={open} key={i}>
                 <Stack key={i} flexDirection={'column'} alignItems={'flex-start'}>
                   <List key={list?.title} disablePadding sx={{ px: 2, pt: 2, }}>
                     <Button onClick={() => {

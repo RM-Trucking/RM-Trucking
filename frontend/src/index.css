@@ -32,3 +32,8 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
 }
+.center-status-cell {
+  display: flex !important;
+  justify-content: center !important; /* Centers the inner Box horizontally */
+  align-items: center !important;     /* Centers the inner Box vertically */
+}

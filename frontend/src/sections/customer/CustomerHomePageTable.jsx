@@ -58,14 +58,14 @@ export default function CustomerHomePageTable() {
         field: "status",
         headerName: "Status",
         minWidth: 100,
-        flex: 1,
+        align:'center',
+        cellClassName: 'center-status-cell',
         renderCell: (params) => {
             const element = (
                 <Box
                     sx={{
                         display: 'flex',
                         flex: 1,
-                        marginTop: '2%'
                     }}
                 >
                     <Chip label={params?.row?.status} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'inactive') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
@@ -148,7 +148,7 @@ export default function CustomerHomePageTable() {
                     <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
                     <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
                 </Stack>
-                <Divider />
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
         );
         return element;

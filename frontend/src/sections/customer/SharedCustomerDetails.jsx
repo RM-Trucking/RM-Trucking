@@ -14,6 +14,7 @@ import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
+import CustomerViewStationTable from './CustomerViewStationTable';
 // ----------------------------------------------------------------------
 
 
@@ -56,6 +57,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
 
     return (
         <>
+            {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Details</Typography>
@@ -63,6 +65,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
+            {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
@@ -274,6 +277,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </Button>
                 </Stack>}
             </Box>
+            {/* station table */}
+            {
+                type === 'View' && <CustomerViewStationTable/>
+            }
         </>
     );
 }

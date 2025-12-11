@@ -13,7 +13,9 @@ const initialState = {
   customerSuccess: false,
   customerRows: [],
   customerSearchStr: "",
-  selectedCustomerRowDetails : {}
+  selectedCustomerRowDetails: {},
+  selectedCustomerStationDetails : {},
+  stationRows: [],
 };
 
 const slice = createSlice({
@@ -41,11 +43,35 @@ const slice = createSlice({
         'notes': "At example2.com, we prioritize our customers' shipping needs. Our platform offers a seamless experience for tracking shipments, managing delivery preferences, and accessing real-time updates View more",
       }];
     },
+    getCustomerStationDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationRows = [
+        {
+          stationName : 'Station Level 1',
+          rmAccountNo : 'RM5675765',
+          airportCode : 'JFK',
+          address     : '123 Liberty Ave...', 
+          city        : 'New York City',
+          state       : 'New York', 
+          zipCode     : '11201', 
+          zip4Code    : '11201',
+          phoneNo     : '(733) 555-0123',
+          faxNo       : '',
+          openTime    : '12:00',
+          closeTime   : '07:00',
+          hrs         : '5',
+          warehouse   : 'Warehouse' 
+        }
+      ];
+    },
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
     setSelectedCustomerRowDetails(state, action) {
       state.selectedCustomerRowDetails = action.payload;
+    },
+    setSelectedCustomerStationRowDetails(state, action) {
+      state.selectedCustomerStationDetails = action.payload;
     },
 
   },
@@ -53,7 +79,8 @@ const slice = createSlice({
 
 export const {
   setCustomerSearchStr,
-  setSelectedCustomerRowDetails
+  setSelectedCustomerRowDetails,
+  setSelectedCustomerStationRowDetails,
 } = slice.actions;
 export default slice.reducer;
 
@@ -67,6 +94,17 @@ export function getCustomerData() {
     try {
       // const response = await axios.get('/customerdata');
       dispatch(slice.actions.getCustomerdataSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getCustomerStationData() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('/stationdata');
+      dispatch(slice.actions.getCustomerStationDataSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

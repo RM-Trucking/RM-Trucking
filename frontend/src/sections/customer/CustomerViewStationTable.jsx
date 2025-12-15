@@ -1,13 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Stack, Typography, Button, Chip, Tooltip, Divider } from '@mui/material';
+import {
+    Box, Stack, Typography, Button, Dialog,
+    DialogContent, Tooltip, Divider
+} from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { getCustomerStationData, setSelectedCustomerStationRowDetails } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
+import SharedSearchField from "../shared/SharedSearchField";
+import SharedStationDetails from './SharedStationDetails';
 
 export default function CustomerViewStationTable() {
     const dispatch = useDispatch();
@@ -15,7 +20,6 @@ export default function CustomerViewStationTable() {
     const stationRows = useSelector((state) => state?.customerdata?.stationRows);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-    const notesRef = useRef('');
 
     // datagrid columns
     const columns = [
@@ -157,18 +161,23 @@ export default function CustomerViewStationTable() {
     useEffect(() => {
         console.log('customer rows updated', stationRows);
     }, [stationRows])
+
+    // on click of add station button
+    const onClickOfAddStation = () => {
+        setOpenConfirmDialog(true);
+    };
     // dialog actions and functions
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
-        notesRef.current = '';
     };
 
 
     return (<>
-        <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{mt:4}}>
+        <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{ mt: 4 }}>
             <Typography variant="h7" fontWeight={700}>Station Details</Typography>
             <Button
                 variant="outlined"
+                onClick={() => onClickOfAddStation()}
                 sx={{
                     height: '22px',
                     fontWeight: 600,
@@ -180,15 +189,16 @@ export default function CustomerViewStationTable() {
                         boxShadow: 'none',
                         p: '2px 16px',
                         bgcolor: '#a22',
-                        borderColor : '#a22',
+                        borderColor: '#a22',
                     },
                 }}
             >
                 Add Station
             </Button>
         </Stack>
-        <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mt:1 }} />
-        <Box sx={{ height: 400, width: "100%", flex: 1, mt:2 }}>
+        <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mt: 1 }} />
+        <SharedSearchField page="station" />
+        <Box sx={{ height: 400, width: "100%", flex: 1, mt: 1 }}>
             <DataGrid
                 rows={stationRows}
                 columns={columns}
@@ -200,5 +210,24 @@ export default function CustomerViewStationTable() {
                 }}
             />
         </Box>
+        {/* dialog for station details  */}
+        <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseConfirm();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1545px',
+                    height: '550px',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
+                }
+            }}
+        >
+            <DialogContent>
+                <SharedStationDetails type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+            </DialogContent>
+        </Dialog>
     </>)
 }

@@ -19,7 +19,7 @@ export default function SharedSearchField({ page }) {
 
     const handleSearch = (event) => {
         setSearchValue(event.target.value);
-        if (page === 'customers') dispatch(setCustomerSearchStr(event?.target?.value));
+        if (page === 'customers' || page === 'station') dispatch(setCustomerSearchStr(event?.target?.value));
     }
     return (
         <>

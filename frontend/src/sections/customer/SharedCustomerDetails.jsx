@@ -46,7 +46,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         customerNotes: '',
     };
 
-    const { control, handleSubmit, watch } = useForm({ defaultValues });
+    const { control, handleSubmit, watch, getValues } = useForm({ defaultValues });
 
     // Watch the checkbox value to conditionally render billing address
     const sameAsCorporate = watch('sameAsCorporate');

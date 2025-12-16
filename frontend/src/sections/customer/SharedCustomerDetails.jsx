@@ -15,6 +15,7 @@ import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import CustomerViewStationTable from './CustomerViewStationTable';
+import { setTableBeingViewed } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -56,6 +57,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     const onSubmit = (data) => {
         console.log('Form Submitted (RHF Data):', data);
     };
+    useEffect(() => {
+        dispatch(setTableBeingViewed('station'));
+    }, []);
 
     return (
         <>

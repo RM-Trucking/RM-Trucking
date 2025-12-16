@@ -43,7 +43,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             hours: '08:00',
             warehouse: false,
             warehouseDetails: '',
-            customerNotes: '',
+            stationNotes: '',
         }
     });
 
@@ -259,12 +259,12 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
 
                     {/* customer notes */}
                     <Controller
-                        name="customerNotes"
+                        name="stationNotes"
                         control={control}
                         rules={{ required: true }}
                         render={({ field, fieldState: { error } }) => (
-                            <StyledTextField variant="standard" {...field} fullWidth label="Customer Notes *" error={!!error}
-                                helperText={error ? 'Customer notes is required' : ''} />
+                            <StyledTextField variant="standard" {...field} fullWidth label="Station Notes *" error={!!error}
+                                helperText={error ? 'Station notes is required' : ''} />
                         )}
                     />
                 </Stack>

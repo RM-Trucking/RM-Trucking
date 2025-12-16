@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
+import { setTableBeingViewed } from '../../redux/slices/customer';
+import { useDispatch, useSelector } from '../../redux/store';
 
 SharedStationDetails.propTypes = {
     type: PropTypes.string,
@@ -20,6 +22,7 @@ SharedStationDetails.propTypes = {
 };
 
 export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails }) {
+    const dispatch = useDispatch();
     const [warehouseFlag, setWarehouseFlag] = useState(false);
     const {
         control,
@@ -51,6 +54,10 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
         console.log('Form Submitted:', data);
         alert('Form submitted successfully! Check console for data.');
     };
+
+     useEffect(() => {
+        dispatch(setTableBeingViewed('Department'));
+    }, []);
 
     return (
         <>

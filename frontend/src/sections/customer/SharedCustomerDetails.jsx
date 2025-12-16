@@ -8,13 +8,10 @@ import {
     Stack,
     Divider,
     FormControlLabel,
-    InputLabel,
     MenuItem,
-    FormControl
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
-import StyledSelectField from '../shared/StyledSelectField';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import CustomerViewStationTable from './CustomerViewStationTable';

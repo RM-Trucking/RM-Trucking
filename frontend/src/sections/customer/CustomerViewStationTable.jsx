@@ -137,7 +137,7 @@ export default function CustomerViewStationTable() {
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
-                                navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
+                                navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerStationView);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>

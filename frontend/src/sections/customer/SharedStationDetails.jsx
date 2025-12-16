@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
     Button,
@@ -15,10 +16,11 @@ import StyledCheckbox from '../shared/StyledCheckBox';
 SharedStationDetails.propTypes = {
     type: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
-    selectedCustomerRowDetails: PropTypes?.object
+    selectedCustomerStationDetails: PropTypes?.object
 };
 
-export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerRowDetails }) {
+export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails }) {
+    const [warehouseFlag, setWarehouseFlag] = useState(false);
     const {
         control,
         handleSubmit,
@@ -55,7 +57,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Station Details</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{(selectedCustomerStationDetails?.stationName && type === 'View') ? selectedCustomerStationDetails?.stationName : ''} Station Details</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
@@ -228,13 +230,23 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                         display: 'flex', alignItems: 'flex-end',
                                     }}
-                                    control={<StyledCheckbox checked={value} onChange={onChange} />}
+                                    control={<StyledCheckbox checked={!!value}
+                                        onChange={(e) => {
+                                            const isChecked = e.target.checked;
+
+                                            // 1. Update React Hook Form state
+                                            onChange(isChecked);
+
+                                            // 2. Update your local state variable
+                                            setWarehouseFlag(isChecked);
+                                            console.log("New warehouse state:", isChecked);
+                                        }} />}
                                     label="Warehouse"
                                 />
                             )}
                         />
 
-                        <Controller
+                        {warehouseFlag && <Controller
                             name="warehouseDetails"
                             control={control}
                             render={({ field }) => (
@@ -242,7 +254,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     width: '25%',
                                 }} />
                             )}
-                        />
+                        />}
                     </Stack>
 
                     {/* customer notes */}

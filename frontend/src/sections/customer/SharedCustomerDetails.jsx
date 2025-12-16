@@ -270,7 +270,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         select // This turns the TextField into a Select
                                         variant="standard"
                                         fullWidth
-                                        sx={{ width: '25%'}}
+                                        sx={{ width: '25%' }}
                                         label="Reason For Status*"
                                         error={!!error}
                                         helperText={error ? 'Reason is required' : ''}

@@ -44,6 +44,7 @@ export const PATH_DASHBOARD = {
     customerMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),
       customerView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/customer-view'),
+      customerStationView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/station-view'),
     },
     carrierMaintenance: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
     zoneMaintenance: path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),

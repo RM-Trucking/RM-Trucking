@@ -1,7 +1,9 @@
 import { Box, Typography } from '@mui/material';
 import NoRowsDisplay from '../../assets/NoRowsDisplay.png';
+import { useSelector } from '../../redux/store';
 
 export default function CustomNoRowsOverlay (){
+  const tableWhichBeingViewed = useSelector((state) => state?.customerdata?.tableWhichBeingViewed);
   return (
     // Parent Box: Acts as the positioning context (relative parent)
     <Box sx={{ 
@@ -38,7 +40,7 @@ export default function CustomNoRowsOverlay (){
         }}
       >
         <Typography variant="body2">
-          Add your station to proceed.
+          Add your {tableWhichBeingViewed} to proceed.
         </Typography>
       </Box>
     </Box>

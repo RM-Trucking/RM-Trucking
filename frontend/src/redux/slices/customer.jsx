@@ -16,6 +16,7 @@ const initialState = {
   selectedCustomerRowDetails: {},
   selectedCustomerStationDetails : {},
   stationRows: [],
+  tableWhichBeingViewed : '',
 };
 
 const slice = createSlice({
@@ -46,22 +47,22 @@ const slice = createSlice({
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
       state.stationRows = [
-        {
-          stationName : 'Station Level 1',
-          rmAccountNo : 'RM5675765',
-          airportCode : 'JFK',
-          address     : '123 Liberty Ave...', 
-          city        : 'New York City',
-          state       : 'New York', 
-          zipCode     : '11201', 
-          zip4Code    : '11201',
-          phoneNo     : '(733) 555-0123',
-          faxNo       : '',
-          openTime    : '12:00',
-          closeTime   : '07:00',
-          hrs         : '5',
-          warehouse   : 'Warehouse' 
-        }
+        // {
+        //   stationName : 'Station Level 1',
+        //   rmAccountNo : 'RM5675765',
+        //   airportCode : 'JFK',
+        //   address     : '123 Liberty Ave...', 
+        //   city        : 'New York City',
+        //   state       : 'New York', 
+        //   zipCode     : '11201', 
+        //   zip4Code    : '11201',
+        //   phoneNo     : '(733) 555-0123',
+        //   faxNo       : '',
+        //   openTime    : '12:00',
+        //   closeTime   : '07:00',
+        //   hrs         : '5',
+        //   warehouse   : 'Warehouse' 
+        // }
       ];
     },
     setCustomerSearchStr(state, action) {
@@ -73,6 +74,9 @@ const slice = createSlice({
     setSelectedCustomerStationRowDetails(state, action) {
       state.selectedCustomerStationDetails = action.payload;
     },
+    setTableBeingViewed(state, action) {
+      state.tableWhichBeingViewed = action.payload;
+    },
 
   },
 });
@@ -81,6 +85,7 @@ export const {
   setCustomerSearchStr,
   setSelectedCustomerRowDetails,
   setSelectedCustomerStationRowDetails,
+  setTableBeingViewed,
 } = slice.actions;
 export default slice.reducer;
 

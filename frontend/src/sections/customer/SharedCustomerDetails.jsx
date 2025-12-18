@@ -2,26 +2,27 @@ import PropTypes from 'prop-types';
 import { useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
-    TextField,
     Button,
     Box,
     Typography,
     Stack,
     Divider,
     FormControlLabel,
+    MenuItem,
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import CustomerViewStationTable from './CustomerViewStationTable';
+import { setTableBeingViewed } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
 SharedCustomerDetails.propTypes = {
     type: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
-    selectedCustomerRowDetails : PropTypes?.object
+    selectedCustomerRowDetails: PropTypes?.object
 };
 
 export default function SharedCustomerDetails({ type, handleCloseConfirm, selectedCustomerRowDetails }) {
@@ -44,6 +45,8 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         billState: '',
         billZipCode: '',
         customerNotes: '',
+        customerStatus: '',
+        reasonForStatus: ''
     };
 
     const { control, handleSubmit, watch, getValues } = useForm({ defaultValues });
@@ -54,6 +57,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     const onSubmit = (data) => {
         console.log('Form Submitted (RHF Data):', data);
     };
+    useEffect(() => {
+        dispatch(setTableBeingViewed('station'));
+    }, []);
 
     return (
         <>
@@ -230,6 +236,53 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 helperText={error ? 'Customer notes is required' : ''} />
                         )}
                     />
+
+                    {/* status section  */}
+                    <fieldset>
+                        <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Status &nbsp;</Typography></legend>
+                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} sx={{ mb: 2 }}>
+                            <Controller
+                                name="customerStatus"
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        select // This turns the TextField into a Select
+                                        variant="standard"
+                                        fullWidth
+                                        sx={{ width: '25%' }}
+                                        label="Customer Status*"
+                                        error={!!error}
+                                        helperText={error ? 'Customer status is required' : ''}
+                                    >
+                                        <MenuItem value="inactive">Inactive</MenuItem>
+                                        <MenuItem value="active">Active</MenuItem>
+                                    </StyledTextField>
+                                )}
+                            />
+                            <Controller
+                                name="reasonForStatus"
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        select // This turns the TextField into a Select
+                                        variant="standard"
+                                        fullWidth
+                                        sx={{ width: '25%' }}
+                                        label="Reason For Status*"
+                                        error={!!error}
+                                        helperText={error ? 'Reason is required' : ''}
+                                    >
+                                        <MenuItem value="payment_defaulter">Payment Defaulter</MenuItem>
+                                    </StyledTextField>
+                                )}
+                            />
+                        </Stack>
+                    </fieldset>
+
                 </Stack>
                 {type === 'Add' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
@@ -276,10 +329,54 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         Add
                     </Button>
                 </Stack>}
+                {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        sx={{
+                            '&.MuiButton-outlined': {
+                                borderRadius: '4px',
+                                color: '#000',
+                                boxShadow: 'none',
+                                fontSize: '14px',
+                                p: '2px 16px',
+                                bgcolor: '#fff',
+                                fontWeight: 'normal',
+                                ml: 1,
+                                mb: 1,
+                                mr: 1,
+                                borderColor: '#000'
+                            },
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        type='submit'
+                        onClick={handleSubmit(onSubmit)}
+                        sx={{
+                            '&.MuiButton-contained': {
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                boxShadow: 'none',
+                                fontSize: '14px',
+                                p: '2px 16px',
+                                bgcolor: '#A22',
+                                fontWeight: 'normal',
+                                ml: 1,
+                                mb: 1
+                            },
+                        }}
+                    >
+                        Save
+                    </Button>
+                </Stack>}
             </Box>
             {/* station table */}
             {
-                type === 'View' && <CustomerViewStationTable/>
+                type === 'View' && <CustomerViewStationTable />
             }
         </>
     );

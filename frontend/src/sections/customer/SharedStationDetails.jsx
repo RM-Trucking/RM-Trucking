@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
     Button,
@@ -11,14 +12,18 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
+import { setTableBeingViewed } from '../../redux/slices/customer';
+import { useDispatch, useSelector } from '../../redux/store';
 
 SharedStationDetails.propTypes = {
     type: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
-    selectedCustomerRowDetails: PropTypes?.object
+    selectedCustomerStationDetails: PropTypes?.object
 };
 
-export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerRowDetails }) {
+export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails }) {
+    const dispatch = useDispatch();
+    const [warehouseFlag, setWarehouseFlag] = useState(false);
     const {
         control,
         handleSubmit,
@@ -41,7 +46,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             hours: '08:00',
             warehouse: false,
             warehouseDetails: '',
-            customerNotes: '',
+            stationNotes: '',
         }
     });
 
@@ -50,12 +55,16 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
         alert('Form submitted successfully! Check console for data.');
     };
 
+     useEffect(() => {
+        dispatch(setTableBeingViewed('Department'));
+    }, []);
+
     return (
         <>
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Station Details</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{(selectedCustomerStationDetails?.stationName && type === 'View') ? selectedCustomerStationDetails?.stationName : ''} Station Details</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
@@ -228,13 +237,23 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                         display: 'flex', alignItems: 'flex-end',
                                     }}
-                                    control={<StyledCheckbox checked={value} onChange={onChange} />}
+                                    control={<StyledCheckbox checked={!!value}
+                                        onChange={(e) => {
+                                            const isChecked = e.target.checked;
+
+                                            // 1. Update React Hook Form state
+                                            onChange(isChecked);
+
+                                            // 2. Update your local state variable
+                                            setWarehouseFlag(isChecked);
+                                            console.log("New warehouse state:", isChecked);
+                                        }} />}
                                     label="Warehouse"
                                 />
                             )}
                         />
 
-                        <Controller
+                        {warehouseFlag && <Controller
                             name="warehouseDetails"
                             control={control}
                             render={({ field }) => (
@@ -242,17 +261,17 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     width: '25%',
                                 }} />
                             )}
-                        />
+                        />}
                     </Stack>
 
                     {/* customer notes */}
                     <Controller
-                        name="customerNotes"
+                        name="stationNotes"
                         control={control}
                         rules={{ required: true }}
                         render={({ field, fieldState: { error } }) => (
-                            <StyledTextField variant="standard" {...field} fullWidth label="Customer Notes *" error={!!error}
-                                helperText={error ? 'Customer notes is required' : ''} />
+                            <StyledTextField variant="standard" {...field} fullWidth label="Station Notes *" error={!!error}
+                                helperText={error ? 'Station notes is required' : ''} />
                         )}
                     />
                 </Stack>

@@ -14,11 +14,12 @@ const initialState = {
   customerRows: [],
   customerSearchStr: "",
   selectedCustomerRowDetails: {},
-  selectedCustomerStationDetails : {},
-  selectedStationTabRowDetails : {},
+  selectedCustomerStationDetails: {},
+  selectedStationTabRowDetails: {},
   stationRows: [],
-  tableWhichBeingViewed : '',
-  stationCurrentTab : 'department',
+  tableWhichBeingViewed: '',
+  stationCurrentTab: 'department',
+  stationTabTableData: [],
 };
 
 const slice = createSlice({
@@ -50,23 +51,52 @@ const slice = createSlice({
       state.isLoading = false;
       state.stationRows = [
         {
-          stationName : 'Station Level 1',
-          rmAccountNo : 'RM5675765',
-          airportCode : 'JFK',
-          address     : '123 Liberty Ave...', 
-          city        : 'New York City',
-          state       : 'New York', 
-          zipCode     : '11201', 
-          zip4Code    : '11201',
-          phoneNo     : '(733) 555-0123',
-          faxNo       : '',
-          openTime    : '12:00',
-          closeTime   : '07:00',
-          hrs         : '5',
-          warehouse   : 'Warehouse' 
+          stationName: 'Station Level 1',
+          rmAccountNo: 'RM5675765',
+          airportCode: 'JFK',
+          address: '123 Liberty Ave...',
+          city: 'New York City',
+          state: 'New York',
+          zipCode: '11201',
+          zip4Code: '11201',
+          phoneNo: '(733) 555-0123',
+          faxNo: '',
+          openTime: '12:00',
+          closeTime: '07:00',
+          hrs: '5',
+          warehouse: 'Warehouse'
         }
       ];
     },
+    // station tabs data
+    getStationDepartmentDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationTabTableData = [
+        {
+          id:1,
+          stationName: 'Station Level 1',
+          departmentName: 'Department A',
+          email: 'departmentA@example.com',
+          phoneNo: '(733) 555-0123',
+          notes: 'Handles logistics and coordination.'
+        }
+      ]
+    },
+    getStationPersonnelDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationTabTableData = [
+        {
+          id:1,
+          personnelName: 'Personnel A',
+          departmentName: 'Department A',
+          email: 'personnelA@example.com',
+          officePhoneNo: '(733) 555-0123',
+          cellPhoneNo: '(733) 555-0124',
+          notes: 'Handles logistics and coordination.'
+        }
+      ]
+    },
+    // customer search string on customer page
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
@@ -124,6 +154,28 @@ export function getCustomerStationData() {
     try {
       // const response = await axios.get('/stationdata');
       dispatch(slice.actions.getCustomerStationDataSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getStationDepartmentData() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('/station/department');
+      dispatch(slice.actions.getStationDepartmentDataSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getStationPersonnelData() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('/station/personnel');
+      dispatch(slice.actions.getStationPersonnelDataSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
     Box, Stack, Typography, Button, Dialog,
     DialogContent, Tooltip, Divider
@@ -8,7 +8,8 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
-import { setSelectedStationTabRowDetails } from '../../redux/slices/customer';
+import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData } from '../../redux/slices/customer';
+import ConfirmDialog from '../../components/confirm-dialog';
 // ----------------------------------------------------------------------
 
 
@@ -19,8 +20,11 @@ StationTabsTable.PropTypes = {
 export default function StationTabsTable({ currentTab }) {
     const dispatch = useDispatch();
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
+    const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
     const [tableColumns, setTableColumns] = useState([]);
-    const [tableData, setTableData] = useState([]);
+    // dialog for notes
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const notesRef = useRef('');
 
     // columns for department, personnel, rate, accessorial
 
@@ -48,6 +52,31 @@ export default function StationTabsTable({ currentTab }) {
             headerName: "Phone #",
             minWidth: 200,
             flex: 1
+        },
+        {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row?.notes;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+                        <Tooltip title={params?.row?.notes} arrow >
+                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "actions",
@@ -109,6 +138,31 @@ export default function StationTabsTable({ currentTab }) {
             headerName: "Cell Phone #",
             minWidth: 200,
             flex: 1
+        },
+         {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row?.notes;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+                        <Tooltip title={params?.row?.notes} arrow >
+                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "actions",
@@ -231,12 +285,12 @@ export default function StationTabsTable({ currentTab }) {
             flex: 1
         },
         {
-            field : "notes",
-            headerName : "Notes",
-            minWidth : 400,
-            flex : 1
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 400,
+            flex: 1
         },
-         {
+        {
             field: "actions",
             headerName: "Action",
             minWidth: 110,
@@ -268,33 +322,108 @@ export default function StationTabsTable({ currentTab }) {
     ];
 
     useEffect(() => {
-        // Update table columns and data based on currentTab
+        // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
+            dispatch(getStationDepartmentData());
             setTableColumns(departmentColumns);
         }
         else if (currentTab === 'personnel') {
+            dispatch(getStationPersonnelData());
             setTableColumns(personnelColumns);
         }
         else if (currentTab === 'rate') {
             setTableColumns(rateColumns);
-         }
-        else if (currentTab === 'accessorial') { 
+        }
+        else if (currentTab === 'accessorial') {
             setTableColumns(accessorialColumns);
         }
     }, [currentTab]);
 
+    // useffect to set table data from redux store
+    useEffect(() => {
+        console.log(stationTabTableData);
+    }, [stationTabTableData]);
+
+    // dialog actions and functions for notes
+    const handleCloseConfirm = () => {
+        setOpenConfirmDialog(false);
+        notesRef.current = '';
+    };
+    const handleTitle = () => {
+        const element = (
+            <>
+                <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Notes</Typography>
+                    <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                </Stack>
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+            </>
+        );
+        return element;
+    };
+    const handleContent = () => {
+        const confirmDialogContent = (
+            <Box sx={{ pt: 2 }}>
+                <Typography variant="normal" sx={{ fontWeight: 400, fontSize: '16px' }}>
+                    {notesRef.current}
+                </Typography>
+            </Box>
+        );
+
+        return confirmDialogContent;
+    };
+    const handleDialogActions = () => {
+
+        const confirmDialogActions = (
+            <>
+                <Button
+                    variant="contained"
+                    onClick={() => handleCloseConfirm()}
+                    size="small"
+                    sx={{
+                        '&.MuiButton-contained': {
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            boxShadow: 'none',
+                            fontSize: '14px',
+                            p: '2px 16px',
+                            bgcolor: '#A22',
+                            fontWeight: 'normal',
+                            ml: 1,
+                            mb: 1
+                        },
+                    }}
+                >
+                    Ok
+                </Button>
+            </>
+        );
+        return confirmDialogActions;
+    }
 
     return (
         <>
             <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
-                    rows={tableData}
+                    rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.departmentName || row?.id}
+                    getRowId={(row) => row?.id}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
+                    }}
+                />
+                <ConfirmDialog
+                    open={openConfirmDialog}
+                    onClose={handleCloseConfirm}
+                    title={handleTitle()}
+                    content={handleContent()}
+                    action={handleDialogActions()}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Escape') {
+                            handleCloseConfirm();
+                        }
                     }}
                 />
             </Box>

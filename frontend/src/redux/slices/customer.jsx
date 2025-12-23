@@ -96,7 +96,24 @@ const slice = createSlice({
         }
       ]
     },
-    // customer search string on customer page
+    getStationRateDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationTabTableData = [
+        {
+          id:1,
+          rateID : "RID10002",
+          origin: "ORD",
+          originZipCode: "10001, 10002",
+          destination: "Los Angeles",
+          destinationZipCode: "90001, 90002",
+          minRate: "$25.50",
+          rateLB: "$25.50",
+          maxRate: "$25.50",
+          expiryDate: "01-30-2026"
+        }
+      ]
+    },
+      // customer search string on customer page
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
@@ -176,6 +193,17 @@ export function getStationPersonnelData() {
     try {
       // const response = await axios.get('/station/personnel');
       dispatch(slice.actions.getStationPersonnelDataSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getStationRateData() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('/station/rate');
+      dispatch(slice.actions.getStationRateDataSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

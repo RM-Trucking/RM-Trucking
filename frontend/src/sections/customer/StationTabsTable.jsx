@@ -8,7 +8,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
-import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData } from '../../redux/slices/customer';
+import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData, getStationRateData } from '../../redux/slices/customer';
 import ConfirmDialog from '../../components/confirm-dialog';
 // ----------------------------------------------------------------------
 
@@ -199,49 +199,76 @@ export default function StationTabsTable({ currentTab }) {
             field: "rateID",
             headerName: "Rate ID",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            fontWeight: '700',
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "origin",
             headerName: "Origin",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "originZipCode",
             headerName: "Origin Zip Code",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "destination",
             headerName: "Destination",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "destinationZipCode",
             headerName: "Destination Zip Code",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "rates",
             headerName: "Rates",
             minWidth: 200,
-            flex: 1
+            minHeight: 200,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack  flexDirection={'column'} sx={{mt:0.5,mb:0.5,}}>
+                        <Typography variant="normal">Min: {params?.row?.minRate}</Typography>
+                        <Typography variant="normal">Rate/LB: {params?.row?.rateLB}</Typography>  
+                        <Typography variant="normal">Max: {params?.row?.maxRate}</Typography>
+                    </Stack>
+                );
+                return element;
+            }
         },
         {
             field: "expiryDate",
             headerName: "Expiry Date",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            cellClassName: 'center-status-cell',
+            headerAlign: 'center',
         },
         {
             field: "actions",
             headerName: "Action",
             minWidth: 110,
             flex: 1,
+            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -332,6 +359,7 @@ export default function StationTabsTable({ currentTab }) {
             setTableColumns(personnelColumns);
         }
         else if (currentTab === 'rate') {
+            dispatch(getStationRateData());
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
@@ -413,6 +441,7 @@ export default function StationTabsTable({ currentTab }) {
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
+                    getRowHeight={() => 'auto'}
                 />
                 <ConfirmDialog
                     open={openConfirmDialog}

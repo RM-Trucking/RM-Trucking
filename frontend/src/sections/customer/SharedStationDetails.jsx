@@ -12,6 +12,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
+import StationTabs from './StationTabs';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { useDispatch, useSelector } from '../../redux/store';
 
@@ -70,7 +71,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             </>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
-                <Stack spacing={4}>
+                <Stack spacing={4} sx={{p:3}}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
                             name="stationName"
@@ -320,6 +321,9 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         Add
                     </Button>
                 </Stack>}
+                {
+                    type === 'View' && <StationTabs/>
+                }
             </Box>
         </>
     );

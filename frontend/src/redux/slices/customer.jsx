@@ -15,8 +15,10 @@ const initialState = {
   customerSearchStr: "",
   selectedCustomerRowDetails: {},
   selectedCustomerStationDetails : {},
+  selectedStationTabRowDetails : {},
   stationRows: [],
   tableWhichBeingViewed : '',
+  stationCurrentTab : 'department',
 };
 
 const slice = createSlice({
@@ -68,13 +70,23 @@ const slice = createSlice({
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
+    // customer row details
     setSelectedCustomerRowDetails(state, action) {
       state.selectedCustomerRowDetails = action.payload;
     },
+    // station row details
     setSelectedCustomerStationRowDetails(state, action) {
       state.selectedCustomerStationDetails = action.payload;
     },
+    // station tab row details
+    setSelectedStationTabRowDetails(state, action) {
+      state.selectedStationTabRowDetails = action.payload;
+    },
     setTableBeingViewed(state, action) {
+      state.tableWhichBeingViewed = action.payload;
+    },
+    setStationCurrentTab(state, action) {
+      state.stationCurrentTab = action.payload;
       state.tableWhichBeingViewed = action.payload;
     },
 
@@ -86,6 +98,8 @@ export const {
   setSelectedCustomerRowDetails,
   setSelectedCustomerStationRowDetails,
   setTableBeingViewed,
+  setStationCurrentTab,
+  setSelectedStationTabRowDetails,
 } = slice.actions;
 export default slice.reducer;
 

@@ -94,7 +94,7 @@ export default function StationTabs({ }) {
                             />
                         ))}
                     </Tabs>
-                    <Button
+                    {stationCurrentTab.toLowerCase() !== 'rate' && <Button
                         variant="outlined"
                         onClick={() => onClickOfAddStationTabButton()}
                         sx={{
@@ -113,10 +113,52 @@ export default function StationTabs({ }) {
                         }}
                     >
                         Add {stationCurrentTab.charAt(0).toUpperCase() + stationCurrentTab.slice(1)}
+                    </Button>}
+                    {stationCurrentTab.toLowerCase() === 'rate' && 
+                    <Stack direction="row" spacing={1} alignItems={'center'}>
+                    <Button
+                        variant="outlined"
+                        sx={{
+                            height: '22px',
+                            fontWeight: 600,
+                            color: '#fff',
+                            textTransform: 'none', // Prevent uppercase styling
+                            '&.MuiButton-outlined': {
+                                borderRadius: '4px',
+                                color: '#fff',
+                                boxShadow: 'none',
+                                p: '2px 16px',
+                                bgcolor: '#a22',
+                                borderColor: '#a22',
+                            },
+                        }}
+                    >
+                        Create Rate
                     </Button>
-                   
+                    <Button
+                        variant="outlined"
+                        sx={{
+                            height: '22px',
+                            fontWeight: 600,
+                            color: '#fff',
+                            textTransform: 'none', // Prevent uppercase styling
+                            '&.MuiButton-outlined': {
+                                borderRadius: '4px',
+                                color: '#fff',
+                                boxShadow: 'none',
+                                p: '2px 16px',
+                                bgcolor: '#a22',
+                                borderColor: '#a22',
+                            },
+                        }}
+                    >
+                        Select Rate
+                    </Button>
+                    </Stack>
+                    }
+
                 </Box>
-                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 <StationTabsTable currentTab={stationCurrentTab} />
             </ErrorBoundary>
         </>

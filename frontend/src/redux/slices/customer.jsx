@@ -73,7 +73,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.stationTabTableData = [
         {
-          id:1,
+          id: 1,
           stationName: 'Station Level 1',
           departmentName: 'Department A',
           email: 'departmentA@example.com',
@@ -86,7 +86,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.stationTabTableData = [
         {
-          id:1,
+          id: 1,
           personnelName: 'Personnel A',
           departmentName: 'Department A',
           email: 'personnelA@example.com',
@@ -100,8 +100,8 @@ const slice = createSlice({
       state.isLoading = false;
       state.stationTabTableData = [
         {
-          id:1,
-          rateID : "RID10002",
+          id: 1,
+          rateID: "RID10002",
           origin: "ORD",
           originZipCode: "10001, 10002",
           destination: "Los Angeles",
@@ -113,7 +113,19 @@ const slice = createSlice({
         }
       ]
     },
-      // customer search string on customer page
+    getStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationTabTableData = [
+        {
+          id: 1,
+          accessorialName: "Residential",
+          chargeType: "Flat",
+          charges: "$25.50",
+          notes: "Residential delivery charges."
+        }
+      ]
+    },
+    // customer search string on customer page
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
@@ -204,6 +216,17 @@ export function getStationRateData() {
     try {
       // const response = await axios.get('/station/rate');
       dispatch(slice.actions.getStationRateDataSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getStationAccessorialData() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('/station/accessorial');
+      dispatch(slice.actions.getStationAccessorialDataSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

@@ -8,7 +8,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
-import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData, getStationRateData } from '../../redux/slices/customer';
+import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData, getStationRateData, getStationAccessorialData } from '../../redux/slices/customer';
 import ConfirmDialog from '../../components/confirm-dialog';
 // ----------------------------------------------------------------------
 
@@ -33,31 +33,41 @@ export default function StationTabsTable({ currentTab }) {
             field: "stationName",
             headerName: "Station Name",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "departmentName",
             headerName: "Department Name",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "email",
             headerName: "Email ID",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "phoneNo",
             headerName: "Phone #",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "notes",
             headerName: "Notes",
             minWidth: 100,
             flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -68,6 +78,8 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            justifyContent: 'center',
+                            mb: 0.5
                         }}
                     >
                         <Tooltip title={params?.row?.notes} arrow >
@@ -89,18 +101,20 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
                         </Tooltip>
                     </Box>
                 );
@@ -113,37 +127,49 @@ export default function StationTabsTable({ currentTab }) {
             field: "personnelName",
             headerName: "Personnel Name",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "departmentName",
             headerName: "Department Name",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "email",
             headerName: "Email ID",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "officePhoneNo",
             headerName: "Office Phone #",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "cellPhoneNo",
             headerName: "Cell Phone #",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
-         {
+        {
             field: "notes",
             headerName: "Notes",
             minWidth: 100,
             flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -154,10 +180,12 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            justifyContent: 'center',
+                            mb: 0.5
                         }}
                     >
                         <Tooltip title={params?.row?.notes} arrow >
-                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
                         </Tooltip>
                     </Box>
                 );
@@ -175,18 +203,20 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
                         </Tooltip>
                     </Box>
                 );
@@ -200,9 +230,13 @@ export default function StationTabsTable({ currentTab }) {
             headerName: "Rate ID",
             minWidth: 200,
             flex: 1,
-            fontWeight: '700',
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.rateID}
+                </Box>
+            )
         },
         {
             field: "origin",
@@ -246,9 +280,9 @@ export default function StationTabsTable({ currentTab }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
-                    <Stack  flexDirection={'column'} sx={{mt:0.5,mb:0.5,}}>
+                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
                         <Typography variant="normal">Min: {params?.row?.minRate}</Typography>
-                        <Typography variant="normal">Rate/LB: {params?.row?.rateLB}</Typography>  
+                        <Typography variant="normal">Rate/LB: {params?.row?.rateLB}</Typography>
                         <Typography variant="normal">Max: {params?.row?.maxRate}</Typography>
                     </Stack>
                 );
@@ -275,16 +309,18 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="jam:delete-f" sx={{ color: '#000', marginTop: '15px' }} />
+                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
                         </Tooltip>
                     </Box>
                 );
@@ -297,25 +333,54 @@ export default function StationTabsTable({ currentTab }) {
             field: "accessorialName",
             headerName: "Accessorial Name",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "chargeType",
             headerName: "Charge Type",
             minWidth: 200,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "charges",
             headerName: "Charges",
             minWidth: 400,
-            flex: 1
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
         },
         {
             field: "notes",
             headerName: "Notes",
-            minWidth: 400,
-            flex: 1
+            minWidth: 100,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row?.notes;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            justifyContent: 'center',
+                            mb: 0.5,
+                        }}
+                    >
+                        <Tooltip title={params?.row?.notes} arrow >
+                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "actions",
@@ -328,18 +393,20 @@ export default function StationTabsTable({ currentTab }) {
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} />
                         </Tooltip>
                     </Box>
                 );
@@ -363,6 +430,7 @@ export default function StationTabsTable({ currentTab }) {
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
+            dispatch(getStationAccessorialData());
             setTableColumns(accessorialColumns);
         }
     }, [currentTab]);

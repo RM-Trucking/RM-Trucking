@@ -17,6 +17,7 @@ import {
   CustomerStationViewPage,
   CustomerLayout,
   WarehouseMaintenancePage,
+  RateLayout,
   RateMaintenancePage,
   ZoneMaintenancePage,
   CarrierMaintenancePage,
@@ -84,7 +85,12 @@ export default function Router() {
             },
             { path: 'carrier-maintenance', element: <CarrierMaintenancePage /> },
             { path: 'zone-maintenance', element: <ZoneMaintenancePage /> },
-            { path: 'rate-maintenance', element: <RateMaintenancePage /> },
+            { path: 'rate-maintenance',
+               element: <RateLayout />,
+               children: [
+                 { index: true, element: <RateMaintenancePage /> }
+               ]
+            },
             { path: 'accesorial-maintenance', element: <AccesorialMaintenancePage /> },
           ],
         },

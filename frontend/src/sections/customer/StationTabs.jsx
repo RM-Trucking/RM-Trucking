@@ -45,6 +45,8 @@ export default function StationTabs({ }) {
     const {
         stationCurrentTab
     } = useSelector(({ customerdata }) => customerdata);
+    const { rateSearchObj } = useSelector(({ ratedata }) => ratedata);
+    
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     // error boundary info

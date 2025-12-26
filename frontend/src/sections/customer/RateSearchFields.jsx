@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import { setRateSearchObj } from '../../redux/slices/rate';
 
 RateSearchFields.propTypes = {
 };
@@ -33,7 +34,13 @@ export default function RateSearchFields({ }) {
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
+        dispatch(setRateSearchObj(data));
         alert('Form submitted successfully! Check console for data.');
+    };
+    const handleCLear = () => {
+        console.log('Clear clicked');
+        // reset form fields    
+        dispatch(setRateSearchObj({}));
     };
 
     return (
@@ -115,6 +122,8 @@ export default function RateSearchFields({ }) {
                         <Button
                             variant="outlined"
                             size="small"
+                            // on click clear the values
+                            onClick={() => handleCLear()}
                             sx={{
                                 '&.MuiButton-outlined': {
                                     borderRadius: '4px',

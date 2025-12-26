@@ -186,7 +186,7 @@ export default function StationTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields />}
+                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3}/>}
                 <StationTabsTable currentTab={stationCurrentTab} />
 
                 {/*  dialog for add station tab item can go here */}

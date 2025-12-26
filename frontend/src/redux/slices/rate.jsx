@@ -13,6 +13,7 @@ const initialState = {
     rateSuccess: false,
     rateTableData: [],
     rateSearchObj: {},
+    currentRateTab: 'transportation',
 };
 
 const slice = createSlice({
@@ -55,12 +56,16 @@ const slice = createSlice({
         setRateSearchObj(state, action) {
             state.rateSearchObj = action.payload;
         },
+        setCurrentRateTab(state, action) {
+            state.currentRateTab = action.payload;
+        },
 
     },
 });
 
 export const {
     setRateSearchObj,
+    setCurrentRateTab,
 } = slice.actions;
 export default slice.reducer;
 

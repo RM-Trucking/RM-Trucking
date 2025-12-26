@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Stack, Typography, Button, Divider, Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
+  Box, Typography
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 
 // shared components
 import ErrorFallback from '../shared/ErrorBoundary';
+import RateTabs from './RateTabs';
 // ----------------------------------------------------------------
 
 export default function RatehomePage() {
@@ -27,8 +25,9 @@ export default function RatehomePage() {
           console.log("Error boundary reset triggered");
         }}
       >
-        <Box>
+        <Box sx={{ p: 3 }}>
          <Typography sx={{ fontSize: '18px', fontWeight: 600, mt:2 }}>Rate Maintenance</Typography>
+          <RateTabs />
         </Box>
       </ErrorBoundary>
     </>

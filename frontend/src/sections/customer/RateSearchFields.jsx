@@ -14,9 +14,10 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { setRateSearchObj } from '../../redux/slices/rate';
 
 RateSearchFields.propTypes = {
+    padding: PropTypes.number
 };
 
-export default function RateSearchFields({ }) {
+export default function RateSearchFields({ padding}) {
     const dispatch = useDispatch();
     const {
         control,
@@ -47,7 +48,7 @@ export default function RateSearchFields({ }) {
         <>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
-                <Stack spacing={4} sx={{ p: 3 }}>
+                <Stack spacing={4} sx={{ p: padding }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={5} alignItems={'flex-end'}>
                         <Controller
                             name="origin"

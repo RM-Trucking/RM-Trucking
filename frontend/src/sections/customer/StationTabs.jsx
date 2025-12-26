@@ -1,13 +1,21 @@
 import PropTypes from 'prop-types';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Box, Stack, Divider, Tabs, Tab,
-    Button,
+    Button, Dialog,
+    DialogContent
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setStationCurrentTab } from '../../redux/slices/customer';
 import StationTabsTable from './StationTabsTable';
 import ErrorFallback from '../shared/ErrorBoundary';
+import StationDepartment from './StationDepartment';
+import StationPersonnel from './StationPersonnel';
+import StationAccessorial from './StationAccessorial';
+import RateSearchFields from './RateSearchFields';
+import { PATH_DASHBOARD } from '../../routes/paths';
 // ----------------------------------------------------------------------
 
 
@@ -15,6 +23,7 @@ StationTabs.propTypes = {};
 
 export default function StationTabs({ }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const TABS = [
         {
             value: 'department',
@@ -36,6 +45,8 @@ export default function StationTabs({ }) {
     const {
         stationCurrentTab
     } = useSelector(({ customerdata }) => customerdata);
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
     // error boundary info
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -46,6 +57,18 @@ export default function StationTabs({ }) {
         console.log('new tab value', newValue);
         dispatch(setStationCurrentTab(newValue));
     }
+    const handleCloseConfirm = () => {
+        setOpenConfirmDialog(false);
+    };
+
+    const onClickOfAddStationTabButton = () => {
+        // Implement the logic for adding a new item based on the current tab
+        console.log('Add button clicked for tab:', stationCurrentTab);
+        setOpenConfirmDialog(true);
+    }
+    useEffect(() => {
+        dispatch(setStationCurrentTab('department'));
+    }, []);
     return (
         <>
             <ErrorBoundary
@@ -114,52 +137,86 @@ export default function StationTabs({ }) {
                     >
                         Add {stationCurrentTab.charAt(0).toUpperCase() + stationCurrentTab.slice(1)}
                     </Button>}
-                    {stationCurrentTab.toLowerCase() === 'rate' && 
-                    <Stack direction="row" spacing={1} alignItems={'center'}>
-                    <Button
-                        variant="outlined"
-                        sx={{
-                            height: '22px',
-                            fontWeight: 600,
-                            color: '#fff',
-                            textTransform: 'none', // Prevent uppercase styling
-                            '&.MuiButton-outlined': {
-                                borderRadius: '4px',
-                                color: '#fff',
-                                boxShadow: 'none',
-                                p: '2px 16px',
-                                bgcolor: '#a22',
-                                borderColor: '#a22',
-                            },
-                        }}
-                    >
-                        Create Rate
-                    </Button>
-                    <Button
-                        variant="outlined"
-                        sx={{
-                            height: '22px',
-                            fontWeight: 600,
-                            color: '#fff',
-                            textTransform: 'none', // Prevent uppercase styling
-                            '&.MuiButton-outlined': {
-                                borderRadius: '4px',
-                                color: '#fff',
-                                boxShadow: 'none',
-                                p: '2px 16px',
-                                bgcolor: '#a22',
-                                borderColor: '#a22',
-                            },
-                        }}
-                    >
-                        Select Rate
-                    </Button>
-                    </Stack>
+                    {stationCurrentTab.toLowerCase() === 'rate' &&
+                        <Stack direction="row" spacing={1} alignItems={'center'}>
+                            <Button
+                                variant="outlined"
+                                sx={{
+                                    height: '22px',
+                                    fontWeight: 600,
+                                    color: '#fff',
+                                    textTransform: 'none', // Prevent uppercase styling
+                                    '&.MuiButton-outlined': {
+                                        borderRadius: '4px',
+                                        color: '#fff',
+                                        boxShadow: 'none',
+                                        p: '2px 16px',
+                                        bgcolor: '#a22',
+                                        borderColor: '#a22',
+                                    },
+                                }}
+                            >
+                                Create Rate
+                            </Button>
+                            <Button
+                                variant="outlined"
+                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance)}
+                                sx={{
+                                    height: '22px',
+                                    fontWeight: 600,
+                                    color: '#fff',
+                                    textTransform: 'none', // Prevent uppercase styling
+                                    '&.MuiButton-outlined': {
+                                        borderRadius: '4px',
+                                        color: '#fff',
+                                        boxShadow: 'none',
+                                        p: '2px 16px',
+                                        bgcolor: '#a22',
+                                        borderColor: '#a22',
+                                    },
+                                }}
+                            >
+                                Select Rate
+                            </Button>
+                        </Stack>
                     }
 
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                {/* rate search details  */}
+                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields />}
                 <StationTabsTable currentTab={stationCurrentTab} />
+
+                {/*  dialog for add station tab item can go here */}
+
+                <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleCloseConfirm();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '1545px',
+                            height: 'auto',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        {
+                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                        }
+                        {
+                            stationCurrentTab.toLowerCase() === 'personnel' && <StationPersonnel type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                        }
+                        {
+                            stationCurrentTab.toLowerCase() === 'accessorial' && <StationAccessorial type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                        }
+                        
+                    </DialogContent>
+                </Dialog>
+
             </ErrorBoundary>
         </>
     );

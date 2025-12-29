@@ -20,6 +20,7 @@ const initialState = {
   tableWhichBeingViewed: '',
   stationCurrentTab: 'department',
   stationTabTableData: [],
+  checkedRates: [],
 };
 
 const slice = createSlice({
@@ -35,6 +36,7 @@ const slice = createSlice({
       state.isLoading = true;
       state.customerSuccess = false;
       state.error = null;
+      state.stationTabTableData = [];
     },
     getCustomerdataSuccess(state, action) {
       state.isLoading = false;
@@ -99,8 +101,7 @@ const slice = createSlice({
     getStationRateDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = [
-        {
-          id: 1,
+        { 
           rateID: "RID10002",
           origin: "ORD",
           originZipCode: "10001, 10002",
@@ -110,8 +111,43 @@ const slice = createSlice({
           rateLB: "$25.50",
           maxRate: "$25.50",
           expiryDate: "01-30-2026"
-        }
-      ]
+        },
+        { 
+          rateID: "RID10005",
+          origin: "ORD",
+          originZipCode: "10001, 10002",
+          destination: "Los Angeles",
+          destinationZipCode: "90001, 90002",
+          minRate: "$25.50",
+          rateLB: "$25.50",
+          maxRate: "$25.50",
+          expiryDate: "01-30-2026"
+        },
+      ];
+      for (let i = 0; i < state.checkedRates.length; i++) {
+        state.stationTabTableData.push(state.checkedRates[i]);
+      }
+    },
+    setStationRateData(state, action) {
+      console.log('Setting station rate data in customer slice:', action.payload);
+      if (action.payload.checked) {
+        state.checkedRates.push({
+          rateID: action.payload.row.rateID,
+          origin: action.payload.row.origin,
+          originZipCode: action.payload.row.originZipCode,
+          destination: action.payload.row.destination,
+          destinationZipCode: action.payload.row.destinationZipCode,
+          minRate: action.payload.row.min,
+          rateLB: "",
+          maxRate: action.payload.row.max,
+          expiryDate: action.payload.row.expiryDate
+        });
+      }
+      else {
+        const filteredRates = state.checkedRates.filter(rate => rate.rateID !== action.payload.row.rateID);
+        console.log('Filtered Rates:', filteredRates);
+        state.checkedRates = filteredRates;
+      }
     },
     getStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
@@ -159,6 +195,7 @@ export const {
   setTableBeingViewed,
   setStationCurrentTab,
   setSelectedStationTabRowDetails,
+  setStationRateData,
 } = slice.actions;
 export default slice.reducer;
 

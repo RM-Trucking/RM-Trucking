@@ -7,6 +7,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 // shared components
 import ErrorFallback from '../shared/ErrorBoundary';
 import RateTabs from './RateTabs';
+import RateTable from './RateTable';
 // ----------------------------------------------------------------
 
 export default function RatehomePage() {
@@ -28,6 +29,7 @@ export default function RatehomePage() {
         <Box sx={{ p: 3 }}>
          <Typography sx={{ fontSize: '18px', fontWeight: 600, mt:2 }}>Rate Maintenance</Typography>
           <RateTabs />
+          <RateTable />
         </Box>
       </ErrorBoundary>
     </>

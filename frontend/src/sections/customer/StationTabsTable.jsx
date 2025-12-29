@@ -514,7 +514,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.id}
+                    getRowId={(row) => row?.id || row?.rateID}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,

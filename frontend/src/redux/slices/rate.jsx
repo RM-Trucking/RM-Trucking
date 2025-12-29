@@ -13,6 +13,7 @@ const initialState = {
     rateSuccess: false,
     rateTableData: [],
     rateSearchObj: {},
+    selectedCurrentRateRow: {},
     currentRateTab: 'transportation',
 };
 
@@ -42,15 +43,48 @@ const slice = createSlice({
                     destinationZipCode: "90001, 90002",
                     status: "Active",
                     min: '140.00',
-                    '100': '.29 per lb',
-                    '1000': '.24 per lb',
-                    '3000': '.21 per lb',
-                    '5000': '.19 per lb',
-                    '10000': '.17 per lb',
+                    rate100: '.29 per lb',
+                    rate1000: '.24 per lb',
+                    rate3000: '.21 per lb',
+                    rate5000: '.19 per lb',
+                    rate10000: '.17 per lb',
                     max: '1755.00',
-                    effectiveDate: "01-30-2024",
                     expiryDate: "01-30-2026"
-                }
+                },
+                {
+                    id: 2,
+                    rateID: "RID10003",
+                    origin: "ORD",
+                    originZipCode: "10001, 10002",
+                    destination: "Los Angeles",
+                    destinationZipCode: "90001, 90002",
+                    status: "Active",
+                    min: '140.00',
+                    rate100: '.29 per lb',
+                    rate1000: '.24 per lb',
+                    rate3000: '.21 per lb',
+                    rate5000: '.19 per lb',
+                    rate10000: '.17 per lb',
+                    max: '1755.00',
+                    expiryDate: "01-30-2026"
+                },
+                {
+                    id: 3,
+                    rateID: "RID10004",
+                    origin: "ORD",
+                    originZipCode: "10001, 10002",
+                    destination: "Los Angeles",
+                    destinationZipCode: "90001, 90002",
+                    status: "Active",
+                    min: '140.00',
+                    rate100: '.29 per lb',
+                    rate1000: '.24 per lb',
+                    rate3000: '.21 per lb',
+                    rate5000: '.19 per lb',
+                    rate10000: '.17 per lb',
+                    max: '1755.00',
+                    expiryDate: "01-30-2026"
+                },                
             ];
         },
         setRateSearchObj(state, action) {
@@ -59,6 +93,9 @@ const slice = createSlice({
         setCurrentRateTab(state, action) {
             state.currentRateTab = action.payload;
         },
+        setSelectedCurrentRateRow(state, action) {
+            state.selectedCurrentRateRow = action.payload;
+        },
 
     },
 });
@@ -66,6 +103,7 @@ const slice = createSlice({
 export const {
     setRateSearchObj,
     setCurrentRateTab,
+    setSelectedCurrentRateRow,
 } = slice.actions;
 export default slice.reducer;
 

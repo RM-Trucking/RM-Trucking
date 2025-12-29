@@ -16,6 +16,7 @@ import StationPersonnel from './StationPersonnel';
 import StationAccessorial from './StationAccessorial';
 import RateSearchFields from './RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import { setSelectedStationTabRowDetails } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -43,11 +44,12 @@ export default function StationTabs({ }) {
         },
     ];
     const {
-        stationCurrentTab
+        stationCurrentTab, selectedStationTabRowDetails
     } = useSelector(({ customerdata }) => customerdata);
     const { rateSearchObj } = useSelector(({ ratedata }) => ratedata);
-    
+
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [actionType, setActionType] = useState('');
 
     // error boundary info
     const logError = (error, info) => {
@@ -61,16 +63,24 @@ export default function StationTabs({ }) {
     }
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
+        setActionType('');
     };
 
     const onClickOfAddStationTabButton = () => {
         // Implement the logic for adding a new item based on the current tab
+        setActionType('Add');
+        dispatch(setSelectedStationTabRowDetails({}));
         console.log('Add button clicked for tab:', stationCurrentTab);
         setOpenConfirmDialog(true);
     }
     useEffect(() => {
         dispatch(setStationCurrentTab('department'));
     }, []);
+    useEffect(() => {
+        if (actionType === 'Edit') {
+            setOpenConfirmDialog(true);
+        }
+    }, [actionType]);
     return (
         <>
             <ErrorBoundary
@@ -186,8 +196,8 @@ export default function StationTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3}/>}
-                <StationTabsTable currentTab={stationCurrentTab} />
+                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3} />}
+                <StationTabsTable currentTab={stationCurrentTab} setActionType={setActionType} />
 
                 {/*  dialog for add station tab item can go here */}
 
@@ -207,15 +217,15 @@ export default function StationTabs({ }) {
                 >
                     <DialogContent>
                         {
-                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
                         }
                         {
-                            stationCurrentTab.toLowerCase() === 'personnel' && <StationPersonnel type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                            stationCurrentTab.toLowerCase() === 'personnel' && <StationPersonnel type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
                         }
                         {
-                            stationCurrentTab.toLowerCase() === 'accessorial' && <StationAccessorial type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                            stationCurrentTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
                         }
-                        
+
                     </DialogContent>
                 </Dialog>
 

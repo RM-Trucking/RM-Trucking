@@ -176,6 +176,7 @@ export default function CustomerViewStationTable() {
     };
     // dialog actions and functions
     const handleCloseConfirm = () => {
+        setActionType('');
         setOpenConfirmDialog(false);
     };
 

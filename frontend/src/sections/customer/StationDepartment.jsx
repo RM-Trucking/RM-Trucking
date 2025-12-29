@@ -15,15 +15,17 @@ import { useDispatch, useSelector } from '../../redux/store';
 StationDepartment.propTypes = {
     type: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
+    selectedStationTabRowDetails: PropTypes.object,
 };
 
-export default function StationDepartment({ type, handleCloseConfirm }) {
+export default function StationDepartment({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
     const {
         control,
         handleSubmit,
         formState: { errors },
-        getValues
+        getValues,
+        setValue
     } = useForm({
         defaultValues: {
             stationName: '',
@@ -37,7 +39,13 @@ export default function StationDepartment({ type, handleCloseConfirm }) {
         console.log('Form Submitted:', data);
         alert('Form submitted successfully! Check console for data.');
     };
-
+    useEffect(() => {
+        if (selectedStationTabRowDetails) {
+            setValue('stationName', selectedStationTabRowDetails.stationName || '');
+            setValue('department', selectedStationTabRowDetails.departmentName || '');
+            setValue('emailID', selectedStationTabRowDetails.email || '');
+            setValue('phoneNumber', selectedStationTabRowDetails.phoneNo || '');
+        }}, [selectedStationTabRowDetails]);
     return (
         <>
             {/* header  */}
@@ -120,7 +128,7 @@ export default function StationDepartment({ type, handleCloseConfirm }) {
                         />
                     </Stack>
                 </Stack>
-                {type === 'Add' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
                         onClick={handleCloseConfirm}
@@ -160,7 +168,7 @@ export default function StationDepartment({ type, handleCloseConfirm }) {
                             },
                         }}
                     >
-                        Add
+                        {type === 'Add' ? 'Add' : 'Edit'}
                     </Button>
                 </Stack>}
             </Box>

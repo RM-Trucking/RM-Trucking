@@ -15,9 +15,10 @@ import ConfirmDialog from '../../components/confirm-dialog';
 
 StationTabsTable.PropTypes = {
     currentTab: PropTypes.string,
+    setActionType: PropTypes.func,
 };
 
-export default function StationTabsTable({ currentTab }) {
+export default function StationTabsTable({ currentTab, setActionType }) {
     const dispatch = useDispatch();
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
@@ -111,7 +112,10 @@ export default function StationTabsTable({ currentTab }) {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                setActionType('Edit');
+                                dispatch(setSelectedStationTabRowDetails(params.row));
+                            }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
@@ -213,7 +217,10 @@ export default function StationTabsTable({ currentTab }) {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                setActionType('Edit');
+                                dispatch(setSelectedStationTabRowDetails(params.row));
+                            }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
@@ -402,7 +409,10 @@ export default function StationTabsTable({ currentTab }) {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
+                        <Tooltip title={'Edit'} arrow onClick={() => {
+                            setActionType('Edit');
+                            dispatch(setSelectedStationTabRowDetails(params.row));
+                        }}>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>

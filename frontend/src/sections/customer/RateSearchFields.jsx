@@ -14,10 +14,11 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { setRateSearchObj } from '../../redux/slices/rate';
 
 RateSearchFields.propTypes = {
-    padding: PropTypes.number
+    padding: PropTypes.number,
+    type: PropTypes.string
 };
 
-export default function RateSearchFields({ padding}) {
+export default function RateSearchFields({ padding, type }) {
     const dispatch = useDispatch();
     const {
         control,
@@ -120,7 +121,7 @@ export default function RateSearchFields({ padding}) {
                                 />
                             )}
                         />
-                        <Button
+                        {type === 'Search' && <Button
                             variant="outlined"
                             size="small"
                             // on click clear the values
@@ -142,8 +143,8 @@ export default function RateSearchFields({ padding}) {
                             }}
                         >
                             Clear
-                        </Button>
-                        <Button
+                        </Button>}
+                        {type === 'Search' && <Button
                             variant="contained"
                             size="small"
                             type='submit'
@@ -163,7 +164,7 @@ export default function RateSearchFields({ padding}) {
                             }}
                         >
                             Search
-                        </Button>
+                        </Button>}
                     </Stack>
                 </Stack>
             </Box>

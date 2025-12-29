@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { setCurrentRateTab } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import RateSearchFields from '../customer/RateSearchFields';
+import AddRate from './AddRate';
 // ----------------------------------------------------------------------
 
 
@@ -126,7 +127,7 @@ export default function RateTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb:2 }} />
                 {/* rate search details  */}
-                <RateSearchFields padding = {0}/>
+                <RateSearchFields padding = {0} type={'Search'}/>
                 {/* table for rate tabs */}
 
                 {/*  dialog for add station tab item can go here */}
@@ -146,7 +147,7 @@ export default function RateTabs({ }) {
                     }}
                 >
                     <DialogContent>
-                        Add Rate Content                        
+                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm} />                  
                     </DialogContent>
                 </Dialog>
 

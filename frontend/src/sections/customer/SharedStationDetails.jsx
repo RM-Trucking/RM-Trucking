@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, set } from 'react-hook-form';
 import {
     Button,
     Box,
@@ -29,7 +29,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
         control,
         handleSubmit,
         formState: { errors },
-        getValues
+        getValues,
+        setValue,
     } = useForm({
         defaultValues: {
             stationName: '',
@@ -59,6 +60,27 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
      useEffect(() => {
         dispatch(setTableBeingViewed('Department'));
     }, []);
+
+    useEffect(() => {
+        if (selectedCustomerStationDetails) {
+            // Populate form with selected station details  
+            setValue('stationName', selectedCustomerStationDetails.stationName || '');
+            setValue('rmAccountNumber', selectedCustomerStationDetails.rmAccountNo || '');
+            setValue('airportCode', selectedCustomerStationDetails.airportCode || '');
+            setValue('addressLine1', selectedCustomerStationDetails.address || '');
+            setValue('addressLine2', selectedCustomerStationDetails.addressLine2 || '');
+            setValue('city', selectedCustomerStationDetails.city || '');
+            setValue('state', selectedCustomerStationDetails.state || '');
+            setValue('zipCode', selectedCustomerStationDetails.zipCode || '');
+            setValue('phoneNumber', selectedCustomerStationDetails.phoneNo || '');
+            setValue('faxNumber', selectedCustomerStationDetails.faxNo || '');
+            setValue('openTime', selectedCustomerStationDetails.openTime || '11:00');
+            setValue('closeTime', selectedCustomerStationDetails.closeTime || '20:00');
+            setValue('hours', selectedCustomerStationDetails.hrs || '08:00');
+            setWarehouseFlag(!!selectedCustomerStationDetails.warehouse);
+            setValue('warehouse', !!selectedCustomerStationDetails.warehouse);
+            setValue('warehouseDetails', selectedCustomerStationDetails.warehouse);
+        }}, [selectedCustomerStationDetails]);
 
     return (
         <>

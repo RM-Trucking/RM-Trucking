@@ -8,16 +8,18 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 
 // shared components
+import { useDispatch, useSelector } from '../../redux/store';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ErrorFallback from '../shared/ErrorBoundary';
 import CustomerHomePageTable from './CustomerHomePageTable';
 import SharedCustomerDetails from './SharedCustomerDetails';
+import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
 export default function CustomerhomePage() {
-
+    const dispatch = useDispatch();
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     const logError = (error, info) => {
@@ -26,6 +28,7 @@ export default function CustomerhomePage() {
         console.log(error);
     };
     const onClickOfNewCustomer = () => {
+        dispatch(setSelectedCustomerRowDetails({}));
         setOpenConfirmDialog(true);
     }
     const handleCloseConfirm = () => {

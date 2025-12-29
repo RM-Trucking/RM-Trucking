@@ -19,7 +19,9 @@ export default function CustomerViewStationTable() {
     const navigate = useNavigate();
     const stationRows = useSelector((state) => state?.customerdata?.stationRows);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
+    const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [actionType, setActionType] = useState('');
 
     // datagrid columns
     const columns = [
@@ -92,8 +94,8 @@ export default function CustomerViewStationTable() {
             flex: 1,
         },
         {
-            field: "Fax #",
-            headerName: "Phone #",
+            field: "faxNo",
+            headerName: "Fax #",
             minWidth: 110,
             flex: 1,
         },
@@ -141,7 +143,11 @@ export default function CustomerViewStationTable() {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedCustomerStationRowDetails(params?.row));
+                                setActionType('Edit');
+                                setOpenConfirmDialog(true);
+                            }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
@@ -164,6 +170,8 @@ export default function CustomerViewStationTable() {
 
     // on click of add station button
     const onClickOfAddStation = () => {
+        dispatch(setSelectedCustomerStationRowDetails({}));
+        setActionType('Add');
         setOpenConfirmDialog(true);
     };
     // dialog actions and functions
@@ -226,7 +234,7 @@ export default function CustomerViewStationTable() {
             }}
         >
             <DialogContent>
-                <SharedStationDetails type={'Add'} handleCloseConfirm={handleCloseConfirm} />
+                {<SharedStationDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCustomerStationDetails={selectedCustomerStationDetails} />}
             </DialogContent>
         </Dialog>
     </>)

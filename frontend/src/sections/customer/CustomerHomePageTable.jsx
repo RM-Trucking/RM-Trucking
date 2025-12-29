@@ -1,21 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Stack, Typography, Button, Chip, Tooltip, Divider } from '@mui/material';
+import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import {setSelectedCustomerRowDetails} from '../../redux/slices/customer';
+import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
+import SharedCustomerDetails from './SharedCustomerDetails';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
+    const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const notesRef = useRef('');
+    const [openEditDialog, setOpenEditDialog] = useState(false);
 
     // datagrid columns
     const columns = [{
@@ -62,7 +65,7 @@ export default function CustomerHomePageTable() {
         field: "status",
         headerName: "Status",
         minWidth: 100,
-        align:'center',
+        align: 'center',
         cellClassName: 'center-status-cell',
         renderCell: (params) => {
             const element = (
@@ -120,10 +123,13 @@ export default function CustomerHomePageTable() {
                         <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
                             navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
-                        }}/>
+                        }} />
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
-                        <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                        <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            dispatch(setSelectedCustomerRowDetails(params?.row));
+                            setOpenEditDialog(true);
+                        }} />
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
                         <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
@@ -199,6 +205,9 @@ export default function CustomerHomePageTable() {
         );
         return confirmDialogActions;
     }
+    const handleCloseEdit = () => {
+        setOpenEditDialog(false);
+    };
 
 
     return (<>
@@ -222,6 +231,24 @@ export default function CustomerHomePageTable() {
                     }
                 }}
             />
+            <Dialog open={openEditDialog} onClose={handleCloseEdit} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleCloseEdit();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '1543px',
+                        height: '600px',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <SharedCustomerDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedCustomerRowDetails={selectedCustomerRowDetails} />
+                </DialogContent>
+            </Dialog>
         </Box>
     </>)
 }

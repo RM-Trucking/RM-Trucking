@@ -30,7 +30,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     // Define default values for the form
     const defaultValues = {
         customerName: '',
-        accountNumber: '92898292989289',
+        rmAccountNo: '92898292989289',
         phoneNumber: '',
         website: '',
         corpAddressLine1: '',
@@ -49,7 +49,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         reasonForStatus: ''
     };
 
-    const { control, handleSubmit, watch, getValues } = useForm({ defaultValues });
+    const { control, handleSubmit, watch, getValues, setValue } = useForm({ defaultValues });
 
     // Watch the checkbox value to conditionally render billing address
     const sameAsCorporate = watch('sameAsCorporate');
@@ -60,6 +60,25 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     useEffect(() => {
         dispatch(setTableBeingViewed('station'));
     }, []);
+    useEffect(() => {
+        console.log('Selected Customer Details:', selectedCustomerRowDetails);
+        setValue('customerName', selectedCustomerRowDetails?.customerName || '');
+        setValue('rmAccountNo', selectedCustomerRowDetails?.rmAccountNo || '');
+        setValue('phoneNumber', selectedCustomerRowDetails?.customerPhNo || '');
+        setValue('website', selectedCustomerRowDetails?.customerWebsite || '');
+        setValue('corpAddressLine1', selectedCustomerRowDetails?.corpAddressLine1 || '');
+        setValue('corpAddressLine2', selectedCustomerRowDetails?.corpAddressLine2 || '');
+        setValue('corpCity', selectedCustomerRowDetails?.corpCity || '');
+        setValue('corpState', selectedCustomerRowDetails?.corpState || '');
+        setValue('corpZipCode', selectedCustomerRowDetails?.corpZipCode || '');
+        setValue('sameAsCorporate', false);
+        setValue('billAddressLine1', selectedCustomerRowDetails?.billAddressLine1 || '');
+        setValue('billAddressLine2', selectedCustomerRowDetails?.billAddressLine2 || '');
+        setValue('billCity', selectedCustomerRowDetails?.billCity || '');
+        setValue('billState', selectedCustomerRowDetails?.billState || '');
+        setValue('billZipCode', selectedCustomerRowDetails?.billZipCode || '');
+        setValue('customerNotes', selectedCustomerRowDetails?.notes || '');
+    }, [selectedCustomerRowDetails]);
 
     return (
         <>
@@ -94,7 +113,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             )}
                         />
                         <Controller
-                            name="accountNumber"
+                            name="rmAccountNo"
                             control={control}
                             render={({ field }) => (
                                 <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" />
@@ -284,7 +303,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </fieldset>
 
                 </Stack>
-                {type === 'Add' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                {type === 'Add' || type === 'Edit' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
                         onClick={handleCloseConfirm}
@@ -326,7 +345,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             },
                         }}
                     >
-                        Add
+                        {type === 'Add' ? 'Add' : 'Edit'}
                     </Button>
                 </Stack>}
                 {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

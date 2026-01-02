@@ -298,7 +298,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         )}
                     />
                 </Stack>
-                {type === 'Add' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
                         onClick={handleCloseConfirm}
@@ -340,7 +340,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             },
                         }}
                     >
-                        Add
+                        {type === 'Add' ? 'Add' : 'Edit'}
                     </Button>
                 </Stack>}
                 {

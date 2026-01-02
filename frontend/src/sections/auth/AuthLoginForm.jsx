@@ -14,7 +14,7 @@ import { useAuthContext } from '../../auth/useAuthContext';
 
  
 export default function AuthLoginForm() {
-  // const { login, saveUserCredentials } = useAuthContext();
+  const { login } = useAuthContext();
   const navigate = useNavigate();
   const {
     register,
@@ -22,10 +22,14 @@ export default function AuthLoginForm() {
     formState: { errors }
   } = useForm();
  
-  const submitForm = (data) => {
+  const submitForm = async (data) => {
     console.log("Login Data:", data);
-    if(data?.email && data?.password){
-      navigate(PATH_DASHBOARD?.general?.dashboard);
+    try {
+      if (login) {
+        await login(data.email, data.password);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
  
@@ -59,7 +63,7 @@ export default function AuthLoginForm() {
             variant="outlined"
             fullWidth
             margin="normal"
-            value={"valli@srinsofttech.com"}
+            value={"ADMIN"}
             {...register("email", { required: "Email is required" })}
             error={!!errors.email}
             helperText={errors.email?.message}
@@ -71,7 +75,7 @@ export default function AuthLoginForm() {
             type="password"
             variant="outlined"
             fullWidth
-            value = {"R&MTrucking1234#"}
+            value = {"Admin@123"}
             margin="normal"
             {...register("password", {
               required: "Password is required"

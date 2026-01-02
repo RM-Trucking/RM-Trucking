@@ -1,9 +1,9 @@
-// routes
+// // routes
 import { PATH_AUTH } from '../routes/paths';
-// utils
+// // utils
 import axios from '../utils/axios';
 
-// ----------------------------------------------------------------------
+// // ----------------------------------------------------------------------
 
 function jwtDecode(token) {
   const base64Url = token.split('.')[1];
@@ -19,7 +19,7 @@ function jwtDecode(token) {
   return JSON.parse(jsonPayload);
 }
 
-// ----------------------------------------------------------------------
+// // ----------------------------------------------------------------------
 
 export const isValidToken = (accessToken) => {
   if (!accessToken) {
@@ -33,17 +33,39 @@ export const isValidToken = (accessToken) => {
   return decoded.exp > currentTime;
 };
 
-// ----------------------------------------------------------------------
+// // ----------------------------------------------------------------------
+
+
+// // export const tokenExpired = (exp) => {
+// //   // eslint-disable-next-line prefer-const
+// //   let expiredTimer;
+
+// //   const currentTime = Date.now() / 1000; // Convert to seconds
+
+// //   // Calculate the time left until the token expires (24 hours)
+// //   const timeLeft = exp - currentTime - 86400; // 86400 seconds = 24 hours
+
+// //   clearTimeout(expiredTimer);
+
+// //   expiredTimer = setTimeout(() => {
+// //     alert('Token expired');
+
+// //     localStorage.removeItem('accessToken');
+
+// //     window.location.href = PATH_AUTH.login;
+// //   }, timeLeft * 1000); // Convert timeLeft back to milliseconds
+// // };
 
 
 // export const tokenExpired = (exp) => {
 //   // eslint-disable-next-line prefer-const
 //   let expiredTimer;
 
-//   const currentTime = Date.now() / 1000; // Convert to seconds
+//   const currentTime = Date.now();
 
-//   // Calculate the time left until the token expires (24 hours)
-//   const timeLeft = exp - currentTime - 86400; // 86400 seconds = 24 hours
+//   // Test token expires after 10s
+//   // const timeLeft = currentTime + 10000 - currentTime; // ~10s
+//   const timeLeft = exp * 1000 - currentTime;
 
 //   clearTimeout(expiredTimer);
 
@@ -53,45 +75,83 @@ export const isValidToken = (accessToken) => {
 //     localStorage.removeItem('accessToken');
 
 //     window.location.href = PATH_AUTH.login;
-//   }, timeLeft * 1000); // Convert timeLeft back to milliseconds
+//   }, timeLeft);
 // };
 
+// // ----------------------------------------------------------------------
 
-export const tokenExpired = (exp) => {
-  // eslint-disable-next-line prefer-const
-  let expiredTimer;
+// export const setSession = (accessToken) => {
+//   if (accessToken) {
+//     localStorage.setItem('accessToken', accessToken);
 
-  const currentTime = Date.now();
+//     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
-  // Test token expires after 10s
-  // const timeLeft = currentTime + 10000 - currentTime; // ~10s
-  const timeLeft = exp * 1000 - currentTime;
+//     // This function below will handle when token is expired
+//     const { exp } = jwtDecode(accessToken); // ~3 days by minimals server
+//     tokenExpired(exp);
+//   } else {
+//     localStorage.removeItem('accessToken');
 
-  clearTimeout(expiredTimer);
+//     delete axios.defaults.headers.common.Authorization;
+//   }
+// };
 
-  expiredTimer = setTimeout(() => {
-    alert('Token expired');
+// ----------------------------------------------------------------------
 
+export const setSession = (accessToken, refreshToken) => {
+  if (accessToken) {
+    localStorage.setItem('accessToken', accessToken);
+    // Only update refreshToken if a new one is provided
+    if (refreshToken) {
+      localStorage.setItem('refreshToken', refreshToken);
+    }
+
+    axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+    // Decode to check expiration
+    const { exp } = jwtDecode(accessToken);
+    handleTokenRefresh(exp); 
+  } else {
     localStorage.removeItem('accessToken');
-
-    window.location.href = PATH_AUTH.login;
-  }, timeLeft);
+    localStorage.removeItem('refreshToken');
+    delete axios.defaults.headers.common.Authorization;
+  }
 };
 
 // ----------------------------------------------------------------------
 
-export const setSession = (accessToken) => {
-  if (accessToken) {
-    localStorage.setItem('accessToken', accessToken);
+export const handleTokenRefresh = (exp) => {
+  let expiredTimer;
 
-    axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+  const currentTime = Date.now();
+  const timeLeft = exp * 1000 - currentTime;
 
-    // This function below will handle when token is expired
-    const { exp } = jwtDecode(accessToken); // ~3 days by minimals server
-    tokenExpired(exp);
-  } else {
-    localStorage.removeItem('accessToken');
+  // We clear any existing timer to prevent multiple loops
+  clearTimeout(expiredTimer);
 
-    delete axios.defaults.headers.common.Authorization;
-  }
+  // Strategy: Trigger refresh 1 minute BEFORE the token actually expires
+  // If the token lasts less than a minute, trigger at 5 seconds before
+  const bufferTime = timeLeft > 60000 ? 60000 : 5000;
+
+  expiredTimer = setTimeout(async () => {
+    try {
+      const refreshToken = localStorage.getItem('refreshToken');
+      
+      if (refreshToken) {
+        // Request a new token from your API
+        const response = await axios.post('/maintenance/auth/refresh', { refreshToken });
+        const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data.data;
+
+        // Reset session with new tokens
+        setSession(newAccessToken, newRefreshToken);
+      } else {
+        throw new Error('No refresh token available');
+      }
+    } catch (error) {
+      console.error('Unable to refresh token', error);
+      // If refresh fails, force logout
+      setSession(null);
+      window.location.href = PATH_AUTH.login;
+    }
+  }, timeLeft - bufferTime);
 };

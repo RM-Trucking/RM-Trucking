@@ -5,6 +5,7 @@ import { HelmetProvider } from 'react-helmet-async';
 // for redux store
 import { Provider as ReduxProvider } from 'react-redux';
 import { PersistGate } from 'redux-persist/lib/integration/react';
+import { AuthProvider } from './auth/JwtContext';
 
 import './index.css'
 import App from './App.jsx'
@@ -13,15 +14,17 @@ import App from './App.jsx'
 import { store, persistor } from './redux/store';
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
-    <HelmetProvider>
-      <ReduxProvider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <BrowserRouter>
-            <App />
-          </BrowserRouter>
-        </PersistGate>
-      </ReduxProvider>
-    </HelmetProvider>
-  </StrictMode>,
+  <AuthProvider>
+    <StrictMode>
+      <HelmetProvider>
+        <ReduxProvider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <BrowserRouter>
+              <App />
+            </BrowserRouter>
+          </PersistGate>
+        </ReduxProvider>
+      </HelmetProvider>
+    </StrictMode>
+  </AuthProvider>,
 )

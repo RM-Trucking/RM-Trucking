@@ -303,7 +303,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </fieldset>
 
                 </Stack>
-                {type === 'Add' || type === 'Edit' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
                         onClick={handleCloseConfirm}

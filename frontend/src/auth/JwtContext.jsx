@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        const response = await axios.get('/api/account/my-account');
+        const response = await axios.get('maintenance/auth/login');
 
         const { user } = response.data;
 
@@ -110,23 +110,24 @@ export function AuthProvider({ children }) {
 
   // LOGIN
   const login = async (email, password) => {
-    const response = await axios.post('/api/account/login', {
-      email,
+    const response = await axios.post('maintenance/auth/login', {
+      loginUserName: email,
       password,
     });
     console.log(response);
-    const { accessToken, user } = response.data;
+    const { accessToken, refreshToken, user } = response.data.data;
 
-    setSession(accessToken);
-
+    setSession(accessToken, refreshToken);
+    axios.defaults.headers.common.Authorization = accessToken;
     dispatch({
       type: 'LOGIN',
       payload: {
+        isAuthenticated: true,
         user,
       },
     });
   };
-  
+
   // REGISTER
   const register = async (email, password, firstName, lastName) => {
     const response = await axios.post('/api/account/register', {

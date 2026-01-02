@@ -1,11 +1,19 @@
 // routes
 import { PATH_DASHBOARD } from './routes/paths';
 
-// API
-// ----------------------------------------------------------------------
-// console.info('config(): Environment Variables', process.env);
 
 const hostkeys = {};
+
+let stage = import.meta.env.VITE_BUILD_STAGE;
+if (!stage) {
+  if (import.meta.env.VERBOSE === 'true') {
+    console.info(`config(): No VITE_BUILD_STAGE env var set; defaulting to 'dev'.`);
+  }
+  stage = 'dev';
+}
+if (stage === 'dev') {
+  hostkeys.hostApiKey = import.meta.env.VITE_HOST_API_KEY_DEV;
+}
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
 export const PATH_AFTER_LOGIN = PATH_DASHBOARD.general.dashboard; // as '/dashboard'

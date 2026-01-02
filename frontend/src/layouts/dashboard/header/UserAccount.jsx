@@ -6,12 +6,15 @@ import { useDispatch, useSelector } from '../../../redux/store';
 
 import MenuPopover from '../../../components/menu-popover';
 import { PATH_AUTH } from '../../../routes/paths';
+import { useAuthContext } from '../../../auth/useAuthContext';
 
 
 export default function UserAccount() {
     const {
         dashboardSearchStr
     } = useSelector(({ dashboarddata }) => dashboarddata);
+    const { logout } = useAuthContext();
+        
     const dispatch = useDispatch();
     const [openPopover, setOpenPopover] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
@@ -24,9 +27,9 @@ export default function UserAccount() {
         setOpenPopover(false);
         setAnchorEl(null);
     };
-    const handleClickedItem = (event) => {
+    const handleClickedItem = async (event) => {
         if (event?.target?.id === 'logout') {
-            window.location.href = PATH_AUTH.login;
+            await logout();
         }
         setOpenPopover(false);
         setAnchorEl(null);

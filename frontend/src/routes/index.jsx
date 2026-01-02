@@ -41,18 +41,18 @@ export default function Router() {
         {
           path: 'login',
           element: (
-            // <GuestGuard>
-            <LoginPage />
-            // </GuestGuard>
+            <GuestGuard>
+              <LoginPage />
+            </GuestGuard>
           ),
         },
 
         {
           path: 'logout',
           element: (
-            // <GuestGuard>
-            <LoginPage />
-            // </GuestGuard>
+            <GuestGuard>
+              <LoginPage />
+            </GuestGuard>
           ),
         },
       ],
@@ -62,9 +62,9 @@ export default function Router() {
     {
       path: 'app',
       element: (
-        // <AuthGuard>
-        <DashboardLayout />
-        // </AuthGuard>
+        <AuthGuard>
+          <DashboardLayout />
+        </AuthGuard>
       ),
       children: [
         { element: <Navigate to={PATH_AFTER_LOGIN} replace />, index: true },
@@ -85,11 +85,12 @@ export default function Router() {
             },
             { path: 'carrier-maintenance', element: <CarrierMaintenancePage /> },
             { path: 'zone-maintenance', element: <ZoneMaintenancePage /> },
-            { path: 'rate-maintenance',
-               element: <RateLayout />,
-               children: [
-                 { index: true, element: <RateMaintenancePage /> }
-               ]
+            {
+              path: 'rate-maintenance',
+              element: <RateLayout />,
+              children: [
+                { index: true, element: <RateMaintenancePage /> }
+              ]
             },
             { path: 'accesorial-maintenance', element: <AccesorialMaintenancePage /> },
           ],

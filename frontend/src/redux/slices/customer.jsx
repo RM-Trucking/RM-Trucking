@@ -21,6 +21,7 @@ const initialState = {
   stationCurrentTab: 'department',
   stationTabTableData: [],
   checkedRates: [],
+  pagination: { page: 1, pageSize: 10, totalRecords: 0 },
 };
 
 const slice = createSlice({
@@ -38,16 +39,16 @@ const slice = createSlice({
       state.error = null;
       state.stationTabTableData = [];
     },
+    // set pagination object of the current table
+    setPaginationObject(state, action) {
+      state.pagination = action.payload;
+    },
     getCustomerdataSuccess(state, action) {
       state.isLoading = false;
-      state.customerRows = [{
-        'customerName': 'Oliver',
-        'rmAccountNo': 'RM1239289280',
-        'customerPhNo': '(112) 555-0199',
-        'customerWebsite': 'example1.com',
-        'status': 'Active',
-        'notes': "At example2.com, we prioritize our customers' shipping needs. Our platform offers a seamless experience for tracking shipments, managing delivery preferences, and accessing real-time updates View more",
-      }];
+      state.customerRows = action.payload.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
     },
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
@@ -101,7 +102,7 @@ const slice = createSlice({
     getStationRateDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = [
-        { 
+        {
           rateID: "RID10002",
           origin: "ORD",
           originZipCode: "10001, 10002",
@@ -112,7 +113,7 @@ const slice = createSlice({
           maxRate: "$25.50",
           expiryDate: "01-30-2026"
         },
-        { 
+        {
           rateID: "RID10005",
           origin: "ORD",
           originZipCode: "10001, 10002",
@@ -203,12 +204,12 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
-export function getCustomerData() {
+export function getCustomerData({ pageNo, pageSize, searchStr }) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/customerdata');
-      dispatch(slice.actions.getCustomerdataSuccess([]));
+      const response = await axios.get(`maintenance/customer?${searchStr ? `search=${searchStr}&` : ''}page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getCustomerdataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

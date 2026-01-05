@@ -14,11 +14,18 @@ export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
+    const pagination = useSelector((state) => state?.customerdata?.pagination);
+    const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const notesRef = useRef('');
     const [openEditDialog, setOpenEditDialog] = useState(false);
+    // pagination model
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
 
     // datagrid columns
     const columns = [{
@@ -28,7 +35,7 @@ export default function CustomerHomePageTable() {
         flex: 1
     },
     {
-        field: "rmAccountNo",
+        field: "rmAccountNumber",
         headerName: "RM Account #",
         minWidth: 100,
         flex: 1,
@@ -43,26 +50,26 @@ export default function CustomerHomePageTable() {
                         textDecoration: 'underline'
                     }}
                 >
-                    {params?.row?.rmAccountNo}
+                    {params?.row?.rmAccountNumber}
                 </Box>
             );
             return element;
         },
     },
     {
-        field: "customerPhNo",
+        field: "phoneNumber",
         headerName: "Customer Phone #",
         minWidth: 100,
         flex: 1
     },
     {
-        field: "customerWebsite",
+        field: "website",
         headerName: "Customer Website",
         minWidth: 100,
         flex: 1
     },
     {
-        field: "status",
+        field: "activeStatus",
         headerName: "Status",
         minWidth: 100,
         align: 'center',
@@ -75,7 +82,7 @@ export default function CustomerHomePageTable() {
                         flex: 1,
                     }}
                 >
-                    <Chip label={params?.row?.status} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'inactive') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                    <Chip label={params?.row?.activeStatus?.toLowerCase() === 'y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                 </Box>
             );
             return element;
@@ -98,9 +105,9 @@ export default function CustomerHomePageTable() {
                         flex: 1,
                     }}
                 >
-                    <Tooltip title={params?.row?.notes} arrow >
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
-                    </Tooltip>
+
+                    <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+
                 </Box>
             );
             return element;
@@ -143,12 +150,22 @@ export default function CustomerHomePageTable() {
 
     // call api to get table data
     useEffect(() => {
-        dispatch(getCustomerData());
+        dispatch(getCustomerData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr }));
     }, []);
+
+    useEffect(() => {
+        if (pagination) {
+            setPaginationModel({
+                page: pagination.page ? parseInt(pagination.page, 10) - 1 : 0,
+                pageSize: pagination.pageSize || 10,
+            });
+        }
+    }, [pagination]);
 
     useEffect(() => {
         console.log('customer rows updated', customerRows);
     }, [customerRows])
+
     // dialog actions and functions
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -213,10 +230,31 @@ export default function CustomerHomePageTable() {
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
             <DataGrid
+            paginationMode="server"
+                 paginationModel={paginationModel} 
+                onPaginationModelChange={(newModel) => {
+                    setPaginationModel(newModel); 
+                    dispatch(getCustomerData({
+                        pageNo: newModel.page + 1,
+                        pageSize: newModel.pageSize,
+                        searchStr: customerSearchStr
+                    }));
+                }}
+
                 rows={customerRows}
                 columns={columns}
                 loading={customerLoading}
-                getRowId={(row) => row?.rmAccountNo}
+                getRowId={(row) => row?.customerId}
+                hideFooterSelectedRowCount
+                onPageChange={(newPage) => {
+                    dispatch(getCustomerData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: customerSearchStr }));
+                }}
+                onPageSizeChange={(newPageSize) => {
+                    dispatch(getCustomerData({ pageNo: 1, pageSize: newPageSize, searchStr: customerSearchStr }));
+                }}
+                pageSizeOptions={[5, 10, 50, 100]}
+                rowCount={parseInt(pagination?.totalRecords || '0', 10)}
+                autoHeight
                 pagination
             />
             <ConfirmDialog

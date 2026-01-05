@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { jwtDecode } from "jwt-decode";
 import { createContext, useEffect, useReducer, useCallback } from 'react';
 // utils
 import axios from '../utils/axios';
@@ -68,13 +69,19 @@ export function AuthProvider({ children }) {
   const initialize = useCallback(async () => {
     try {
       const accessToken = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : '';
-
+      let user = null;
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
 
-        const response = await axios.get('maintenance/auth/login');
+        try {
+          user = jwtDecode(accessToken);
+          console.log(user);
+          // You can now access properties like decoded.foo, decoded.exp, etc.
 
-        const { user } = response.data;
+        } catch (error) {
+          console.error("Failed to decode token:", error.message);
+          // Handles cases where the token is invalid or malformed
+        }
 
         dispatch({
           type: 'INITIAL',

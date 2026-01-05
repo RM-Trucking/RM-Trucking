@@ -27,6 +27,7 @@ export const isValidToken = (accessToken) => {
   }
 
   const decoded = jwtDecode(accessToken);
+  console.log("decoded token:", decoded);
 
   const currentTime = Date.now() / 1000;
 

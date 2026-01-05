@@ -15,7 +15,7 @@ import { store, persistor } from './redux/store';
 
 createRoot(document.getElementById('root')).render(
   <AuthProvider>
-    <StrictMode>
+    {/* <StrictMode> */}
       <HelmetProvider>
         <ReduxProvider store={store}>
           <PersistGate loading={null} persistor={persistor}>
@@ -25,6 +25,6 @@ createRoot(document.getElementById('root')).render(
           </PersistGate>
         </ReduxProvider>
       </HelmetProvider>
-    </StrictMode>
+    {/* </StrictMode> */}
   </AuthProvider>,
 )

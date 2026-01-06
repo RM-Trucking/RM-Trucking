@@ -22,6 +22,7 @@ const initialState = {
   stationTabTableData: [],
   checkedRates: [],
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
+  operationalMessage : '',
 };
 
 const slice = createSlice({
@@ -45,10 +46,38 @@ const slice = createSlice({
     },
     getCustomerdataSuccess(state, action) {
       state.isLoading = false;
+      state.customerSuccess = true;
       state.customerRows = action.payload.data;
       state.pagination.page = action.payload.pagination.page;
       state.pagination.pageSize = action.payload.pagination.pageSize;
       state.pagination.totalRecords = action.payload.pagination.total;
+    },
+    postCustomerdataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("customer post payload", action.payload.data.customer);
+      state.customerRows.unshift(action.payload.data.customer);
+    },
+    putCustomerdataSuccess(state, action) {
+      state.isLoading = false;
+      console.log("customer put payload", action.payload.data);
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      const index = state.customerRows.findIndex((row) => row.customerId === action.payload?.data?.customerId);
+      if (index === 0 || index > 0) {
+        state.customerRows.splice(index, 1, action.payload.data);
+      }
+    },
+    deleteCustomerdataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message;
+      console.log("customer delete payload", action.payload);
+      const index = state.customerRows.findIndex((row) => row.customerId === action.payload.id);
+      if (index === 0 || index > 0) {
+        state.customerRows.splice(index, 1);
+      }
     },
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
@@ -212,6 +241,41 @@ export function getCustomerData({ pageNo, pageSize, searchStr }) {
       dispatch(slice.actions.getCustomerdataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function postCustomerData(obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.post(`maintenance/customer`, obj);
+      dispatch(slice.actions.postCustomerdataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function putCustomerData(obj, id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/customer/${id}`, obj);
+      dispatch(slice.actions.putCustomerdataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteCustomer(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/customer/${id}`);
+      dispatch(slice.actions.deleteCustomerdataSuccess({
+        id, message: response.data
+      }));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
     }
   };
 }

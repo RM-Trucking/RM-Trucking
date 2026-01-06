@@ -15,7 +15,7 @@ import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import CustomerViewStationTable from './CustomerViewStationTable';
-import { setTableBeingViewed } from '../../redux/slices/customer';
+import { setTableBeingViewed, postCustomerData, putCustomerData } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -30,7 +30,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     // Define default values for the form
     const defaultValues = {
         customerName: '',
-        rmAccountNo: '92898292989289',
+        rmAccountNumber: '92898292989289',
         phoneNumber: '',
         website: '',
         corpAddressLine1: '',
@@ -56,6 +56,43 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
 
     const onSubmit = (data) => {
         console.log('Form Submitted (RHF Data):', data);
+        let obj = {
+            "customerName": data?.customerName,
+            "rmAccountNumber": data?.rmAccountNumber,
+            "phoneNumber": data?.phoneNumber,
+            "website": data?.website,
+            "addresses": [
+                {
+                    "line1": data?.corpAddressLine1,
+                    "line2": data?.corpAddressLine2,
+                    "city": data?.corpCity,
+                    "state": data?.corpState,
+                    "zipCode": data?.corpZipCode,
+                    "addressRole": "Corporate"
+                },
+                {
+                    "line1": data?.billAddressLine1,
+                    "line2": data?.billAddressLine2,
+                    "city": data?.billCity,
+                    "state": data?.billState,
+                    "zipCode": data?.billZipCode,
+                    "addressRole": "Billing"
+                }
+            ],
+            "note": {
+                "messageText": data?.customerNotes
+            }
+        }
+        if (type === 'Add') {
+            dispatch(postCustomerData(obj));
+        }
+        if (type === 'Edit') {
+            obj.addresses[0].addressId = (selectedCustomerRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCustomerRowDetails.addresses[0].addressId : selectedCustomerRowDetails.addresses[1].addressId;
+            obj.addresses[1].addressId = (selectedCustomerRowDetails.addresses[1].addressRole === 'Billing') ? selectedCustomerRowDetails.addresses[1].addressId : selectedCustomerRowDetails.addresses[0].addressId;;
+            delete obj.note;
+            dispatch(putCustomerData(obj, selectedCustomerRowDetails?.customerId));
+        }
+        handleCloseConfirm();
     };
     useEffect(() => {
         dispatch(setTableBeingViewed('station'));
@@ -63,21 +100,21 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     useEffect(() => {
         console.log('Selected Customer Details:', selectedCustomerRowDetails);
         setValue('customerName', selectedCustomerRowDetails?.customerName || '');
-        setValue('rmAccountNo', selectedCustomerRowDetails?.rmAccountNo || '');
-        setValue('phoneNumber', selectedCustomerRowDetails?.customerPhNo || '');
-        setValue('website', selectedCustomerRowDetails?.customerWebsite || '');
-        setValue('corpAddressLine1', selectedCustomerRowDetails?.corpAddressLine1 || '');
-        setValue('corpAddressLine2', selectedCustomerRowDetails?.corpAddressLine2 || '');
-        setValue('corpCity', selectedCustomerRowDetails?.corpCity || '');
-        setValue('corpState', selectedCustomerRowDetails?.corpState || '');
-        setValue('corpZipCode', selectedCustomerRowDetails?.corpZipCode || '');
+        setValue('rmAccountNumber', selectedCustomerRowDetails?.rmAccountNumber || '');
+        setValue('phoneNumber', selectedCustomerRowDetails?.phoneNumber || '');
+        setValue('website', selectedCustomerRowDetails?.website || '');
+        setValue('corpAddressLine1', selectedCustomerRowDetails?.addresses[0].line1 || '');
+        setValue('corpAddressLine2', selectedCustomerRowDetails?.addresses[0].line2 || '');
+        setValue('corpCity', selectedCustomerRowDetails?.addresses[0].city || '');
+        setValue('corpState', selectedCustomerRowDetails?.addresses[0].state || '');
+        setValue('corpZipCode', selectedCustomerRowDetails?.addresses[0].zipCode || '');
         setValue('sameAsCorporate', false);
-        setValue('billAddressLine1', selectedCustomerRowDetails?.billAddressLine1 || '');
-        setValue('billAddressLine2', selectedCustomerRowDetails?.billAddressLine2 || '');
-        setValue('billCity', selectedCustomerRowDetails?.billCity || '');
-        setValue('billState', selectedCustomerRowDetails?.billState || '');
-        setValue('billZipCode', selectedCustomerRowDetails?.billZipCode || '');
-        setValue('customerNotes', selectedCustomerRowDetails?.notes || '');
+        setValue('billAddressLine1', selectedCustomerRowDetails?.addresses[1].line1 || '');
+        setValue('billAddressLine2', selectedCustomerRowDetails?.addresses[1].line2 || '');
+        setValue('billCity', selectedCustomerRowDetails?.addresses[1].city || '');
+        setValue('billState', selectedCustomerRowDetails?.addresses[1].state || '');
+        setValue('billZipCode', selectedCustomerRowDetails?.addresses[1].zipCode || '');
+        setValue('customerNotes', selectedCustomerRowDetails?.notes[0]?.messageText || '');
     }, [selectedCustomerRowDetails]);
 
     return (
@@ -113,7 +150,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             )}
                         />
                         <Controller
-                            name="rmAccountNo"
+                            name="rmAccountNumber"
                             control={control}
                             render={({ field }) => (
                                 <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" />
@@ -138,8 +175,8 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         <Controller
                             name="website"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '25%' }} label="Customer Website" />
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '25%' }} label="Customer website *" error={!!error} helperText={error ? 'Website is required' : ''} />
                             )}
                         />
                     </Stack>
@@ -190,12 +227,31 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     <Controller
                         name="sameAsCorporate"
                         control={control}
-                        render={({ field }) => (
+                        render={({ field: { onChange, value } }) => (
                             <FormControlLabel
                                 control={
                                     <StyledCheckbox
-                                        {...field}
-                                        checked={field.value}
+                                        checked={!!value}
+                                        onChange={(e) => {
+                                            const isChecked = e.target.checked;
+
+                                            // 1. Update React Hook Form state
+                                            onChange(isChecked);
+
+                                            if (isChecked) {
+                                                setValue('billAddressLine1', getValues('corpAddressLine1') || '');
+                                                setValue('billAddressLine2', getValues('corpAddressLine2') || '');
+                                                setValue('billCity', getValues('corpCity') || '');
+                                                setValue('billState', getValues('corpState') || '');
+                                                setValue('billZipCode', getValues('corpZipCode') || '');
+                                            } else {
+                                                setValue('billAddressLine1', '');
+                                                setValue('billAddressLine2', '');
+                                                setValue('billCity', '');
+                                                setValue('billState', '');
+                                                setValue('billZipCode', '');
+                                            }
+                                        }}
                                     />
                                 }
                                 label="Check if above Corporate Address is same for Billing Address"
@@ -246,7 +302,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </fieldset>
 
                     {/* customer notes */}
-                    <Controller
+                    {type === 'Add' && <Controller
                         name="customerNotes"
                         control={control}
                         rules={{ required: true }}
@@ -254,10 +310,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             <StyledTextField variant="standard" {...field} fullWidth label="Customer Notes *" error={!!error}
                                 helperText={error ? 'Customer notes is required' : ''} />
                         )}
-                    />
+                    />}
 
                     {/* status section  */}
-                    <fieldset>
+                    {type === 'View' && <fieldset>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Status &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} sx={{ mb: 2 }}>
                             <Controller
@@ -300,7 +356,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 )}
                             />
                         </Stack>
-                    </fieldset>
+                    </fieldset>}
 
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

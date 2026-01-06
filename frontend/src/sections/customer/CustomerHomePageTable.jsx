@@ -6,14 +6,18 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
+import { useSnackbar } from '../../components/snackbar';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
+import { setSelectedCustomerRowDetails, deleteCustomer } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { enqueueSnackbar } = useSnackbar();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const hasError = useSelector((state) => state?.customerdata?.error)
     const pagination = useSelector((state) => state?.customerdata?.pagination);
     const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
@@ -139,7 +143,9 @@ export default function CustomerHomePageTable() {
                         }} />
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
-                        <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                        <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
+                            dispatch(deleteCustomer(params?.row?.customerId));
+                        }} />
                     </Tooltip>
                 </Box>
             );
@@ -161,6 +167,17 @@ export default function CustomerHomePageTable() {
             });
         }
     }, [pagination]);
+
+    useEffect(() => {
+        console.log("customer error at console", hasError);
+        enqueueSnackbar(hasError, { variant: 'error' });
+    }, [hasError])
+    // operational message on customer
+    useEffect(() => {
+        if (operationalMessage) {
+            enqueueSnackbar(operationalMessage, { variant: 'success' });
+        }
+    }, [operationalMessage])
 
     useEffect(() => {
         console.log('customer rows updated', customerRows);
@@ -230,10 +247,10 @@ export default function CustomerHomePageTable() {
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
             <DataGrid
-            paginationMode="server"
-                 paginationModel={paginationModel} 
+                paginationMode="server"
+                paginationModel={paginationModel}
                 onPaginationModelChange={(newModel) => {
-                    setPaginationModel(newModel); 
+                    setPaginationModel(newModel);
                     dispatch(getCustomerData({
                         pageNo: newModel.page + 1,
                         pageSize: newModel.pageSize,

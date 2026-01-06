@@ -10,6 +10,7 @@ import { useSnackbar } from '../../components/snackbar';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedCustomerRowDetails, deleteCustomer } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
+import NotesTable from './NotesTable';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
@@ -17,7 +18,7 @@ export default function CustomerHomePageTable() {
     const { enqueueSnackbar } = useSnackbar();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
-    const hasError = useSelector((state) => state?.customerdata?.error)
+    const error = useSelector((state) => state?.customerdata?.error)
     const pagination = useSelector((state) => state?.customerdata?.pagination);
     const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
@@ -169,9 +170,9 @@ export default function CustomerHomePageTable() {
     }, [pagination]);
 
     useEffect(() => {
-        console.log("customer error at console", hasError);
-        enqueueSnackbar(hasError, { variant: 'error' });
-    }, [hasError])
+        console.log("customer error at console", error);
+        enqueueSnackbar(error, { variant: 'error' });
+    }, [error])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
@@ -188,57 +189,7 @@ export default function CustomerHomePageTable() {
         setOpenConfirmDialog(false);
         notesRef.current = '';
     };
-    const handleTitle = () => {
-        const element = (
-            <>
-                <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
-                    <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
-                </Stack>
-                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-            </>
-        );
-        return element;
-    };
-    const handleContent = () => {
-        const confirmDialogContent = (
-            <Box sx={{ pt: 2 }}>
-                <Typography variant="normal" sx={{ fontWeight: 400, fontSize: '16px' }}>
-                    {notesRef.current}
-                </Typography>
-            </Box>
-        );
 
-        return confirmDialogContent;
-    };
-    const handleDialogActions = () => {
-
-        const confirmDialogActions = (
-            <>
-                <Button
-                    variant="contained"
-                    onClick={() => handleCloseConfirm()}
-                    size="small"
-                    sx={{
-                        '&.MuiButton-contained': {
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            boxShadow: 'none',
-                            fontSize: '14px',
-                            p: '2px 16px',
-                            bgcolor: '#A22',
-                            fontWeight: 'normal',
-                            ml: 1,
-                            mb: 1
-                        },
-                    }}
-                >
-                    Ok
-                </Button>
-            </>
-        );
-        return confirmDialogActions;
-    }
     const handleCloseEdit = () => {
         setOpenEditDialog(false);
     };
@@ -274,36 +225,51 @@ export default function CustomerHomePageTable() {
                 autoHeight
                 pagination
             />
-            <ConfirmDialog
-                open={openConfirmDialog}
-                onClose={handleCloseConfirm}
-                title={handleTitle()}
-                content={handleContent()}
-                action={handleDialogActions()}
-                onKeyDown={(event) => {
-                    if (event.key === 'Escape') {
-                        handleCloseConfirm();
-                    }
-                }}
-            />
-            <Dialog open={openEditDialog} onClose={handleCloseEdit} onKeyDown={(event) => {
-                if (event.key === 'Escape') {
-                    handleCloseEdit();
+        </Box>
+        <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseConfirm();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1000px',
+                    height: '680px',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
                 }
             }}
-                sx={{
-                    '& .MuiDialog-paper': { // Target the paper class
-                        width: '1543px',
-                        height: '600px',
-                        maxHeight: 'none',
-                        maxWidth: 'none',
-                    }
-                }}
-            >
-                <DialogContent>
-                    <SharedCustomerDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedCustomerRowDetails={selectedCustomerRowDetails} />
-                </DialogContent>
-            </Dialog>
-        </Box>
+        >
+            <DialogContent>
+                <>
+                    <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
+                        <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                    </Stack>
+                    <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                </>
+                <Box sx={{ pt: 2 }}>
+                    <NotesTable notes={notesRef.current} handleCloseConfirm = {handleCloseConfirm}/>
+                </Box>
+            </DialogContent>
+        </Dialog>
+        <Dialog open={openEditDialog} onClose={handleCloseEdit} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseEdit();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1543px',
+                    height: '600px',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
+                }
+            }}
+        >
+            <DialogContent>
+                <SharedCustomerDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedCustomerRowDetails={selectedCustomerRowDetails} />
+            </DialogContent>
+        </Dialog>
     </>)
 }

@@ -23,8 +23,8 @@ export default function StyledNotistack() {
             backgroundColor: isLight ? theme.palette.grey[900] : theme.palette.common.white,
             '&.SnackbarItem-variantSuccess, &.SnackbarItem-variantError, &.SnackbarItem-variantWarning, &.SnackbarItem-variantInfo':
               {
-                color: theme.palette.text.primary,
-                backgroundColor: theme.palette.background.paper,
+                color: '#A22',
+                backgroundColor: '#fff',
               },
             [theme.breakpoints.up('md')]: {
               minWidth: 240,
@@ -32,11 +32,11 @@ export default function StyledNotistack() {
           },
           '.SnackbarItem-message': {
             padding: '0 !important',
-            fontWeight: theme.typography.fontWeightMedium,
+            fontWeight: '12px',
           },
           '.SnackbarItem-action': {
             marginRight: 0,
-            color: theme.palette.action.active,
+            color: '#A22',
 
             '& svg': {
               width: 20,

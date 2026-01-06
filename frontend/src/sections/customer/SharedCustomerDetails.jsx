@@ -61,6 +61,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
             "rmAccountNumber": data?.rmAccountNumber,
             "phoneNumber": data?.phoneNumber,
             "website": data?.website,
+            "corporateBillingSame": data.sameAsCorporate ? 'Y' : 'N',
             "addresses": [
                 {
                     "line1": data?.corpAddressLine1,
@@ -86,7 +87,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         if (type === 'Add') {
             dispatch(postCustomerData(obj));
         }
-        if (type === 'Edit') {
+        if (type === 'Edit' || type === 'View') {
+            obj.activeStatusReason =  data.reasonForStatus || '';
+            // obj.activeStatus = data.customerStatus || '';
             obj.addresses[0].addressId = (selectedCustomerRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCustomerRowDetails.addresses[0].addressId : selectedCustomerRowDetails.addresses[1].addressId;
             obj.addresses[1].addressId = (selectedCustomerRowDetails.addresses[1].addressRole === 'Billing') ? selectedCustomerRowDetails.addresses[1].addressId : selectedCustomerRowDetails.addresses[0].addressId;;
             delete obj.note;

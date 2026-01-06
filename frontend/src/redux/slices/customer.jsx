@@ -31,7 +31,7 @@ const slice = createSlice({
   reducers: {
     hasError(state, action) {
       state.isLoading = false;
-      state.error = 'error';
+      state.error = action.payload || action.payload.error;
     },
     // START LOADING
     startLoading(state) {

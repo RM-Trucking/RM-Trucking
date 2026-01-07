@@ -72,7 +72,7 @@ export function AuthProvider({ children }) {
       let user = null;
       if (accessToken && isValidToken(accessToken)) {
         setSession(accessToken);
-
+        axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
         try {
           user = jwtDecode(accessToken);
           console.log(user);
@@ -125,7 +125,7 @@ export function AuthProvider({ children }) {
     const { accessToken, refreshToken, user } = response.data.data;
 
     setSession(accessToken, refreshToken);
-    axios.defaults.headers.common.Authorization = accessToken;
+    axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
     dispatch({
       type: 'LOGIN',
       payload: {

@@ -4,6 +4,7 @@ import storage from 'redux-persist/lib/storage';
 import dashboardReducer from './slices/dashboard';
 import customerReducer from './slices/customer';
 import rateReducer from './slices/rate';
+import noteReducer from './slices/note';
 // ----------------------------------------------------------------------
 
 const rootPersistConfig = {
@@ -18,6 +19,7 @@ const rootReducer = combineReducers({
   dashboarddata : dashboardReducer,
   customerdata : customerReducer,
   ratedata : rateReducer,
+  notedata : noteReducer,
 });
 
 export { rootPersistConfig, rootReducer };

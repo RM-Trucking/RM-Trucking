@@ -10,41 +10,37 @@ import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
 import { setTableBeingViewed } from '../../redux/slices/customer';
+import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
+import convertLocalToET from '../../utils/timeConversion';
 
 NotesTable.PropTypes = {
-    notes: PropTypes.array,
+    notes: PropTypes.obj,
     handleCloseConfirm: PropTypes.func
 };
 
 export default function NotesTable({ notes, handleCloseConfirm }) {
     const dispatch = useDispatch();
     const [multilineTextValue, setMultilineTextValue] = useState('');
-    const rows = [
-        {
-            id: 0,
-            time: new Date(),
-            user: 'Admin',
-            note: 'Message text'
-        },
-        {
-            id: 1,
-            time: new Date(),
-            user: 'Admin',
-            note: 'Message text'
-        }
-    ]
+    const isLoading = useSelector((state) => state?.notedata?.isLoading);
+    const notesData = useSelector((state) => state?.notedata?.notesData);
     const notesColumns = [
         {
-            field: "time",
+            field: "createdAt",
             headerName: "Time",
             minWidth: 200,
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Typography variant='normal'>{convertLocalToET(new Date(params.row.createdAt))}</Typography>
+                );
+                return element;
+            }
         },
         {
-            field: "user",
+            field: "createdBy",
             headerName: "User",
             minWidth: 200,
             flex: 1,
@@ -52,14 +48,14 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
-                    <Typography>{params?.row?.user.toUpperCase()}</Typography>
+                    <Typography>{params?.row?.createdBy}</Typography>
                 );
                 return element;
             },
         },
 
         {
-            field: "note",
+            field: "messageText",
             headerName: "Note",
             minWidth: 200,
             flex: 1,
@@ -91,19 +87,33 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             },
         },
     ];
+
+    // get call for notes
+    useEffect(() => {
+        dispatch(setTableBeingViewed('Notes'));
+        dispatch(getNotesData(notes?.noteThreadId));
+    }, []);
+
+    const addNote = () => {
+        const obj = {
+            "noteThreadId": notes?.noteThreadId,
+            "messageText": multilineTextValue
+        };
+        dispatch(postNote(obj));
+    }
+
     return (
         <>
             <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
-                    rows={rows}
+                    rows={notesData}
                     columns={notesColumns}
-                    // loading={customerLoading}
-                    getRowId={(row) => row?.id}
+                    loading={isLoading}
+                    getRowId={(row) => row?.noteMessageId}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
-                    getRowHeight={() => 'auto'}
                 />
             </Box>
             <StyledTextField
@@ -131,7 +141,22 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                 }}
             />
             <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{ mt: 2 }}>
-                <Button variant="outlined" startIcon={<AddIcon />}>
+                <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
+                    onClick={() => addNote()}
+                    sx={{
+                        '&.MuiButton-contained': {
+                            borderRadius: '4px',
+                            color: '#ffffff',
+                            boxShadow: 'none',
+                            fontSize: '14px',
+                            p: '2px 16px',
+                            bgcolor: '#A22',
+                            fontWeight: 'normal',
+                            ml: 1,
+                            mb: 1
+                        },
+                    }}
+                >
                     Add Note
                 </Button>
                 <Button

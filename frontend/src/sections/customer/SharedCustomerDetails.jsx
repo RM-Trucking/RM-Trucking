@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import {
     Button,
@@ -48,6 +48,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         customerStatus: '',
         reasonForStatus: ''
     };
+    const [readOnly, setReadOnly] = useState(false);
 
     const { control, handleSubmit, watch, getValues, setValue } = useForm({ defaultValues });
 
@@ -106,18 +107,18 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         setValue('rmAccountNumber', selectedCustomerRowDetails?.rmAccountNumber || '');
         setValue('phoneNumber', selectedCustomerRowDetails?.phoneNumber || '');
         setValue('website', selectedCustomerRowDetails?.website || '');
-        setValue('corpAddressLine1', selectedCustomerRowDetails?.addresses[0].line1 || '');
-        setValue('corpAddressLine2', selectedCustomerRowDetails?.addresses[0].line2 || '');
-        setValue('corpCity', selectedCustomerRowDetails?.addresses[0].city || '');
-        setValue('corpState', selectedCustomerRowDetails?.addresses[0].state || '');
-        setValue('corpZipCode', selectedCustomerRowDetails?.addresses[0].zipCode || '');
-        setValue('sameAsCorporate', false);
-        setValue('billAddressLine1', selectedCustomerRowDetails?.addresses[1].line1 || '');
-        setValue('billAddressLine2', selectedCustomerRowDetails?.addresses[1].line2 || '');
-        setValue('billCity', selectedCustomerRowDetails?.addresses[1].city || '');
-        setValue('billState', selectedCustomerRowDetails?.addresses[1].state || '');
-        setValue('billZipCode', selectedCustomerRowDetails?.addresses[1].zipCode || '');
-        setValue('customerNotes', selectedCustomerRowDetails?.notes[0]?.messageText || '');
+        setValue('corpAddressLine1', selectedCustomerRowDetails?.addresses?.[0]?.line1 || '');
+        setValue('corpAddressLine2', selectedCustomerRowDetails?.addresses?.[0]?.line2 || '');
+        setValue('corpCity', selectedCustomerRowDetails?.addresses?.[0]?.city || '');
+        setValue('corpState', selectedCustomerRowDetails?.addresses?.[0]?.state || '');
+        setValue('corpZipCode', selectedCustomerRowDetails?.addresses?.[0]?.zipCode || '');
+        setValue('sameAsCorporate', selectedCustomerRowDetails?.corporateBillingSame === 'Y' ? true : false);
+        setReadOnly(selectedCustomerRowDetails?.corporateBillingSame === 'Y' ? true : false);
+        setValue('billAddressLine1', selectedCustomerRowDetails?.addresses?.[1]?.line1 || '');
+        setValue('billAddressLine2', selectedCustomerRowDetails?.addresses?.[1]?.line2 || '');
+        setValue('billCity', selectedCustomerRowDetails?.addresses?.[1]?.city || '');
+        setValue('billState', selectedCustomerRowDetails?.addresses?.[1]?.state || '');
+        setValue('billZipCode', selectedCustomerRowDetails?.addresses?.[1]?.zipCode || '');
     }, [selectedCustomerRowDetails]);
 
     return (
@@ -240,7 +241,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
 
                                             // 1. Update React Hook Form state
                                             onChange(isChecked);
-
+                                            setReadOnly(isChecked);
                                             if (isChecked) {
                                                 setValue('billAddressLine1', getValues('corpAddressLine1') || '');
                                                 setValue('billAddressLine2', getValues('corpAddressLine2') || '');
@@ -270,35 +271,35 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billAddressLine1"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 1" />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 1"  disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billAddressLine2"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 2" />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 2" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billCity"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="City" />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="City" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billState"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="State" />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="State" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billZipCode"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Zip Code" />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Zip Code" disabled={readOnly} />
                                 )}
                             />
                         </Stack>

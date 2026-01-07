@@ -24,7 +24,7 @@ export default function CustomerHomePageTable() {
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-    const notesRef = useRef('');
+    const notesRef = useRef({});
     const [openEditDialog, setOpenEditDialog] = useState(false);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
@@ -101,7 +101,7 @@ export default function CustomerHomePageTable() {
         renderCell: (params) => {
             const handleDialogOpen = () => {
                 setOpenConfirmDialog(true);
-                notesRef.current = params?.row?.notes;
+                notesRef.current = params?.row;
             }
             const element = (
                 <Box
@@ -187,7 +187,7 @@ export default function CustomerHomePageTable() {
     // dialog actions and functions
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
-        notesRef.current = '';
+        notesRef.current = {};
     };
 
     const handleCloseEdit = () => {

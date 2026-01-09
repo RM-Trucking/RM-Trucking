@@ -134,18 +134,21 @@ export default function CustomerHomePageTable() {
                     <Tooltip title={'View'} arrow>
                         <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
+                            localStorage.setItem('customerId',params?.row?.customerId);
                             navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
                         }} />
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
                         <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
+                            localStorage.setItem('customerId',params?.row?.customerId);
                             setOpenEditDialog(true);
                         }} />
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
                         <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
                             dispatch(deleteCustomer(params?.row?.customerId));
+                            localStorage.setItem('customerId',params?.row?.customerId);
                         }} />
                     </Tooltip>
                 </Box>

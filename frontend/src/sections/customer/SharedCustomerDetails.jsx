@@ -88,8 +88,8 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         if (type === 'Add') {
             dispatch(postCustomerData(obj));
         }
-        if (type === 'Edit' || type === 'View') {
-            obj.activeStatusReason =  data.reasonForStatus || '';
+        if (type === 'Edit') {
+            obj.activeStatusReason = data.reasonForStatus || '';
             // obj.activeStatus = data.customerStatus || '';
             obj.addresses[0].addressId = (selectedCustomerRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCustomerRowDetails.addresses[0].addressId : selectedCustomerRowDetails.addresses[1].addressId;
             obj.addresses[1].addressId = (selectedCustomerRowDetails.addresses[1].addressRole === 'Billing') ? selectedCustomerRowDetails.addresses[1].addressId : selectedCustomerRowDetails.addresses[0].addressId;;
@@ -120,6 +120,13 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         setValue('billState', selectedCustomerRowDetails?.addresses?.[1]?.state || '');
         setValue('billZipCode', selectedCustomerRowDetails?.addresses?.[1]?.zipCode || '');
     }, [selectedCustomerRowDetails]);
+    useEffect(() => {
+        if (type === 'View') {
+            setReadOnly(true);
+        }else{
+            setReadOnly(false);
+        }
+    }, [type]);
 
     return (
         <>
@@ -150,6 +157,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     label="Customer Name *"
                                     error={!!error}
                                     helperText={error ? 'Name is required' : ''}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -157,7 +165,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             name="rmAccountNumber"
                             control={control}
                             render={({ field }) => (
-                                <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" />
+                                <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -173,6 +181,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     label="Customer Phone Number *"
                                     error={!!error}
                                     helperText={error ? 'Phone number is required' : ''}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -180,7 +189,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             name="website"
                             control={control}
                             render={({ field, fieldState: { error } }) => (
-                                <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '25%' }} label="Customer website *" error={!!error} helperText={error ? 'Website is required' : ''} />
+                                <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '25%' }} label="Customer website *" error={!!error} helperText={error ? 'Website is required' : ''} disabled={readOnly} />
                             )}
                         />
                     </Stack>
@@ -193,7 +202,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpAddressLine1"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={readOnly} />
                                 )}
                             />
                             <Controller
@@ -207,21 +216,21 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpCity"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="City" />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="City" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="corpState"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="State" />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="State" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="corpZipCode"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Zip Code" />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Zip Code" disabled={readOnly} />
                                 )}
                             />
                         </Stack>
@@ -256,6 +265,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 setValue('billZipCode', '');
                                             }
                                         }}
+                                        disabled={readOnly}
                                     />
                                 }
                                 label="Check if above Corporate Address is same for Billing Address"
@@ -271,7 +281,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billAddressLine1"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 1"  disabled={readOnly} />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 1" disabled={readOnly} />
                                 )}
                             />
                             <Controller
@@ -317,7 +327,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     />}
 
                     {/* status section  */}
-                    {type === 'View' && <fieldset>
+                    {/* {type === 'View' && <fieldset>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Status &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} sx={{ mb: 2 }}>
                             <Controller
@@ -360,7 +370,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 )}
                             />
                         </Stack>
-                    </fieldset>}
+                    </fieldset>} */}
 
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
@@ -408,7 +418,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         {type === 'Add' ? 'Add' : 'Edit'}
                     </Button>
                 </Stack>}
-                {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                {/* {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
                         size="small"
@@ -451,7 +461,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     >
                         Save
                     </Button>
-                </Stack>}
+                </Stack>} */}
             </Box>
             {/* station table */}
             {

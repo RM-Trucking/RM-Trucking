@@ -44,6 +44,8 @@ const slice = createSlice({
     setPaginationObject(state, action) {
       state.pagination = action.payload;
     },
+
+    // CRUD operations of customer
     getCustomerdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
@@ -79,26 +81,38 @@ const slice = createSlice({
         state.customerRows.splice(index, 1);
       }
     },
+
+    // station table data in customer
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationRows = [
-        {
-          stationName: 'Station Level 1',
-          rmAccountNo: 'RM5675765',
-          airportCode: 'JFK',
-          address: '123 Liberty Ave...',
-          city: 'New York City',
-          state: 'New York',
-          zipCode: '11201',
-          zip4Code: '11201',
-          phoneNo: '(733) 555-0123',
-          faxNo: '',
-          openTime: '12:00',
-          closeTime: '07:00',
-          hrs: '5',
-          warehouse: 'Warehouse'
-        }
-      ];
+      state.stationRows = action.payload.data;
+    },
+    postStationdataSuccess(state,action){
+       state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("station post payload", action.payload.data);
+      state.stationRows.unshift(action.payload.data);
+    },
+    putStationdataSuccess(state,action){
+       state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("station put payload", action.payload.data);
+      const index = state.stationRows.findIndex((row) => row.stationId === action.payload?.data?.stationId);
+      if (index === 0 || index > 0) {
+        state.stationRows.splice(index, 1, action.payload.data);
+      }
+    },
+    deleteStationdataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message;
+      console.log("station delete payload", action.payload);
+      const index = state.stationRows.findIndex((row) => row.stationId === action.payload.id);
+      if (index === 0 || index > 0) {
+        state.stationRows.splice(index, 1);
+      }
     },
     // station tabs data
     getStationDepartmentDataSuccess(state, action) {
@@ -207,9 +221,11 @@ const slice = createSlice({
     setSelectedStationTabRowDetails(state, action) {
       state.selectedStationTabRowDetails = action.payload;
     },
+    // which table is being viewed on Ui
     setTableBeingViewed(state, action) {
       state.tableWhichBeingViewed = action.payload;
     },
+    // which tab is being viewed on UI in station details
     setStationCurrentTab(state, action) {
       state.stationCurrentTab = action.payload;
       state.tableWhichBeingViewed = action.payload;
@@ -233,6 +249,7 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
+// CRUD operations of Customer
 export function getCustomerData({ pageNo, pageSize, searchStr }) {
   return async () => {
     dispatch(slice.actions.startLoading());
@@ -279,17 +296,56 @@ export function deleteCustomer(id) {
     }
   };
 }
-export function getCustomerStationData() {
+
+// CRUD operations of station
+export function getCustomerStationData({ pageNo, pageSize, searchStr, customerId }) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/stationdata');
-      dispatch(slice.actions.getCustomerStationDataSuccess([]));
+      const response = await axios.get(`maintenance/station/customer/${customerId}`);
+      dispatch(slice.actions.getCustomerStationDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
+export function postStationData(obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.post(`maintenance/station`, obj);
+      dispatch(slice.actions.postStationdataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function putStationData(id,obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/station/${id}`, obj);
+      dispatch(slice.actions.putStationdataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteStation(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/station/${id}`);
+      dispatch(slice.actions.deleteStationdataSuccess({
+        id, message: response.data
+      }));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+
+// CRUD operations of Department
 export function getStationDepartmentData() {
   return async () => {
     dispatch(slice.actions.startLoading());
@@ -301,6 +357,7 @@ export function getStationDepartmentData() {
     }
   };
 }
+// CRUD operations of Personnel
 export function getStationPersonnelData() {
   return async () => {
     dispatch(slice.actions.startLoading());
@@ -312,6 +369,8 @@ export function getStationPersonnelData() {
     }
   };
 }
+
+// get for station rate
 export function getStationRateData() {
   return async () => {
     dispatch(slice.actions.startLoading());
@@ -323,6 +382,8 @@ export function getStationRateData() {
     }
   };
 }
+
+// CRUD operations of accessorial
 export function getStationAccessorialData() {
   return async () => {
     dispatch(slice.actions.startLoading());

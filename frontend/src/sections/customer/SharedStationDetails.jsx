@@ -13,18 +13,20 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import StationTabs from './StationTabs';
-import { setTableBeingViewed } from '../../redux/slices/customer';
+import { setTableBeingViewed, postStationData, putStationData } from '../../redux/slices/customer';
 import { useDispatch, useSelector } from '../../redux/store';
 
 SharedStationDetails.propTypes = {
     type: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
-    selectedCustomerStationDetails: PropTypes?.object
+    selectedCustomerStationDetails: PropTypes?.object,
+    customerId: PropTypes.any,
 };
 
-export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails }) {
+export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails, customerId }) {
     const dispatch = useDispatch();
     const [warehouseFlag, setWarehouseFlag] = useState(false);
+    const [readOnly, setReadOnly] = useState(false);
     const {
         control,
         handleSubmit,
@@ -43,10 +45,10 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             zipCode: '',
             phoneNumber: '',
             faxNumber: '',
-            openTime: '11:00',
-            closeTime: '20:00',
-            hours: '08:00',
-            warehouse: false,
+            openTime: '',
+            closeTime: '',
+            hours: '',
+            warehouse: 'N',
             warehouseDetails: '',
             stationNotes: '',
         }
@@ -54,33 +56,77 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
-        alert('Form submitted successfully! Check console for data.');
+        let obj = {
+            "customerId":  parseInt(localStorage.getItem('customerId'),10),
+            "stationName": data.stationName,
+            "rmAccountNumber": data.rmAccountNumber,
+            "airportCode": data.airportCode,
+            "phoneNumber": data.phoneNumber,
+            "faxNumber": data.faxNumber,
+            "openTime": data.openTime,
+            "closeTime": data.closeTime,
+            "hours": data.hours,
+            "warehouse": (data.warehouse) ? 'Y' : 'N',
+            "addresses": [
+                {
+                    "line1": data.addressLine1,
+                    "line2": data.addressLine2,
+                    "city": data.city,
+                    "state": data.state,
+                    "zipCode": data.zipCode,
+                    "addressRole": "Primary"
+                }
+            ],
+            "note": {
+                "messageText": data.stationNotes
+            }
+        }
+        if (type === 'Add') {
+            // dispatch post
+            dispatch(postStationData(obj));
+
+        }
+        if (type === 'Edit') {
+            obj.addresses[0].addressId = selectedCustomerStationDetails?.addresses?.[0].addressId;
+            delete obj.note;
+            // dispatch put
+            dispatch(putStationData(selectedCustomerStationDetails?.stationId, obj));
+        }
+        handleCloseConfirm();
     };
 
-     useEffect(() => {
+    useEffect(() => {
         dispatch(setTableBeingViewed('Department'));
     }, []);
+    useEffect(() => {
+        if (type === 'View') {
+            setReadOnly(true);
+        } else {
+            setReadOnly(false);
+        }
+    }, [type]);
 
     useEffect(() => {
         if (selectedCustomerStationDetails) {
             // Populate form with selected station details  
             setValue('stationName', selectedCustomerStationDetails.stationName || '');
-            setValue('rmAccountNumber', selectedCustomerStationDetails.rmAccountNo || '');
+            setValue('rmAccountNumber', selectedCustomerStationDetails.rmAccountNumber || '');
             setValue('airportCode', selectedCustomerStationDetails.airportCode || '');
-            setValue('addressLine1', selectedCustomerStationDetails.address || '');
-            setValue('addressLine2', selectedCustomerStationDetails.addressLine2 || '');
-            setValue('city', selectedCustomerStationDetails.city || '');
-            setValue('state', selectedCustomerStationDetails.state || '');
-            setValue('zipCode', selectedCustomerStationDetails.zipCode || '');
-            setValue('phoneNumber', selectedCustomerStationDetails.phoneNo || '');
-            setValue('faxNumber', selectedCustomerStationDetails.faxNo || '');
-            setValue('openTime', selectedCustomerStationDetails.openTime || '11:00');
-            setValue('closeTime', selectedCustomerStationDetails.closeTime || '20:00');
-            setValue('hours', selectedCustomerStationDetails.hrs || '08:00');
-            setWarehouseFlag(!!selectedCustomerStationDetails.warehouse);
-            setValue('warehouse', !!selectedCustomerStationDetails.warehouse);
+            setValue('addressLine1', selectedCustomerStationDetails.addresses?.[0]?.line1 || '');
+            setValue('addressLine2', selectedCustomerStationDetails.addresses?.[0]?.line2 || '');
+            setValue('city', selectedCustomerStationDetails.addresses?.[0]?.city || '');
+            setValue('state', selectedCustomerStationDetails.addresses?.[0]?.state || '');
+            setValue('zipCode', selectedCustomerStationDetails.addresses?.[0]?.zipCode || '');
+            setValue('phoneNumber', selectedCustomerStationDetails.phoneNumber || '');
+            setValue('faxNumber', selectedCustomerStationDetails.faxNumber || '');
+            setValue('openTime', selectedCustomerStationDetails.openTime || '');
+            setValue('closeTime', selectedCustomerStationDetails.closeTime || '');
+            setValue('hours', selectedCustomerStationDetails.hours || '');
+            setWarehouseFlag(selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
+            setValue('warehouse', selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouseDetails', selectedCustomerStationDetails.warehouse);
-        }}, [selectedCustomerStationDetails]);
+        }
+    }, [selectedCustomerStationDetails]);
 
     return (
         <>
@@ -93,7 +139,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             </>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
-                <Stack spacing={4} sx={{p:3}}>
+                <Stack spacing={4} sx={{ p: 3 }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
                             name="stationName"
@@ -108,6 +154,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                     }}
                                     error={!!errors.stationName} helperText={errors.stationName?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -124,6 +171,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                     }}
                                     error={!!errors.rmAccountNumber} helperText={errors.rmAccountNumber?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -140,6 +188,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                     }}
                                     error={!!errors.airportCode} helperText={errors.airportCode?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -156,6 +205,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                     }}
                                     error={!!errors.addressLine1} helperText={errors.addressLine1?.message}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -167,7 +217,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Address Line 2" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} />
+                                }} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -177,7 +227,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="City" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} required error={!!errors.city} helperText={errors.city?.message} />
+                                }} required error={!!errors.city} helperText={errors.city?.message} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -188,7 +238,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 <StyledTextField {...field} label="State" variant="standard" fullWidth sx={{
                                     width: '25%',
                                 }} required error={!!errors.state}
-                                    helperText={errors.state?.message} />
+                                    helperText={errors.state?.message} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -198,7 +248,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Zip Code" variant="standard" fullWidth required sx={{
                                     width: '25%',
-                                }} error={!!errors.zipCode} helperText={errors.zipCode?.message} />
+                                }} error={!!errors.zipCode} helperText={errors.zipCode?.message} disabled={readOnly} />
                             )}
                         />
                     </Stack>
@@ -210,7 +260,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Phone Number" variant="standard" fullWidth required sx={{
                                     width: '25%',
-                                }} error={!!errors.phoneNumber} helperText={errors.phoneNumber?.message} />
+                                }} error={!!errors.phoneNumber} helperText={errors.phoneNumber?.message} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -219,7 +269,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Fax Number" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} />
+                                }} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -228,7 +278,11 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Open Time" type="time" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} InputLabelProps={{ shrink: true }} />
+                                }} InputLabelProps={{ shrink: true }} disabled={readOnly}
+                                    inputProps={{
+                                        step: 1, // Required to show seconds
+                                    }}
+                                />
                             )}
                         />
                         <Controller
@@ -237,7 +291,11 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Close Time" type="time" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} InputLabelProps={{ shrink: true }} />
+                                }} InputLabelProps={{ shrink: true }} disabled={readOnly}
+                                    inputProps={{
+                                        step: 1, // Required to show seconds
+                                    }}
+                                />
                             )}
                         />
                     </Stack>
@@ -248,7 +306,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Hours" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} InputLabelProps={{ shrink: true }} />
+                                }} InputLabelProps={{ shrink: true }} disabled={readOnly} />
                             )}
                         />
                         <Controller
@@ -270,7 +328,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             // 2. Update your local state variable
                                             setWarehouseFlag(isChecked);
                                             console.log("New warehouse state:", isChecked);
-                                        }} />}
+                                        }} disabled={readOnly} />}
                                     label="Warehouse"
                                 />
                             )}
@@ -282,21 +340,21 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Warehouse details" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} />
+                                }} disabled={readOnly} />
                             )}
                         />}
                     </Stack>
 
                     {/* customer notes */}
-                    <Controller
+                    {type === 'Add' && <Controller
                         name="stationNotes"
                         control={control}
                         rules={{ required: true }}
                         render={({ field, fieldState: { error } }) => (
                             <StyledTextField variant="standard" {...field} fullWidth label="Station Notes *" error={!!error}
-                                helperText={error ? 'Station notes is required' : ''} />
+                                helperText={error ? 'Station notes is required' : ''} disabled={readOnly} />
                         )}
-                    />
+                    />}
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
@@ -344,7 +402,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                     </Button>
                 </Stack>}
                 {
-                    type === 'View' && <StationTabs/>
+                    type === 'View' && <StationTabs />
                 }
             </Box>
         </>

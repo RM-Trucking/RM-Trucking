@@ -8,8 +8,12 @@ import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
-import { setSelectedStationTabRowDetails, getStationDepartmentData, getStationPersonnelData, getStationRateData, getStationAccessorialData } from '../../redux/slices/customer';
-import ConfirmDialog from '../../components/confirm-dialog';
+import {
+    setSelectedStationTabRowDetails, getStationDepartmentData,
+    getStationPersonnelData, getStationRateData, getStationAccessorialData,
+    deleteStationDepartment, deleteStationPersonnel
+} from '../../redux/slices/customer';
+import NotesTable from './NotesTable';
 // ----------------------------------------------------------------------
 
 
@@ -22,10 +26,19 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     const dispatch = useDispatch();
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
+    const pagination = useSelector((state) => state?.customerdata?.pagination);
+    const error = useSelector((state) => state?.customerdata?.error);
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const selectedStationTabRowDetails = useSelector((state) => state?.customerdata?.selectedStationTabRowDetails);
     const [tableColumns, setTableColumns] = useState([]);
     // dialog for notes
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-    const notesRef = useRef('');
+    const notesRef = useRef({});
+    // pagination model
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
 
     // columns for department, personnel, rate, accessorial
 
@@ -118,7 +131,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                                dispatch(deleteStationDepartment(selectedStationTabRowDetails?.departmentId))
+                            }} />
                         </Tooltip>
                     </Box>
                 );
@@ -223,7 +238,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                                dispatch(deleteStationPersonnel(selectedStationTabRowDetails?.departmentId))
+                            }} />
                         </Tooltip>
                     </Box>
                 );
@@ -370,7 +387,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
-                    notesRef.current = params?.row?.notes;
+                    notesRef.current = params?.row;
                 }
                 const element = (
                     <Box
@@ -381,9 +398,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mb: 0.5,
                         }}
                     >
-                        <Tooltip title={params?.row?.notes} arrow >
-                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-                        </Tooltip>
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
+
                     </Box>
                 );
                 return element;
@@ -428,11 +445,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
-            dispatch(getStationDepartmentData());
+            dispatch(getStationDepartmentData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
             setTableColumns(departmentColumns);
         }
         else if (currentTab === 'personnel') {
-            dispatch(getStationPersonnelData());
+            dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10) }));
             setTableColumns(personnelColumns);
         }
         else if (currentTab === 'rate') {
@@ -440,7 +457,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
-            dispatch(getStationAccessorialData());
+            dispatch(getStationAccessorialData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
             setTableColumns(accessorialColumns);
         }
     }, [currentTab]);
@@ -450,62 +467,30 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         console.log(stationTabTableData);
     }, [stationTabTableData]);
 
+    useEffect(() => {
+        if (pagination) {
+            setPaginationModel({
+                page: pagination.page ? parseInt(pagination.page, 10) - 1 : 0,
+                pageSize: pagination.pageSize || 10,
+            });
+        }
+    }, [pagination]);
+    useEffect(() => {
+        console.log("customer error at console", error);
+        // alert(error);
+    }, [error])
+    // operational message on customer
+    useEffect(() => {
+        if (operationalMessage) {
+            alert(operationalMessage);
+        }
+    }, [operationalMessage])
+
     // dialog actions and functions for notes
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         notesRef.current = '';
     };
-    const handleTitle = () => {
-        const element = (
-            <>
-                <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Notes</Typography>
-                    <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
-                </Stack>
-                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-            </>
-        );
-        return element;
-    };
-    const handleContent = () => {
-        const confirmDialogContent = (
-            <Box sx={{ pt: 2 }}>
-                <Typography variant="normal" sx={{ fontWeight: 400, fontSize: '16px' }}>
-                    {notesRef.current}
-                </Typography>
-            </Box>
-        );
-
-        return confirmDialogContent;
-    };
-    const handleDialogActions = () => {
-
-        const confirmDialogActions = (
-            <>
-                <Button
-                    variant="contained"
-                    onClick={() => handleCloseConfirm()}
-                    size="small"
-                    sx={{
-                        '&.MuiButton-contained': {
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            boxShadow: 'none',
-                            fontSize: '14px',
-                            p: '2px 16px',
-                            bgcolor: '#A22',
-                            fontWeight: 'normal',
-                            ml: 1,
-                            mb: 1
-                        },
-                    }}
-                >
-                    Ok
-                </Button>
-            </>
-        );
-        return confirmDialogActions;
-    }
 
     return (
         <>
@@ -514,50 +499,44 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.id || row?.rateID}
+                    getRowId={(row) => row?.departmentId || row?.accessorialId}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
-                    }}
-                    getRowHeight={() => 'auto'}
-                />
-                <ConfirmDialog
-                    open={openConfirmDialog}
-                    onClose={handleCloseConfirm}
-                    title={handleTitle()}
-                    content={handleContent()}
-                    action={handleDialogActions()}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Escape') {
-                            handleCloseConfirm();
-                        }
                     }}
                 />
             </Box>}
             {(currentTab === 'personnel') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
+                    paginationMode="server"
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={(newModel) => {
+                        setPaginationModel(newModel);
+                        dispatch(getStationPersonnelData({
+                            pageNo: newModel.page + 1,
+                            pageSize: newModel.pageSize,
+                            stationId: selectedStationTabRowDetails?.stationId
+                        }));
+                    }}
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.id || row?.rateID}
+                    getRowId={(row) => row?.personnelId}
+                    hideFooterSelectedRowCount
+                    onPageChange={(newPage) => {
+                        dispatch(getStationPersonnelData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, stationId: selectedStationTabRowDetails?.stationId }));
+                    }}
+                    onPageSizeChange={(newPageSize) => {
+                        dispatch(getStationPersonnelData({ pageNo: 1, pageSize: newPageSize, stationId: selectedStationTabRowDetails?.stationId }));
+                    }}
+                    pageSizeOptions={[5, 10, 50, 100]}
+                    rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
-                    getRowHeight={() => 'auto'}
                 />
-                <ConfirmDialog
-                    open={openConfirmDialog}
-                    onClose={handleCloseConfirm}
-                    title={handleTitle()}
-                    content={handleContent()}
-                    action={handleDialogActions()}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Escape') {
-                            handleCloseConfirm();
-                        }
-                    }}
-                />
+
             </Box>}
             {(currentTab === 'rate') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
@@ -570,18 +549,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     getRowHeight={() => 'auto'}
-                />
-                <ConfirmDialog
-                    open={openConfirmDialog}
-                    onClose={handleCloseConfirm}
-                    title={handleTitle()}
-                    content={handleContent()}
-                    action={handleDialogActions()}
-                    onKeyDown={(event) => {
-                        if (event.key === 'Escape') {
-                            handleCloseConfirm();
-                        }
-                    }}
                 />
             </Box>}
         </>

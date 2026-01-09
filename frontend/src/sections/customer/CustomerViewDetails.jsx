@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Box, Typography, Button
 } from '@mui/material';
@@ -12,12 +12,19 @@ import SharedCustomerDetails from './SharedCustomerDetails';
 
 export default function CustomerViewDetails() {
   const navigate = useNavigate();
+  const location = useLocation();
   const {
-        selectedCustomerRowDetails
-    } = useSelector(({ customerdata }) => customerdata);
+    selectedCustomerRowDetails
+  } = useSelector(({ customerdata }) => customerdata);
   const handleBack = () => {
     navigate(PATH_DASHBOARD?.maintenance?.root);
   }
+  // route back if it reloads
+  useEffect(() => {
+    if(location?.pathname === '/app/maintenance/customer-maintenance/customer-view' && Object.keys(selectedCustomerRowDetails).length === 0){
+      navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
+    }
+  }, [location]);
   return (
     <>
       <Box
@@ -60,13 +67,13 @@ export default function CustomerViewDetails() {
       </Box>
       {/* customer details content  */}
       <Box sx={{
-        p : 2,
-        ml:2,
-        bgcolor : "#fff",
-        borderRadius : '10px',
-        mt:2,
+        p: 2,
+        ml: 2,
+        bgcolor: "#fff",
+        borderRadius: '10px',
+        mt: 2,
       }}>
-          <SharedCustomerDetails type={'View'} selectedCustomerRowDetails={selectedCustomerRowDetails}/>
+        <SharedCustomerDetails type={'View'} selectedCustomerRowDetails={selectedCustomerRowDetails} />
       </Box>
     </>
   );

@@ -122,16 +122,7 @@ const slice = createSlice({
     // department
     getStationDepartmentDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationTabTableData = action.payload.data || [
-        {
-          id: 1,
-          stationName: 'Station Level 1',
-          departmentName: 'Department A',
-          email: 'departmentA@example.com',
-          phoneNumber: '(733) 555-0123',
-          notes: 'Handles logistics and coordination.'
-        }
-      ]
+      state.stationTabTableData = action.payload.data;
     },
     postStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;

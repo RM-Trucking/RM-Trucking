@@ -125,7 +125,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             setValue('hours', selectedCustomerStationDetails.hours || '');
             setWarehouseFlag(selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouse', selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
-            setValue('warehouseDetails', selectedCustomerStationDetails.warehouseDetail);
+            setValue('warehouseDetails', selectedCustomerStationDetails.warehouseDetail || "");
         }
     }, [selectedCustomerStationDetails]);
 

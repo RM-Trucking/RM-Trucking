@@ -34,17 +34,17 @@ export default function StationTabs({ }) {
             value: 'personnel',
             label: 'Personnel',
         },
-        {
-            value: 'rate',
-            label: 'Rate',
-        },
+        // {
+        //     value: 'rate',
+        //     label: 'Rate',
+        // },
         {
             value: 'accessorial',
             label: 'Accessorial',
         },
     ];
     const {
-        stationCurrentTab, selectedStationTabRowDetails
+        stationCurrentTab, selectedStationTabRowDetails, selectedCustomerStationDetails
     } = useSelector(({ customerdata }) => customerdata);
     const { rateSearchObj } = useSelector(({ ratedata }) => ratedata);
 
@@ -217,7 +217,7 @@ export default function StationTabs({ }) {
                 >
                     <DialogContent>
                         {
-                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
+                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={actionType} handleCloseConfirm={handleCloseConfirm} stationName={selectedCustomerStationDetails.stationName} selectedStationTabRowDetails={selectedStationTabRowDetails} />
                         }
                         {
                             stationCurrentTab.toLowerCase() === 'personnel' && <StationPersonnel type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />

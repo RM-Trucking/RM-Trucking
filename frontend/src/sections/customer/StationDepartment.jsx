@@ -11,14 +11,16 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import { postStationDepartmentData, putStationDepartmentData } from '../../redux/slices/customer';
 
 StationDepartment.propTypes = {
     type: PropTypes.string,
+    stationName: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
     selectedStationTabRowDetails: PropTypes.object,
 };
 
-export default function StationDepartment({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
+export default function StationDepartment({ type, stationName, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
     const {
         control,
@@ -37,15 +39,29 @@ export default function StationDepartment({ type, handleCloseConfirm, selectedSt
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
-        alert('Form submitted successfully! Check console for data.');
+        let obj = {
+            "stationId": parseInt(localStorage.getItem('stationId'), 10),
+            "departmentName": data.department,
+            "phoneNumber": data.phoneNumber,
+            "email": data.emailID
+        }
+        if(type === 'Add'){
+            dispatch(postStationDepartmentData(obj));
+        }
+        if(type === 'Edit'){
+            delete obj.stationId,
+            dispatch(putStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10), obj));
+        }
+        handleCloseConfirm();
     };
     useEffect(() => {
         if (selectedStationTabRowDetails) {
-            setValue('stationName', selectedStationTabRowDetails.stationName || '');
+            setValue('stationName', stationName || '');
             setValue('department', selectedStationTabRowDetails.departmentName || '');
             setValue('emailID', selectedStationTabRowDetails.email || '');
-            setValue('phoneNumber', selectedStationTabRowDetails.phoneNo || '');
-        }}, [selectedStationTabRowDetails]);
+            setValue('phoneNumber', selectedStationTabRowDetails.phoneNumber || '');
+        }
+    }, [selectedStationTabRowDetails]);
     return (
         <>
             {/* header  */}
@@ -57,7 +73,7 @@ export default function StationDepartment({ type, handleCloseConfirm, selectedSt
             </>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
-                <Stack spacing={4} sx={{p:3}}>
+                <Stack spacing={4} sx={{ p: 3 }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
                             name="stationName"
@@ -72,6 +88,7 @@ export default function StationDepartment({ type, handleCloseConfirm, selectedSt
                                         width: '25%',
                                     }}
                                     error={!!errors.stationName} helperText={errors.stationName?.message}
+                                    disabled
                                 />
                             )}
                         />
@@ -90,7 +107,7 @@ export default function StationDepartment({ type, handleCloseConfirm, selectedSt
                                     }}
                                     error={!!errors.department} helperText={errors.department?.message}
                                 >
-                                    <MenuItem value="air-export">Air Export</MenuItem>
+                                    <MenuItem value="Air Export">Air Export</MenuItem>
                                 </StyledTextField>
                             )}
                         />

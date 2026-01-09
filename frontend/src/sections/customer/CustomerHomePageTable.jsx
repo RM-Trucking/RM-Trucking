@@ -15,6 +15,7 @@ import NotesTable from './NotesTable';
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { enqueueSnackbar } = useSnackbar();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);

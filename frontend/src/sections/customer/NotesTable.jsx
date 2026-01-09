@@ -62,30 +62,6 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
-
-        {
-            field: "actions",
-            headerName: "Action",
-            minWidth: 110,
-            flex: 1,
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
-                        </Tooltip>
-                    </Box>
-                );
-                return element;
-            },
-        },
     ];
 
     // get call for notes

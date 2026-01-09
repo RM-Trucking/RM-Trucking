@@ -237,7 +237,7 @@ export default function CustomerHomePageTable() {
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
                     width: '1000px',
-                    height: '680px',
+                    height: '720px',
                     maxHeight: 'none',
                     maxWidth: 'none',
                 }

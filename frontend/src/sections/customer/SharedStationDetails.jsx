@@ -67,6 +67,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             "closeTime": data.closeTime,
             "hours": data.hours,
             "warehouse": (data.warehouse) ? 'Y' : 'N',
+            "warehouseDetail" : data.warehouseDetails,
             "addresses": [
                 {
                     "line1": data.addressLine1,
@@ -124,7 +125,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             setValue('hours', selectedCustomerStationDetails.hours || '');
             setWarehouseFlag(selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouse', selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
-            setValue('warehouseDetails', selectedCustomerStationDetails.warehouse);
+            setValue('warehouseDetails', selectedCustomerStationDetails.warehouseDetail);
         }
     }, [selectedCustomerStationDetails]);
 

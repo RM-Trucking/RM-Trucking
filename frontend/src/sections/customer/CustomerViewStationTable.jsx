@@ -35,6 +35,7 @@ export default function CustomerViewStationTable() {
         pageSize: 10,
     });
     const [openNotesDilog, setOpenNotesDialog] = useState(false);
+    const notesRef = useRef({});
 
     // datagrid columns
     const columns = [
@@ -163,7 +164,7 @@ export default function CustomerViewStationTable() {
             flex: 1,
         },
         {
-            field: "warehouse",
+            field: "warehouseDetail",
             headerName: "Warehouse",
             minWidth: 110,
             flex: 1,
@@ -342,7 +343,7 @@ export default function CustomerViewStationTable() {
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
                     width: '1545px',
-                    height: '550px',
+                    height: (openNotesDilog) ? '720px' : '550px',
                     maxHeight: 'none',
                     maxWidth: 'none',
                 }

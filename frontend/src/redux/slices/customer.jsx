@@ -22,7 +22,7 @@ const initialState = {
   stationTabTableData: [],
   checkedRates: [],
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
-  operationalMessage : '',
+  operationalMessage: '',
 };
 
 const slice = createSlice({
@@ -86,19 +86,19 @@ const slice = createSlice({
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
       state.stationRows = action.payload.data;
-      // state.pagination.page = action.payload.pagination.page;
-      // state.pagination.pageSize = action.payload.pagination.pageSize;
-      // state.pagination.totalRecords = action.payload.pagination.total;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
     },
-    postStationdataSuccess(state,action){
-       state.isLoading = false;
+    postStationdataSuccess(state, action) {
+      state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message;
       console.log("station post payload", action.payload.data);
       state.stationRows.unshift(action.payload.data);
     },
-    putStationdataSuccess(state,action){
-       state.isLoading = false;
+    putStationdataSuccess(state, action) {
+      state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message;
       console.log("station put payload", action.payload.data);
@@ -117,20 +117,51 @@ const slice = createSlice({
         state.stationRows.splice(index, 1);
       }
     },
+
     // station tabs data
+    // department
     getStationDepartmentDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationTabTableData = [
+      state.stationTabTableData = action.payload.data || [
         {
           id: 1,
           stationName: 'Station Level 1',
           departmentName: 'Department A',
           email: 'departmentA@example.com',
-          phoneNo: '(733) 555-0123',
+          phoneNumber: '(733) 555-0123',
           notes: 'Handles logistics and coordination.'
         }
       ]
     },
+    postStationDepartmentdataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("department post payload", action.payload.data);
+      state.stationTabTableData.unshift(action.payload.data);
+    },
+    putStationdDepartmentataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("department put payload", action.payload.data);
+      const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload?.data?.departmentId);
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1, action.payload.data);
+      }
+    },
+    deleteStationDepartmentdataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message;
+      console.log("department delete payload", action.payload);
+      const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload.id);
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1);
+      }
+    },
+
+    // personnel
     getStationPersonnelDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = [
@@ -145,6 +176,35 @@ const slice = createSlice({
         }
       ]
     },
+    postStationPersonneldataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("personnel post payload", action.payload.data);
+      state.stationTabTableData.unshift(action.payload.data);
+    },
+    putStationdPersonneldataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message;
+      console.log("personnel put payload", action.payload.data);
+      const index = state.stationTabTableData.findIndex((row) => row.personnelId  === action.payload?.data?.personnelId );
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1, action.payload.data);
+      }
+    },
+    deleteStationPersonneldataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message;
+      console.log("personnel delete payload", action.payload);
+      const index = state.stationTabTableData.findIndex((row) => row.personnelId  === action.payload.id);
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1);
+      }
+    },
+
+    // rate
     getStationRateDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = [
@@ -175,6 +235,22 @@ const slice = createSlice({
         state.stationTabTableData.push(state.checkedRates[i]);
       }
     },
+
+    // accessorial
+    getStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.stationTabTableData = [
+        {
+          id: 1,
+          accessorialName: "Residential",
+          chargeType: "Flat",
+          charges: "$25.50",
+          notes: "Residential delivery charges."
+        }
+      ]
+    },
+
+    // set values
     setStationRateData(state, action) {
       console.log('Setting station rate data in customer slice:', action.payload);
       if (action.payload.checked) {
@@ -195,18 +271,6 @@ const slice = createSlice({
         console.log('Filtered Rates:', filteredRates);
         state.checkedRates = filteredRates;
       }
-    },
-    getStationAccessorialDataSuccess(state, action) {
-      state.isLoading = false;
-      state.stationTabTableData = [
-        {
-          id: 1,
-          accessorialName: "Residential",
-          chargeType: "Flat",
-          charges: "$25.50",
-          notes: "Residential delivery charges."
-        }
-      ]
     },
     // customer search string on customer page
     setCustomerSearchStr(state, action) {
@@ -323,7 +387,7 @@ export function postStationData(obj) {
     }
   };
 }
-export function putStationData(id,obj) {
+export function putStationData(id, obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -349,26 +413,97 @@ export function deleteStation(id) {
 }
 
 // CRUD operations of Department
-export function getStationDepartmentData() {
+export function getStationDepartmentData(stationId) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/station/department');
-      dispatch(slice.actions.getStationDepartmentDataSuccess([]));
+      const response = await axios.get(`maintenance/department/station/${stationId}`);
+      dispatch(slice.actions.getStationDepartmentDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
-// CRUD operations of Personnel
-export function getStationPersonnelData() {
+export function postStationDepartmentData(obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/station/personnel');
+      const response = await axios.post(`maintenance/department`, obj);
+      dispatch(slice.actions.postStationDepartmentdataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function putStationDepartmentData(id, obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/department/${id}`, obj);
+      dispatch(slice.actions.putStationdDepartmentataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteStationDepartment(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/department/${id}`);
+      dispatch(slice.actions.deleteStationDepartmentdataSuccess({
+        id, message: response.data
+      }));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+
+// CRUD operations of Personnel
+export function getStationPersonnelData({ pageNo, pageSize, stationId }) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/customer-personnel/station/${stationId}`);
       dispatch(slice.actions.getStationPersonnelDataSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function postStationPersonnelData(obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.post(`maintenance/customer-personnel`, obj);
+      dispatch(slice.actions.postStationPersonneldataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function putStationPersonnelData(id, obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/customer-personnel/${id}`, obj);
+      dispatch(slice.actions.putStationdPersonneldataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteStationPersonnel(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/customer-personnel/${id}`);
+      dispatch(slice.actions.deleteStationPersonneldataSuccess({
+        id, message: response.data
+      }));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
     }
   };
 }

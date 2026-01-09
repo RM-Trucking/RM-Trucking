@@ -55,7 +55,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
         },
         {
-            field: "phoneNo",
+            field: "phoneNumber",
             headerName: "Phone #",
             minWidth: 200,
             flex: 1,
@@ -72,7 +72,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
-                    notesRef.current = params?.row?.notes;
+                    notesRef.current = params?.row;
                 }
                 const element = (
                     <Box
@@ -83,9 +83,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mb: 0.5
                         }}
                     >
-                        <Tooltip title={params?.row?.notes} arrow >
-                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
-                        </Tooltip>
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+
                     </Box>
                 );
                 return element;
@@ -128,7 +128,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     ];
     const personnelColumns = [
         {
-            field: "personnelName",
+            field: "name",
             headerName: "Personnel Name",
             minWidth: 200,
             flex: 1,
@@ -152,7 +152,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
         },
         {
-            field: "officePhoneNo",
+            field: "officePhoneNumber",
             headerName: "Office Phone #",
             minWidth: 200,
             flex: 1,
@@ -160,7 +160,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
         },
         {
-            field: "cellPhoneNo",
+            field: "cellPhoneNumber",
             headerName: "Cell Phone #",
             minWidth: 200,
             flex: 1,
@@ -177,7 +177,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
-                    notesRef.current = params?.row?.notes;
+                    notesRef.current = params?.row;
                 }
                 const element = (
                     <Box
@@ -188,9 +188,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mb: 0.5
                         }}
                     >
-                        <Tooltip title={params?.row?.notes} arrow >
-                            <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-                        </Tooltip>
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
+
                     </Box>
                 );
                 return element;
@@ -509,7 +509,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
 
     return (
         <>
-            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+            {(currentTab === 'department' || currentTab === 'accessorial') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     rows={stationTabTableData}
                     columns={tableColumns}
@@ -533,7 +533,57 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         }
                     }}
                 />
-            </Box>
+            </Box>}
+            {(currentTab === 'personnel') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+                <DataGrid
+                    rows={stationTabTableData}
+                    columns={tableColumns}
+                    loading={customerLoading}
+                    getRowId={(row) => row?.id || row?.rateID}
+                    pagination
+                    slots={{
+                        noRowsOverlay: CustomNoRowsOverlay,
+                    }}
+                    getRowHeight={() => 'auto'}
+                />
+                <ConfirmDialog
+                    open={openConfirmDialog}
+                    onClose={handleCloseConfirm}
+                    title={handleTitle()}
+                    content={handleContent()}
+                    action={handleDialogActions()}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Escape') {
+                            handleCloseConfirm();
+                        }
+                    }}
+                />
+            </Box>}
+            {(currentTab === 'rate') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+                <DataGrid
+                    rows={stationTabTableData}
+                    columns={tableColumns}
+                    loading={customerLoading}
+                    getRowId={(row) => row?.id || row?.rateID}
+                    pagination
+                    slots={{
+                        noRowsOverlay: CustomNoRowsOverlay,
+                    }}
+                    getRowHeight={() => 'auto'}
+                />
+                <ConfirmDialog
+                    open={openConfirmDialog}
+                    onClose={handleCloseConfirm}
+                    title={handleTitle()}
+                    content={handleContent()}
+                    action={handleDialogActions()}
+                    onKeyDown={(event) => {
+                        if (event.key === 'Escape') {
+                            handleCloseConfirm();
+                        }
+                    }}
+                />
+            </Box>}
         </>
     );
 }

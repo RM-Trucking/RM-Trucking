@@ -104,18 +104,6 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
 
     return (
         <>
-            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
-                <DataGrid
-                    rows={notesData}
-                    columns={notesColumns}
-                    loading={isLoading}
-                    getRowId={(row) => row?.noteMessageId}
-                    pagination
-                    slots={{
-                        noRowsOverlay: CustomNoRowsOverlay,
-                    }}
-                />
-            </Box>
             <StyledTextField
                 fullWidth
                 id={'Add Notes'}
@@ -140,25 +128,38 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                     '& .MuiInputBase-input.MuiOutlinedInput-input': {},
                 }}
             />
-            <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{ mt: 2 }}>
-                <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
-                    onClick={() => addNote()}
-                    sx={{
-                        '&.MuiButton-contained': {
-                            borderRadius: '4px',
-                            color: '#ffffff',
-                            boxShadow: 'none',
-                            fontSize: '14px',
-                            p: '2px 16px',
-                            bgcolor: '#A22',
-                            fontWeight: 'normal',
-                            ml: 1,
-                            mb: 1
-                        },
+            <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
+                onClick={() => addNote()}
+                sx={{
+                    '&.MuiButton-contained': {
+                        borderRadius: '4px',
+                        color: '#ffffff',
+                        boxShadow: 'none',
+                        fontSize: '14px',
+                        p: '2px 16px',
+                        bgcolor: '#A22',
+                        fontWeight: 'normal',
+                        ml: 1,
+                        mb: 1,
+                        mt: 1
+                    },
+                }}
+            >
+                Add Note
+            </Button>
+            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+                <DataGrid
+                    rows={notesData}
+                    columns={notesColumns}
+                    loading={isLoading}
+                    getRowId={(row) => row?.noteMessageId}
+                    pagination
+                    slots={{
+                        noRowsOverlay: CustomNoRowsOverlay,
                     }}
-                >
-                    Add Note
-                </Button>
+                />
+            </Box>
+            <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mt: 2 }}>
                 <Button
                     variant="contained"
                     onClick={() => handleCloseConfirm()}

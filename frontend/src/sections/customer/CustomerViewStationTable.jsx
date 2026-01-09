@@ -13,6 +13,7 @@ import { getCustomerStationData, setSelectedCustomerStationRowDetails, deleteSta
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import SharedSearchField from "../shared/SharedSearchField";
 import SharedStationDetails from './SharedStationDetails';
+import NotesTable from './NotesTable';
 
 export default function CustomerViewStationTable() {
     const dispatch = useDispatch();
@@ -33,6 +34,7 @@ export default function CustomerViewStationTable() {
         page: 0,
         pageSize: 10,
     });
+    const [openNotesDilog, setOpenNotesDialog] = useState(false);
 
     // datagrid columns
     const columns = [
@@ -167,6 +169,32 @@ export default function CustomerViewStationTable() {
             flex: 1,
         },
         {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenNotesDialog(true);
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+
+                    </Box>
+                );
+                return element;
+            },
+        },
+        {
             field: "actions",
             headerName: "Action",
             minWidth: 110,
@@ -183,20 +211,20 @@ export default function CustomerViewStationTable() {
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                                 setActionType('View');
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
-                                localStorage.setItem('stationId',params?.row?.stationId);
+                                localStorage.setItem('stationId', params?.row?.stationId);
                                 navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerStationView);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
-                                localStorage.setItem('stationId',params?.row?.stationId);
+                                localStorage.setItem('stationId', params?.row?.stationId);
                                 setActionType('Edit');
                                 setOpenConfirmDialog(true);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {  localStorage.setItem('stationId',params?.row?.stationId); dispatch(deleteStation(params?.row?.stationId)) }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => { localStorage.setItem('stationId', params?.row?.stationId); dispatch(deleteStation(params?.row?.stationId)) }} />
                         </Tooltip>
                     </Box>
                 );
@@ -207,7 +235,7 @@ export default function CustomerViewStationTable() {
 
     // call api to get table data
     useEffect(() => {
-        dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'),10) }));
+        dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
     }, []);
 
     useEffect(() => {
@@ -243,6 +271,7 @@ export default function CustomerViewStationTable() {
     const handleCloseConfirm = () => {
         setActionType('');
         setOpenConfirmDialog(false);
+        setOpenNotesDialog(false);
     };
 
 
@@ -320,7 +349,8 @@ export default function CustomerViewStationTable() {
             }}
         >
             <DialogContent>
-                {<SharedStationDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCustomerStationDetails={selectedCustomerStationDetails} customerId={selectedCustomerRowDetails.customerId}/>}
+                {openNotesDilog && <NotesTable notes={notesRef.current} handleCloseConfirm={handleCloseConfirm} />}
+                {!openNotesDilog && <SharedStationDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCustomerStationDetails={selectedCustomerStationDetails} customerId={selectedCustomerRowDetails.customerId} />}
             </DialogContent>
         </Dialog>
     </>)

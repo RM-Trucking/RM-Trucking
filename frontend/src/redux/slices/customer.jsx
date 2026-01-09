@@ -86,6 +86,9 @@ const slice = createSlice({
     getCustomerStationDataSuccess(state, action) {
       state.isLoading = false;
       state.stationRows = action.payload.data;
+      // state.pagination.page = action.payload.pagination.page;
+      // state.pagination.pageSize = action.payload.pagination.pageSize;
+      // state.pagination.totalRecords = action.payload.pagination.total;
     },
     postStationdataSuccess(state,action){
        state.isLoading = false;
@@ -302,7 +305,7 @@ export function getCustomerStationData({ pageNo, pageSize, searchStr, customerId
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get(`maintenance/station/customer/${customerId}`);
+      const response = await axios.get(`maintenance/station/customer/${customerId}?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
       dispatch(slice.actions.getCustomerStationDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));

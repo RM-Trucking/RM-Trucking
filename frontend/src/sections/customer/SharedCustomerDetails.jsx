@@ -158,7 +158,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     label="Customer Name *"
                                     error={!!error}
                                     helperText={error ? 'Name is required' : ''}
-                                    disabled={readOnly}
+                                    disabled={(type === 'View') ? readOnly : false}
                                 />
                             )}
                         />
@@ -166,7 +166,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             name="rmAccountNumber"
                             control={control}
                             render={({ field }) => (
-                                <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" disabled={readOnly} />
+                                <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" disabled={(type === 'View') ? readOnly : false} />
                             )}
                         />
                         <Controller
@@ -193,7 +193,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     label="Customer Phone Number *"
                                     error={!!error}
                                     helperText={error ? 'Phone number is required' : ''}
-                                    disabled={readOnly}
+                                    disabled={(type === 'View') ? readOnly : false}
                                 />
                             )}
                         />
@@ -219,7 +219,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     placeholder="example.com"
                                     error={!!error}
                                     helperText={error ? error.message : ''}
-                                    disabled={readOnly}
+                                    disabled={(type === 'View') ? readOnly : false}
                                     // Auto-format when the user leaves the field
                                     onBlur={(e) => {
                                         let val = e.target.value;
@@ -242,28 +242,28 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpAddressLine1"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={readOnly} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
                                 name="corpAddressLine2"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 2" />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 2" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
                                 name="corpCity"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="City" disabled={readOnly} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="City" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
                                 name="corpState"
                                 control={control}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="State" disabled={readOnly} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="State" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
@@ -298,7 +298,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         label="Zip Code"
                                         error={!!error}
                                         helperText={error?.message || ''}
-                                        disabled={readOnly}
+                                        disabled={(type === 'View') ? readOnly : false}
                                         inputProps={{ maxLength: 10 }} // Account for 9 digits + 1 hyphen
                                     />
                                 )}
@@ -335,7 +335,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 setValue('billZipCode', '');
                                             }
                                         }}
-                                        disabled={readOnly}
+                                        disabled={(type === 'View') ? readOnly : false}
                                     />
                                 }
                                 label="Check if above Corporate Address is same for Billing Address"
@@ -375,7 +375,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="State" disabled={readOnly} />
                                 )}
                             />
-            
+
                             <Controller
                                 name="billZipCode"
                                 control={control}

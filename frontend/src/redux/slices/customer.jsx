@@ -76,11 +76,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message.message;
-      console.log("customer delete payload", action.payload);
-      const index = state.customerRows.findIndex((row) => row.customerId === action.payload.id);
-      if (index === 0 || index > 0) {
-        state.customerRows.splice(index, 1);
-      }
+      // console.log("customer delete payload", action.payload);
+      // const index = state.customerRows.findIndex((row) => row.customerId === action.payload.id);
+      // if (index === 0 || index > 0) {
+      //   state.customerRows.splice(index, 1);
+      // }
     },
 
     // station table data in customer

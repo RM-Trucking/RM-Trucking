@@ -23,6 +23,7 @@ const initialState = {
   checkedRates: [],
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
   operationalMessage: '',
+  departmentData : []
 };
 
 const slice = createSlice({
@@ -123,6 +124,7 @@ const slice = createSlice({
     getStationDepartmentDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = action.payload.data;
+      state.departmentData = action.payload.data;
     },
     postStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;
@@ -130,6 +132,7 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message;
       console.log("department post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
+      state.departmentData.unshift(action.payload.data);
     },
     putStationdDepartmentataSuccess(state, action) {
       state.isLoading = false;
@@ -139,6 +142,7 @@ const slice = createSlice({
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload?.data?.departmentId);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1, action.payload.data);
+        state.departmentData.splice(index, 1, action.payload.data);
       }
     },
     deleteStationDepartmentdataSuccess(state, action) {
@@ -149,23 +153,24 @@ const slice = createSlice({
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);
+        state.departmentData.splice(index, 1);
       }
     },
 
     // personnel
+    getDepartmentDataSuccess(state, action) {
+      state.isLoading = false;
+      state.departmentData = action.payload.data;
+    },
+    getDepartmentDataonPersonnelTab(state, action) {
+      state.departmentData = action.payload.data;
+    },
     getStationPersonnelDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationTabTableData = [
-        {
-          id: 1,
-          personnelName: 'Personnel A',
-          departmentName: 'Department A',
-          email: 'personnelA@example.com',
-          officePhoneNo: '(733) 555-0123',
-          cellPhoneNo: '(733) 555-0124',
-          notes: 'Handles logistics and coordination.'
-        }
-      ]
+      state.stationTabTableData = action?.payload?.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
     },
     postStationPersonneldataSuccess(state, action) {
       state.isLoading = false;
@@ -179,7 +184,7 @@ const slice = createSlice({
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message;
       console.log("personnel put payload", action.payload.data);
-      const index = state.stationTabTableData.findIndex((row) => row.personnelId  === action.payload?.data?.personnelId );
+      const index = state.stationTabTableData.findIndex((row) => row.personnelId === action.payload?.data?.personnelId);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1, action.payload.data);
       }
@@ -189,7 +194,7 @@ const slice = createSlice({
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message.message;
       console.log("personnel delete payload", action.payload);
-      const index = state.stationTabTableData.findIndex((row) => row.personnelId  === action.payload.id);
+      const index = state.stationTabTableData.findIndex((row) => row.personnelId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);
       }
@@ -288,6 +293,9 @@ const slice = createSlice({
       state.stationCurrentTab = action.payload;
       state.tableWhichBeingViewed = action.payload;
     },
+    setStationTabTableData(state, action) {
+      state.stationTabTableData = [];
+    },
 
   },
 });
@@ -300,6 +308,7 @@ export const {
   setStationCurrentTab,
   setSelectedStationTabRowDetails,
   setStationRateData,
+  setStationTabTableData,
 } = slice.actions;
 export default slice.reducer;
 
@@ -452,12 +461,23 @@ export function deleteStationDepartment(id) {
 }
 
 // CRUD operations of Personnel
+export function getDepartmentData(stationId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/department/station/${stationId}`);
+      dispatch(slice.actions.getDepartmentDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
 export function getStationPersonnelData({ pageNo, pageSize, stationId }) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get(`maintenance/customer-personnel/station/${stationId}`);
-      dispatch(slice.actions.getStationPersonnelDataSuccess([]));
+      const response = await axios.get(`maintenance/customer-personnel/station/${stationId}?page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getStationPersonnelDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

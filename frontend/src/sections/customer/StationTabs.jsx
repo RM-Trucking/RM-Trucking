@@ -16,7 +16,7 @@ import StationPersonnel from './StationPersonnel';
 import StationAccessorial from './StationAccessorial';
 import RateSearchFields from './RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedStationTabRowDetails } from '../../redux/slices/customer';
+import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -60,6 +60,7 @@ export default function StationTabs({ }) {
     const OnTabChange = (newValue) => {
         console.log('new tab value', newValue);
         dispatch(setStationCurrentTab(newValue));
+        dispatch(setStationTabTableData([]));
     }
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);

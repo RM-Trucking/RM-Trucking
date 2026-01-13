@@ -11,6 +11,8 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import formatPhoneNumber from '../../utils/formatPhoneNumber';
+import { postStationPersonnelData, putStationPersonnelData } from '../../redux/slices/customer';
 
 StationPersonnel.propTypes = {
     type: PropTypes.string,
@@ -20,6 +22,7 @@ StationPersonnel.propTypes = {
 
 export default function StationPersonnel({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
+    const departmentData = useSelector((state) => state.customerdata.departmentData);
     const {
         control,
         handleSubmit,
@@ -38,15 +41,31 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
-        alert('Form submitted successfully! Check console for data.');
+        let obj =
+        {
+            "stationId": parseInt(localStorage.getItem('stationId'), 10),
+            "departmentId": data.department || selectedStationTabRowDetails?.departmentId,
+            "name": data.firstName,
+            "email": data.emailID,
+            "officePhoneNumber": data.officePhoneNumber,
+            "cellPhoneNumber": data.cellPhoneNumber
+        }
+
+        if (type === 'Add') {
+            dispatch(postStationPersonnelData(obj));
+        }
+        if (type === 'Edit') {
+            dispatch(putStationPersonnelData(parseInt(localStorage.getItem('stationId'), 10), obj));
+        }
+        handleCloseConfirm();
     };
     useEffect(() => {
         if (selectedStationTabRowDetails) {
-            setValue('firstName', selectedStationTabRowDetails.personnelName || '');    
-            setValue('department', selectedStationTabRowDetails.departmentName || '');
+            setValue('firstName', selectedStationTabRowDetails.name || '');
+            setValue('department', selectedStationTabRowDetails.departmentId || '');
             setValue('emailID', selectedStationTabRowDetails.email || '');
-            setValue('officePhoneNumber', selectedStationTabRowDetails.officePhoneNo || '');
-            setValue('cellPhoneNumber', selectedStationTabRowDetails.cellPhoneNo || '');
+            setValue('officePhoneNumber', selectedStationTabRowDetails.officePhoneNumber || '');
+            setValue('cellPhoneNumber', selectedStationTabRowDetails.cellPhoneNumber || '');
         }
     }, [selectedStationTabRowDetails]);
 
@@ -94,39 +113,62 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                                     }}
                                     error={!!errors.department} helperText={errors.department?.message}
                                 >
-                                    <MenuItem value="air-export">Air Export</MenuItem>
+                                    {departmentData.map((data) => (
+                                        <MenuItem key={data.departmentId} value={data.departmentId}>{data.departmentName}</MenuItem>
+                                    ))}
                                 </StyledTextField>
                             )}
                         />
                         <Controller
                             name="emailID"
                             control={control}
-                            rules={{ required: 'Email ID is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Email ID is required',
+                                pattern: {
+                                    // Standard RFC 5322 compliant regex for 2026
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Invalid email address format'
+                                }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     label="Email ID"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
-                                    }}
-                                    error={!!errors.emailID} helperText={errors.emailID?.message}
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    type="email" // Triggers email-optimized mobile keyboards
+                                    sx={{ width: '25%' }}
+                                    error={!!error}
+                                    helperText={error?.message}
                                 />
                             )}
                         />
+
                         <Controller
                             name="officePhoneNumber"
                             control={control}
-                            rules={{ required: 'Office Phone Number is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: true,
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    message: 'Invalid phone format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Office Phone Number"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    value={value}
+                                    onChange={(e) => {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        onChange(formattedValue); // Update form state with formatted value
                                     }}
-                                    error={!!errors.officePhoneNumber} helperText={errors.officePhoneNumber?.message}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Office Phone Number *"
+                                    error={!!error}
+                                    helperText={error ? 'Office Phone Number is required' : ''}
                                 />
                             )}
                         />
@@ -135,14 +177,27 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                         <Controller
                             name="cellPhoneNumber"
                             control={control}
-                            render={({ field }) => (
+                            rules={{
+                                required: true,
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    message: 'Invalid phone format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Cell Phone Number"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    value={value}
+                                    onChange={(e) => {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        onChange(formattedValue); // Update form state with formatted value
                                     }}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Cell Phone Number *"
+                                    error={!!error}
+                                    helperText={error ? 'Cell Phone Number is required' : ''}
                                 />
                             )}
                         />

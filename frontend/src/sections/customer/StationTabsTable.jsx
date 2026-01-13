@@ -11,7 +11,7 @@ import Iconify from '../../components/iconify';
 import {
     setSelectedStationTabRowDetails, getStationDepartmentData,
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
-    deleteStationDepartment, deleteStationPersonnel
+    deleteStationDepartment, deleteStationPersonnel, getDepartmentData
 } from '../../redux/slices/customer';
 import NotesTable from './NotesTable';
 // ----------------------------------------------------------------------
@@ -119,11 +119,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
+                        {/* <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 setActionType('Edit');
@@ -226,11 +226,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
+                        {/* <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 setActionType('Edit');
@@ -421,11 +421,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
+                        {/* <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
                             }} />
-                        </Tooltip>
+                        </Tooltip> */}
                         <Tooltip title={'Edit'} arrow onClick={() => {
                             setActionType('Edit');
                             dispatch(setSelectedStationTabRowDetails(params.row));
@@ -449,6 +449,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             setTableColumns(departmentColumns);
         }
         else if (currentTab === 'personnel') {
+             dispatch(getDepartmentData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
             dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10) }));
             setTableColumns(personnelColumns);
         }
@@ -551,6 +552,33 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     getRowHeight={() => 'auto'}
                 />
             </Box>}
+            <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleCloseConfirm();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '1000px',
+                        height: '720px',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <>
+                        <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
+                            <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                        </Stack>
+                        <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                    </>
+                    <Box sx={{ pt: 2 }}>
+                        <NotesTable notes={notesRef.current} handleCloseConfirm={handleCloseConfirm} />
+                    </Box>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

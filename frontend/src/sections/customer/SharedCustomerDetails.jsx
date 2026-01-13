@@ -16,6 +16,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import CustomerViewStationTable from './CustomerViewStationTable';
 import { setTableBeingViewed, postCustomerData, putCustomerData } from '../../redux/slices/customer';
+import formatPhoneNumber from '../../utils/formatPhoneNumber';
 // ----------------------------------------------------------------------
 
 
@@ -123,7 +124,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     useEffect(() => {
         if (type === 'View') {
             setReadOnly(true);
-        }else{
+        } else {
             setReadOnly(false);
         }
     }, [type]);
@@ -171,10 +172,21 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         <Controller
                             name="phoneNumber"
                             control={control}
-                            rules={{ required: true }}
-                            render={({ field, fieldState: { error } }) => (
+                            rules={{
+                                required: true,
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    message: 'Invalid phone format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value}
+                                    onChange={(e) => {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        onChange(formattedValue); // Update form state with formatted value
+                                    }}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
@@ -185,11 +197,39 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 />
                             )}
                         />
+
                         <Controller
                             name="website"
                             control={control}
-                            render={({ field, fieldState: { error } }) => (
-                                <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '25%' }} label="Customer website *" error={!!error} helperText={error ? 'Website is required' : ''} disabled={readOnly} />
+                            rules={{
+                                required: 'Website is required',
+                                pattern: {
+                                    value: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/,
+                                    message: 'Please enter a valid URL'
+                                }
+                            }}
+                            render={({ field: { onChange, onBlur, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Customer website *"
+                                    placeholder="example.com"
+                                    error={!!error}
+                                    helperText={error ? error.message : ''}
+                                    disabled={readOnly}
+                                    // Auto-format when the user leaves the field
+                                    onBlur={(e) => {
+                                        let val = e.target.value;
+                                        if (val && !/^https?:\/\//i.test(val)) {
+                                            onChange(`https://${val}`);
+                                        }
+                                        onBlur(); // Trigger standard Hook Form blur
+                                    }}
+                                    onChange={onChange}
+                                />
                             )}
                         />
                     </Stack>
@@ -229,8 +269,38 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             <Controller
                                 name="corpZipCode"
                                 control={control}
-                                render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Zip Code" disabled={readOnly} />
+                                rules={{
+                                    pattern: {
+                                        value: /^\d{5}(-\d{4})?$/, // Validates ##### or #####-####
+                                        message: 'Invalid Zip Code format'
+                                    }
+                                }}
+                                render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        value={value || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
+                                            let formatted = val;
+
+                                            // Format as #####-####
+                                            if (val.length > 5) {
+                                                formatted = `${val.slice(0, 5)}-${val.slice(5, 9)}`;
+                                            } else {
+                                                formatted = val.slice(0, 5);
+                                            }
+
+                                            onChange(formatted);
+                                        }}
+                                        variant="standard"
+                                        fullWidth
+                                        sx={{ width: '20%' }}
+                                        label="Zip Code"
+                                        error={!!error}
+                                        helperText={error?.message || ''}
+                                        disabled={readOnly}
+                                        inputProps={{ maxLength: 10 }} // Account for 9 digits + 1 hyphen
+                                    />
                                 )}
                             />
                         </Stack>
@@ -305,11 +375,42 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="State" disabled={readOnly} />
                                 )}
                             />
+            
                             <Controller
                                 name="billZipCode"
                                 control={control}
-                                render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Zip Code" disabled={readOnly} />
+                                rules={{
+                                    pattern: {
+                                        value: /^\d{5}(-\d{4})?$/, // Validates ##### or #####-####
+                                        message: 'Invalid Zip Code format'
+                                    }
+                                }}
+                                render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        value={value || ''}
+                                        onChange={(e) => {
+                                            const val = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
+                                            let formatted = val;
+
+                                            // Format as #####-####
+                                            if (val.length > 5) {
+                                                formatted = `${val.slice(0, 5)}-${val.slice(5, 9)}`;
+                                            } else {
+                                                formatted = val.slice(0, 5);
+                                            }
+
+                                            onChange(formatted);
+                                        }}
+                                        variant="standard"
+                                        fullWidth
+                                        sx={{ width: '20%' }}
+                                        label="Zip Code"
+                                        error={!!error}
+                                        helperText={error?.message || ''}
+                                        disabled={readOnly}
+                                        inputProps={{ maxLength: 10 }} // Account for 9 digits + 1 hyphen
+                                    />
                                 )}
                             />
                         </Stack>

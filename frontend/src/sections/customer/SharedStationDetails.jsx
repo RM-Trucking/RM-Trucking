@@ -15,6 +15,7 @@ import StyledCheckbox from '../shared/StyledCheckBox';
 import StationTabs from './StationTabs';
 import { setTableBeingViewed, postStationData, putStationData } from '../../redux/slices/customer';
 import { useDispatch, useSelector } from '../../redux/store';
+import formatPhoneNumber from '../../utils/formatPhoneNumber';
 
 SharedStationDetails.propTypes = {
     type: PropTypes.string,
@@ -32,6 +33,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
         handleSubmit,
         formState: { errors },
         getValues,
+        watch,
         setValue,
     } = useForm({
         defaultValues: {
@@ -57,7 +59,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         let obj = {
-            "customerId":  parseInt(localStorage.getItem('customerId'),10),
+            "customerId": parseInt(localStorage.getItem('customerId'), 10),
             "stationName": data.stationName,
             "rmAccountNumber": data.rmAccountNumber,
             "airportCode": data.airportCode,
@@ -67,7 +69,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             "closeTime": data.closeTime,
             "hours": data.hours,
             "warehouse": (data.warehouse) ? 'Y' : 'N',
-            "warehouseDetail" : data.warehouseDetails,
+            "warehouseDetail": data.warehouseDetails,
             "addresses": [
                 {
                     "line1": data.addressLine1,
@@ -179,20 +181,39 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         <Controller
                             name="airportCode"
                             control={control}
-                            rules={{ required: 'Airport Code is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Airport Code is required',
+                                pattern: {
+                                    value: /^[A-Z]{3}$/,
+                                    message: 'Must be a 3-letter IATA code'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Airport Code"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    value={value || ''}
+                                    onChange={(e) => {
+                                        // 1. Remove non-letters, 2. Convert to Uppercase, 3. Limit to 3 chars
+                                        const formatted = e.target.value
+                                            .replace(/[^a-zA-Z]/g, '')
+                                            .toUpperCase()
+                                            .slice(0, 3);
+                                        onChange(formatted);
                                     }}
-                                    error={!!errors.airportCode} helperText={errors.airportCode?.message}
+                                    label="Airport Code"
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '25%' }}
+                                    // Apply CSS to force uppercase display while typing
+                                    inputProps={{ style: { textTransform: 'uppercase' }, maxLength: 3 }}
+                                    error={!!errors.airportCode}
+                                    helperText={errors.airportCode?.message}
                                     disabled={readOnly}
                                 />
                             )}
                         />
+
                         <Controller
                             name="addressLine1"
                             control={control}
@@ -242,14 +263,42 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     helperText={errors.state?.message} disabled={readOnly} />
                             )}
                         />
+
                         <Controller
                             name="zipCode"
                             control={control}
-                            rules={{ required: 'Zip Code is required' }}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="Zip Code" variant="standard" fullWidth required sx={{
-                                    width: '25%',
-                                }} error={!!errors.zipCode} helperText={errors.zipCode?.message} disabled={readOnly} />
+                            rules={{
+                                pattern: {
+                                    value: /^\d{5}(-\d{4})?$/, // Validates ##### or #####-####
+                                    message: 'Invalid Zip Code format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
+                                        let formatted = val;
+
+                                        // Format as #####-####
+                                        if (val.length > 5) {
+                                            formatted = `${val.slice(0, 5)}-${val.slice(5, 9)}`;
+                                        } else {
+                                            formatted = val.slice(0, 5);
+                                        }
+
+                                        onChange(formatted);
+                                    }}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Zip Code"
+                                    error={!!error}
+                                    helperText={error?.message || ''}
+                                    disabled={readOnly}
+                                    inputProps={{ maxLength: 10 }} // Account for 9 digits + 1 hyphen
+                                />
                             )}
                         />
                     </Stack>
@@ -257,45 +306,114 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         <Controller
                             name="phoneNumber"
                             control={control}
-                            rules={{ required: 'Phone Number is required' }}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="Phone Number" variant="standard" fullWidth required sx={{
-                                    width: '25%',
-                                }} error={!!errors.phoneNumber} helperText={errors.phoneNumber?.message} disabled={readOnly} />
+                            rules={{
+                                required: true,
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    message: 'Invalid phone format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value}
+                                    onChange={(e) => {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        onChange(formattedValue); // Update form state with formatted value
+                                    }}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Phone Number *"
+                                    error={!!error}
+                                    helperText={error ? 'Phone number is required' : ''}
+                                    disabled={readOnly}
+                                />
                             )}
                         />
                         <Controller
                             name="faxNumber"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="Fax Number" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} disabled={readOnly} />
+                            rules={{
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Optional: validates full format
+                                    message: 'Invalid fax format (###) ###-####'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    onChange={(e) => {
+                                        const input = e.target.value.replace(/[^\d]/g, ''); // Strip non-digits
+                                        const len = input.length;
+                                        let formatted = input;
+
+                                        // Apply formatting: (###) ###-####
+                                        if (len <= 3) {
+                                            formatted = input;
+                                        } else if (len <= 6) {
+                                            formatted = `(${input.slice(0, 3)}) ${input.slice(3)}`;
+                                        } else {
+                                            formatted = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6, 10)}`;
+                                        }
+
+                                        onChange(formatted);
+                                    }}
+                                    label="Fax Number"
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    error={!!error}
+                                    helperText={error?.message || ''}
+                                    disabled={readOnly}
+                                    inputProps={{ maxLength: 14 }} // (xxx) xxx-xxxx is 14 chars
+                                />
                             )}
                         />
+
                         <Controller
                             name="openTime"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="Open Time" type="time" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} InputLabelProps={{ shrink: true }} disabled={readOnly}
-                                    inputProps={{
-                                        step: 1, // Required to show seconds
-                                    }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="Open Time"
+                                    type="time"
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    InputLabelProps={{ shrink: true }}
+                                    disabled={readOnly}
+                                    error={!!error}
+                                    helperText={error?.message}
+                                    inputProps={{ step: 1 }}
                                 />
                             )}
                         />
                         <Controller
                             name="closeTime"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="Close Time" type="time" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} InputLabelProps={{ shrink: true }} disabled={readOnly}
-                                    inputProps={{
-                                        step: 1, // Required to show seconds
-                                    }}
+                            rules={{
+                                validate: (value) => {
+                                    const openTime = watch('openTime');
+                                    if (!value || !openTime) return true; // Don't validate if one is missing
+                                    return value > openTime || 'Close time must be later than open time';
+                                }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="Close Time"
+                                    type="time"
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    InputLabelProps={{ shrink: true }}
+                                    disabled={readOnly}
+                                    inputProps={{ step: 1 }}
+                                    error={!!error}
+                                    helperText={error?.message} // Displays the validation error
                                 />
                             )}
                         />
@@ -305,7 +423,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="hours"
                             control={control}
                             render={({ field }) => (
-                                <StyledTextField {...field} label="Hours" variant="standard" fullWidth sx={{
+                                <StyledTextField {...field} type='number' label="Hours" variant="standard" fullWidth sx={{
                                     width: '25%',
                                 }} InputLabelProps={{ shrink: true }} disabled={readOnly} />
                             )}

@@ -12,6 +12,7 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { postStationDepartmentData, putStationDepartmentData } from '../../redux/slices/customer';
+import formatPhoneNumber from '../../utils/formatPhoneNumber';
 
 StationDepartment.propTypes = {
     type: PropTypes.string,
@@ -45,12 +46,12 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
             "phoneNumber": data.phoneNumber,
             "email": data.emailID
         }
-        if(type === 'Add'){
+        if (type === 'Add') {
             dispatch(postStationDepartmentData(obj));
         }
-        if(type === 'Edit'){
+        if (type === 'Edit') {
             delete obj.stationId,
-            dispatch(putStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10), obj));
+                dispatch(putStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10), obj));
         }
         handleCloseConfirm();
     };
@@ -108,38 +109,63 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                                     error={!!errors.department} helperText={errors.department?.message}
                                 >
                                     <MenuItem value="Air Export">Air Export</MenuItem>
+                                    <MenuItem value="Ocean Export">Ocean Export</MenuItem>
+                                    <MenuItem value="Air Import">Air Import</MenuItem>
+                                    <MenuItem value="Ocean Import">Ocean Import</MenuItem>
+                                    <MenuItem value="Domestic">Domestic</MenuItem>
                                 </StyledTextField>
                             )}
                         />
                         <Controller
                             name="emailID"
                             control={control}
-                            rules={{ required: 'Email ID is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Email ID is required',
+                                pattern: {
+                                    // Standard RFC 5322 compliant regex for 2026
+                                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                    message: 'Invalid email address format'
+                                }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     label="Email ID"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
-                                    }}
-                                    error={!!errors.emailID} helperText={errors.emailID?.message}
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    type="email" // Triggers email-optimized mobile keyboards
+                                    sx={{ width: '25%' }}
+                                    error={!!error}
+                                    helperText={error?.message}
                                 />
                             )}
                         />
+
                         <Controller
                             name="phoneNumber"
                             control={control}
-                            rules={{ required: 'Phone Number is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: true,
+                                pattern: {
+                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    message: 'Invalid phone format'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Phone Number"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    value={value}
+                                    onChange={(e) => {
+                                        const formattedValue = formatPhoneNumber(e.target.value);
+                                        onChange(formattedValue); // Update form state with formatted value
                                     }}
-                                    error={!!errors.phoneNumber} helperText={errors.phoneNumber?.message}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    label="Phone Number *"
+                                    error={!!error}
+                                    helperText={error ? 'Phone number is required' : ''}
                                 />
                             )}
                         />

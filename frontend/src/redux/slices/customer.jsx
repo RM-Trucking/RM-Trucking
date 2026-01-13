@@ -23,7 +23,7 @@ const initialState = {
   checkedRates: [],
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
   operationalMessage: '',
-  departmentData : []
+  departmentData: []
 };
 
 const slice = createSlice({
@@ -39,7 +39,6 @@ const slice = createSlice({
       state.isLoading = true;
       state.customerSuccess = false;
       state.error = null;
-      state.stationTabTableData = [];
     },
     // set pagination object of the current table
     setPaginationObject(state, action) {
@@ -124,7 +123,6 @@ const slice = createSlice({
     getStationDepartmentDataSuccess(state, action) {
       state.isLoading = false;
       state.stationTabTableData = action.payload.data;
-      state.departmentData = action.payload.data;
     },
     postStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;
@@ -132,17 +130,15 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message;
       console.log("department post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
-      state.departmentData.unshift(action.payload.data);
     },
     putStationdDepartmentataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message;
-      console.log("department put payload", action.payload.data);
+      console.log("department put payload", state.stationTabTableData, action.payload.data);
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload?.data?.departmentId);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1, action.payload.data);
-        state.departmentData.splice(index, 1, action.payload.data);
       }
     },
     deleteStationDepartmentdataSuccess(state, action) {
@@ -153,16 +149,12 @@ const slice = createSlice({
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);
-        state.departmentData.splice(index, 1);
       }
     },
 
     // personnel
     getDepartmentDataSuccess(state, action) {
       state.isLoading = false;
-      state.departmentData = action.payload.data;
-    },
-    getDepartmentDataonPersonnelTab(state, action) {
       state.departmentData = action.payload.data;
     },
     getStationPersonnelDataSuccess(state, action) {
@@ -178,6 +170,8 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message;
       console.log("personnel post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
+      state.pagination.totalRecords = action.payload.pagination.total + 1;
+
     },
     putStationdPersonneldataSuccess(state, action) {
       state.isLoading = false;

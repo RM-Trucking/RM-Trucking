@@ -132,7 +132,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                dispatch(deleteStationDepartment(selectedStationTabRowDetails?.departmentId))
+                                dispatch(deleteStationDepartment(params.row?.departmentId));
                             }} />
                         </Tooltip>
                     </Box>
@@ -239,7 +239,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                dispatch(deleteStationPersonnel(selectedStationTabRowDetails?.departmentId))
+                                dispatch(deleteStationPersonnel(params.row?.personnelId));
                             }} />
                         </Tooltip>
                     </Box>
@@ -445,12 +445,12 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
-            dispatch(getStationDepartmentData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
+            dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
             setTableColumns(departmentColumns);
         }
         else if (currentTab === 'personnel') {
-             dispatch(getDepartmentData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
-            dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10) }));
+            dispatch(getDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
+            dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
             setTableColumns(personnelColumns);
         }
         else if (currentTab === 'rate') {
@@ -458,7 +458,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
-            dispatch(getStationAccessorialData(selectedStationTabRowDetails?.stationId || parseInt(localStorage.getItem('stationId'), 10)));
+            dispatch(getStationAccessorialData(parseInt(localStorage.getItem('stationId'), 10)));
             setTableColumns(accessorialColumns);
         }
     }, [currentTab]);
@@ -516,7 +516,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         dispatch(getStationPersonnelData({
                             pageNo: newModel.page + 1,
                             pageSize: newModel.pageSize,
-                            stationId: selectedStationTabRowDetails?.stationId
+                            stationId: parseInt(localStorage.getItem('stationId'), 10)
                         }));
                     }}
                     rows={stationTabTableData}
@@ -525,10 +525,10 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     getRowId={(row) => row?.personnelId}
                     hideFooterSelectedRowCount
                     onPageChange={(newPage) => {
-                        dispatch(getStationPersonnelData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, stationId: selectedStationTabRowDetails?.stationId }));
+                        dispatch(getStationPersonnelData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
                     }}
                     onPageSizeChange={(newPageSize) => {
-                        dispatch(getStationPersonnelData({ pageNo: 1, pageSize: newPageSize, stationId: selectedStationTabRowDetails?.stationId }));
+                        dispatch(getStationPersonnelData({ pageNo: 1, pageSize: newPageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}

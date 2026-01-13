@@ -55,7 +55,7 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
             dispatch(postStationPersonnelData(obj));
         }
         if (type === 'Edit') {
-            dispatch(putStationPersonnelData(parseInt(localStorage.getItem('stationId'), 10), obj));
+            dispatch(putStationPersonnelData(selectedStationTabRowDetails.personnelId, obj));
         }
         handleCloseConfirm();
     };

@@ -51,7 +51,7 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
         }
         if (type === 'Edit') {
             delete obj.stationId,
-                dispatch(putStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10), obj));
+                dispatch(putStationDepartmentData(selectedStationTabRowDetails.departmentId, obj));
         }
         handleCloseConfirm();
     };

@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import { postStationAccessorialData } from '../../redux/slices/customer';
 
 StationAccessorial.propTypes = {
     type: PropTypes.string,
@@ -20,6 +21,9 @@ StationAccessorial.propTypes = {
 
 export default function StationAccessorial({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
+    const [chargeValue, setChargeValue] = useState(null);
+    const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
+    const accessorialData = useSelector((state) => state?.customerdata?.accessorialData);
     const {
         control,
         handleSubmit,
@@ -28,7 +32,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
         getValues
     } = useForm({
         defaultValues: {
-            accessorial: '',
+            accessorial: null,
             chargesType: '',
             charges: '',
             notes: '',
@@ -37,11 +41,22 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
-        alert('Form submitted successfully! Check console for data.');
+        let obj = {
+            "entityId": selectedCustomerStationDetails?.entityId,
+            "accessorialId": data.accessorial,
+            "chargeType": data.chargesType,
+            "chargeValue": data.charges
+        }
+        if (type === 'Add') {
+            dispatch(postStationAccessorialData(obj));
+        } else if (type === 'Edit') {
+            console.log(obj)
+        }
+        handleCloseConfirm();
     };
     useEffect(() => {
         if (selectedStationTabRowDetails) {
-            setValue('accessorial', selectedStationTabRowDetails.accessorialName || '');    
+            setValue('accessorial', selectedStationTabRowDetails.accessorialName || '');
             setValue('chargesType', selectedStationTabRowDetails.chargeType || '');
             setValue('charges', selectedStationTabRowDetails.charges || '');
             setValue('notes', selectedStationTabRowDetails.notes || '');
@@ -59,7 +74,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             </>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
-                <Stack spacing={4} sx={{p:3}}>
+                <Stack spacing={4} sx={{ p: 3 }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
                             name="accessorial"
@@ -76,7 +91,9 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     }}
                                     error={!!errors.accessorial} helperText={errors.accessorial?.message}
                                 >
-                                    <MenuItem value="lift-gate">Lift Gate</MenuItem>
+                                    {accessorialData.map((data) => (
+                                        <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>
+                                    ))}
                                 </StyledTextField>
                             )}
                         />
@@ -95,33 +112,59 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     }}
                                     error={!!errors.chargesType} helperText={errors.chargesType?.message}
                                 >
-                                    <MenuItem value="hourly">Hourly</MenuItem>
+                                    <MenuItem value="HOURLY">Hourly</MenuItem>
+                                    <MenuItem value="FLAT_RATE">Flat Rate</MenuItem>
+                                    <MenuItem value="PER_POUND">Per Pound</MenuItem>
                                 </StyledTextField>
                             )}
                         />
                         <Controller
                             name="charges"
                             control={control}
-                            rules={{ required: 'Charges is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Charges is required',
+                                min: {
+                                    value: 0,
+                                    message: 'Value cannot be below 0'
+                                },
+                                pattern: {
+                                    value: /^\d*\.?\d*$/,
+                                    message: 'Invalid number format'
+                                }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     label="Charges"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    type='number' // Standard for numeric inputs
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '25%' }}
+                                    inputProps={{ min: 0, step: "0.01" }} // Blocks negative steps in UI
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+
+                                        // Prevent negative numbers from being processed
+                                        if (value !== "" && Number(value) < 0) return;
+
+                                        field.onChange(value);
+                                        setChargeValue(value);
                                     }}
-                                    error={!!errors.charges} helperText={errors.charges?.message}
+                                    error={!!error}
+                                    helperText={error?.message}
                                 />
                             )}
                         />
+
                         <Controller
                             name="notes"
                             control={control}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Notes"
+                                    label={`Notes`}
+                                    required={parseInt(chargeValue, 10) === 0 ? true : false}
                                     variant="standard" fullWidth
                                     sx={{
                                         width: '25%',

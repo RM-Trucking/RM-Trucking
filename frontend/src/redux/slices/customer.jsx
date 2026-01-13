@@ -23,7 +23,8 @@ const initialState = {
   checkedRates: [],
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
   operationalMessage: '',
-  departmentData: []
+  departmentData: [],
+  accessorialData: [],
 };
 
 const slice = createSlice({
@@ -227,17 +228,29 @@ const slice = createSlice({
     },
 
     // accessorial
+    getAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.accessorialData = action.payload.data;
+    },
     getStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationTabTableData = [
-        {
-          id: 1,
-          accessorialName: "Residential",
-          chargeType: "Flat",
-          charges: "$25.50",
-          notes: "Residential delivery charges."
-        }
-      ]
+      state.customerSuccess = true;
+      state.stationTabTableData = action.payload.data;
+    },
+    postStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.stationTabTableData.unshift(action.payload.data);
+    },
+    deleteStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message;
+      const index = state.stationTabTableData.findIndex((row) => row.accessorialId === action.payload.id);
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1);
+      }
     },
 
     // set values
@@ -527,14 +540,49 @@ export function getStationRateData() {
 }
 
 // CRUD operations of accessorial
-export function getStationAccessorialData() {
+export function getAccessorialData() {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/station/accessorial');
-      dispatch(slice.actions.getStationAccessorialDataSuccess([]));
+      const response = await axios.get('maintenance/accessorial');
+      dispatch(slice.actions.getAccessorialDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getStationAccessorialData(entityId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/entity-accessorial/${entityId}`);
+      dispatch(slice.actions.getStationAccessorialDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
+}
+export function postStationAccessorialData(obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.post(`maintenance/entity-accessorial`, obj);
+      dispatch(slice.actions.postStationAccessorialDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteStationAccessorial(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/entity-accessorial/${id}`);
+      dispatch(slice.actions.deleteStationAccessorialDataSuccess({
+        id, message: response.data
+      }));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
     }
   };
 }

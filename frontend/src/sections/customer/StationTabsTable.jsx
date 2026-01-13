@@ -11,7 +11,8 @@ import Iconify from '../../components/iconify';
 import {
     setSelectedStationTabRowDetails, getStationDepartmentData,
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
-    deleteStationDepartment, deleteStationPersonnel, getDepartmentData
+    deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
+    deleteStationAccessorial, getAccessorialData
 } from '../../redux/slices/customer';
 import NotesTable from './NotesTable';
 // ----------------------------------------------------------------------
@@ -29,7 +30,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     const pagination = useSelector((state) => state?.customerdata?.pagination);
     const error = useSelector((state) => state?.customerdata?.error);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
-    const selectedStationTabRowDetails = useSelector((state) => state?.customerdata?.selectedStationTabRowDetails);
+    const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const [tableColumns, setTableColumns] = useState([]);
     // dialog for notes
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -226,11 +227,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        {/* <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
-                        </Tooltip> */}
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 setActionType('Edit');
@@ -421,11 +417,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        {/* <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
-                        </Tooltip> */}
+
                         <Tooltip title={'Edit'} arrow onClick={() => {
                             setActionType('Edit');
                             dispatch(setSelectedStationTabRowDetails(params.row));
@@ -433,7 +425,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick = {() => dispatch(deleteStationAccessorial(params.row.accessorialId))}/>
                         </Tooltip>
                     </Box>
                 );
@@ -458,7 +450,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
-            dispatch(getStationAccessorialData(parseInt(localStorage.getItem('stationId'), 10)));
+            dispatch(getAccessorialData());
+            dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
             setTableColumns(accessorialColumns);
         }
     }, [currentTab]);

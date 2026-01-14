@@ -37,7 +37,6 @@ export default function RateSearchFields({ padding, type }) {
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         dispatch(setRateSearchObj(data));
-        alert('Form submitted successfully! Check console for data.');
     };
     const handleCLear = () => {
         console.log('Clear clicked');

@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Stack, Typography, Button, Dialog,
+    Box, Stack, Typography, Snackbar, Dialog,
     DialogContent, Tooltip, Divider
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -40,6 +40,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         page: 0,
         pageSize: 10,
     });
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // columns for department, personnel, rate, accessorial
 
@@ -425,7 +428,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick = {() => dispatch(deleteStationAccessorial(params.row.accessorialId))}/>
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => dispatch(deleteStationAccessorial(params.row.accessorialId))} />
                         </Tooltip>
                     </Box>
                 );
@@ -470,13 +473,16 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         }
     }, [pagination]);
     useEffect(() => {
-        console.log("customer error at console", error);
-        // alert(error);
+        if (error) {
+            setSnackbarMessage(error);
+            setSnackbarOpen(true);
+        }
     }, [error])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
-            alert(operationalMessage);
+            setSnackbarMessage(operationalMessage);
+            setSnackbarOpen(true);
         }
     }, [operationalMessage])
 
@@ -572,6 +578,13 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     </Box>
                 </DialogContent>
             </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={1000} // Adjust the duration as needed
+                onClose={() => setSnackbarOpen(false)}
+                message={snackbarMessage}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            />
         </>
     );
 }

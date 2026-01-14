@@ -40,6 +40,7 @@ const slice = createSlice({
       state.isLoading = true;
       state.customerSuccess = false;
       state.error = null;
+      state.operationalMessage = '';
     },
     // set pagination object of the current table
     setPaginationObject(state, action) {

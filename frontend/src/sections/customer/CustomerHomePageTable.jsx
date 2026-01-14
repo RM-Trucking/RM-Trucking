@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent } from '@mui/material';
+import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
@@ -29,6 +29,9 @@ export default function CustomerHomePageTable() {
         page: 0,
         pageSize: 10,
     });
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // datagrid columns
     const columns = [{
@@ -132,21 +135,21 @@ export default function CustomerHomePageTable() {
                     <Tooltip title={'View'} arrow>
                         <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
-                            localStorage.setItem('customerId',params?.row?.customerId);
+                            localStorage.setItem('customerId', params?.row?.customerId);
                             navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
                         }} />
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
                         <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
-                            localStorage.setItem('customerId',params?.row?.customerId);
+                            localStorage.setItem('customerId', params?.row?.customerId);
                             setOpenEditDialog(true);
                         }} />
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
                         <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
                             dispatch(deleteCustomer(params?.row?.customerId));
-                            localStorage.setItem('customerId',params?.row?.customerId);
+                            localStorage.setItem('customerId', params?.row?.customerId);
                         }} />
                     </Tooltip>
                 </Box>
@@ -171,13 +174,16 @@ export default function CustomerHomePageTable() {
     }, [pagination]);
 
     useEffect(() => {
-        console.log("customer error at console", error);
-        alert(error);
+        if (error) {
+            setSnackbarMessage(error);
+            setSnackbarOpen(true);
+        }
     }, [error])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
-            alert(operationalMessage);
+            setSnackbarMessage(operationalMessage);
+            setSnackbarOpen(true);
         }
     }, [operationalMessage])
 
@@ -250,7 +256,7 @@ export default function CustomerHomePageTable() {
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 </>
                 <Box sx={{ pt: 2 }}>
-                    <NotesTable notes={notesRef.current} handleCloseConfirm = {handleCloseConfirm}/>
+                    <NotesTable notes={notesRef.current} handleCloseConfirm={handleCloseConfirm} />
                 </Box>
             </DialogContent>
         </Dialog>
@@ -272,5 +278,12 @@ export default function CustomerHomePageTable() {
                 <SharedCustomerDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedCustomerRowDetails={selectedCustomerRowDetails} />
             </DialogContent>
         </Dialog>
+        <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={1000} // Adjust the duration as needed
+            onClose={() => setSnackbarOpen(false)}
+            message={snackbarMessage}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        />
     </>)
 }

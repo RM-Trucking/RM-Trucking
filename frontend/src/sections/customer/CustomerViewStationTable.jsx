@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Box, Stack, Typography, Button, Dialog,
-    DialogContent, Tooltip, Divider
+    DialogContent, Tooltip, Divider, Snackbar
 } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
@@ -36,6 +36,9 @@ export default function CustomerViewStationTable() {
     });
     const [openNotesDilog, setOpenNotesDialog] = useState(false);
     const notesRef = useRef({});
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // datagrid columns
     const columns = [
@@ -252,13 +255,16 @@ export default function CustomerViewStationTable() {
         }
     }, [pagination]);
     useEffect(() => {
-        console.log("customer error at console", error);
-        // alert(error);
+        if(error){
+            setSnackbarMessage(error);
+            setSnackbarOpen(true);
+        }
     }, [error])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
-            alert(operationalMessage);
+            setSnackbarMessage(operationalMessage);
+            setSnackbarOpen(true);
         }
     }, [operationalMessage])
 
@@ -354,5 +360,12 @@ export default function CustomerViewStationTable() {
                 {!openNotesDilog && <SharedStationDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCustomerStationDetails={selectedCustomerStationDetails} customerId={selectedCustomerRowDetails.customerId} />}
             </DialogContent>
         </Dialog>
+        <Snackbar
+            open={snackbarOpen}
+            autoHideDuration={1000} // Adjust the duration as needed
+            onClose={() => setSnackbarOpen(false)}
+            message={snackbarMessage}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        />
     </>)
 }

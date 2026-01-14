@@ -5,8 +5,6 @@ import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogC
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
-import ConfirmDialog from '../../components/confirm-dialog';
-import { useSnackbar } from '../../components/snackbar';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedCustomerRowDetails, deleteCustomer } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
@@ -16,7 +14,6 @@ export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
-    const { enqueueSnackbar } = useSnackbar();
     const customerRows = useSelector((state) => state?.customerdata?.customerRows);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const error = useSelector((state) => state?.customerdata?.error)
@@ -175,12 +172,12 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         console.log("customer error at console", error);
-        enqueueSnackbar(error, { variant: 'error' });
+        alert(error);
     }, [error])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
-            enqueueSnackbar(operationalMessage, { variant: 'success' });
+            alert(operationalMessage);
         }
     }, [operationalMessage])
 

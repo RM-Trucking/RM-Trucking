@@ -9,6 +9,7 @@ interface DB2Config {
     timeout?: number;
 }
 
+export const SCHEMA = process.env.DB2_LIBRARY || 'RANDM_LCL';
 /**
  * Transaction Manager for handling ACID operations
  */
@@ -310,13 +311,23 @@ export async function createTransaction(
  * Get default connection string based on environment
  */
 function getDefaultConnectionString(): string {
-    const env = process.env.NODE_ENV || 'development';
+    // Use DB2_CONNECTION_STRING and DB2_LIBRARY from .env
+    const connectionString = process.env.DB2_CONNECTION_STRING || '';
+    const library = process.env.DB2_LIBRARY || '';
 
-    if (env === 'production') {
-        return process.env.DB2_CONNECTION_STRING_PROD || '';
+    if (!connectionString) {
+        throw new Error('DB2_CONNECTION_STRING not set in .env');
+    }
+    if (!library) {
+        throw new Error('DB2_LIBRARY not set in .env');
     }
 
-    return process.env.DB2_CONNECTION_STRING_DEV || '';
+    // Append library to connection string if not present
+    let finalConnectionString = connectionString;
+    if (!/DefaultLibraries=/i.test(connectionString)) {
+        finalConnectionString += `;DefaultLibraries=${library}`;
+    }
+    return finalConnectionString;
 }
 
 /**
@@ -324,6 +335,9 @@ function getDefaultConnectionString(): string {
  */
 export async function initializeDB2Pool(): Promise<DB2> {
     const connectionString = getDefaultConnectionString();
+
+    console.log("Connection String - ", connectionString);
+
 
     if (!connectionString) {
         throw new Error('No DB2 connection string configured');

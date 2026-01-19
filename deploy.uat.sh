@@ -7,7 +7,7 @@ SERVER_DIR="server"
 FRONTEND_DIR="frontend"
 REMOTE_USER="manzar"
 REMOTE_HOST="192.168.180.2"
-REMOTE_BASE="/home/rm-dev"
+REMOTE_BASE="/home/rm-uat"
 
 if [[ -z "${RM_DEPLOY_PASS}" ]]; then
   echo "Env variable - RM_DEPLOY_PASS not defined exiting...."
@@ -31,10 +31,10 @@ if [ -d "$SERVER_DIR/dist" ]; then
 fi
 
 # Build frontend
-# echo "Building frontend in $FRONTEND_DIR..."
-# cd "$FRONTEND_DIR" || { echo "$FRONTEND_DIR not found"; exit 1; }
-# npm run build
-# cd ..
+echo "Building frontend in $FRONTEND_DIR..."
+cd "$FRONTEND_DIR" || { echo "$FRONTEND_DIR not found"; exit 1; }
+npm run build
+cd ..
 
 mkdir -p dist/frontend
 if [ -d "$FRONTEND_DIR/dist" ]; then
@@ -50,15 +50,15 @@ System = rmtrucking.RMTRUCKING.COM
 UserID = manzar
 Password = Ed/1fgiz
 Naming = 0
-DefaultLibraries = ,RANDM_LCL
+DefaultLibraries = ,RANDM_UAT
 Database = RMTDEVEL
 ODBC
 
 cat > dist/server/.env <<'ENVFILE'
 DB2_CONNECTION_STRING=Driver={IBM i Access ODBC Driver};System=192.168.180.2;UserID=manzar;Password=Ed/1fgiz;NAM=1;CCSID=1208;IgnoreWarnings=1;
-DB2_LIBRARY=RANDM_LCL
-ENVIRONMENT=qa
-PORT=5500
+DB2_LIBRARY=RANDM_UAT
+ENVIRONMENT=uat
+PORT=6500
 ENVFILE
 
 # Remove existing zip on remote

@@ -1,0 +1,248 @@
+openapi: 3.0.3
+info:
+  title: User API
+  version: 1.0.0
+  description: API documentation for User management endpoints
+paths:
+  /api/maintenance/user:
+    post:
+      summary: Create a new user
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userName
+                - loginUserName
+                - email
+                - loginPassword
+                - userType
+              properties:
+                userName:
+                  type: string
+                  description: Display name of the user
+                loginUserName:
+                  type: string
+                  description: Username used for login
+                email:
+                  type: string
+                  format: email
+                loginPassword:
+                  type: string
+                  description: Plain password (will be hashed using PBKDF2)
+                roleId:
+                  type: integer
+                  description: Optional role identifier
+                userType:
+                  type: string
+                  enum: [EMPLOYEE, CUSTOMER]
+                customerId:
+                  type: integer
+                  nullable: true
+                  description: Customer ID if userType is CUSTOMER
+      responses:
+        "201":
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+
+    get:
+      summary: Get all users
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "500":
+          description: Internal server error
+  /api/maintenance/user/{userId}:
+    get:
+      summary: Get user by ID
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+    put:
+      summary: Update user by ID
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserUpdateRequest"
+      responses:
+        "200":
+          description: User updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+    delete:
+      summary: Delete user by ID
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: User deleted successfully
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+  /api/maintenance/user/{userId}/change-password:
+    post:
+      summary: Change password for user
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: Password changed successfully
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+  /api/maintenance/user/{userId}/reset-password:
+    post:
+      summary: Reset password for user
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        "200":
+          description: Password reset successfully
+        "400":
+          description: Bad request
+        "401":
+          description: Unauthorized
+        "404":
+          description: User not found
+        "500":
+          description: Internal server error
+  /api/maintenance/user/role/{roleId}:
+    get:
+      summary: Get users by role
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: roleId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of users with the specified role
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized
+        "404":
+          description: Role not found
+        "500":
+          description: Internal server error

@@ -45,7 +45,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             "entityId": selectedCustomerStationDetails?.entityId,
             "accessorialId": data.accessorial,
             "chargeType": data.chargesType,
-            "chargeValue": data.charges,
+            "chargeValue": parseFloat(data.charges),
             "note": {
                 "messageText": data.notes
             }
@@ -56,7 +56,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             delete obj.entityId; // Remove entityId for edit
             delete obj.accessorialId; // Remove accessorialId for edit
             console.log(obj)
-            dispatch(putStationAccessorialData(selectedCustomerStationDetails?.entityId, obj));
+            dispatch(putStationAccessorialData(selectedStationTabRowDetails?.entityAccessorialId, obj));
         }
         handleCloseConfirm();
     };

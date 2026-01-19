@@ -375,7 +375,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
         },
         {
-            field: "charges",
+            field: "chargeValue",
             headerName: "Charges",
             minWidth: 400,
             flex: 1,
@@ -511,7 +511,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.departmentId || row?.accessorialId}
+                    getRowId={(row) => row?.departmentId || row?.entityAccessorialId}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
@@ -542,7 +542,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         dispatch(getStationPersonnelData({ pageNo: 1, pageSize: newPageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
-                    rowCount={parseInt(pagination?.totalRecords || '0', 10)}
+                    rowCount={parseInt(pagination?.totalRecords || tableColumns.length, 10)}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,

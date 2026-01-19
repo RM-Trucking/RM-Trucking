@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar } from '@mui/material';
+import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
@@ -9,6 +10,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedCustomerRowDetails, deleteCustomer } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
+import StyledTextField from '../shared/StyledTextField';
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
@@ -24,6 +26,7 @@ export default function CustomerHomePageTable() {
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const notesRef = useRef({});
     const [openEditDialog, setOpenEditDialog] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -32,6 +35,16 @@ export default function CustomerHomePageTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const {
+        control,
+        handleSubmit,
+        formState: { errors },
+        getValues
+    } = useForm({
+        defaultValues: {
+            reasonForStatusChange: '',
+        }
+    });
 
     // datagrid columns
     const columns = [{
@@ -148,7 +161,8 @@ export default function CustomerHomePageTable() {
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
                         <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
-                           // using callback to refresh table data after delete
+                            // setDeleteDialogOpen(true);
+                            // using callback to refresh table data after delete
                             dispatch(deleteCustomer(params?.row?.customerId, () => {
                                 dispatch(getCustomerData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr }));
                             }));
@@ -205,6 +219,14 @@ export default function CustomerHomePageTable() {
         setOpenEditDialog(false);
     };
 
+    const handleCloseDelete = () => {
+        setDeleteDialogOpen(false);
+    };
+
+    const onSubmit = (data) => {
+        console.log('Form Submitted:', data);
+        handleCloseDelete();
+    };
 
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
@@ -280,6 +302,95 @@ export default function CustomerHomePageTable() {
         >
             <DialogContent>
                 <SharedCustomerDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedCustomerRowDetails={selectedCustomerRowDetails} />
+            </DialogContent>
+        </Dialog>
+        <Dialog open={deleteDialogOpen} onClose={handleCloseDelete} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseDelete();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1000px',
+                    height: '200px',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
+                }
+            }}
+        >
+            <DialogContent>
+                {/* header  */}
+                <>
+                    <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Reason For Status Change</Typography>
+                    </Stack>
+                    <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                </>
+                <Stack flexDirection={'row'} justifyContent={'center'} alignItems={'center'} sx={{mt : 2, mb : 1}}>
+                    <Controller
+                        name="reasonForStatusChange"
+                        control={control}
+                        rules={{ required: 'Reason for status change is required' }}
+                        render={({ field }) => (
+                            <StyledTextField
+                                {...field}
+                                select
+                                label="Reason for Status"
+                                variant="standard" fullWidth required
+                                sx={{
+                                    width: '35%',
+                                }}
+                                error={!!errors.reasonForStatusChange} helperText={errors.reasonForStatusChange?.message}
+                            >
+                                <MenuItem value='Payment Defaulter'>Payment Defaulter</MenuItem>
+                            </StyledTextField>
+                        )}
+                    />
+                </Stack>
+                <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mt: 1 }}>
+                    <Button
+                        variant="outlined"
+                        onClick={handleCloseDelete}
+                        size="small"
+                        sx={{
+                            '&.MuiButton-outlined': {
+                                borderRadius: '4px',
+                                color: '#000',
+                                boxShadow: 'none',
+                                fontSize: '14px',
+                                p: '2px 16px',
+                                bgcolor: '#fff',
+                                fontWeight: 'normal',
+                                ml: 1,
+                                mr: 1,
+                                borderColor: '#000'
+                            },
+                        }}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        type='submit'
+                        onClick={handleSubmit(onSubmit)}
+                        sx={{
+                            '&.MuiButton-contained': {
+                                borderRadius: '4px',
+                                color: '#ffffff',
+                                boxShadow: 'none',
+                                fontSize: '14px',
+                                p: '2px 16px',
+                                bgcolor: '#A22',
+                                fontWeight: 'normal',
+                                ml: 1,
+                            },
+                        }}
+                    >
+                        Ok
+                    </Button>
+                </Stack>
+
             </DialogContent>
         </Dialog>
         <Snackbar

@@ -76,6 +76,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             "messageText": multilineTextValue
         };
         dispatch(postNote(obj));
+        setMultilineTextValue('');
     }
 
     return (
@@ -133,6 +134,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
+                    hideFooterSelectedRowCount
                 />
             </Box>
             <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mt: 2 }}>

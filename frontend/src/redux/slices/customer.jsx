@@ -172,7 +172,7 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message || 'Personnel created successfully';
       console.log("personnel post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
-      state.pagination.totalRecords = action.payload.pagination.total + 1 || state.stationTabTableData.length;
+      state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.stationTabTableData.length;
     },
     putStationdPersonneldataSuccess(state, action) {
       state.isLoading = false;

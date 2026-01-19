@@ -158,6 +158,16 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     sx={{
                                         width: '25%',
                                     }}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
                                     label="Customer Name *"
                                     error={!!error}
                                     helperText={error ? error.message : ''}

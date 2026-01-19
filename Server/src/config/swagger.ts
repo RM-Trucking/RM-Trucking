@@ -17,5 +17,5 @@ export const swaggerOptions = {
         },
         security: [{ bearerAuth: [] }],
     },
-    apis: ['src/routes/*.ts', 'src/controllers/*.ts'], // Adjust as needed
+    apis: [__dirname + '/../swagger/*.yaml'],
 };

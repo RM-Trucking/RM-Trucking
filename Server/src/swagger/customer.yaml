@@ -1,0 +1,303 @@
+openapi: 3.0.0
+info:
+  title: Customer API
+  version: 1.0.0
+  description: API documentation for Customer management endpoints
+paths:
+  /api/maintenance/customer:
+    post:
+      tags:
+        - Customer
+      summary: Create a new customer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerRequest"
+      responses:
+        "201":
+          description: Customer created
+    get:
+      tags:
+        - Customer
+      summary: Get all customers (with search + pagination)
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term to filter by customer name (case-insensitive)
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page
+      responses:
+        "200":
+          description: Array of customers with pagination metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomerResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+
+  /api/maintenance/customer/{customerId}:
+    get:
+      tags:
+        - Customer
+      summary: Get customer by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerResponse"
+        "404":
+          description: Customer not found
+    put:
+      tags:
+        - Customer
+      summary: Update customer by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerRequest"
+      responses:
+        "200":
+          description: Customer updated
+        "400":
+          description: Failed to update customer
+    delete:
+      tags:
+        - Customer
+      summary: Delete customer by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: customerId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Customer deleted
+        "400":
+          description: Failed to delete customer
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateCustomerRequest:
+      type: object
+      properties:
+        customerName:
+          type: string
+        rmAccountNumber:
+          type: string
+        phoneNumber:
+          type: string
+        website:
+          type: string
+        corporateBillingSame:
+          type: string
+          enum: [Y, N]
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRequest"
+        note:
+          $ref: "#/components/schemas/NoteMessageRequest"
+
+    UpdateCustomerRequest:
+      type: object
+      properties:
+        customerName:
+          type: string
+        rmAccountNumber:
+          type: string
+        phoneNumber:
+          type: string
+        website:
+          type: string
+        activeStatusReason:
+          type: string
+        corporateBillingSame:
+          type: string
+          enum: [Y, N]
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUpdateRequest"
+
+    CustomerResponse:
+      type: object
+      properties:
+        customerId:
+          type: integer
+        customerName:
+          type: string
+        rmAccountNumber:
+          type: string
+        phoneNumber:
+          type: string
+        website:
+          type: string
+        activeStatusReason:
+          type: string
+        corporateBillingSame:
+          type: string
+          enum: [Y, N]
+        activeStatus:
+          type: string
+          enum: [Y, N]
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: integer
+        noteThreadId:
+          type: integer
+          nullable: true
+        entityId:
+          type: integer
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressResponse"
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NoteMessageResponse"
+
+    AddressRequest:
+      type: object
+      properties:
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        addressRole:
+          type: string
+          enum: [Corporate, Billing]
+
+    AddressUpdateRequest:
+      type: object
+      properties:
+        addressId:
+          type: integer
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        addressRole:
+          type: string
+          enum: [Corporate, Billing]
+
+    AddressResponse:
+      type: object
+      properties:
+        addressId:
+          type: integer
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        addressRole:
+          type: string
+          enum: [Corporate, Billing]
+
+    NoteMessageRequest:
+      type: object
+      properties:
+        messageText:
+          type: string
+
+    NoteMessageResponse:
+      type: object
+      properties:
+        noteMessageId:
+          type: integer
+        noteThreadId:
+          type: integer
+        messageText:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer

@@ -4,6 +4,11 @@ import { Server } from 'http';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { swaggerOptions } from './config/swagger';
+import { join } from 'path';
+import { existsSync } from 'fs';
+import routes from './routes';
+import cors from 'cors';
+import { initializeDB2Pool, closeDB2Pool, db } from './config/db2';
 
 // Load environment variables
 config();
@@ -24,67 +29,10 @@ interface ServerConfig {
 }
 
 /**
- * Get database connection string based on environment
- */
-function getDatabaseConnectionString(): { connectionString: string; environment: string } {
-    const args = process.argv.slice(2);
-    const environment = process.env.ENVIRONMENT || 'dev-local';
-
-    // Check command-line arguments first (highest priority)
-    if (args.includes('--mode=prod')) {
-        return {
-            connectionString: "Driver={IBM i Access ODBC Driver};System=192.168.180.2;UserID=manzar;Password=Ed/1fgiz;NAM=1;CCSID=1208;IgnoreWarnings=1;DefaultLibraries=,RANDM_TST",
-            environment: 'prod (CLI)'
-        };
-    }
-
-    if (args.includes('--mode=dev')) {
-        return {
-            connectionString: "DSN=SS2;Database=Ss2;UserName=odbcuser;Password=odbcuser;Host=172.16.102.12",
-            environment: 'dev (CLI)'
-        };
-    }
-
-    // Fall back to ENVIRONMENT variable
-    switch (environment) {
-        case 'prod':
-            return {
-                connectionString: "DSN=ss2;Database=Ss2;UserName=dbuser;Password=dbuser123;Host=localhost",
-                environment: 'prod'
-            };
-
-        case 'live-rm':
-            return {
-                connectionString: "DSN=rmx;Database=RMTDEVEL;UserName=manzar;Password=Ed/1fgiz;Host=localhost",
-                environment: 'live-rm'
-            };
-
-        case 'prod-rm':
-            return {
-                connectionString: "DSN=rmx;Database=RMTDEVEL;UserName=manzar;Password=Ed/1fgiz;Host=localhost",
-                environment: 'prod-rm'
-            };
-
-        case 'dev-rm':
-            return {
-                connectionString: "DSN=rmx;Database=RMTDEVEL;UserName=manzar;Password=Ed/1fgiz;Host=localhost",
-                environment: 'dev-rm'
-            };
-
-        case 'dev-local':
-        default:
-            return {
-                connectionString: "DSN=ss2x;Database=Ss2;UserName=odbcuser;Password=odbcuser;Host=172.16.102.12",
-                environment: 'dev-local'
-            };
-    }
-}
-
-/**
  * Get port based on environment
  */
 function getPort(): number {
-    const environment = process.env.ENVIRONMENT || 'dev-local';
+    const environment = process.env.ENVIRONMENT || 'local';
 
     // Command-line override takes precedence
     if (process.env.PORT) {
@@ -93,16 +41,21 @@ function getPort(): number {
 
     // Environment-based port defaults
     switch (environment) {
-        case 'prod-rm':
-            return 8080;
-        case 'dev-rm':
-            return 4500;
+        case 'prod':
+            return 7500;
+        case 'uat':
+            return 6500;
+        case 'qa':
+            return 5500;
+        case 'local':
+            return 4000
         default:
             return 3000;
     }
 }
 
-const dbConfig = getDatabaseConnectionString();
+
+
 const port = getPort();
 
 const serverConfig: ServerConfig = {
@@ -111,8 +64,8 @@ const serverConfig: ServerConfig = {
     isProduction: process.env.NODE_ENV === 'production',
     isDevelopment: process.env.NODE_ENV !== 'production',
     database: {
-        connectionString: dbConfig.connectionString,
-        environment: dbConfig.environment
+        connectionString: process.env.DB2_CONNECTION_STRING || '',
+        environment: process.env.ENVIRONMENT || process.env.NODE_ENV || 'development'
     }
 };
 
@@ -121,7 +74,6 @@ if (isNaN(serverConfig.port) || serverConfig.port < 1 || serverConfig.port > 655
     console.error('❌ Invalid PORT configuration. Must be between 1 and 65535');
     process.exit(1);
 }
-
 if (!serverConfig.database.connectionString) {
     console.error('❌ Database connection string not configured');
     process.exit(1);
@@ -135,6 +87,14 @@ const NODE_ENV: string = serverConfig.env;
 // ============================================================================
 // MIDDLEWARE
 // ============================================================================
+
+// CORS middleware
+app.use(cors({
+    origin: '*', // You can restrict this to specific origins if needed
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Request-ID'],
+    exposedHeaders: ['X-Request-ID'],
+}));
 
 // Security headers
 app.use((req: Request, res: Response, next: NextFunction) => {
@@ -224,24 +184,55 @@ app.get('/api', (req: Request, res: Response) => {
     });
 });
 
-// Root endpoint
-app.get('/', (req: Request, res: Response) => {
-    res.status(200).json({
-        message: 'Welcome to R&M Trucking API',
-        documentation: '/api/docs',
-        health: '/health'
-    });
-});
 
+//Test Api
 
-// ============================================================================
-// SERVE REACT STATIC BUILD (../webapp)
-// ============================================================================
-// const DIST_FOLDER = join(process.cwd(), '../webapp');
-// app.use(express.static(DIST_FOLDER, { maxAge: '1y' }));
-// app.get('*', (req, res) => {
-//     res.sendFile(join(DIST_FOLDER, 'index.html'));
+// app.get('/api/permissions', async (req: Request, res: Response, next: NextFunction) => {
+//     try {
+//         const conn = await db();
+//         const sql = `
+//             SELECT
+//                 "permissionId",
+//                 "moduleName",
+//                 "permissionName"
+//             FROM "Permissions"
+//         `;
+//         const result = await conn.query(sql);
+//         res.json({ success: true, data: result });
+//     } catch (err) {
+//         next(err);
+//     }
 // });
+
+
+// Register all routes via common route handler
+// This automatically mounts all module routes (auth, maintenance, warehouse-form, etc.)
+app.use('/api', routes);
+
+
+// SERVE REACT/FRONTEND STATIC BUILD
+// Avoid using '*' route patterns (incompatible with path-to-regexp used by Express 5)
+// Serve static files and fall back to index.html for client-side routing
+// ============================================================================
+const DIST_FOLDER = join(process.cwd(), '../frontend');
+
+if (existsSync(DIST_FOLDER)) {
+    console.log(`Serving static frontend from: ${DIST_FOLDER}`);
+    app.use(express.static(DIST_FOLDER, { maxAge: '1y' }));
+
+    // SPA fallback: only for GET requests that are not API or health checks
+    app.use((req: Request, res: Response, next: NextFunction) => {
+        if (req.method === 'GET' && !req.path.startsWith('/api') && !req.path.startsWith('/health') && !req.path.startsWith('/api/docs')) {
+            const indexPath = join(DIST_FOLDER, 'index.html');
+            if (existsSync(indexPath)) {
+                return res.sendFile(indexPath);
+            }
+        }
+        next();
+    });
+} else {
+    console.warn(`Frontend build not found at: ${DIST_FOLDER}`);
+}
 
 // ============================================================================
 // ERROR HANDLERS
@@ -296,13 +287,25 @@ function generateRequestId(): string {
 // ============================================================================
 
 let server: Server | null = null;
+let db2PoolInitialized = false;
 
 /**
  * Start server
  */
-function startServer(): void {
+async function startServer(): Promise<void> {
+    try {
+        // Initialize DB2 pool
+        await initializeDB2Pool();
+        db2PoolInitialized = true;
+        console.log('DB2 pool initialized');
+    } catch (err) {
+        console.error('❌ Failed to initialize DB2 pool:', err);
+        process.exit(1);
+    }
+
     server = app.listen(PORT, () => {
         console.log(`Server started on http://localhost:${PORT} | Env: ${NODE_ENV} | DB: ${serverConfig.database.environment} | Started: ${new Date().toISOString()}`);
+        console.log(`Port - ${process.env.PORT} | Database Lib - ${process.env.DB2_LIBRARY}`)
     });
 
     server.on('error', (err: NodeJS.ErrnoException) => {
@@ -318,10 +321,18 @@ function startServer(): void {
 /**
  * Graceful shutdown handler
  */
-function gracefulShutdown(signal: string): void {
+async function gracefulShutdown(signal: string): Promise<void> {
     console.log(`\n📍 ${signal} received - starting graceful shutdown...`);
 
     if (!server) {
+        if (db2PoolInitialized) {
+            try {
+                await closeDB2Pool();
+                console.log('✓ DB2 pool closed');
+            } catch (err) {
+                console.error('Error closing DB2 pool:', err);
+            }
+        }
         process.exit(0);
     }
 
@@ -335,11 +346,13 @@ function gracefulShutdown(signal: string): void {
         clearTimeout(shutdownTimeout);
         console.log('✓ HTTP server closed');
 
-        try {
-            // Close DB2 pool
-            // await closeDB2Pool(); // Uncomment when DB2 is initialized
-        } catch (err) {
-            console.error('Error closing database:', err);
+        if (db2PoolInitialized) {
+            try {
+                await closeDB2Pool();
+                console.log('✓ DB2 pool closed');
+            } catch (err) {
+                console.error('Error closing DB2 pool:', err);
+            }
         }
 
         console.log('✓ All resources cleaned up');

@@ -1,0 +1,78 @@
+openapi: 3.0.0
+info:
+  title: Accessorial API
+  version: 1.0.0
+  description: API for managing accessorials (e.g., Fuel Surcharge, Liftgate) used in dropdowns
+
+tags:
+  - name: Accessorial
+    description: Operations related to accessorials
+
+paths:
+  /api/maintenance/accessorial:
+    post:
+      tags: [Accessorial]
+      summary: Create a new accessorial
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAccessorialRequest"
+      responses:
+        "201":
+          description: Accessorial created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessorialResponse"
+        "400":
+          description: Failed to create accessorial
+
+    get:
+      tags: [Accessorial]
+      summary: Get all accessorials (for dropdown)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of accessorials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccessorialResponse"
+        "400":
+          description: Failed to fetch accessorials
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Accessorial:
+      type: object
+      properties:
+        accessorialId: { type: integer }
+        accessorialName: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+
+    CreateAccessorialRequest:
+      type: object
+      required:
+        - accessorialName
+      properties:
+        accessorialName: { type: string }
+
+    AccessorialResponse:
+      allOf:
+        - $ref: "#/components/schemas/Accessorial"

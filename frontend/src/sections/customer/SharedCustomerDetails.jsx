@@ -146,7 +146,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         <Controller
                             name="customerName"
                             control={control}
-                            rules={{ required: true }}
+                            rules={{
+                                required: 'Name is required',
+                                validate: (value) => value.trim().length > 0 || 'Name cannot be only spaces'
+                            }}
                             render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
@@ -157,7 +160,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     }}
                                     label="Customer Name *"
                                     error={!!error}
-                                    helperText={error ? 'Name is required' : ''}
+                                    helperText={error ? error.message : ''}
                                     disabled={(type === 'View') ? readOnly : false}
                                 />
                             )}

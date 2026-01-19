@@ -59,7 +59,7 @@ const slice = createSlice({
     postCustomerdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Customer created successfully';
       console.log("customer post payload", action.payload.data.customer);
       state.customerRows.unshift(action.payload.data.customer);
     },
@@ -67,7 +67,7 @@ const slice = createSlice({
       state.isLoading = false;
       console.log("customer put payload", action.payload.data);
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Customer updated successfully';
       const index = state.customerRows.findIndex((row) => row.customerId === action.payload?.data?.customerId);
       if (index === 0 || index > 0) {
         state.customerRows.splice(index, 1, action.payload.data);
@@ -76,7 +76,7 @@ const slice = createSlice({
     deleteCustomerdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message;
+      state.operationalMessage = action.payload.message.message || 'Customer deleted successfully';
       // console.log("customer delete payload", action.payload);
       // const index = state.customerRows.findIndex((row) => row.customerId === action.payload.id);
       // if (index === 0 || index > 0) {
@@ -95,14 +95,14 @@ const slice = createSlice({
     postStationdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Station created successfully';
       console.log("station post payload", action.payload.data);
       state.stationRows.unshift(action.payload.data);
     },
     putStationdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Station updated successfully';
       console.log("station put payload", action.payload.data);
       const index = state.stationRows.findIndex((row) => row.stationId === action.payload?.data?.stationId);
       if (index === 0 || index > 0) {
@@ -112,7 +112,7 @@ const slice = createSlice({
     deleteStationdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message;
+      state.operationalMessage = action.payload.message.message || 'Station deleted successfully';
       console.log("station delete payload", action.payload);
       const index = state.stationRows.findIndex((row) => row.stationId === action.payload.id);
       if (index === 0 || index > 0) {
@@ -129,14 +129,14 @@ const slice = createSlice({
     postStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Department created successfully';
       console.log("department post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
     },
     putStationdDepartmentataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Department updated successfully';
       console.log("department put payload", state.stationTabTableData, action.payload.data);
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload?.data?.departmentId);
       if (index === 0 || index > 0) {
@@ -146,7 +146,7 @@ const slice = createSlice({
     deleteStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message;
+      state.operationalMessage = action.payload.message.message || 'Department deleted successfully';
       console.log("department delete payload", action.payload);
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload.id);
       if (index === 0 || index > 0) {
@@ -169,16 +169,15 @@ const slice = createSlice({
     postStationPersonneldataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Personnel created successfully';
       console.log("personnel post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
-      state.pagination.totalRecords = action.payload.pagination.total + 1;
-
+      state.pagination.totalRecords = action.payload.pagination.total + 1 || state.stationTabTableData.length;
     },
     putStationdPersonneldataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message;
+      state.operationalMessage = action.payload.message || 'Personnel updated successfully';
       console.log("personnel put payload", action.payload.data);
       const index = state.stationTabTableData.findIndex((row) => row.personnelId === action.payload?.data?.personnelId);
       if (index === 0 || index > 0) {
@@ -188,7 +187,7 @@ const slice = createSlice({
     deleteStationPersonneldataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message;
+      state.operationalMessage = action.payload.message.message || 'Personnel deleted successfully';
       console.log("personnel delete payload", action.payload);
       const index = state.stationTabTableData.findIndex((row) => row.personnelId === action.payload.id);
       if (index === 0 || index > 0) {
@@ -242,12 +241,23 @@ const slice = createSlice({
     postStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
+      state.operationalMessage = "Accessorial created successfully";
       state.stationTabTableData.unshift(action.payload.data);
+    },
+    putStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message || 'Accessorial updated successfully';
+      console.log("Accessorial put payload", action.payload.data);
+      const index = state.stationTabTableData.findIndex((row) => row.accessorialId === action.payload?.data?.accessorialId);
+      if (index === 0 || index > 0) {
+        state.stationTabTableData.splice(index, 1, action.payload.data);
+      }
     },
     deleteStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message;
+      state.operationalMessage = action.payload.message.message || 'Accessorial deleted successfully';
       const index = state.stationTabTableData.findIndex((row) => row.accessorialId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);
@@ -358,7 +368,7 @@ export function putCustomerData(obj, id) {
     }
   };
 }
-export function deleteCustomer(id) {
+export function deleteCustomer(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -366,6 +376,7 @@ export function deleteCustomer(id) {
       dispatch(slice.actions.deleteCustomerdataSuccess({
         id, message: response.data
       }));
+      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
@@ -406,7 +417,7 @@ export function putStationData(id, obj) {
     }
   };
 }
-export function deleteStation(id) {
+export function deleteStation(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -414,6 +425,7 @@ export function deleteStation(id) {
       dispatch(slice.actions.deleteStationdataSuccess({
         id, message: response.data
       }));
+      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
@@ -454,7 +466,7 @@ export function putStationDepartmentData(id, obj) {
     }
   };
 }
-export function deleteStationDepartment(id) {
+export function deleteStationDepartment(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -462,6 +474,7 @@ export function deleteStationDepartment(id) {
       dispatch(slice.actions.deleteStationDepartmentdataSuccess({
         id, message: response.data
       }));
+      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
@@ -513,7 +526,7 @@ export function putStationPersonnelData(id, obj) {
     }
   };
 }
-export function deleteStationPersonnel(id) {
+export function deleteStationPersonnel(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -521,6 +534,7 @@ export function deleteStationPersonnel(id) {
       dispatch(slice.actions.deleteStationPersonneldataSuccess({
         id, message: response.data
       }));
+      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
@@ -574,7 +588,18 @@ export function postStationAccessorialData(obj) {
     }
   };
 }
-export function deleteStationAccessorial(id) {
+export function putStationAccessorialData(id, obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/entity-accessorial/${id}`, obj);
+      dispatch(slice.actions.putStationAccessorialDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function deleteStationAccessorial(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -582,6 +607,7 @@ export function deleteStationAccessorial(id) {
       dispatch(slice.actions.deleteStationAccessorialDataSuccess({
         id, message: response.data
       }));
+      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postStationAccessorialData } from '../../redux/slices/customer';
+import { postStationAccessorialData, putStationAccessorialData } from '../../redux/slices/customer';
 
 StationAccessorial.propTypes = {
     type: PropTypes.string,
@@ -45,20 +45,27 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             "entityId": selectedCustomerStationDetails?.entityId,
             "accessorialId": data.accessorial,
             "chargeType": data.chargesType,
-            "chargeValue": data.charges
+            "chargeValue": data.charges,
+            "note": {
+                "messageText": data.notes
+            }
         }
         if (type === 'Add') {
             dispatch(postStationAccessorialData(obj));
         } else if (type === 'Edit') {
+            delete obj.entityId; // Remove entityId for edit
+            delete obj.accessorialId; // Remove accessorialId for edit
             console.log(obj)
+            dispatch(putStationAccessorialData(selectedCustomerStationDetails?.entityId, obj));
         }
         handleCloseConfirm();
     };
     useEffect(() => {
         if (selectedStationTabRowDetails) {
-            setValue('accessorial', selectedStationTabRowDetails.accessorialName || '');
+            setValue('accessorial', selectedStationTabRowDetails.accessorialId || '');
             setValue('chargesType', selectedStationTabRowDetails.chargeType || '');
-            setValue('charges', selectedStationTabRowDetails.charges || '');
+            setValue('charges', selectedStationTabRowDetails.chargeValue || '');
+            setChargeValue(selectedStationTabRowDetails.chargeValue || '');
             setValue('notes', selectedStationTabRowDetails.notes || '');
         }
     }, [selectedStationTabRowDetails]);
@@ -90,6 +97,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                         width: '25%',
                                     }}
                                     error={!!errors.accessorial} helperText={errors.accessorial?.message}
+                                    disabled={type === 'Edit'}
                                 >
                                     {accessorialData.map((data) => (
                                         <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>

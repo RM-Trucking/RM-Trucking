@@ -148,7 +148,11 @@ export default function CustomerHomePageTable() {
                     </Tooltip>
                     <Tooltip title={'Delete'} arrow>
                         <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
-                            dispatch(deleteCustomer(params?.row?.customerId));
+                           // using callback to refresh table data after delete
+                            dispatch(deleteCustomer(params?.row?.customerId, () => {
+                                dispatch(getCustomerData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr }));
+                            }));
+
                             localStorage.setItem('customerId', params?.row?.customerId);
                         }} />
                     </Tooltip>
@@ -175,7 +179,7 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error);
+            setSnackbarMessage(error.message);
             setSnackbarOpen(true);
         }
     }, [error])

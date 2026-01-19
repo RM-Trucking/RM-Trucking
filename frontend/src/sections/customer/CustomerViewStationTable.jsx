@@ -228,7 +228,13 @@ export default function CustomerViewStationTable() {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => { localStorage.setItem('stationId', params?.row?.stationId); dispatch(deleteStation(params?.row?.stationId)) }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
+                                localStorage.setItem('stationId', params?.row?.stationId);
+                                // using callback to refresh table data after delete
+                                dispatch(deleteStation(params?.row?.stationId, () => {
+                                    dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
+                                }));
+                            }} />
                         </Tooltip>
                     </Box>
                 );
@@ -255,8 +261,8 @@ export default function CustomerViewStationTable() {
         }
     }, [pagination]);
     useEffect(() => {
-        if(error){
-            setSnackbarMessage(error);
+        if (error) {
+            setSnackbarMessage(error.message);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -348,7 +354,7 @@ export default function CustomerViewStationTable() {
         }}
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
-                    width: '1545px',
+                    width: (openNotesDilog) ? "1000px" : '1545px',
                     height: (openNotesDilog) ? '720px' : '550px',
                     maxHeight: 'none',
                     maxWidth: 'none',

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-
+import { useNavigate } from 'react-router-dom';
 import Iconify from '../../../components/iconify';
 import { Stack, Typography, MenuItem } from "@mui/material";
 import { useDispatch, useSelector } from '../../../redux/store';
@@ -10,6 +10,7 @@ import { useAuthContext } from '../../../auth/useAuthContext';
 
 
 export default function UserAccount() {
+    const navigate = useNavigate();
     const {
         dashboardSearchStr
     } = useSelector(({ dashboarddata }) => dashboarddata);
@@ -30,6 +31,7 @@ export default function UserAccount() {
     const handleClickedItem = async (event) => {
         if (event?.target?.id === 'logout') {
             await logout();
+            navigate(PATH_AUTH.login, { replace: true });
         }
         setOpenPopover(false);
         setAnchorEl(null);

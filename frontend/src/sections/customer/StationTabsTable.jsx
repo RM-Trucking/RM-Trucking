@@ -136,7 +136,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                dispatch(deleteStationDepartment(params.row?.departmentId));
+
+                                dispatch(deleteStationDepartment(params?.row?.departmentId, () => {
+                                    dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
+                                }));
+
                             }} />
                         </Tooltip>
                     </Box>
@@ -238,7 +242,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                dispatch(deleteStationPersonnel(params.row?.personnelId));
+                                dispatch(deleteStationPersonnel(params?.row?.personnelId, () => {
+                                    dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
+                                }));
                             }} />
                         </Tooltip>
                     </Box>
@@ -428,7 +434,13 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => dispatch(deleteStationAccessorial(params.row.accessorialId))} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
+                                // using callback to refresh table data after delete
+                                dispatch(deleteStationAccessorial(params?.row?.accessorialId, () => {
+                                    dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
+                                }));
+                            }}
+                            />
                         </Tooltip>
                     </Box>
                 );
@@ -474,7 +486,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error);
+            setSnackbarMessage(error.message);
             setSnackbarOpen(true);
         }
     }, [error])

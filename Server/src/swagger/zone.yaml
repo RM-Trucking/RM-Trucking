@@ -1,0 +1,102 @@
+openapi: 3.0.0
+info:
+  title: Zone API
+  version: 1.0.0
+  description: API documentation for Zone management endpoints
+paths:
+  /api/maintenance/zones:
+    post:
+      tags:
+        - Zone
+      summary: Create a new zone
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                zoneName:
+                  type: string
+      responses:
+        "201":
+          description: Zone created
+    get:
+      tags:
+        - Zone
+      summary: Get all zones
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of zones
+  /api/maintenance/zones/{zoneId}:
+    get:
+      tags:
+        - Zone
+      summary: Get zone by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: zoneId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Zone details
+        "404":
+          description: Zone not found
+  /api/maintenance/zone-zips:
+    get:
+      tags:
+        - Zone
+      summary: Get all zone zips
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Array of all zone zips
+    post:
+      tags:
+        - Zone
+      summary: Add zone zip mapping
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                zoneId:
+                  type: integer
+                zipCode:
+                  type: string
+                rangeStart:
+                  type: string
+                rangeEnd:
+                  type: string
+      responses:
+        "201":
+          description: Zone zip mapping created
+  /api/maintenance/zones/{zoneId}/zone-zips:
+    get:
+      tags:
+        - Zone
+      summary: Get all zone zips for a zone
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: zoneId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Array of zone zips

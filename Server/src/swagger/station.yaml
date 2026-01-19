@@ -1,0 +1,297 @@
+openapi: 3.0.0
+info:
+  title: Station API
+  version: 1.1.0
+  description: API for managing stations under customers, with addresses and notes, including pagination and search
+
+tags:
+  - name: Station
+    description: Operations related to stations
+
+paths:
+  /api/maintenance/station:
+    post:
+      tags: [Station]
+      summary: Create a new station
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateStationRequest"
+      responses:
+        "201":
+          description: Station created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationResponse"
+        "400":
+          description: Failed to create station
+
+  /api/maintenance/station/{stationId}:
+    get:
+      tags: [Station]
+      summary: Get a station by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Station details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationResponse"
+        "404":
+          description: Station not found
+    put:
+      tags: [Station]
+      summary: Update a station (including addresses)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateStationRequest"
+      responses:
+        "200":
+          description: Station updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StationResponse"
+        "400":
+          description: Failed to update station
+    delete:
+      tags: [Station]
+      summary: Soft delete a station
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Station deleted successfully
+        "400":
+          description: Failed to delete station
+
+  /api/maintenance/station/customer/{customerId}:
+    get:
+      tags: [Station]
+      summary: Get all stations for a customer (with pagination and search)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+          description: Page number (default 1)
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page (default 10)
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term to filter stations by name
+      responses:
+        "200":
+          description: Paginated list of stations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  stations:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StationResponse"
+                  total:
+                    type: integer
+                    description: Total number of stations matching criteria
+                  page:
+                    type: integer
+                    description: Current page number
+                  pageSize:
+                    type: integer
+                    description: Number of records per page
+        "400":
+          description: Failed to fetch stations
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Station:
+      type: object
+      properties:
+        stationId: { type: integer }
+        customerId: { type: integer }
+        entityId: { type: integer }
+        stationName: { type: string }
+        rmAccountNumber: { type: string }
+        airportCode: { type: string }
+        phoneNumber: { type: string }
+        faxNumber: { type: string }
+        openTime: { type: string, format: time }
+        closeTime: { type: string, format: time }
+        hours: { type: string }
+        warehouse:
+          type: string
+          enum: [Y, N]
+        activeStatus:
+          type: string
+          enum: [Y, N]
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+        noteThreadId: { type: integer }
+
+    Address:
+      type: object
+      properties:
+        addressId: { type: integer }
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zipCode: { type: string }
+        addressRole: { type: string }
+
+    CreateAddressRequest:
+      type: object
+      required:
+        - line1
+        - city
+        - state
+        - zipCode
+        - addressRole
+      properties:
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zipCode: { type: string }
+        addressRole: { type: string }
+
+    UpdateAddressRequest:
+      type: object
+      properties:
+        addressId: { type: integer }
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zipCode: { type: string }
+        addressRole: { type: string }
+
+    Note:
+      type: object
+      properties:
+        noteMessageId: { type: integer }
+        noteThreadId: { type: integer }
+        messageText: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+
+    CreateStationRequest:
+      type: object
+      required:
+        - customerId
+        - stationName
+        - rmAccountNumber
+        - warehouse
+      properties:
+        customerId: { type: integer }
+        stationName: { type: string }
+        rmAccountNumber: { type: string }
+        airportCode: { type: string }
+        phoneNumber: { type: string }
+        faxNumber: { type: string }
+        openTime: { type: string, format: time }
+        closeTime: { type: string, format: time }
+        hours: { type: string }
+        warehouse:
+          type: string
+          enum: [Y, N]
+        warehouseDetail: { type: string }
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateAddressRequest"
+        note:
+          type: object
+          properties:
+            messageText: { type: string }
+
+    UpdateStationRequest:
+      type: object
+      properties:
+        stationName: { type: string }
+        rmAccountNumber: { type: string }
+        airportCode: { type: string }
+        phoneNumber: { type: string }
+        faxNumber: { type: string }
+        openTime: { type: string, format: time }
+        closeTime: { type: string, format: time }
+        hours: { type: string }
+        warehouse:
+          type: string
+          enum: [Y, N]
+        warehouseDetail: { type: string }
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateAddressRequest"
+
+    StationResponse:
+      allOf:
+        - $ref: "#/components/schemas/Station"
+        - type: object
+          properties:
+            addresses:
+              type: array
+              items:
+                $ref: "#/components/schemas/Address"
+            notes:
+              type: array
+              items:
+                $ref: "#/components/schemas/Note"

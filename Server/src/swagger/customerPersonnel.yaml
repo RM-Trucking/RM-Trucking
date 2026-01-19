@@ -1,0 +1,213 @@
+openapi: 3.0.0
+info:
+  title: Customer Personnel API
+  version: 1.1.0
+  description: API for managing personnel records linked to stations and departments
+
+tags:
+  - name: CustomerPersonnel
+    description: Operations related to customer personnel
+
+paths:
+  /api/maintenance/customer-personnel:
+    post:
+      tags: [CustomerPersonnel]
+      summary: Create a new personnel record
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerPersonnelRequest"
+      responses:
+        "201":
+          description: Personnel created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerPersonnelResponse"
+        "400":
+          description: Failed to create personnel
+
+  /api/maintenance/customer-personnel/{personnelId}:
+    get:
+      tags: [CustomerPersonnel]
+      summary: Get personnel by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: personnelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Personnel record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerPersonnelResponse"
+        "404":
+          description: Personnel not found
+    put:
+      tags: [CustomerPersonnel]
+      summary: Update personnel record
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: personnelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerPersonnelRequest"
+      responses:
+        "200":
+          description: Personnel updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerPersonnelResponse"
+        "400":
+          description: Failed to update personnel
+    delete:
+      tags: [CustomerPersonnel]
+      summary: Soft delete personnel record
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: personnelId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Personnel deleted (soft delete)
+        "400":
+          description: Failed to delete personnel
+
+  /api/maintenance/customer-personnel/station/{stationId}:
+    get:
+      tags: [CustomerPersonnel]
+      summary: Get all personnel for a station (with search & pagination)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 1
+        - name: pageSize
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: searchTerm
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of personnel
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  page:
+                    type: integer
+                  pageSize:
+                    type: integer
+                  searchTerm:
+                    type: string
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomerPersonnelResponse"
+        "400":
+          description: Failed to fetch personnel
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CustomerPersonnel:
+      type: object
+      properties:
+        personnelId: { type: integer }
+        stationId: { type: integer }
+        departmentId: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        officePhoneNumber: { type: string }
+        cellPhoneNumber: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+        activeStatus: { type: string, enum: [Y, N] }
+
+    CreateCustomerPersonnelRequest:
+      type: object
+      required:
+        - stationId
+        - departmentId
+        - name
+        - email
+      properties:
+        stationId: { type: integer }
+        departmentId: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        officePhoneNumber: { type: string }
+        cellPhoneNumber: { type: string }
+        note:
+          type: object
+          properties:
+            messageText: { type: string }
+
+    UpdateCustomerPersonnelRequest:
+      type: object
+      properties:
+        stationId: { type: integer }
+        departmentId: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        officePhoneNumber: { type: string }
+        cellPhoneNumber: { type: string }
+
+    CustomerPersonnelResponse:
+      allOf:
+        - $ref: "#/components/schemas/CustomerPersonnel"
+        - type: object
+          properties:
+            stationName:
+              type: string
+              description: Name of the station linked to this personnel
+            departmentName:
+              type: string
+              description: Name of the department linked to this personnel

@@ -7,7 +7,7 @@
   "type": "commonjs",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "npx tsc && node copy-folders.js",
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
     "watch": "nodemon --exec ts-node --transpile-only src/index.ts",
@@ -15,6 +15,8 @@
   },
   "dependencies": {
     "@types/jsonwebtoken": "^9.0.10",
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -23,6 +25,8 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
     "@types/node": "^20.10.6",
     "@types/swagger-jsdoc": "^6.0.4",

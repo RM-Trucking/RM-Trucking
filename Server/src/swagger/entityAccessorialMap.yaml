@@ -1,0 +1,199 @@
+openapi: 3.0.0
+info:
+  title: Entity Accessorial Map API
+  version: 1.1.0
+  description: API for mapping accessorials to entities (e.g., Station, Carrier, Terminal) with charge type, value, and notes
+
+tags:
+  - name: EntityAccessorialMap
+    description: Operations related to entity-accessorial mappings
+
+paths:
+  /api/maintenance/entity-accessorial:
+    post:
+      tags: [EntityAccessorialMap]
+      summary: Create a new entity-accessorial mapping
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEntityAccessorialMapRequest"
+      responses:
+        "201":
+          description: Mapping created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityAccessorialMapResponse"
+        "400":
+          description: Failed to create mapping
+
+  /api/maintenance/entity-accessorial/{entityId}:
+    get:
+      tags: [EntityAccessorialMap]
+      summary: Get all accessorial mappings for a given entity
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of accessorial mappings for the entity
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EntityAccessorialMapResponse"
+        "400":
+          description: Failed to fetch mappings
+
+  /api/maintenance/entity-accessorial/{entityAccessorialId}:
+    put:
+      tags: [EntityAccessorialMap]
+      summary: Update an entity-accessorial mapping
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityAccessorialId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEntityAccessorialMapRequest"
+      responses:
+        "200":
+          description: Mapping updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EntityAccessorialMapResponse"
+        "400":
+          description: Failed to update mapping
+    delete:
+      tags: [EntityAccessorialMap]
+      summary: Delete an entity-accessorial mapping
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: entityAccessorialId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Mapping deleted successfully
+        "400":
+          description: Failed to delete mapping
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    EntityAccessorialMap:
+      type: object
+      properties:
+        entityAccessorialId:
+          type: integer
+          description: Unique identifier for each entity-accessorial mapping
+        entityId:
+          type: integer
+          description: ID of the linked entity
+        accessorialId:
+          type: integer
+          description: FK → Accessorial(accessorialId)
+        chargeType:
+          type: string
+          description: Type of charge (Per Pound, Flat Value)
+        chargeValue:
+          type: number
+          format: decimal
+          description: Numeric value of the charge
+        noteThreadId:
+          type: integer
+          nullable: true
+          description: ID of the note thread linked to this mapping
+
+    CreateEntityAccessorialMapRequest:
+      type: object
+      required:
+        - entityId
+        - accessorialId
+        - chargeType
+        - chargeValue
+      properties:
+        entityId:
+          type: integer
+        accessorialId:
+          type: integer
+        chargeType:
+          type: string
+          enum: [PER_POUND, FLAT_VALUE]
+        chargeValue:
+          type: number
+          format: decimal
+        note:
+          type: object
+          properties:
+            messageText:
+              type: string
+              description: Initial note message for this mapping
+
+    UpdateEntityAccessorialMapRequest:
+      type: object
+      properties:
+        chargeType:
+          type: string
+          enum: [PER_POUND, FLAT_VALUE]
+        chargeValue:
+          type: number
+          format: decimal
+        note:
+          type: object
+          properties:
+            messageText:
+              type: string
+              description: New note message to append to this mapping
+
+    EntityAccessorialMapResponse:
+      allOf:
+        - $ref: "#/components/schemas/EntityAccessorialMap"
+        - type: object
+          properties:
+            accessorialName:
+              type: string
+              description: Name of the accessorial (joined from Accessorial table)
+            notes:
+              type: array
+              description: Notes linked to this mapping
+              items:
+                type: object
+                properties:
+                  noteMessageId:
+                    type: integer
+                  noteThreadId:
+                    type: integer
+                  messageText:
+                    type: string
+                  createdAt:
+                    type: string
+                    format: date-time
+                  createdBy:
+                    type: integer

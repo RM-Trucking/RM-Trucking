@@ -1,0 +1,164 @@
+openapi: 3.0.0
+info:
+  title: Department API
+  version: 1.0.0
+  description: API for managing departments under stations
+
+tags:
+  - name: Department
+    description: Operations related to departments
+
+paths:
+  /api/maintenance/department:
+    post:
+      tags: [Department]
+      summary: Create a new department
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDepartmentRequest"
+      responses:
+        "201":
+          description: Department created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentResponse"
+        "400":
+          description: Failed to create department
+
+  /api/maintenance/department/{departmentId}:
+    get:
+      tags: [Department]
+      summary: Get a department by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Department details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentResponse"
+        "404":
+          description: Department not found
+    put:
+      tags: [Department]
+      summary: Update a department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateDepartmentRequest"
+      responses:
+        "200":
+          description: Department updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DepartmentResponse"
+        "400":
+          description: Failed to update department
+    delete:
+      tags: [Department]
+      summary: Delete a department
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: departmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Department deleted successfully
+        "400":
+          description: Failed to delete department
+
+  /api/maintenance/department/station/{stationId}:
+    get:
+      tags: [Department]
+      summary: Get all departments for a station
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: stationId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of departments
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DepartmentResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Department:
+      type: object
+      properties:
+        departmentId: { type: integer }
+        stationId: { type: integer }
+        departmentName: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string, format: email }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+
+    CreateDepartmentRequest:
+      type: object
+      required:
+        - stationId
+        - departmentName
+      properties:
+        stationId: { type: integer }
+        departmentName: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string, format: email }
+        note:
+          type: object
+          properties:
+            messageText: { type: string }
+
+    UpdateDepartmentRequest:
+      type: object
+      properties:
+        departmentName: { type: string }
+        phoneNumber: { type: string }
+        email: { type: string, format: email }
+
+    DepartmentResponse:
+      $ref: "#/components/schemas/Department"

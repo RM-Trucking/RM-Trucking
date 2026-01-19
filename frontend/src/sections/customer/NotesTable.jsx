@@ -40,7 +40,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             }
         },
         {
-            field: "createdBy",
+            field: "createdByName",
             headerName: "User",
             minWidth: 200,
             flex: 1,
@@ -48,7 +48,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
-                    <Typography>{params?.row?.createdBy}</Typography>
+                    <Typography>{params?.row?.createdByName}</Typography>
                 );
                 return element;
             },

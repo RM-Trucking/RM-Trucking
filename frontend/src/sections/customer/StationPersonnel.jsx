@@ -52,6 +52,7 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
         }
 
         if (type === 'Add') {
+            obj.note = { messageText: '' };
             dispatch(postStationPersonnelData(obj));
         }
         if (type === 'Edit') {

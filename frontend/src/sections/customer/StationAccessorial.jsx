@@ -66,7 +66,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             setValue('chargesType', selectedStationTabRowDetails.chargeType || '');
             setValue('charges', selectedStationTabRowDetails.chargeValue || '');
             setChargeValue(selectedStationTabRowDetails.chargeValue || '');
-            setValue('notes', selectedStationTabRowDetails.notes || '');
+            setValue('notes', selectedStationTabRowDetails.notes?.[0]?.messageText || '');
         }
     }, [selectedStationTabRowDetails]);
 

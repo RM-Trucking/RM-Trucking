@@ -29,6 +29,7 @@ const slice = createSlice({
             state.isLoading = true;
             state.noteSuccess = false;
             state.error = null;
+            state.notesData = [];
         },
         getNotesDataSuccess(state, action) {
             state.isLoading = false;

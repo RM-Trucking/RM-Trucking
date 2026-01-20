@@ -516,6 +516,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
+                    hideFooterSelectedRowCount
                 />
             </Box>}
             {(currentTab === 'personnel') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
@@ -561,6 +562,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     getRowHeight={() => 'auto'}
+                    hideFooterSelectedRowCount
                 />
             </Box>}
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

@@ -179,6 +179,7 @@ export default function RateTable() {
                             console.log('Row clicked:', params);
                             // dispatch(setStationRateData({ row: params.row, checked: event.target.checked }));
                         }}
+                        hideFooterSelectedRowCount
                     />
                 </Box>
             </ErrorBoundary>

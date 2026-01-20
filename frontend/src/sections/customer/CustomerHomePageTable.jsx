@@ -2,15 +2,28 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { DataGrid } from '@mui/x-data-grid';
-import { Box, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
+import { alpha, styled } from '@mui/material/styles';
+import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCustomerRowDetails, deleteCustomer } from '../../redux/slices/customer';
+import { setSelectedCustomerRowDetails, customerStatusChange } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
 import StyledTextField from '../shared/StyledTextField';
+
+const ColoredSwitch = styled(Switch)(({ theme }) => ({
+    '& .MuiSwitch-switchBase.Mui-checked': {
+        color: '#A22',
+        '&:hover': {
+            backgroundColor: alpha('#A22', theme.palette.action.hoverOpacity),
+        },
+    },
+    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+        backgroundColor: '#A22',
+    },
+}));
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
@@ -138,6 +151,16 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         renderCell: (params) => {
+            const handleSwitchChange = async (event) => {
+                try {
+                    let obj = { activeStatus: event.target.checked ? 'Y' : 'N' };
+                    // using callback to refresh table data after delete
+                    await dispatch(customerStatusChange(params?.row?.customerId, obj)).unwrap();
+                } catch (err) {
+                    console.log('error in status change', err);
+                }
+                localStorage.setItem('customerId', params?.row?.customerId);
+            }
             const element = (
                 <Box
                     sx={{
@@ -159,17 +182,8 @@ export default function CustomerHomePageTable() {
                             setOpenEditDialog(true);
                         }} />
                     </Tooltip>
-                    <Tooltip title={'Delete'} arrow>
-                        <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
-                            // setDeleteDialogOpen(true);
-                            // using callback to refresh table data after delete
-                            dispatch(deleteCustomer(params?.row?.customerId, () => {
-                                dispatch(getCustomerData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr }));
-                            }));
 
-                            localStorage.setItem('customerId', params?.row?.customerId);
-                        }} />
-                    </Tooltip>
+                    <ColoredSwitch slotProps={{ input: { 'aria-label': 'controlled' } }} checked={params?.row?.activeStatus === 'Y'} onChange={(event) => handleSwitchChange(event, params)} />
                 </Box>
             );
             return element;
@@ -326,7 +340,7 @@ export default function CustomerHomePageTable() {
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 </>
-                <Stack flexDirection={'row'} justifyContent={'center'} alignItems={'center'} sx={{mt : 2, mb : 1}}>
+                <Stack flexDirection={'row'} justifyContent={'center'} alignItems={'center'} sx={{ mt: 2, mb: 1 }}>
                     <Controller
                         name="reasonForStatusChange"
                         control={control}

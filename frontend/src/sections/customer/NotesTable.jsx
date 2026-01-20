@@ -88,11 +88,19 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                 multiline
                 value={multilineTextValue}
                 rows={4}
+                // 1. Physically restrict the browser to 2000 characters
+                inputProps={{ maxLength: 2000 }}
                 onChange={(event) => {
-                    if (event.target.value === '') {
-                        setMultilineTextValue('');
-                    } else {
-                        setMultilineTextValue(event.target.value);
+                    const value = event.target.value;
+
+                    // 2. Prevent leading spaces (empty space initially)
+                    if (value.startsWith(' ')) {
+                        return; // Ignore the input if it's a leading space
+                    }
+
+                    // 3. Optional: State-level length check (redundant but safe)
+                    if (value.length <= 2000) {
+                        setMultilineTextValue(value);
                     }
                 }}
                 sx={{
@@ -105,6 +113,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                     '& .MuiInputBase-input.MuiOutlinedInput-input': {},
                 }}
             />
+
             <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
                 onClick={() => addNote()}
                 sx={{

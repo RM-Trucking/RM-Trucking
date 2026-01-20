@@ -147,7 +147,14 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         <Controller
                             name="stationName"
                             control={control}
-                            rules={{ required: 'Station Name is required' }}
+                            rules={{
+                                required: 'Station Name is required',
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Station Name cannot exceed 255 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || ' StationName cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
@@ -158,46 +165,96 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     }}
                                     error={!!errors.stationName} helperText={errors.stationName?.message}
                                     disabled={readOnly}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
                                 />
                             )}
                         />
                         <Controller
                             name="rmAccountNumber"
                             control={control}
-                            rules={{ required: 'RM Account Number is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'RM Account Number is required',
+                                maxLength: {
+                                    value: 50,
+                                    message: 'RM Account Number cannot exceed 50 characters'
+                                },
+                                // Alphanumeric regex allowing letters and digits
+                                pattern: {
+                                    value: /^[a-zA-Z0-9]+$/,
+                                    message: 'RM Account Number must be alphanumeric (letters and numbers only)'
+                                },
+                                validate: (value) =>
+                                    (value && value.trim().length > 0) || 'Account Number cannot be only spaces'
+                            }}
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     label="RM Account Number"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
-                                    }}
-                                    error={!!errors.rmAccountNumber} helperText={errors.rmAccountNumber?.message}
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '25%' }}
+                                    // Integrated error state for UI feedback
+                                    error={!!error}
+                                    helperText={error?.message}
                                     disabled={readOnly}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
                                 />
                             )}
                         />
+
+
                         <Controller
                             name="airportCode"
                             control={control}
                             rules={{
                                 required: 'Airport Code is required',
+                                maxLength: {
+                                    value: 10,
+                                    message: 'Airport Code cannot exceed 10 characters'
+                                },
+                                // Updated pattern to allow 3 to 10 letters
                                 pattern: {
-                                    value: /^[A-Z]{3}$/,
-                                    message: 'Must be a 3-letter IATA code'
-                                }
+                                    value: /^[A-Z]{3,10}$/,
+                                    message: 'Must be between 3 and 10 letters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Airport Code cannot be only spaces'
                             }}
                             render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
                                     value={value || ''}
                                     onChange={(e) => {
-                                        // 1. Remove non-letters, 2. Convert to Uppercase, 3. Limit to 3 chars
-                                        const formatted = e.target.value
+                                        const val = e.target.value;
+
+                                        // 1. Prevent leading spaces
+                                        if (val.startsWith(' ')) {
+                                            return;
+                                        }
+
+                                        // 2. Remove non-letters, Convert to Uppercase, Limit to 10 chars
+                                        const formatted = val
                                             .replace(/[^a-zA-Z]/g, '')
                                             .toUpperCase()
-                                            .slice(0, 3);
+                                            .slice(0, 10);
+
                                         onChange(formatted);
                                     }}
                                     label="Airport Code"
@@ -205,19 +262,28 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     fullWidth
                                     required
                                     sx={{ width: '25%' }}
-                                    // Apply CSS to force uppercase display while typing
-                                    inputProps={{ style: { textTransform: 'uppercase' }, maxLength: 3 }}
+                                    // 3. Set maxLength to 10 at the input level
+                                    inputProps={{
+                                        style: { textTransform: 'uppercase' },
+                                        maxLength: 10
+                                    }}
                                     error={!!errors.airportCode}
                                     helperText={errors.airportCode?.message}
                                     disabled={readOnly}
                                 />
                             )}
                         />
-
                         <Controller
                             name="addressLine1"
                             control={control}
-                            rules={{ required: 'Address Line 1 is required' }}
+                            rules={{
+                                required: 'Address Line 1 is required',
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Address Line 1 cannot exceed 255 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
@@ -228,6 +294,16 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     }}
                                     error={!!errors.addressLine1} helperText={errors.addressLine1?.message}
                                     disabled={readOnly}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
                                 />
                             )}
                         />
@@ -236,31 +312,83 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         <Controller
                             name="addressLine2"
                             control={control}
+                            rules={{
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Address Line 2 cannot exceed 255 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Address Line 2" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} disabled={readOnly} />
+                                }} disabled={readOnly}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             )}
                         />
                         <Controller
                             name="city"
                             control={control}
-                            rules={{ required: 'City is required' }}
+                            rules={{
+                                required: 'City is required',
+                                maxLength: {
+                                    value: 100,
+                                    message: 'City cannot exceed 100 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField {...field} label="City" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} required error={!!errors.city} helperText={errors.city?.message} disabled={readOnly} />
+                                }} required error={!!errors.city} helperText={errors.city?.message} disabled={readOnly}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             )}
                         />
                         <Controller
                             name="state"
                             control={control}
-                            rules={{ required: 'State is required' }}
+                            rules={{
+                                required: 'State is required',
+                                maxLength: {
+                                    value: 100,
+                                    message: 'State cannot exceed 100 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField {...field} label="State" variant="standard" fullWidth sx={{
                                     width: '25%',
                                 }} required error={!!errors.state}
-                                    helperText={errors.state?.message} disabled={readOnly} />
+                                    helperText={errors.state?.message} disabled={readOnly}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             )}
                         />
 
@@ -307,36 +435,55 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="phoneNumber"
                             control={control}
                             rules={{
-                                required: true,
+                                required: 'Phone number is required',
+                                maxLength: {
+                                    value: 20,
+                                    message: 'Phone number cannot exceed 20 characters'
+                                },
                                 pattern: {
-                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    // Regex allows (XXX) XXX-XXXX followed by any extra digits/characters up to 20
+                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
                                     message: 'Invalid phone format'
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    value={value}
+                                    value={value || ''}
                                     onChange={(e) => {
-                                        const formattedValue = formatPhoneNumber(e.target.value);
-                                        onChange(formattedValue); // Update form state with formatted value
+                                        const val = e.target.value;
+
+                                        // 1. Prevent initial empty space
+                                        if (val.startsWith(' ')) return;
+
+                                        // 2. Format and enforce 20-character string limit
+                                        const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                        onChange(formattedValue);
                                     }}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
                                     label="Phone Number *"
+                                    // 3. Physical browser limit for the UI
+                                    inputProps={{ maxLength: 20 }}
                                     error={!!error}
-                                    helperText={error ? 'Phone number is required' : ''}
+                                    helperText={error ? error.message : ''}
                                     disabled={readOnly}
                                 />
                             )}
                         />
+
                         <Controller
                             name="faxNumber"
                             control={control}
                             rules={{
+                                maxLength: {
+                                    value: 20,
+                                    message: 'Fax number cannot exceed 20 characters'
+                                },
                                 pattern: {
-                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Optional: validates full format
+                                    // Updated Regex: Validates (###) ###-#### and allows extra digits up to 20 chars total
+                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
                                     message: 'Invalid fax format (###) ###-####'
                                 }
                             }}
@@ -345,20 +492,27 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     {...field}
                                     value={value || ''}
                                     onChange={(e) => {
-                                        const input = e.target.value.replace(/[^\d]/g, ''); // Strip non-digits
+                                        const val = e.target.value;
+
+                                        // 1. Prevent initial empty space
+                                        if (val.startsWith(' ')) return;
+
+                                        const input = val.replace(/[^\d]/g, ''); // Strip non-digits
                                         const len = input.length;
                                         let formatted = input;
 
-                                        // Apply formatting: (###) ###-####
+                                        // 2. Apply formatting and allow extra digits beyond 10
                                         if (len <= 3) {
                                             formatted = input;
                                         } else if (len <= 6) {
                                             formatted = `(${input.slice(0, 3)}) ${input.slice(3)}`;
                                         } else {
-                                            formatted = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6, 10)}`;
+                                            // Removed the end slice (10) to allow the number to grow to 20 chars
+                                            formatted = `(${input.slice(0, 3)}) ${input.slice(3, 6)}-${input.slice(6)}`;
                                         }
 
-                                        onChange(formatted);
+                                        // 3. Enforce 20 character string limit
+                                        onChange(formatted.slice(0, 20));
                                     }}
                                     label="Fax Number"
                                     variant="standard"
@@ -367,17 +521,21 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     error={!!error}
                                     helperText={error?.message || ''}
                                     disabled={readOnly}
-                                    inputProps={{ maxLength: 14 }} // (xxx) xxx-xxxx is 14 chars
+                                    // 4. Update physical browser limit to 20
+                                    inputProps={{ maxLength: 20 }}
                                 />
                             )}
                         />
 
+
                         <Controller
                             name="openTime"
                             control={control}
-                            render={({ field, fieldState: { error } }) => (
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    // Ensure value in state is displayed correctly (input type="time" expects HH:mm or HH:mm:ss)
+                                    value={value || ''}
                                     label="Open Time"
                                     type="time"
                                     variant="standard"
@@ -387,23 +545,37 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     disabled={readOnly}
                                     error={!!error}
                                     helperText={error?.message}
-                                    inputProps={{ step: 1 }}
+                                    onChange={(e) => {
+                                        const selectedTime = e.target.value; // Browser returns "HH:mm"
+                                        if (selectedTime) {
+                                            // Append :00 to satisfy API requirements for seconds
+                                            onChange(`${selectedTime}:00`);
+                                        } else {
+                                            onChange('');
+                                        }
+                                    }}
+                                    // Removing 'step: 1' hides seconds in many browsers; 
+                                    // Setting 'step: 60' explicitly hides the seconds spinner/input.
+                                    inputProps={{ step: 60 }}
                                 />
                             )}
                         />
+
                         <Controller
                             name="closeTime"
                             control={control}
                             rules={{
                                 validate: (value) => {
                                     const openTime = watch('openTime');
-                                    if (!value || !openTime) return true; // Don't validate if one is missing
+                                    if (!value || !openTime) return true;
+                                    // Since both now have ":00", a string comparison still works accurately
                                     return value > openTime || 'Close time must be later than open time';
                                 }
                             }}
-                            render={({ field, fieldState: { error } }) => (
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     label="Close Time"
                                     type="time"
                                     variant="standard"
@@ -411,23 +583,69 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     sx={{ width: '25%' }}
                                     InputLabelProps={{ shrink: true }}
                                     disabled={readOnly}
-                                    inputProps={{ step: 1 }}
                                     error={!!error}
-                                    helperText={error?.message} // Displays the validation error
+                                    helperText={error?.message}
+                                    onChange={(e) => {
+                                        const selectedTime = e.target.value; // Browser returns "HH:mm"
+                                        if (selectedTime) {
+                                            // Append :00 to send seconds to the API
+                                            onChange(`${selectedTime}:00`);
+                                        } else {
+                                            onChange('');
+                                        }
+                                    }}
+                                    // step: 60 hides the seconds input/spinner in the browser UI
+                                    inputProps={{ step: 60 }}
                                 />
                             )}
                         />
+
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
                             name="hours"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField {...field} type='number' label="Hours" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} InputLabelProps={{ shrink: true }} disabled={readOnly} />
+                            rules={{
+                                maxLength: {
+                                    value: 100,
+                                    message: 'Hours cannot exceed 100 characters'
+                                },
+                                pattern: {
+                                    value: /^[0-9]*$/,
+                                    message: 'Only numbers are allowed'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    type="text"
+                                    label="Hours"
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '25%' }}
+                                    InputLabelProps={{ shrink: true }}
+                                    disabled={readOnly}
+                                    error={!!error}
+                                    helperText={error ? error.message : ''}
+                                    // Physical restriction for 100 characters
+                                    inputProps={{ maxLength: 100 }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+
+                                        // 1. Prevent leading/initial spaces
+                                        if (val.startsWith(' ')) return;
+
+                                        // 2. Allow only numeric digits (removes letters, spaces, etc.)
+                                        const onlyNums = val.replace(/[^0-9]/g, '');
+
+                                        // 3. Apply the 100 character slice
+                                        onChange(onlyNums.slice(0, 100));
+                                    }}
+                                />
                             )}
                         />
+
                         <Controller
                             name="warehouse"
                             control={control}
@@ -456,10 +674,28 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         {warehouseFlag && <Controller
                             name="warehouseDetails"
                             control={control}
+                            rules={{
+                                maxLength: {
+                                    value: 250,
+                                    message: 'Warehouse details cannot exceed 250 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Warehouse details cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField {...field} label="Warehouse details" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} disabled={readOnly} />
+                                }} disabled={readOnly}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             )}
                         />}
                     </Stack>
@@ -468,10 +704,27 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                     {type === 'Add' && <Controller
                         name="stationNotes"
                         control={control}
-                        rules={{ required: true }}
+                        rules={{
+                            required: true,
+                            maxLength: {
+                                value: 2000,
+                                message: 'Station Notes cannot exceed 2000 characters'
+                            },
+                            validate: (value) => value.trim().length > 0 || 'Station Notes cannot be only spaces'
+                        }}
                         render={({ field, fieldState: { error } }) => (
                             <StyledTextField variant="standard" {...field} fullWidth label="Station Notes *" error={!!error}
-                                helperText={error ? 'Station notes is required' : ''} disabled={readOnly} />
+                                helperText={error ? 'Station notes is required' : ''} disabled={readOnly}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // prevent only leading spaces while typing
+                                    if (value.startsWith(' ')) {
+                                        field.onChange(value.trimStart());
+                                    } else {
+                                        field.onChange(value);
+                                    }
+                                }}
+                            />
                         )}
                     />}
                 </Stack>

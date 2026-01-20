@@ -31,7 +31,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     // Define default values for the form
     const defaultValues = {
         customerName: '',
-        rmAccountNumber: '92898292989289',
+        rmAccountNumber: '',
         phoneNumber: '',
         website: '',
         corpAddressLine1: '',
@@ -59,7 +59,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
     const onSubmit = (data) => {
         console.log('Form Submitted (RHF Data):', data);
         let obj = {
-            "customerName": data?.customerName,
+            "customerName": data?.customerName?.trim(),
             "rmAccountNumber": data?.rmAccountNumber,
             "phoneNumber": data?.phoneNumber,
             "website": data?.website,
@@ -148,7 +148,11 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             control={control}
                             rules={{
                                 required: 'Name is required',
-                                validate: (value) => value.trim().length > 0 || 'Name cannot be only spaces'
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Customer Name cannot exceed 255 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Customer Name cannot be only spaces'
                             }}
                             render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
@@ -178,35 +182,84 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         <Controller
                             name="rmAccountNumber"
                             control={control}
-                            render={({ field }) => (
-                                <StyledTextField variant="standard" sx={{ width: '25%' }} {...field} fullWidth label="Account Number" disabled={(type === 'View') ? readOnly : false} />
+                            rules={{
+                                required: 'RM Account Number is required',
+                                maxLength: {
+                                    value: 50,
+                                    message: 'RM Account Number cannot exceed 50 characters'
+                                },
+                                // Alphanumeric regex allowing letters and digits
+                                pattern: {
+                                    value: /^[a-zA-Z0-9]+$/,
+                                    message: 'RM Account Number must be alphanumeric (letters and numbers only)'
+                                },
+                                validate: (value) =>
+                                    (value && value.trim().length > 0) || 'Account Number cannot be only spaces'
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="RM Account Number"
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '25%' }}
+                                    // Integrated error state for UI feedback
+                                    error={!!error}
+                                    helperText={error?.message}
+                                    disabled={readOnly}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
                             )}
                         />
+
+
                         <Controller
                             name="phoneNumber"
                             control={control}
                             rules={{
-                                required: true,
+                                required: 'Phone number is required',
+                                maxLength: {
+                                    value: 20,
+                                    message: 'Phone number cannot exceed 20 characters'
+                                },
                                 pattern: {
-                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    // Regex allows (XXX) XXX-XXXX followed by any extra digits/characters up to 20
+                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
                                     message: 'Invalid phone format'
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    value={value}
+                                    value={value || ''}
                                     onChange={(e) => {
-                                        const formattedValue = formatPhoneNumber(e.target.value);
-                                        onChange(formattedValue); // Update form state with formatted value
+                                        const val = e.target.value;
+
+                                        // 1. Prevent initial empty space
+                                        if (val.startsWith(' ')) return;
+
+                                        // 2. Format and enforce 20-character string limit
+                                        const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                        onChange(formattedValue);
                                     }}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
                                     label="Customer Phone Number *"
+                                    // 3. Physical browser limit for the UI
+                                    inputProps={{ maxLength: 20 }}
                                     error={!!error}
-                                    helperText={error ? 'Phone number is required' : ''}
-                                    disabled={(type === 'View') ? readOnly : false}
+                                    helperText={error ? error.message : ''}
+                                    disabled={readOnly}
                                 />
                             )}
                         />
@@ -216,10 +269,16 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             control={control}
                             rules={{
                                 required: 'Website is required',
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Website cannot exceed 255 characters'
+                                },
                                 pattern: {
                                     value: /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([\/\w .-]*)*\/?$/,
                                     message: 'Please enter a valid URL'
-                                }
+                                },
+                                // Prevents submitting if the field is only spaces
+                                validate: (val) => val?.trim().length > 0 || 'Website cannot be empty'
                             }}
                             render={({ field: { onChange, onBlur, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
@@ -233,15 +292,19 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     error={!!error}
                                     helperText={error ? error.message : ''}
                                     disabled={(type === 'View') ? readOnly : false}
-                                    // Auto-format when the user leaves the field
+                                    inputProps={{ maxLength: 255 }} // Hard limit at the input level
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        // Remove all whitespace characters as they type
+                                        onChange(val.replace(/\s/g, ''));
+                                    }}
                                     onBlur={(e) => {
-                                        let val = e.target.value;
+                                        let val = e.target.value.trim(); // Trim extra spaces on blur
                                         if (val && !/^https?:\/\//i.test(val)) {
                                             onChange(`https://${val}`);
                                         }
-                                        onBlur(); // Trigger standard Hook Form blur
+                                        onBlur();
                                     }}
-                                    onChange={onChange}
                                 />
                             )}
                         />
@@ -254,29 +317,98 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             <Controller
                                 name="corpAddressLine1"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 255,
+                                        message: 'Address Line 1 cannot exceed 255 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={(type === 'View') ? readOnly : false} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={(type === 'View') ? readOnly : false}
+                                        // Intercept onChange to prevent leading spaces
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }} />
                                 )}
                             />
                             <Controller
                                 name="corpAddressLine2"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 255,
+                                        message: 'Address Line 2 cannot exceed 255 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 2" disabled={(type === 'View') ? readOnly : false} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 2" disabled={(type === 'View') ? readOnly : false}
+                                        // Intercept onChange to prevent leading spaces
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                    />
                                 )}
                             />
                             <Controller
                                 name="corpCity"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 100,
+                                        message: 'City cannot exceed 100 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="City" disabled={(type === 'View') ? readOnly : false} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        fullWidth label="City" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
                                 name="corpState"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 100,
+                                        message: 'State cannot exceed 100 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="State" disabled={(type === 'View') ? readOnly : false} />
+                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        fullWidth label="State" disabled={(type === 'View') ? readOnly : false} />
                                 )}
                             />
                             <Controller
@@ -363,29 +495,99 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             <Controller
                                 name="billAddressLine1"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 255,
+                                        message: 'Address Line 1 cannot exceed 255 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 1" disabled={readOnly} />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                        // Intercept onChange to prevent leading spaces
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        label="Address Line 1" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billAddressLine2"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 255,
+                                        message: 'Address Line 2 cannot exceed 255 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="Address Line 2" disabled={readOnly} />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                        // Intercept onChange to prevent leading spaces
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        label="Address Line 2" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billCity"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 100,
+                                        message: 'City cannot exceed 100 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="City" disabled={readOnly} />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        label="City" disabled={readOnly} />
                                 )}
                             />
                             <Controller
                                 name="billState"
                                 control={control}
+                                rules={{
+                                    maxLength: {
+                                        value: 100,
+                                        message: 'State cannot exceed 100 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
+                                }}
                                 render={({ field }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }} label="State" disabled={readOnly} />
+                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        label="State" disabled={readOnly} />
                                 )}
                             />
 
@@ -433,10 +635,27 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     {type === 'Add' && <Controller
                         name="customerNotes"
                         control={control}
-                        rules={{ required: true }}
+                        rules={{
+                            required: true,
+                            maxLength: {
+                                value: 2000,
+                                message: 'Customer Notes cannot exceed 2000 characters'
+                            },
+                            validate: (value) => value.trim().length > 0 || 'Customer Notes cannot be only spaces'
+                        }}
                         render={({ field, fieldState: { error } }) => (
                             <StyledTextField variant="standard" {...field} fullWidth label="Customer Notes *" error={!!error}
-                                helperText={error ? 'Customer notes is required' : ''} />
+                                helperText={error ? 'Customer notes is required' : ''}
+                                // Intercept onChange to prevent leading spaces
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    // prevent only leading spaces while typing
+                                    if (value.startsWith(' ')) {
+                                        field.onChange(value.trimStart());
+                                    } else {
+                                        field.onChange(value);
+                                    }
+                                }} />
                         )}
                     />}
 

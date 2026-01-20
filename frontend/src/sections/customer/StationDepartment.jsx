@@ -96,17 +96,39 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                         <Controller
                             name="department"
                             control={control}
-                            rules={{ required: 'Department is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Department is required',
+                                maxLength: {
+                                    value: 100,
+                                    message: 'Department cannot exceed 100 characters'
+                                },
+                                // Ensures the value isn't just whitespace if manual input is ever enabled
+                                validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     select
                                     label="Department"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '25%',
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '25%' }}
+                                    error={!!errors.department}
+                                    helperText={errors.department?.message}
+                                    // 1. Prevent selecting/inputting strings starting with a space
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val.startsWith(' ')) {
+                                            return;
+                                        }
+                                        onChange(val.slice(0, 100)); // 2. Enforce 100 char limit
                                     }}
-                                    error={!!errors.department} helperText={errors.department?.message}
+                                    // 3. Physical restriction for the underlying input
+                                    SelectProps={{
+                                        inputProps: { maxLength: 100 }
+                                    }}
                                 >
                                     <MenuItem value="Air Export">Air Export</MenuItem>
                                     <MenuItem value="Ocean Export">Ocean Export</MenuItem>
@@ -116,28 +138,50 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                                 </StyledTextField>
                             )}
                         />
+
                         <Controller
                             name="emailID"
                             control={control}
                             rules={{
                                 required: 'Email ID is required',
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Email cannot exceed 255 characters'
+                                },
                                 pattern: {
-                                    // Standard RFC 5322 compliant regex for 2026
+                                    // Updated for modern 2026 standards (RFC 5322)
                                     value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                     message: 'Invalid email address format'
-                                }
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Email cannot be only spaces'
                             }}
-                            render={({ field, fieldState: { error } }) => (
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     label="Email ID"
                                     variant="standard"
                                     fullWidth
                                     required
-                                    type="email" // Triggers email-optimized mobile keyboards
+                                    type="email"
                                     sx={{ width: '25%' }}
                                     error={!!error}
                                     helperText={error?.message}
+                                    // 1. Physically restrict browser input to 255 characters
+                                    inputProps={{ maxLength: 255 }}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+
+                                        // 2. Prevent leading spaces
+                                        if (val.startsWith(' ')) {
+                                            return;
+                                        }
+
+                                        // 3. Optional: Remove all spaces (emails should not contain spaces)
+                                        const noSpaces = val.replace(/\s/g, '');
+
+                                        onChange(noSpaces.slice(0, 255));
+                                    }}
                                 />
                             )}
                         />
@@ -146,26 +190,39 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                             name="phoneNumber"
                             control={control}
                             rules={{
-                                required: true,
+                                required: 'Phone number is required',
+                                maxLength: {
+                                    value: 20,
+                                    message: 'Phone number cannot exceed 20 characters'
+                                },
                                 pattern: {
-                                    value: /^\(\d{3}\) \d{3}-\d{4}$/, // Ensures full format is valid
+                                    // Regex allows (XXX) XXX-XXXX followed by any extra digits/characters up to 20
+                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
                                     message: 'Invalid phone format'
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    value={value}
+                                    value={value || ''}
                                     onChange={(e) => {
-                                        const formattedValue = formatPhoneNumber(e.target.value);
-                                        onChange(formattedValue); // Update form state with formatted value
+                                        const val = e.target.value;
+
+                                        // 1. Prevent initial empty space
+                                        if (val.startsWith(' ')) return;
+
+                                        // 2. Format and enforce 20-character string limit
+                                        const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                        onChange(formattedValue);
                                     }}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
                                     label="Phone Number *"
+                                    // 3. Physical browser limit for the UI
+                                    inputProps={{ maxLength: 20 }}
                                     error={!!error}
-                                    helperText={error ? 'Phone number is required' : ''}
+                                    helperText={error ? error.message : ''}
                                 />
                             )}
                         />

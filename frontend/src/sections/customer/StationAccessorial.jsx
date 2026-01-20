@@ -86,7 +86,15 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                         <Controller
                             name="accessorial"
                             control={control}
-                            rules={{ required: 'Accessorial is required' }}
+                            rules={{
+                                required: 'Accessorial is required',
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Accessorial cannot exceed 255 characters'
+                                },
+                                // Ensures the value isn't just whitespace if manual input is ever enabled
+                                validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
@@ -98,6 +106,9 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     }}
                                     error={!!errors.accessorial} helperText={errors.accessorial?.message}
                                     disabled={type === 'Edit'}
+                                    SelectProps={{
+                                        inputProps: { maxLength: 255 }
+                                    }}
                                 >
                                     {accessorialData.map((data) => (
                                         <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>
@@ -108,7 +119,15 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                         <Controller
                             name="chargesType"
                             control={control}
-                            rules={{ required: 'Charges Type is required' }}
+                            rules={{
+                                required: 'Charges Type is required',
+                                maxLength: {
+                                    value: 50,
+                                    message: 'Charges Type cannot exceed 50 characters'
+                                },
+                                // Ensures the value isn't just whitespace if manual input is ever enabled
+                                validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
@@ -119,6 +138,9 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                         width: '25%',
                                     }}
                                     error={!!errors.chargesType} helperText={errors.chargesType?.message}
+                                    SelectProps={{
+                                        inputProps: { maxLength: 50 }
+                                    }}
                                 >
                                     <MenuItem value="HOURLY">Hourly</MenuItem>
                                     <MenuItem value="FLAT_RATE">Flat Rate</MenuItem>
@@ -136,38 +158,66 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     message: 'Value cannot be below 0'
                                 },
                                 pattern: {
-                                    value: /^\d*\.?\d*$/,
-                                    message: 'Invalid number format'
+                                    // Regex for decimal(12,2): up to 10 digits before dot, optional dot, up to 2 after
+                                    value: /^\d{1,10}(\.\d{0,2})?$/,
+                                    message: 'Invalid format (max 10 digits before and 2 after decimal)'
+                                },
+                                validate: (value) => {
+                                    if (value && value.toString().length > 13) return 'Total length exceeded';
+                                    return true;
                                 }
                             }}
-                            render={({ field, fieldState: { error } }) => (
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     label="Charges"
-                                    type='number' // Standard for numeric inputs
+                                    // Use type="text" to gain better control over formatting and maxLength
+                                    type="text"
                                     variant="standard"
                                     fullWidth
                                     required
                                     sx={{ width: '25%' }}
-                                    inputProps={{ min: 0, step: "0.01" }} // Blocks negative steps in UI
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-
-                                        // Prevent negative numbers from being processed
-                                        if (value !== "" && Number(value) < 0) return;
-
-                                        field.onChange(value);
-                                        setChargeValue(value);
-                                    }}
                                     error={!!error}
                                     helperText={error?.message}
+                                    // 13 characters allows for 10 digits + 1 dot + 2 decimal digits
+                                    inputProps={{ maxLength: 13 }}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+
+                                        // 1. Prevent initial empty space
+                                        if (val.startsWith(' ')) return;
+
+                                        // 2. Allow only numbers and a single decimal point
+                                        val = val.replace(/[^0-9.]/g, '');
+
+                                        // 3. Prevent multiple decimal points
+                                        const parts = val.split('.');
+                                        if (parts.length > 2) return;
+
+                                        // 4. Enforce 2 decimal places restriction while typing
+                                        if (parts[1] && parts[1].length > 2) return;
+
+                                        // 5. Enforce 10 digit limit for the integer part (before decimal)
+                                        if (parts[0] && parts[0].length > 10) return;
+
+                                        onChange(val);
+                                        if (setChargeValue) setChargeValue(val);
+                                    }}
                                 />
                             )}
                         />
-
                         <Controller
                             name="notes"
                             control={control}
+                            rules={{
+                                required: parseInt(chargeValue, 10) === 0 ? true : false,
+                                maxLength: {
+                                    value: 255,
+                                    message: 'Notes cannot exceed 255 characters'
+                                },
+                                validate: (value) => value.trim().length > 0 || 'Notes cannot be only spaces'
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
@@ -176,6 +226,16 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     variant="standard" fullWidth
                                     sx={{
                                         width: '25%',
+                                    }}
+                                    // Intercept onChange to prevent leading spaces
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // prevent only leading spaces while typing
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
                                     }}
                                 />
                             )}

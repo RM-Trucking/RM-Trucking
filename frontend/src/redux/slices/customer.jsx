@@ -73,15 +73,14 @@ const slice = createSlice({
         state.customerRows.splice(index, 1, action.payload.data);
       }
     },
-    deleteCustomerdataSuccess(state, action) {
+    customerStatusChangeSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message || 'Customer deleted successfully';
-      // console.log("customer delete payload", action.payload);
-      // const index = state.customerRows.findIndex((row) => row.customerId === action.payload.id);
-      // if (index === 0 || index > 0) {
-      //   state.customerRows.splice(index, 1);
-      // }
+      state.operationalMessage = action.payload.message.message || 'Customer activated successfully';
+      const index = state.customerRows.findIndex((row) => row.customerId === action.payload.message?.data?.customerId);
+      if (index === 0 || index > 0) {
+        state.customerRows.splice(index, 1, action.payload.message.data);
+      }
     },
 
     // station table data in customer
@@ -368,15 +367,14 @@ export function putCustomerData(obj, id) {
     }
   };
 }
-export function deleteCustomer(id, callback) {
+export function customerStatusChange(id, obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.delete(`maintenance/customer/${id}`);
-      dispatch(slice.actions.deleteCustomerdataSuccess({
+      const response = await axios.put(`maintenance/customer/${id}/toggle`, obj);
+      dispatch(slice.actions.customerStatusChangeSuccess({
         id, message: response.data
       }));
-      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

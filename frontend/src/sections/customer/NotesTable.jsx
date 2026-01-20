@@ -60,7 +60,13 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             minWidth: 200,
             flex: 1,
             headerAlign: 'center',
-            cellClassName: 'center-status-cell',
+             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Typography variant='normal' sx={{p:2}}>{params?.row?.messageText}</Typography>
+                );
+                return element;
+            },
         },
     ];
 
@@ -144,6 +150,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     hideFooterSelectedRowCount
+                    getRowHeight={() => 'auto'}
                 />
             </Box>
             <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mt: 2 }}>

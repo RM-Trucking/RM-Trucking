@@ -216,9 +216,9 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     value: 255,
                                     message: 'Notes cannot exceed 255 characters'
                                 },
-                                validate: (value) => value.trim().length > 0 || 'Notes cannot be only spaces'
+                                validate: (value) => !value || value.trim().length > 0 || 'Notes cannot be only spaces'
                             }}
-                            render={({ field }) => (
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     label={`Notes`}
@@ -237,6 +237,8 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                             field.onChange(value);
                                         }
                                     }}
+                                    error={!!error}
+                                    inputProps={{ maxLength: 255 }}
                                 />
                             )}
                         />

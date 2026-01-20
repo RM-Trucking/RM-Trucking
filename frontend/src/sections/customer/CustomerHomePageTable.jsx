@@ -6,6 +6,7 @@ import { alpha, styled } from '@mui/material/styles';
 import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { getCustomerData } from '../../redux/slices/customer';
+import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedCustomerRowDetails, customerStatusChange } from '../../redux/slices/customer';
@@ -193,6 +194,7 @@ export default function CustomerHomePageTable() {
 
     // call api to get table data
     useEffect(() => {
+        dispatch(clearNotesState());
         dispatch(getCustomerData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr }));
     }, []);
 

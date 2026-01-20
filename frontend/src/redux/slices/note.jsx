@@ -29,7 +29,6 @@ const slice = createSlice({
             state.isLoading = true;
             state.noteSuccess = false;
             state.error = null;
-            state.notesData = [];
         },
         getNotesDataSuccess(state, action) {
             state.isLoading = false;
@@ -42,12 +41,14 @@ const slice = createSlice({
             state.operationalMessage = 'Note message created successfully';
             state.notesData.unshift(action.payload.data);
         },
-
+        clearNotesState(state){
+            state.notesData = []
+        },
     },
 });
 
 export const {
-
+clearNotesState,
 } = slice.actions;
 export default slice.reducer;
 

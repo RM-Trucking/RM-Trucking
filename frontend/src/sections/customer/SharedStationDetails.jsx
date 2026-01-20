@@ -317,12 +317,13 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     value: 255,
                                     message: 'Address Line 2 cannot exceed 255 characters'
                                 },
-                                validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                                validate: (value) => !value || value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
                             }}
-                            render={({ field }) => (
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField {...field} label="Address Line 2" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} disabled={readOnly}
+                                }} disabled={readOnly} error={!!error}
+                                    inputProps={{ maxLength: 255 }}
                                     // Intercept onChange to prevent leading spaces
                                     onChange={(e) => {
                                         const value = e.target.value;
@@ -679,12 +680,13 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     value: 250,
                                     message: 'Warehouse details cannot exceed 250 characters'
                                 },
-                                validate: (value) => value.trim().length > 0 || 'Warehouse details cannot be only spaces'
+                                validate: (value) => !value || value.trim().length > 0 || 'Warehouse details cannot be only spaces'
                             }}
-                            render={({ field }) => (
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField {...field} label="Warehouse details" variant="standard" fullWidth sx={{
                                     width: '25%',
-                                }} disabled={readOnly}
+                                }} disabled={readOnly} error={!!error}
+                                    inputProps={{ maxLength: 250 }} 
                                     // Intercept onChange to prevent leading spaces
                                     onChange={(e) => {
                                         const value = e.target.value;

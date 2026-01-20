@@ -10,6 +10,7 @@ import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { getCustomerStationData, setSelectedCustomerStationRowDetails, deleteStation } from '../../redux/slices/customer';
+import { clearNotesState } from '../../redux/slices/note';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import SharedSearchField from "../shared/SharedSearchField";
 import SharedStationDetails from './SharedStationDetails';
@@ -245,6 +246,7 @@ export default function CustomerViewStationTable() {
 
     // call api to get table data
     useEffect(() => {
+        dispatch(clearNotesState());
         dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
     }, []);
 

@@ -14,6 +14,7 @@ import {
     deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
     deleteStationAccessorial, getAccessorialData
 } from '../../redux/slices/customer';
+import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
 // ----------------------------------------------------------------------
 
@@ -452,19 +453,23 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
+            dispatch(clearNotesState());
             dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
             setTableColumns(departmentColumns);
         }
         else if (currentTab === 'personnel') {
+            dispatch(clearNotesState());
             dispatch(getDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
             dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
             setTableColumns(personnelColumns);
         }
         else if (currentTab === 'rate') {
+            dispatch(clearNotesState());
             dispatch(getStationRateData());
             setTableColumns(rateColumns);
         }
         else if (currentTab === 'accessorial') {
+            dispatch(clearNotesState());
             dispatch(getAccessorialData());
             dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
             setTableColumns(accessorialColumns);

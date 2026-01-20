@@ -322,9 +322,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 255,
                                         message: 'Address Line 1 cannot exceed 255 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={(type === 'View') ? readOnly : false}
                                         // Intercept onChange to prevent leading spaces
                                         onChange={(e) => {
@@ -335,7 +335,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                             } else {
                                                 field.onChange(value);
                                             }
-                                        }} />
+                                        }} error={!!error} inputProps={{ maxLength: 255 }} />
                                 )}
                             />
                             <Controller
@@ -346,9 +346,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 255,
                                         message: 'Address Line 2 cannot exceed 255 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 2" disabled={(type === 'View') ? readOnly : false}
                                         // Intercept onChange to prevent leading spaces
                                         onChange={(e) => {
@@ -360,6 +360,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
+                                        error={!!error} inputProps={{ maxLength: 255 }}
                                     />
                                 )}
                             />
@@ -371,9 +372,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 100,
                                         message: 'City cannot exceed 100 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'City cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -384,7 +385,8 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        fullWidth label="City" disabled={(type === 'View') ? readOnly : false} />
+                                        fullWidth label="City" disabled={(type === 'View') ? readOnly : false}
+                                        error={!!error} inputProps={{ maxLength: 100 }} />
                                 )}
                             />
                             <Controller
@@ -395,9 +397,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 100,
                                         message: 'State cannot exceed 100 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'State cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -408,7 +410,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        fullWidth label="State" disabled={(type === 'View') ? readOnly : false} />
+                                        fullWidth label="State" disabled={(type === 'View') ? readOnly : false}
+                                        error={!!error}
+                                        inputProps={{ maxLength: 100 }} />
                                 )}
                             />
                             <Controller
@@ -500,9 +504,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 255,
                                         message: 'Address Line 1 cannot exceed 255 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
                                         // Intercept onChange to prevent leading spaces
                                         onChange={(e) => {
@@ -514,7 +518,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="Address Line 1" disabled={readOnly} />
+                                        label="Address Line 1" disabled={readOnly}
+                                        error={!!error}
+                                        inputProps={{ maxLength: 255 }}
+                                    />
                                 )}
                             />
                             <Controller
@@ -525,9 +532,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 255,
                                         message: 'Address Line 2 cannot exceed 255 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'Address Line 2 cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
                                         // Intercept onChange to prevent leading spaces
                                         onChange={(e) => {
@@ -539,7 +546,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="Address Line 2" disabled={readOnly} />
+                                        label="Address Line 2" disabled={readOnly}
+                                        error={!!error}
+                                        inputProps={{ maxLength: 255 }}
+                                    />
                                 )}
                             />
                             <Controller
@@ -550,9 +560,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 100,
                                         message: 'City cannot exceed 100 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'City cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -563,7 +573,8 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="City" disabled={readOnly} />
+                                        label="City" disabled={readOnly} error={!!error}
+                                        inputProps={{ maxLength: 100 }} />
                                 )}
                             />
                             <Controller
@@ -574,9 +585,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value: 100,
                                         message: 'State cannot exceed 100 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
+                                    validate: (value) => !value || value.trim().length > 0 || 'State cannot be only spaces'
                                 }}
-                                render={({ field }) => (
+                                render={({ field, fieldState: { error } }) => (
                                     <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -587,7 +598,9 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="State" disabled={readOnly} />
+                                        label="State" disabled={readOnly}
+                                        error={!!error}
+                                        inputProps={{ maxLength: 100 }} />
                                 )}
                             />
 

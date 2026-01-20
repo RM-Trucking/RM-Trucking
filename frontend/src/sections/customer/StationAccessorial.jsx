@@ -92,8 +92,6 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     value: 255,
                                     message: 'Accessorial cannot exceed 255 characters'
                                 },
-                                // Ensures the value isn't just whitespace if manual input is ever enabled
-                                validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
                             }}
                             render={({ field }) => (
                                 <StyledTextField
@@ -125,8 +123,6 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     value: 50,
                                     message: 'Charges Type cannot exceed 50 characters'
                                 },
-                                // Ensures the value isn't just whitespace if manual input is ever enabled
-                                validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
                             }}
                             render={({ field }) => (
                                 <StyledTextField

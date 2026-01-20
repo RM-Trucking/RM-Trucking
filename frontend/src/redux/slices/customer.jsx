@@ -13,6 +13,7 @@ const initialState = {
   customerSuccess: false,
   customerRows: [],
   customerSearchStr: "",
+  stationSearchStr: "",
   selectedCustomerRowDetails: {},
   selectedCustomerStationDetails: {},
   selectedStationTabRowDetails: {},
@@ -289,6 +290,9 @@ const slice = createSlice({
     setCustomerSearchStr(state, action) {
       state.customerSearchStr = action.payload;
     },
+    setStationSearchStr(state, action) {
+      state.stationSearchStr = action.payload;
+    },
     // customer row details
     setSelectedCustomerRowDetails(state, action) {
       state.selectedCustomerRowDetails = action.payload;
@@ -319,6 +323,7 @@ const slice = createSlice({
 
 export const {
   setCustomerSearchStr,
+  setStationSearchStr,
   setSelectedCustomerRowDetails,
   setSelectedCustomerStationRowDetails,
   setTableBeingViewed,

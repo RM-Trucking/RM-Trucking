@@ -24,7 +24,7 @@ export default function CustomerViewStationTable() {
     const error = useSelector((state) => state?.customerdata?.error);
     const pagination = useSelector((state) => state?.customerdata?.pagination);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
-    const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
+    const stationSearchStr = useSelector((state) => state?.customerdata?.stationSearchStr);
     // for customer details
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
@@ -233,7 +233,7 @@ export default function CustomerViewStationTable() {
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStation(params?.row?.stationId, () => {
-                                    dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
+                                    dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
                                 }));
                             }} />
                         </Tooltip>
@@ -247,7 +247,7 @@ export default function CustomerViewStationTable() {
     // call api to get table data
     useEffect(() => {
         dispatch(clearNotesState());
-        dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
+        dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
     }, []);
 
     useEffect(() => {
@@ -325,7 +325,7 @@ export default function CustomerViewStationTable() {
                     dispatch(getCustomerStationData({
                         pageNo: newModel.page + 1,
                         pageSize: newModel.pageSize,
-                        searchStr: customerSearchStr,
+                        searchStr: stationSearchStr,
                         customerId: selectedCustomerRowDetails?.customerId
                     }));
                 }}
@@ -335,10 +335,10 @@ export default function CustomerViewStationTable() {
                 getRowId={(row) => row?.stationId}
                 hideFooterSelectedRowCount
                 onPageChange={(newPage) => {
-                    dispatch(getCustomerStationData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId }));
+                    dispatch(getCustomerStationData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId }));
                 }}
                 onPageSizeChange={(newPageSize) => {
-                    dispatch(getCustomerStationData({ pageNo: 1, pageSize: newPageSize, searchStr: customerSearchStr, customerId: selectedCustomerRowDetails?.customerId }));
+                    dispatch(getCustomerStationData({ pageNo: 1, pageSize: newPageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId }));
                 }}
                 pageSizeOptions={[5, 10, 50, 100]}
                 rowCount={parseInt(pagination?.totalRecords || '0', 10)}

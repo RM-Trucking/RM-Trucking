@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Stack, InputAdornment, TextField, IconButton } from '@mui/material';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCustomerSearchStr, getCustomerData, getCustomerStationData } from '../../redux/slices/customer';
+import { setCustomerSearchStr, setStationSearchStr, getCustomerData, getCustomerStationData } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -17,11 +17,14 @@ export default function SharedSearchField({ page }) {
     // state declarations
     const [searchValue, setSearchValue] = useState('');
     const pagination = useSelector((state) => state?.customerdata?.pagination);
+    const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
+    const stationSearchStr = useSelector((state) => state?.customerdata?.stationSearchStr);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
 
     const handleSearch = (event) => {
         setSearchValue(event.target.value);
-        if (page === 'customers' || page === 'station') dispatch(setCustomerSearchStr(event?.target?.value));
+        if (page === 'customers') dispatch(setCustomerSearchStr(event?.target?.value));
+        if (page === 'station') dispatch(setStationSearchStr(event?.target?.value));
         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value })); }
         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value, customerId: selectedCustomerRowDetails.customerId })); }
     }
@@ -34,6 +37,14 @@ export default function SharedSearchField({ page }) {
             if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
         }
     };
+    useEffect(() => {
+        if (page === 'customers') {
+            setSearchValue(customerSearchStr);
+        }
+        if (page === 'station') {
+            setSearchValue(stationSearchStr);
+        }
+    }, [customerSearchStr, stationSearchStr]);
 
     return (
         <>

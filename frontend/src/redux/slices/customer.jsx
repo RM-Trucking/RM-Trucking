@@ -314,15 +314,18 @@ const slice = createSlice({
       state.stationCurrentTab = action.payload;
       state.tableWhichBeingViewed = action.payload;
     },
-    setStationTabTableData(state, action) {
+    setStationTabTableData(state) {
       state.stationTabTableData = [];
     },
-
+    setOperationalMessage(state) {
+      state.operationalMessage = '';
+    }
   },
 });
 
 export const {
   setCustomerSearchStr,
+  setOperationalMessage,
   setStationSearchStr,
   setSelectedCustomerRowDetails,
   setSelectedCustomerStationRowDetails,

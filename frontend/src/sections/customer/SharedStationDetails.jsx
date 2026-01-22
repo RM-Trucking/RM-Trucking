@@ -26,6 +26,7 @@ SharedStationDetails.propTypes = {
 
 export default function SharedStationDetails({ type, handleCloseConfirm, selectedCustomerStationDetails, customerId }) {
     const dispatch = useDispatch();
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const [warehouseFlag, setWarehouseFlag] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const {
@@ -95,12 +96,16 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             // dispatch put
             dispatch(putStationData(selectedCustomerStationDetails?.stationId, obj));
         }
-        handleCloseConfirm();
     };
 
     useEffect(() => {
         dispatch(setTableBeingViewed('Department'));
     }, []);
+    useEffect(() => {
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
     useEffect(() => {
         if (type === 'View') {
             setReadOnly(true);
@@ -136,7 +141,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{(selectedCustomerStationDetails?.stationName && type === 'View') ? selectedCustomerStationDetails?.stationName : ''} Station Details</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>{(selectedCustomerStationDetails?.stationName && type === 'View') ? selectedCustomerStationDetails?.stationName : ''} Station Details</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
@@ -688,7 +693,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 <StyledTextField {...field} label="Warehouse details" variant="standard" fullWidth sx={{
                                     width: '25%',
                                 }} disabled={readOnly} error={!!error}
-                                    inputProps={{ maxLength: 250 }} 
+                                    inputProps={{ maxLength: 250 }}
                                     // Intercept onChange to prevent leading spaces
                                     onChange={(e) => {
                                         const value = e.target.value;

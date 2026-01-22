@@ -12,7 +12,7 @@ import {
     setSelectedStationTabRowDetails, getStationDepartmentData,
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
     deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
-    deleteStationAccessorial, getAccessorialData
+    deleteStationAccessorial, getAccessorialData, setOperationalMessage
 } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
@@ -491,7 +491,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error.message);
+            setSnackbarMessage(error.error || error.message);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -600,7 +600,10 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={1000} // Adjust the duration as needed
-                onClose={() => setSnackbarOpen(false)}
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    dispatch(setOperationalMessage());
+                }}
                 message={snackbarMessage}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             />

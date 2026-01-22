@@ -9,7 +9,7 @@ import { getCustomerData } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCustomerRowDetails, customerStatusChange } from '../../redux/slices/customer';
+import { setSelectedCustomerRowDetails, customerStatusChange, setOperationalMessage } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
 import StyledTextField from '../shared/StyledTextField';
@@ -149,7 +149,7 @@ export default function CustomerHomePageTable() {
     {
         field: "actions",
         headerName: "Action",
-        minWidth: 100,
+        minWidth: 300,
         flex: 1,
         renderCell: (params) => {
             const handleSwitchChange = async (event) => {
@@ -209,7 +209,7 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error.message);
+            setSnackbarMessage(error.error || error.message);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -412,7 +412,10 @@ export default function CustomerHomePageTable() {
         <Snackbar
             open={snackbarOpen}
             autoHideDuration={1000} // Adjust the duration as needed
-            onClose={() => setSnackbarOpen(false)}
+            onClose={() => {
+                setSnackbarOpen(false);
+                dispatch(setOperationalMessage());
+            }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         />

@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { getCustomerStationData, setSelectedCustomerStationRowDetails, deleteStation } from '../../redux/slices/customer';
+import { getCustomerStationData, setSelectedCustomerStationRowDetails, deleteStation, setOperationalMessage } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import SharedSearchField from "../shared/SharedSearchField";
@@ -296,7 +296,7 @@ export default function CustomerViewStationTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error.message);
+            setSnackbarMessage(error.error || error.message);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -403,7 +403,10 @@ export default function CustomerViewStationTable() {
         <Snackbar
             open={snackbarOpen}
             autoHideDuration={1000} // Adjust the duration as needed
-            onClose={() => setSnackbarOpen(false)}
+            onClose={() => {
+                setSnackbarOpen(false);
+                dispatch(setOperationalMessage());
+            }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         />

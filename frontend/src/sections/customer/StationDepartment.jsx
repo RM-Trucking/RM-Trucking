@@ -23,6 +23,7 @@ StationDepartment.propTypes = {
 
 export default function StationDepartment({ type, stationName, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const {
         control,
         handleSubmit,
@@ -53,8 +54,12 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
             delete obj.stationId,
                 dispatch(putStationDepartmentData(selectedStationTabRowDetails.departmentId, obj));
         }
-        handleCloseConfirm();
     };
+    useEffect(() => {
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
     useEffect(() => {
         if (selectedStationTabRowDetails) {
             setValue('stationName', stationName || '');

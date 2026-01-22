@@ -22,6 +22,7 @@ StationPersonnel.propTypes = {
 
 export default function StationPersonnel({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const departmentData = useSelector((state) => state.customerdata.departmentData);
     const {
         control,
@@ -58,8 +59,12 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
         if (type === 'Edit') {
             dispatch(putStationPersonnelData(selectedStationTabRowDetails.personnelId, obj));
         }
-        handleCloseConfirm();
     };
+    useEffect(() => {
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
     useEffect(() => {
         if (selectedStationTabRowDetails) {
             setValue('firstName', selectedStationTabRowDetails.name || '');

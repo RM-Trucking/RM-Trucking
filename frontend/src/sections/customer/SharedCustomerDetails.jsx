@@ -29,6 +29,7 @@ SharedCustomerDetails.propTypes = {
 
 export default function SharedCustomerDetails({ type, handleCloseConfirm, selectedCustomerRowDetails }) {
     const dispatch = useDispatch();
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     // Define default values for the form
     const defaultValues = {
         customerName: '',
@@ -106,11 +107,15 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
             delete obj.note;
             dispatch(putCustomerData(obj, selectedCustomerRowDetails?.customerId));
         }
-        handleCloseConfirm();
     };
     useEffect(() => {
         dispatch(setTableBeingViewed('station'));
     }, []);
+    useEffect(() => {
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
     useEffect(() => {
         console.log('Selected Customer Details:', selectedCustomerRowDetails);
         setValue('customerName', selectedCustomerRowDetails?.customerName || '');
@@ -469,41 +474,44 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </fieldset>
 
                     {/* Checkbox for Billing Address */}
-                    <Controller
-                        name="sameAsCorporate"
-                        control={control}
-                        render={({ field: { onChange, value } }) => (
-                            <FormControlLabel
-                                control={
-                                    <StyledCheckbox
-                                        checked={!!value}
-                                        onChange={(e) => {
-                                            const isChecked = e.target.checked;
+                    <Box sx={{ width: '50%' }}>
+                        <Controller
+                            name="sameAsCorporate"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <FormControlLabel
+                                    sx={{ alignItems: 'flex-end' }}
+                                    control={
+                                        <StyledCheckbox
+                                            checked={!!value}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
 
-                                            // 1. Update React Hook Form state
-                                            onChange(isChecked);
-                                            setReadOnly(isChecked);
-                                            if (isChecked) {
-                                                setValue('billAddressLine1', getValues('corpAddressLine1') || '');
-                                                setValue('billAddressLine2', getValues('corpAddressLine2') || '');
-                                                setValue('billCity', getValues('corpCity') || '');
-                                                setValue('billState', getValues('corpState') || '');
-                                                setValue('billZipCode', getValues('corpZipCode') || '');
-                                            } else {
-                                                setValue('billAddressLine1', '');
-                                                setValue('billAddressLine2', '');
-                                                setValue('billCity', '');
-                                                setValue('billState', '');
-                                                setValue('billZipCode', '');
-                                            }
-                                        }}
-                                        disabled={(type === 'View') ? readOnly : false}
-                                    />
-                                }
-                                label="Check if above Corporate Address is same for Billing Address"
-                            />
-                        )}
-                    />
+                                                // 1. Update React Hook Form state
+                                                onChange(isChecked);
+                                                setReadOnly(isChecked);
+                                                if (isChecked) {
+                                                    setValue('billAddressLine1', getValues('corpAddressLine1') || '');
+                                                    setValue('billAddressLine2', getValues('corpAddressLine2') || '');
+                                                    setValue('billCity', getValues('corpCity') || '');
+                                                    setValue('billState', getValues('corpState') || '');
+                                                    setValue('billZipCode', getValues('corpZipCode') || '');
+                                                } else {
+                                                    setValue('billAddressLine1', '');
+                                                    setValue('billAddressLine2', '');
+                                                    setValue('billCity', '');
+                                                    setValue('billState', '');
+                                                    setValue('billZipCode', '');
+                                                }
+                                            }}
+                                            disabled={(type === 'View') ? readOnly : false}
+                                        />
+                                    }
+                                    label="Check if above Corporate Address is same for Billing Address"
+                                />
+                            )}
+                        />
+                    </Box>
 
                     {/* Billing Address Section - Conditionally rendered */}
                     <fieldset>

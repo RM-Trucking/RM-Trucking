@@ -22,6 +22,7 @@ StationAccessorial.propTypes = {
 export default function StationAccessorial({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
     const [chargeValue, setChargeValue] = useState(null);
+    const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const accessorialData = useSelector((state) => state?.customerdata?.accessorialData);
     const {
@@ -58,8 +59,12 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
             console.log(obj)
             dispatch(putStationAccessorialData(selectedStationTabRowDetails?.entityAccessorialId, obj));
         }
-        handleCloseConfirm();
     };
+    useEffect(() => {
+            if (operationalMessage && handleCloseConfirm) {
+                handleCloseConfirm();
+            }
+        }, [operationalMessage]);
     useEffect(() => {
         if (selectedStationTabRowDetails) {
             setValue('accessorial', selectedStationTabRowDetails.accessorialId || '');

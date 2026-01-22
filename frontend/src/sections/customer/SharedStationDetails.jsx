@@ -397,6 +397,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="zipCode"
                             control={control}
                             rules={{
+                                required: 'Zipcode is required',
                                 pattern: {
                                     value: /^\d{5}(-\d{4})?$/, // Validates ##### or #####-####
                                     message: 'Invalid Zip Code format'
@@ -406,6 +407,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 <StyledTextField
                                     {...field}
                                     value={value || ''}
+                                    required
                                     onChange={(e) => {
                                         const val = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
                                         let formatted = val;

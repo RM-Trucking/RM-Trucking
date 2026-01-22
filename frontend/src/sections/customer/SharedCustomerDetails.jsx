@@ -8,7 +8,8 @@ import {
     Stack,
     Divider,
     FormControlLabel,
-    MenuItem,
+    Dialog,
+    DialogContent,
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -50,6 +51,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
         reasonForStatus: ''
     };
     const [readOnly, setReadOnly] = useState(false);
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     const { control, handleSubmit, watch, getValues, setValue } = useForm({ defaultValues });
 
@@ -58,6 +60,13 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
 
     const onSubmit = (data) => {
         console.log('Form Submitted (RHF Data):', data);
+        if (data.sameAsCorporate && (data.corpAddressLine1 !== data.billAddressLine1 || data.corpAddressLine2 !== data.billAddressLine2 ||
+            data.corpCity !== data.billCity || data.corpState !== data.billState ||
+            data.corpZipCode !== data.billZipCode)) {
+            setOpenConfirmDialog(true);
+            return;
+
+        }
         let obj = {
             "customerName": data?.customerName?.trim(),
             "rmAccountNumber": data?.rmAccountNumber,
@@ -74,11 +83,11 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     "addressRole": "Corporate"
                 },
                 {
-                    "line1": data?.billAddressLine1,
-                    "line2": data?.billAddressLine2,
-                    "city": data?.billCity,
-                    "state": data?.billState,
-                    "zipCode": data?.billZipCode,
+                    "line1": (data.sameAsCorporate) ? data?.corpAddressLine1 : data?.billAddressLine1,
+                    "line2": (data.sameAsCorporate) ? data?.corpAddressLine2 : data?.billAddressLine2,
+                    "city": (data.sameAsCorporate) ? data?.corpCity : data?.billCity,
+                    "state": (data.sameAsCorporate) ? data?.corpState : data?.billState,
+                    "zipCode": (data.sameAsCorporate) ? data?.corpZipCode : data?.billZipCode,
                     "addressRole": "Billing"
                 }
             ],
@@ -128,6 +137,10 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
             setReadOnly(false);
         }
     }, [type]);
+    // dialog actions and functions
+    const handleAlert = () => {
+        setOpenConfirmDialog(false);
+    };
 
     return (
         <>
@@ -207,7 +220,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     // Integrated error state for UI feedback
                                     error={!!error}
                                     helperText={error?.message}
-                                    disabled={readOnly}
+                                    disabled={(type === 'View') ? readOnly : false}
                                     onChange={(e) => {
                                         const value = e.target.value;
                                         // prevent leading spaces while typing
@@ -259,7 +272,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     inputProps={{ maxLength: 20 }}
                                     error={!!error}
                                     helperText={error ? error.message : ''}
-                                    disabled={readOnly}
+                                    disabled={(type === 'View') ? readOnly : false}
                                 />
                             )}
                         />
@@ -813,6 +826,33 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
             {
                 type === 'View' && <CustomerViewStationTable />
             }
+            <Dialog open={openConfirmDialog} onClose={handleAlert} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleAlert();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '500px',
+                        height: '150px',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <>
+                        <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Alert!</Typography>
+                            <Iconify icon="carbon:close" onClick={() => handleAlert()} sx={{ cursor: 'pointer' }} />
+                        </Stack>
+                        <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                    </>
+                    <Box sx={{ pt: 2 }}>
+                        Billing Address must match Corporate Address when "same as Corporate" is checked.
+                    </Box>
+                </DialogContent>
+            </Dialog>
         </>
     );
 }

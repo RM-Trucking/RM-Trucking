@@ -112,7 +112,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         {
             field: "actions",
             headerName: "Action",
-            minWidth: 110,
+            minWidth: 300,
             flex: 1,
             renderCell: (params) => {
                 const element = (
@@ -223,7 +223,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         {
             field: "actions",
             headerName: "Action",
-            minWidth: 110,
+            minWidth: 300,
             flex: 1,
             renderCell: (params) => {
                 const element = (
@@ -415,7 +415,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         {
             field: "actions",
             headerName: "Action",
-            minWidth: 110,
+            minWidth: 300,
             flex: 1,
             renderCell: (params) => {
                 const element = (

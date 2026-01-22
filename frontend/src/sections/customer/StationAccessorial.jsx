@@ -7,7 +7,8 @@ import {
     MenuItem,
     Stack,
     Typography,
-    Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -23,6 +24,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
     const dispatch = useDispatch();
     const [chargeValue, setChargeValue] = useState(null);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const isLoading = useSelector((state) => state?.customerdata?.isLoading);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const accessorialData = useSelector((state) => state?.customerdata?.accessorialData);
     const {
@@ -61,10 +63,10 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
         }
     };
     useEffect(() => {
-            if (operationalMessage && handleCloseConfirm) {
-                handleCloseConfirm();
-            }
-        }, [operationalMessage]);
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
     useEffect(() => {
         if (selectedStationTabRowDetails) {
             setValue('accessorial', selectedStationTabRowDetails.accessorialId || '');
@@ -267,26 +269,30 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                     >
                         Cancel
                     </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        type='submit'
-                        onClick={handleSubmit(onSubmit)}
-                        sx={{
-                            '&.MuiButton-contained': {
-                                borderRadius: '4px',
-                                color: '#ffffff',
-                                boxShadow: 'none',
-                                fontSize: '14px',
-                                p: '2px 16px',
-                                bgcolor: '#A22',
-                                fontWeight: 'normal',
-                                ml: 1,
-                            },
-                        }}
-                    >
-                        {type === 'Add' ? 'Add' : 'Edit'}
-                    </Button>
+
+                    <Box>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            type='submit'
+                            onClick={handleSubmit(onSubmit)}
+                            sx={{
+                                '&.MuiButton-contained': {
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#A22',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                },
+                            }}
+                        >
+                            {type === 'Add' ? 'Add' : 'Edit'}
+                        </Button>
+                        {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
+                    </Box>
                 </Stack>}
             </Box>
         </>

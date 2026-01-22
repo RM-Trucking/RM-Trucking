@@ -9,7 +9,7 @@ import {
     Divider,
     FormControlLabel,
     Dialog,
-    DialogContent,
+    DialogContent, CircularProgress,
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -30,6 +30,7 @@ SharedCustomerDetails.propTypes = {
 export default function SharedCustomerDetails({ type, handleCloseConfirm, selectedCustomerRowDetails }) {
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const isLoading = useSelector((state) => state?.customerdata?.isLoading);
     // Define default values for the form
     const defaultValues = {
         customerName: '',
@@ -763,27 +764,30 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     >
                         Cancel
                     </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        type='submit'
-                        onClick={handleSubmit(onSubmit)}
-                        sx={{
-                            '&.MuiButton-contained': {
-                                borderRadius: '4px',
-                                color: '#ffffff',
-                                boxShadow: 'none',
-                                fontSize: '14px',
-                                p: '2px 16px',
-                                bgcolor: '#A22',
-                                fontWeight: 'normal',
-                                ml: 1,
-                                mb: 1
-                            },
-                        }}
-                    >
-                        {type === 'Add' ? 'Add' : 'Edit'}
-                    </Button>
+                    <Box>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            type='submit'
+                            onClick={handleSubmit(onSubmit)}
+                            sx={{
+                                '&.MuiButton-contained': {
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#A22',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                    mb: 1
+                                },
+                            }}
+                        >
+                            {type === 'Add' ? 'Add' : 'Edit'}
+                        </Button>
+                        {isLoading && <CircularProgress color="inherit" size={16} sx={{ml:1}} />}
+                    </Box>
                 </Stack>}
                 {/* {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button

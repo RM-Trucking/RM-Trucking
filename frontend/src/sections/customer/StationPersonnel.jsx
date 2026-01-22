@@ -7,7 +7,8 @@ import {
     MenuItem,
     Stack,
     Typography,
-    Divider
+    Divider,
+    CircularProgress
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -23,6 +24,7 @@ StationPersonnel.propTypes = {
 export default function StationPersonnel({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const isLoading = useSelector((state) => state?.customerdata?.isLoading);
     const departmentData = useSelector((state) => state.customerdata.departmentData);
     const {
         control,
@@ -315,26 +317,30 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                     >
                         Cancel
                     </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        type='submit'
-                        onClick={handleSubmit(onSubmit)}
-                        sx={{
-                            '&.MuiButton-contained': {
-                                borderRadius: '4px',
-                                color: '#ffffff',
-                                boxShadow: 'none',
-                                fontSize: '14px',
-                                p: '2px 16px',
-                                bgcolor: '#A22',
-                                fontWeight: 'normal',
-                                ml: 1,
-                            },
-                        }}
-                    >
-                        {type === 'Add' ? 'Add' : 'Edit'}
-                    </Button>
+
+                    <Box>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            type='submit'
+                            onClick={handleSubmit(onSubmit)}
+                            sx={{
+                                '&.MuiButton-contained': {
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#A22',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                },
+                            }}
+                        >
+                            {type === 'Add' ? 'Add' : 'Edit'}
+                        </Button>
+                        {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
+                    </Box>
                 </Stack>}
             </Box>
         </>

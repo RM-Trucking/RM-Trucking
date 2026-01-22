@@ -234,7 +234,7 @@ export default function CustomerViewStationTable() {
         {
             field: "actions",
             headerName: "Action",
-            minWidth: 110,
+            minWidth: 300,
             flex: 1,
             renderCell: (params) => {
                 const element = (

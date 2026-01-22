@@ -60,10 +60,11 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
             minWidth: 200,
             flex: 1,
             headerAlign: 'center',
-             cellClassName: 'center-status-cell',
+            cellClassName: 'center-status-cell',
+            autoHeight: true,
             renderCell: (params) => {
                 const element = (
-                    <Typography variant='normal' sx={{p:2}}>{params?.row?.messageText}</Typography>
+                    <Typography variant='normal' sx={{ p: 2, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>{params?.row?.messageText}</Typography>
                 );
                 return element;
             },

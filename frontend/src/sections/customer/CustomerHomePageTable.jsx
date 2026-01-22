@@ -209,7 +209,7 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error.error || error.message);
+            setSnackbarMessage(`${error?.error}. ${error?.message}`);
             setSnackbarOpen(true);
         }
     }, [error])

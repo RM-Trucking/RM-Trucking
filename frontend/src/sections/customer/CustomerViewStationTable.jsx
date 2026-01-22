@@ -296,7 +296,7 @@ export default function CustomerViewStationTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(error.error || error.message);
+            setSnackbarMessage(`${error?.error}. ${error?.message}`);
             setSnackbarOpen(true);
         }
     }, [error])

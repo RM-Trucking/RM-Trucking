@@ -23,4 +23,5 @@ export interface NoteMessageResponse {
     messageText: string;
     createdAt: Date;
     createdBy: number;
+    createdByName: string;
 }

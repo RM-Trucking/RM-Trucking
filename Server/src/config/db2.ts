@@ -1,4 +1,7 @@
 import odbc, { Connection } from 'odbc';
+import { config } from 'dotenv';
+// Load environment variables
+config();
 
 /**
  * DB2 Connection Configuration

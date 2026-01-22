@@ -30,6 +30,12 @@ export async function createDepartment(conn: Connection, dept: Partial<Departmen
   return result[0]?.departmentId;
 }
 
+export async function checkDepartmentEmailExists(conn: Connection, email: string): Promise<boolean> {
+  const query = `SELECT 1 FROM ${SCHEMA}."Department" WHERE "email" = ?`;
+  const result = await conn.query(query, [email]) as any[];
+  return result.length > 0;
+}
+
 
 /**
  * Get department by ID
@@ -74,7 +80,7 @@ export async function getDepartmentsByStation(
       ON d."stationId" = s."stationId"
     JOIN ${SCHEMA}."Customer" c 
       ON s."customerId" = c."customerId"
-    WHERE d."stationId" = ?
+    WHERE d."stationId" = ? AND d."activeStatus" = 'Y'
     ORDER BY d."departmentName" ASC
   `;
 

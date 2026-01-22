@@ -20,7 +20,7 @@ router.use('/user', userRouter);
 
 router.use('/roles', roleRouter);
 
-router.use('/zones', zoneRouter);
+router.use('/zone', zoneRouter);
 
 router.use('/accessorial', accessorialRouter);
 

@@ -45,12 +45,13 @@ router.put('/:customerId', authenticateJWT, async (req: Request, res: Response) 
 
 /**
  * DELETE /api/customers/:customerId
- * Delete customer
+ * Toggle customer active status (activate/deactivate)
  */
-router.delete('/:customerId', authenticateJWT, async (req: Request, res: Response) => {
+router.put('/:customerId/toggle', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await customerController.deleteCustomer(req, res, conn);
+    await customerController.toggleCustomerStatus(req, res, conn);
     if (conn) conn.close();
 });
+
 
 export default router;

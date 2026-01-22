@@ -2,12 +2,16 @@ openapi: 3.0.0
 info:
   title: Zone API
   version: 1.0.0
-  description: API documentation for Zone management endpoints
+  description: API for managing zones and their zip code mappings
+
+tags:
+  - name: Zone
+    description: Operations related to zones
+
 paths:
-  /api/maintenance/zones:
+  /api/maintenance/zone:
     post:
-      tags:
-        - Zone
+      tags: [Zone]
       summary: Create a new zone
       security:
         - bearerAuth: []
@@ -16,26 +20,20 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                zoneName:
-                  type: string
+              $ref: "#/components/schemas/CreateZoneRequest"
       responses:
         "201":
-          description: Zone created
+          description: Zone created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZoneResponse"
+        "400":
+          description: Failed to create zone
+
+  /api/maintenance/zone/{zoneId}:
     get:
-      tags:
-        - Zone
-      summary: Get all zones
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: Array of zones
-  /api/maintenance/zones/{zoneId}:
-    get:
-      tags:
-        - Zone
+      tags: [Zone]
       summary: Get zone by ID
       security:
         - bearerAuth: []
@@ -48,47 +46,42 @@ paths:
       responses:
         "200":
           description: Zone details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZoneResponse"
         "404":
           description: Zone not found
-  /api/maintenance/zone-zips:
-    get:
-      tags:
-        - Zone
-      summary: Get all zone zips
+
+    put:
+      tags: [Zone]
+      summary: Update zone by ID
       security:
         - bearerAuth: []
-      responses:
-        "200":
-          description: Array of all zone zips
-    post:
-      tags:
-        - Zone
-      summary: Add zone zip mapping
-      security:
-        - bearerAuth: []
+      parameters:
+        - in: path
+          name: zoneId
+          required: true
+          schema:
+            type: integer
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                zoneId:
-                  type: integer
-                zipCode:
-                  type: string
-                rangeStart:
-                  type: string
-                rangeEnd:
-                  type: string
+              $ref: "#/components/schemas/UpdateZoneRequest"
       responses:
-        "201":
-          description: Zone zip mapping created
-  /api/maintenance/zones/{zoneId}/zone-zips:
-    get:
-      tags:
-        - Zone
-      summary: Get all zone zips for a zone
+        "200":
+          description: Zone updated successfully
+        "400":
+          description: Failed to update zone
+
+    delete:
+      tags: [Zone]
+      summary: Soft delete (deactivate) a zone by ID
+      description: >
+        Marks the zone as inactive instead of permanently deleting it.
+        Sets `activeStatus = 'N'` and updates audit fields.
       security:
         - bearerAuth: []
       parameters:
@@ -99,4 +92,86 @@ paths:
             type: integer
       responses:
         "200":
-          description: Array of zone zips
+          description: Zone soft deleted successfully
+        "400":
+          description: Failed to delete zone
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Zone:
+      type: object
+      properties:
+        zoneId: { type: integer }
+        zoneName: { type: string }
+        noteThreadId: { type: integer }
+        entityId: { type: integer }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+        activeStatus:
+          type: string
+          enum: [Y, N]
+
+    ZoneZip:
+      type: object
+      properties:
+        zoneZipId: { type: integer }
+        zoneId: { type: integer }
+        zipCode: { type: string, nullable: true }
+        rangeStart: { type: string, nullable: true }
+        rangeEnd: { type: string, nullable: true }
+
+    CreateZoneRequest:
+      type: object
+      required:
+        - zoneName
+      properties:
+        zoneName: { type: string }
+        zipCodes:
+          type: array
+          items: { type: string }
+        ranges:
+          type: array
+          items: { type: string }
+        note:
+          type: object
+          properties:
+            messageText: { type: string }
+
+    UpdateZoneRequest:
+      type: object
+      properties:
+        zoneName: { type: string }
+        activeStatus:
+          type: string
+          enum: [Y, N]
+
+    ZoneResponse:
+      allOf:
+        - $ref: "#/components/schemas/Zone"
+        - type: object
+          properties:
+            zips:
+              type: array
+              items:
+                $ref: "#/components/schemas/ZoneZip"
+            notes:
+              type: array
+              items:
+                $ref: "#/components/schemas/NoteMessageResponse"
+
+    NoteMessageResponse:
+      type: object
+      properties:
+        noteMessageId: { type: integer }
+        noteThreadId: { type: integer }
+        messageText: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }

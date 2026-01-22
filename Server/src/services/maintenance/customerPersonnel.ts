@@ -17,14 +17,20 @@ export async function createCustomerPersonnelService(
     userId: number
 ): Promise<CustomerPersonnelResponse> {
 
+    // ✅ Validate unique email
+    if (req.email) {
+        const exists = await personnelDB.checkEmailExists(conn, req.email);
+        if (exists) {
+            throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
+        }
+    }
 
     const entityId = await entityDB.createEntity(conn, 'CUSTOMER_PERSONNEL', req.name);
-
     const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
+
     if (req.note && req.note.messageText?.trim()) {
         await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
     }
-
 
     const personnelId = await personnelDB.createCustomerPersonnel(conn, {
         ...req,
@@ -40,11 +46,9 @@ export async function createCustomerPersonnelService(
         ? await noteDB.getMessagesByThread(conn, personnel.noteThreadId)
         : [];
 
-    return {
-        ...personnel,
-        notes
-    };
+    return { ...personnel, notes };
 }
+
 
 /**
  * Get personnel by ID

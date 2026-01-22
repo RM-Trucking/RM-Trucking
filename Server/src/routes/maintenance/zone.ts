@@ -1,44 +1,47 @@
 import { Router, Request, Response } from 'express';
-import { db } from '../../config/db2';
 import { authenticateJWT } from '../../middleware/auth';
+import { db } from '../../config/db2';
 import * as zoneController from '../../controllers/maintenance/zone';
 
 const router = Router();
 
-// ...existing code...
+/**
+ * POST /api/maintenance/zone
+ * Create a new zone with zip codes, ranges, and notes
+ */
 router.post('/', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await zoneController.createZoneHandler(req, res, conn);
+    await zoneController.createZone(req, res, conn);
     if (conn) conn.close();
 });
 
-router.get('/', authenticateJWT, async (req: Request, res: Response) => {
-    const conn = await db();
-    await zoneController.getAllZonesHandler(req, res, conn);
-    if (conn) conn.close();
-});
-
+/**
+ * GET /api/maintenance/zone/:zoneId
+ * Get zone details by ID (including zips and notes)
+ */
 router.get('/:zoneId', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await zoneController.getZoneByIdHandler(req, res, conn);
+    await zoneController.getZone(req, res, conn);
     if (conn) conn.close();
 });
 
-router.post('/zone-zips', authenticateJWT, async (req: Request, res: Response) => {
+/**
+ * PUT /api/maintenance/zone/:zoneId
+ * Update zone name or active status
+ */
+router.put('/:zoneId', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await zoneController.addZoneZipHandler(req, res, conn);
+    await zoneController.updateZone(req, res, conn);
     if (conn) conn.close();
 });
 
-router.get('/:zoneId/zone-zips', authenticateJWT, async (req: Request, res: Response) => {
+/**
+ * DELETE /api/maintenance/zone/:zoneId
+ * Soft delete (deactivate) a zone
+ */
+router.delete('/:zoneId', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await zoneController.getZoneZipsByZoneHandler(req, res, conn);
-    if (conn) conn.close();
-});
-
-router.get('/zone-zips', authenticateJWT, async (req: Request, res: Response) => {
-    const conn = await db();
-    await zoneController.getAllZoneZipsHandler(req, res, conn);
+    await zoneController.deleteZone(req, res, conn);
     if (conn) conn.close();
 });
 

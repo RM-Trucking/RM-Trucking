@@ -83,6 +83,10 @@ export async function getAllCustomers(req: Request, res: Response, conn: Connect
             }
         });
     } catch (error) {
+
+        console.log(error);
+
+
         res.status(400).json({
             error: 'Failed to fetch customers',
             message: (error as Error).message
@@ -122,23 +126,29 @@ export async function updateCustomer(req: Request, res: Response, conn: Connecti
     }
 }
 
-/**
- * DELETE /api/customers/:customerId
- * Delete customer
- */
-export async function deleteCustomer(req: Request, res: Response, conn: Connection): Promise<void> {
+
+
+export async function toggleCustomerStatus(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { customerId } = req.params;
+        const { activeStatus } = req.body;
+        const userId = (req as any).user?.userId || 1;
 
-        await customerService.deleteCustomer(conn, parseInt(customerId, 10));
+        const updated = await customerService.toggleCustomerStatus(
+            conn,
+            parseInt(customerId, 10),
+            userId,
+            activeStatus
+        );
 
         res.status(200).json({
             success: true,
-            message: 'Customer deleted successfully'
+            message: `Customer ${updated.activeStatus === 'Y' ? 'activated' : 'deactivated'} successfully`,
+            data: updated
         });
     } catch (error) {
         res.status(400).json({
-            error: 'Failed to delete customer',
+            error: 'Failed to toggle customer status',
             message: (error as Error).message
         });
     }

@@ -16,18 +16,23 @@ export async function createDepartmentService(
     req: CreateDepartmentRequest,
     userId: number
 ): Promise<DepartmentResponse | any> {
-
     await conn.beginTransaction();
     try {
+        // ✅ Validate unique email
+        if (req.email) {
+            const exists = await departmentDB.checkDepartmentEmailExists(conn, req.email);
+            if (exists) {
+                throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
+            }
+        }
 
         const entityId = await entityDB.createEntity(conn, 'DEPARTMENT', req.departmentName);
-
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
+
         if (req.note && req.note.messageText?.trim()) {
             await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
         }
 
-        // Insert department
         const departmentId = await departmentDB.createDepartment(conn, {
             ...req,
             noteThreadId,
@@ -40,14 +45,13 @@ export async function createDepartmentService(
         if (!department) throw new Error('Failed to create department');
 
         await conn.commit();
-
         return department;
-    }
-    catch (error) {
+    } catch (error) {
         await conn.rollback();
         throw error;
     }
 }
+
 
 /**
  * Get a single department by ID

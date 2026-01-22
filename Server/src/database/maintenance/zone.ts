@@ -1,75 +1,88 @@
-import { Connection } from 'odbc';
-import { Zone, ZoneZip } from '../../entities/maintenance/Zone';
+import { Connection } from "odbc";
+import { SCHEMA } from "../../config/db2";
+import { Zone, ZoneZip } from "../../entities/maintenance/Zone";
 
-// Zone queries
-export async function createZone(conn: Connection, zoneName: string): Promise<number> {
+export async function createZone(
+  conn: Connection,
+  zoneName: string,
+  entityId: number,
+  noteThreadId: number,
+  userId: number
+): Promise<number> {
   const query = `
-    INSERT INTO RANDM_TST.ZONE (zone_name)
-    VALUES (?)
+    SELECT "zoneId"
+    FROM FINAL TABLE (
+      INSERT INTO ${SCHEMA}."Zone"
+      ("zoneName","entityId","noteThreadId","createdAt","createdBy","activeStatus")
+      VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, 'Y')
+    )
   `;
-  await conn.query(query, [zoneName]);
-  const resultQuery = `SELECT zone_id FROM RANDM_TST.ZONE WHERE zone_name = ? ORDER BY zone_id DESC FETCH FIRST 1 ROWS ONLY`;
-  const result = (await conn.query(resultQuery, [zoneName])) as any[];
-  return result[0]?.zone_id || 0;
+  const result = await conn.query(query, [zoneName, entityId, noteThreadId, userId]) as any[];
+  return result[0]?.zoneId;
 }
 
-export async function getAllZones(conn: Connection): Promise<Zone[]> {
+export async function createZoneZip(
+  conn: Connection,
+  zoneId: number,
+  zipCode: string | null,
+  rangeStart: string | null,
+  rangeEnd: string | null
+): Promise<number> {
   const query = `
-    SELECT zone_id AS zoneId, zone_name AS zoneName
-    FROM RANDM_TST.ZONE
-    ORDER BY zone_id ASC
+    SELECT "zoneZipId"
+    FROM FINAL TABLE (
+      INSERT INTO ${SCHEMA}."Zone_Zip"
+      ("zoneId","zipCode","rangeStart","rangeEnd")
+      VALUES (?, ?, ?, ?)
+    )
   `;
-  const result = (await conn.query(query)) as Zone[];
-  return result;
+
+  const params = [zoneId, zipCode || '', rangeStart || '', rangeEnd || ''];
+
+  const result = await conn.query(query, params) as any[];
+  return result[0]?.zoneZipId;
 }
 
 export async function getZoneById(conn: Connection, zoneId: number): Promise<Zone | null> {
-  const query = `
-    SELECT zone_id AS zoneId, zone_name AS zoneName
-    FROM RANDM_TST.ZONE
-    WHERE zone_id = ?
-  `;
-  const result = (await conn.query(query, [zoneId])) as Zone[];
-  return result.length > 0 ? result[0] : null;
+  const query = `SELECT * FROM ${SCHEMA}."Zone" WHERE "zoneId" = ?`;
+  const result = await conn.query(query, [zoneId]) as any[];
+  return result.length ? (result[0] as Zone) : null;
 }
 
-// ZoneZip queries
-export async function addZoneZip(
+export async function getZoneZips(conn: Connection, zoneId: number): Promise<ZoneZip[]> {
+  const query = `SELECT * FROM ${SCHEMA}."Zone_Zip" WHERE "zoneId" = ?`;
+  const result = await conn.query(query, [zoneId]) as any[];
+  return result as ZoneZip[];
+}
+
+export async function updateZone(
   conn: Connection,
   zoneId: number,
-  zipCode?: string,
-  rangeStart?: string,
-  rangeEnd?: string
-): Promise<number> {
+  zoneName: string | undefined,
+  activeStatus: 'Y' | 'N' | undefined,
+  userId: number
+): Promise<void> {
   const query = `
-    INSERT INTO RANDM_TST.ZONE_ZIP (zone_id, zip_code, range_start, range_end)
-    VALUES (?, ?, ?, ?)
+    UPDATE ${SCHEMA}."Zone"
+    SET 
+      ${zoneName ? `"zoneName" = ?,` : ''}
+      ${activeStatus ? `"activeStatus" = ?,` : ''}
+      "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE),
+      "updatedBy" = ?
+    WHERE "zoneId" = ?
   `;
-  // @ts-ignore: ODBC query parameter typing
-  await conn.query(query, [zoneId, zipCode ?? null, rangeStart ?? null, rangeEnd ?? null]);
-  const resultQuery = `SELECT zone_zip_id FROM RANDM_TST.ZONE_ZIP WHERE zone_id = ? ORDER BY zone_zip_id DESC FETCH FIRST 1 ROWS ONLY`;
-  // @ts-ignore: ODBC query parameter typing
-  const result = (await conn.query(resultQuery, [zoneId])) as any[];
-  return result[0]?.zone_zip_id || 0;
+  const params: any[] = [];
+  if (zoneName) params.push(zoneName);
+  if (activeStatus) params.push(activeStatus);
+  params.push(userId, zoneId);
+  await conn.query(query, params);
 }
 
-export async function getZoneZipsByZone(conn: Connection, zoneId: number): Promise<ZoneZip[]> {
+export async function softDeleteZone(conn: Connection, zoneId: number): Promise<void> {
   const query = `
-    SELECT zone_zip_id AS zoneZipId, zone_id AS zoneId, zip_code AS zipCode, range_start AS rangeStart, range_end AS rangeEnd
-    FROM RANDM_TST.ZONE_ZIP
-    WHERE zone_id = ?
-    ORDER BY zone_zip_id ASC
+    UPDATE ${SCHEMA}."Zone"
+    SET "activeStatus" = 'N', "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
+    WHERE "zoneId" = ?
   `;
-  const result = (await conn.query(query, [zoneId])) as ZoneZip[];
-  return result;
-}
-
-export async function getAllZoneZips(conn: Connection): Promise<ZoneZip[]> {
-  const query = `
-    SELECT zone_zip_id AS zoneZipId, zone_id AS zoneId, zip_code AS zipCode, range_start AS rangeStart, range_end AS rangeEnd
-    FROM RANDM_TST.ZONE_ZIP
-    ORDER BY zone_zip_id ASC
-  `;
-  const result = (await conn.query(query)) as ZoneZip[];
-  return result;
+  await conn.query(query, [zoneId]);
 }

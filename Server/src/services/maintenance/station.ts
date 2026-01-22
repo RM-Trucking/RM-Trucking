@@ -33,6 +33,7 @@ export async function createStation(
         note
     } = createStationReq;
 
+
     // Uniqueness check
     const existingStation = await stationDB.getStationByRmAccountNumber(conn, rmAccountNumber);
     if (existingStation) {
@@ -119,6 +120,10 @@ export async function createStation(
  */
 export async function getStationService(conn: Connection, stationId: number): Promise<StationResponse | null> {
     const station = await stationDB.getStationById(conn, stationId);
+
+    console.log(station);
+
+
     if (!station) return null;
 
     // Fetch addresses via Entity_Address_Map

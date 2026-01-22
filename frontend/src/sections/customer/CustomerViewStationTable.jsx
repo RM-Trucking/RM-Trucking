@@ -154,12 +154,44 @@ export default function CustomerViewStationTable() {
             headerName: "Open Time",
             minWidth: 110,
             flex: 1,
+            renderCell: (params) => {
+
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        {params?.row?.openTime?.substring(0, 5)}
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "closeTime",
             headerName: "Close Time",
             minWidth: 110,
             flex: 1,
+            renderCell: (params) => {
+
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        {params?.row?.closeTime?.substring(0, 5)}
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "hours",

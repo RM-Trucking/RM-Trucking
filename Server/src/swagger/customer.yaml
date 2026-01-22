@@ -3,6 +3,7 @@ info:
   title: Customer API
   version: 1.0.0
   description: API documentation for Customer management endpoints
+
 paths:
   /api/maintenance/customer:
     post:
@@ -113,10 +114,16 @@ paths:
           description: Customer updated
         "400":
           description: Failed to update customer
-    delete:
+
+  /api/maintenance/customer/{customerId}/toggle:
+    put:
       tags:
         - Customer
-      summary: Delete customer by ID
+      summary: Toggle customer active status (activate/deactivate)
+      description: >
+        This endpoint toggles the active status of a customer.  
+        - If `activeStatus` is provided in the request body (`Y` or `N`), the customer will be explicitly set to that status.  
+        - If no `activeStatus` is provided, the backend will automatically toggle the current status.
       security:
         - bearerAuth: []
       parameters:
@@ -125,11 +132,33 @@ paths:
           required: true
           schema:
             type: integer
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                activeStatus:
+                  type: string
+                  enum: [Y, N]
+                  description: Desired status. 'Y' = active, 'N' = inactive. Optional; if omitted, status will be toggled.
       responses:
         "200":
-          description: Customer deleted
+          description: Customer status updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/CustomerResponse"
         "400":
-          description: Failed to delete customer
+          description: Failed to update customer status
 
 components:
   securitySchemes:

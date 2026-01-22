@@ -35,6 +35,13 @@ export async function createCustomerPersonnel(
   return result[0]?.personnelId;
 }
 
+export async function checkEmailExists(conn: Connection, email: string): Promise<boolean> {
+  const query = `SELECT 1 FROM ${SCHEMA}."Customer_Personnel" WHERE "email" = ?`;
+  const result = await conn.query(query, [email]) as any[];
+  return result.length > 0;
+}
+
+
 /**
  * Get personnel by ID
  */

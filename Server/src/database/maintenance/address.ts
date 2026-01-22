@@ -14,11 +14,15 @@ export async function createAddress(
     zipCode: string,
     createdBy: number
 ): Promise<number> {
-    const query = `
-        INSERT INTO ${SCHEMA}."Address"
-        ("line1", "line2", "city", "state", "zipCode", "createdAt", "createdBy")
-        VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)
-    `;
+    const insertQuery = `
+    SELECT "addressId"
+    FROM FINAL TABLE (
+      INSERT INTO ${SCHEMA}."Address"
+      ("line1","line2","city","state","zipCode","createdAt","createdBy")
+      VALUES (?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?)
+    )
+  `;
+
     const params = [
         line1,
         line2 === null ? '' : line2,
@@ -27,18 +31,11 @@ export async function createAddress(
         zipCode,
         createdBy
     ];
-    await conn.query(query, params);
 
-    const resultQuery = `
-        SELECT "addressId" 
-        FROM ${SCHEMA}."Address" 
-        WHERE "line1" = ? AND "city" = ? 
-        ORDER BY "addressId" DESC 
-        FETCH FIRST 1 ROWS ONLY
-    `;
-    const result = (await conn.query(resultQuery, [line1, city])) as any[];
-    return result[0]?.addressId || 0;
+    const result = (await conn.query(insertQuery, params)) as any[];
+    return result[0]?.addressId;
 }
+
 
 /**
  * Map entity to address

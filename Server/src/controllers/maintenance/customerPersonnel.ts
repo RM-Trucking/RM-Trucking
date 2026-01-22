@@ -11,9 +11,16 @@ export async function createPersonnel(req: Request, res: Response, conn: Connect
         const personnel = await personnelService.createCustomerPersonnelService(conn, req.body, userId);
         res.status(201).json({ success: true, data: personnel });
     } catch (error) {
-        res.status(400).json({ error: 'Failed to create personnel', message: (error as Error).message });
+        console.error(error);
+
+        if ((error as Error).message.includes('Email')) {
+            res.status(409).json({ error: 'Duplicate email', message: (error as Error).message });
+        } else {
+            res.status(400).json({ error: 'Failed to create personnel', message: (error as Error).message });
+        }
     }
 }
+
 
 /**
  * Get personnel by ID

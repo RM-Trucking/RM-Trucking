@@ -31,3 +31,40 @@ export async function getAccessorialById(conn: Connection, accessorialId: number
   const result = await conn.query(query, [accessorialId]) as any[];
   return result.length > 0 ? (result[0] as Accessorial) : null;
 }
+
+/**
+ * Update an accessorial
+ */
+export async function updateAccessorial(
+  conn: Connection,
+  accessorialId: number,
+  accessorialName: string,
+  userId: number
+): Promise<void> {
+  const query = `
+    UPDATE ${SCHEMA}."Accessorial"
+    SET "accessorialName" = ?, 
+        "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), 
+        "updatedBy" = ?
+    WHERE "accessorialId" = ?
+  `;
+  await conn.query(query, [accessorialName, userId, accessorialId]);
+}
+
+/**
+ * Soft delete an accessorial (mark inactive)
+ */
+export async function softDeleteAccessorial(
+  conn: Connection,
+  accessorialId: number,
+  userId: number
+): Promise<void> {
+  const query = `
+    UPDATE ${SCHEMA}."Accessorial"
+    SET "activeStatus" = 'N',
+        "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE),
+        "updatedBy" = ?
+    WHERE "accessorialId" = ?
+  `;
+  await conn.query(query, [userId, accessorialId]);
+}

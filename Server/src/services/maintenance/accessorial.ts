@@ -31,3 +31,30 @@ export async function getAllAccessorialsService(
 ): Promise<AccessorialResponse[]> {
     return await accessorialDB.getAllAccessorials(conn);
 }
+
+/**
+ * Update an accessorial
+ */
+export async function updateAccessorialService(
+    conn: Connection,
+    accessorialId: number,
+    accessorialName: string,
+    userId: number
+): Promise<AccessorialResponse> {
+    await accessorialDB.updateAccessorial(conn, accessorialId, accessorialName, userId);
+
+    const updated = await accessorialDB.getAccessorialById(conn, accessorialId);
+    if (!updated) throw new Error('Failed to update accessorial');
+    return updated;
+}
+
+/**
+ * Soft delete an accessorial
+ */
+export async function softDeleteAccessorialService(
+    conn: Connection,
+    accessorialId: number,
+    userId: number
+): Promise<void> {
+    await accessorialDB.softDeleteAccessorial(conn, accessorialId, userId);
+}

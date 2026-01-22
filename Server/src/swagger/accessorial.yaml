@@ -48,6 +48,54 @@ paths:
         "400":
           description: Failed to fetch accessorials
 
+  /api/maintenance/accessorial/{accessorialId}:
+    put:
+      tags: [Accessorial]
+      summary: Update an accessorial by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: accessorialId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAccessorialRequest"
+      responses:
+        "200":
+          description: Accessorial updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessorialResponse"
+        "400":
+          description: Failed to update accessorial
+
+    delete:
+      tags: [Accessorial]
+      summary: Soft delete an accessorial by ID
+      description: >
+        Marks the accessorial as inactive instead of permanently deleting it.
+        Sets `activeStatus = 'N'` and updates audit fields.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: accessorialId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Accessorial soft deleted successfully
+        "400":
+          description: Failed to delete accessorial
+
 components:
   securitySchemes:
     bearerAuth:
@@ -59,19 +107,40 @@ components:
     Accessorial:
       type: object
       properties:
-        accessorialId: { type: integer }
-        accessorialName: { type: string }
-        createdAt: { type: string, format: date-time }
-        createdBy: { type: integer }
-        updatedAt: { type: string, format: date-time }
-        updatedBy: { type: integer }
+        accessorialId:
+          type: integer
+        accessorialName:
+          type: string
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          description: Indicates if the accessorial is active (Y) or inactive (N)
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+        updatedBy:
+          type: integer
 
     CreateAccessorialRequest:
       type: object
       required:
         - accessorialName
       properties:
-        accessorialName: { type: string }
+        accessorialName:
+          type: string
+
+    UpdateAccessorialRequest:
+      type: object
+      required:
+        - accessorialName
+      properties:
+        accessorialName:
+          type: string
 
     AccessorialResponse:
       allOf:

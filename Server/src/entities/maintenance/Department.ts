@@ -36,5 +36,6 @@ export interface DepartmentResponse extends Department {
         messageText: string;
         createdAt: Date;
         createdBy: number;
+        createdByName?: string;
     }[];
 }

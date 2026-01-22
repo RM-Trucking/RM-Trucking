@@ -1,75 +1,44 @@
-import { Request, Response } from 'express';
-import { Connection } from 'odbc';
-import {
-    createZoneService,
-    getAllZonesService,
-    getZoneByIdService,
-    addZoneZipService,
-    getZoneZipsByZoneService,
-    getAllZoneZipsService
-} from '../../services/maintenance/zone';
+import { Connection } from "odbc";
+import { Request, Response } from "express";
+import * as zoneService from "../../services/maintenance/zone";
 
-export async function createZoneHandler(req: Request, res: Response, conn: Connection) {
-    const { zoneName } = req.body;
+export async function createZone(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const id = await createZoneService(conn, zoneName);
-        res.status(201).json({ zoneId: id });
+        const userId = (req as any).user?.userId || 1;
+        const zone = await zoneService.createZoneService(conn, req.body, userId);
+        res.status(201).json({ success: true, data: zone });
     } catch (error) {
-        console.error('Error creating zone:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(400).json({ error: 'Failed to create zone', message: (error as Error).message });
     }
 }
 
-export async function getAllZonesHandler(req: Request, res: Response, conn: Connection) {
+export async function getZone(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const zones = await getAllZonesService(conn);
-        res.status(200).json(zones);
+        const { zoneId } = req.params;
+        const zone = await zoneService.getZoneService(conn, parseInt(zoneId, 10));
+        res.status(200).json({ success: true, data: zone });
     } catch (error) {
-        console.error('Error fetching zones:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(400).json({ error: 'Failed to fetch zone', message: (error as Error).message });
     }
 }
 
-export async function getZoneByIdHandler(req: Request, res: Response, conn: Connection) {
-    const zoneId = Number(req.params.zoneId);
+export async function updateZone(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const zone = await getZoneByIdService(conn, zoneId);
-        if (!zone) return res.status(404).json({ message: 'Zone not found' });
-        res.status(200).json(zone);
+        const { zoneId } = req.params;
+        const userId = (req as any).user?.userId || 1;
+        await zoneService.updateZoneService(conn, parseInt(zoneId, 10), req.body, userId);
+        res.status(200).json({ success: true, message: 'Zone updated successfully' });
     } catch (error) {
-        console.error('Error fetching zone by ID:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(400).json({ error: 'Failed to update zone', message: (error as Error).message });
     }
 }
 
-export async function addZoneZipHandler(req: Request, res: Response, conn: Connection) {
-    const { zoneId, zipCode, rangeStart, rangeEnd } = req.body;
+export async function deleteZone(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const id = await addZoneZipService(conn, zoneId, zipCode, rangeStart, rangeEnd);
-        res.status(201).json({ zoneZipId: id });
+        const { zoneId } = req.params;
+        await zoneService.deleteZoneService(conn, parseInt(zoneId, 10));
+        res.status(200).json({ success: true, message: 'Zone deleted successfully' });
     } catch (error) {
-        console.error('Error adding zone zip:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
-
-export async function getZoneZipsByZoneHandler(req: Request, res: Response, conn: Connection) {
-    const zoneId = Number(req.params.zoneId);
-    try {
-        const zips = await getZoneZipsByZoneService(conn, zoneId);
-        res.status(200).json(zips);
-    } catch (error) {
-        console.error('Error fetching zone zips:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-}
-
-export async function getAllZoneZipsHandler(req: Request, res: Response, conn: Connection) {
-    try {
-        const zips = await getAllZoneZipsService(conn);
-        res.status(200).json(zips);
-    } catch (error) {
-        console.error('Error fetching all zone zips:', error);
-        res.status(500).json({ message: 'Internal server error' });
+        res.status(400).json({ error: 'Failed to delete zone', message: (error as Error).message });
     }
 }

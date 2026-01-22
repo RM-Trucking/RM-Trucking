@@ -8,9 +8,6 @@ import * as stationService from '../../services/maintenance/station';
 export async function createStation(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
 
-        console.log(req.body);
-
-
         const adminId = (req as any).user?.userId || 1;
         const { station } = await stationService.createStation(conn, req.body, adminId);
         res.status(201).json({ success: true, data: station });

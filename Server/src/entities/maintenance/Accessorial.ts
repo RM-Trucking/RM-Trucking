@@ -6,6 +6,7 @@ export interface Accessorial {
     createdBy: number;
     updatedAt?: Date;
     updatedBy?: number;
+    activeStatus?: 'Y' | 'N';
 }
 
 export interface CreateAccessorialRequest {

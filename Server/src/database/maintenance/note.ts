@@ -60,13 +60,23 @@ export async function createNoteMessage(
  */
 export async function getMessagesByThread(
     conn: Connection,
-    noteThreadId: number | any
-): Promise<NoteMessage[]> {
+    noteThreadId: number
+): Promise<(NoteMessage & { createdByName: string })[]> {
     const query = `
-        SELECT * FROM ${SCHEMA}."Note_Message"
-        WHERE "noteThreadId" = ?
-        ORDER BY "createdAt" ASC
-    `;
+    SELECT nm."noteMessageId",
+           nm."noteThreadId",
+           nm."messageText",
+           nm."createdAt",
+           nm."createdBy",
+           u."userName" AS "createdByName"
+    FROM ${SCHEMA}."Note_Message" nm
+    LEFT JOIN ${SCHEMA}."User" u
+      ON nm."createdBy" = u."userId"
+    WHERE nm."noteThreadId" = ?
+    ORDER BY nm."createdAt" DESC
+  `;
+
     const result = (await conn.query(query, [noteThreadId])) as any[];
-    return result as NoteMessage[];
+    return result as (NoteMessage & { createdByName: string })[];
 }
+

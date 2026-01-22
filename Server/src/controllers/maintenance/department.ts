@@ -11,16 +11,22 @@ export async function createDepartment(req: Request, res: Response, conn: Connec
         const department = await departmentService.createDepartmentService(conn, req.body, userId);
         res.status(201).json({ success: true, data: department });
     } catch (error) {
+        console.error(error);
 
-        console.log(error);
-
-
-        res.status(400).json({
-            error: 'Failed to create department',
-            message: (error as Error).message
-        });
+        if ((error as Error).message.includes('Email')) {
+            res.status(409).json({
+                error: 'Duplicate email',
+                message: (error as Error).message
+            });
+        } else {
+            res.status(400).json({
+                error: 'Failed to create department',
+                message: (error as Error).message
+            });
+        }
     }
 }
+
 
 /**
  * Get a department by ID

@@ -56,16 +56,20 @@ export async function updateCustomer(
     await conn.query(query, [...params, customerId]);
 }
 
-/**
- * Soft delete customer (set activeStatus = 'N')
- */
-export async function softDeleteCustomer(conn: Connection, customerId: number): Promise<void> {
+export async function updateCustomerStatus(
+    conn: Connection,
+    customerId: number,
+    status: 'Y' | 'N',
+    userId: number
+): Promise<void> {
     const query = `
-        UPDATE ${SCHEMA}."Customer"
-        SET "activeStatus" = 'N', "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
-        WHERE "customerId" = ?
-    `;
-    await conn.query(query, [customerId]);
+    UPDATE ${SCHEMA}."Customer"
+    SET "activeStatus" = ?, 
+        "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE),
+        "updatedBy" = ?
+    WHERE "customerId" = ?
+  `;
+    await conn.query(query, [status, userId, customerId]);
 }
 
 /**
@@ -113,6 +117,9 @@ export async function getAllCustomers(
     pageSize: number = 10
 ): Promise<Customer[]> {
     const offset = (page - 1) * pageSize;
+
+    console.log(SCHEMA);
+
 
     let query = `
         SELECT "customerId", "customerName", "rmAccountNumber", "phoneNumber", "website","activeStatusReason", "corporateBillingSame",

@@ -1,5 +1,5 @@
 import { Connection } from 'odbc';
-import { CreateCustomerRequest, UpdateCustomerRequest, CustomerResponse } from '../../entities/maintenance';
+import { CreateCustomerRequest, UpdateCustomerRequest, CustomerResponse, Customer } from '../../entities/maintenance';
 import * as customerDB from '../../database/maintenance/customer';
 import * as entityDB from '../../database/maintenance/entity';
 import * as addressDB from '../../database/maintenance/address';
@@ -57,9 +57,9 @@ export async function createNewCustomer(
             noteThreadId
         });
 
-        // 4) Create Addresses in parallel and map them
         const addressResults = await Promise.all(
             (addresses || []).map(async (addr) => {
+                // always insert a new address row, even if values are same
                 const addressId = await addressDB.createAddress(
                     conn,
                     addr.line1,
@@ -69,10 +69,19 @@ export async function createNewCustomer(
                     addr.zipCode,
                     adminId
                 );
+
+                console.log(addressId);
+
+                // map role separately
                 await addressDB.createEntityAddressMap(conn, entityId, addressId, addr.addressRole);
+
                 return { addressId, ...addr };
             })
         );
+
+
+        console.log(addressResults);
+
 
         // Fetch the final customer row
         const customer = await customerDB.getCustomerById(conn, customerId);
@@ -90,7 +99,8 @@ export async function createNewCustomer(
                         noteThreadId,
                         messageText: note.messageText.trim(),
                         createdAt: new Date(),
-                        createdBy: adminId
+                        createdBy: adminId,
+                        createdByName: '' // placeholder
                     }]
                     : []
             }
@@ -195,6 +205,10 @@ export async function updateCustomer(
     if (!updatedCustomer) throw new Error('Failed to update customer');
 
     const addresses = await addressDB.getAddressesForEntity(conn, updatedCustomer.entityId);
+
+    console.log(addresses);
+
+
     const notes = updatedCustomer.noteThreadId
         ? await noteDB.getMessagesByThread(conn, updatedCustomer.noteThreadId)
         : [];
@@ -203,15 +217,21 @@ export async function updateCustomer(
 }
 
 
-/**
- * Delete customer
- */
-export async function deleteCustomer(conn: Connection, customerId: number): Promise<boolean> {
+export async function toggleCustomerStatus(
+    conn: Connection,
+    customerId: number,
+    userId: number,
+    activeStatus?: 'Y' | 'N'
+): Promise<Customer> {
     const customer = await customerDB.getCustomerById(conn, customerId);
-    if (!customer) {
-        throw new Error('Customer not found');
-    }
+    if (!customer) throw new Error('Customer not found');
 
-    await customerDB.softDeleteCustomer(conn, customerId);
-    return true;
+    // If frontend provides activeStatus, use it; otherwise toggle
+    const newStatus = activeStatus ?? (customer.activeStatus === 'Y' ? 'N' : 'Y');
+
+    await customerDB.updateCustomerStatus(conn, customerId, newStatus, userId);
+
+    const updated = await customerDB.getCustomerById(conn, customerId);
+    if (!updated) throw new Error('Failed to update customer status');
+    return updated;
 }

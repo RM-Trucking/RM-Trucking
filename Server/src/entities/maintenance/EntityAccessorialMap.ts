@@ -27,4 +27,12 @@ export interface UpdateEntityAccessorialMapRequest {
 
 export interface EntityAccessorialMapResponse extends EntityAccessorialMap {
     accessorialName?: string;      // joined from Accessorial table for display
+    notes: {
+        noteMessageId: number;
+        noteThreadId: number;
+        messageText: string;
+        createdAt: Date;
+        createdBy: number;
+        createdByName?: string;
+    }[];
 }

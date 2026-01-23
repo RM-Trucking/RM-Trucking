@@ -491,7 +491,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${error?.error}. ${error?.message}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])

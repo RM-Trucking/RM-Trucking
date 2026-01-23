@@ -164,7 +164,7 @@ export default function CustomerViewStationTable() {
                         }}
                     >
 
-                        {params?.row?.openTime?.substring(0, 5)}
+                        {(params?.row?.openTime === '00:00:00') ? '' : params?.row?.openTime?.substring(0, 5)}
 
                     </Box>
                 );
@@ -186,7 +186,7 @@ export default function CustomerViewStationTable() {
                         }}
                     >
 
-                        {params?.row?.closeTime?.substring(0, 5)}
+                        {(params?.row?.closeTime === '00:00:00') ? '' : params?.row?.closeTime?.substring(0, 5)}
 
                     </Box>
                 );
@@ -296,7 +296,7 @@ export default function CustomerViewStationTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${error?.error}. ${error?.message}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])

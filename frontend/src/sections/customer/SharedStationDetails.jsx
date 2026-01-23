@@ -128,8 +128,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             setValue('zipCode', selectedCustomerStationDetails.addresses?.[0]?.zipCode || '');
             setValue('phoneNumber', selectedCustomerStationDetails.phoneNumber || '');
             setValue('faxNumber', selectedCustomerStationDetails.faxNumber || '');
-            setValue('openTime', selectedCustomerStationDetails.openTime || '');
-            setValue('closeTime', selectedCustomerStationDetails.closeTime || '');
+            setValue('openTime', (selectedCustomerStationDetails.openTime === "00:00:00" ? "" : selectedCustomerStationDetails.openTime) || '');
+            setValue('closeTime', (selectedCustomerStationDetails.closeTime === "00:00:00" ? "" : selectedCustomerStationDetails.closeTime) || '');
             setValue('hours', selectedCustomerStationDetails.hours || '');
             setWarehouseFlag(selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouse', selectedCustomerStationDetails.warehouse === 'Y' ? true : false);

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip,
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -14,17 +14,20 @@ import { setSelectedCurrentRateRow, getRateDashboardData } from '../../redux/sli
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
+import AddRate from './AddRate';
 // ----------------------------------------------------------------
 
 export default function RateTable() {
     const dispatch = useDispatch();
-    const { rateTableData, isLoading } = useSelector((state) => state.ratedata);
+    const { rateTableData, isLoading, currentRateTab } = useSelector((state) => state.ratedata);
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
     };
-    const rateColumns = [
+    const rateTransportationColumns = [
         {
             field: 'rateID',
             headerName: 'Rate ID',
@@ -147,12 +150,95 @@ export default function RateTable() {
             },
         }
     ];
+    const rateWarehouseColumns = [
+        {
+            field: 'rateID',
+            headerName: 'Rate ID',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.rateID}
+                </Box>
+            )
+        },
+        {
+            field: 'warehouse',
+            headerName: 'Warehouse',
+            width: 200,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: "rate",
+            headerName: "Rates",
+            minWidth: 200,
+            minHeight: 200,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                        <Typography variant="normal">Min {params?.row?.min}</Typography>
+                        <Typography variant="normal">Rate/lb {params?.row?.rateLB}</Typography>
+                        <Typography variant="normal">Max {params?.row?.max}</Typography>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 400,
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            alignItems: 'flex-end'
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                            }} />
+                        </Tooltip>
+                        <Tooltip title={'Edit'} arrow>
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedCurrentRateRow(params?.row));
+                                setOpenConfirmDialog(true);
+                            }} />
+                        </Tooltip>
+                        <Tooltip title={'Copy'} arrow>
+                            <Iconify icon="bxs:copy" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedCurrentRateRow(params?.row));
+                            }} />
+                        </Tooltip>
+                        <Tooltip title={'Delete'} arrow>
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        }
+    ];
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
         dispatch(getRateDashboardData());
     }, []);
+
+    const handleCloseConfirm = () => {
+        setOpenConfirmDialog(false);
+    };
     return (
         <>
             <ErrorBoundary
@@ -167,7 +253,7 @@ export default function RateTable() {
 
                     <DataGrid
                         rows={rateTableData}
-                        columns={rateColumns}
+                        columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.id}
                         pagination
@@ -182,6 +268,24 @@ export default function RateTable() {
                         hideFooterSelectedRowCount
                     />
                 </Box>
+                <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleCloseConfirm();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '1545px',
+                            height: 'auto',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <AddRate type={'Edit'} handleCloseConfirm={handleCloseConfirm} />
+                    </DialogContent>
+                </Dialog>
             </ErrorBoundary>
         </>
     );

@@ -197,7 +197,7 @@ export default function StationTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3} type={'Search'} />}
+                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3} type={'Search'} currentTab = {'transportation'} />}
                 <StationTabsTable currentTab={stationCurrentTab} setActionType={setActionType} />
 
                 {/*  dialog for add station tab item can go here */}

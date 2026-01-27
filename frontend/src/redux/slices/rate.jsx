@@ -14,7 +14,7 @@ const initialState = {
     rateTableData: [],
     rateSearchObj: {},
     selectedCurrentRateRow: {},
-    currentRateTab: 'transportation',
+    currentRateTab: 'warehouse',
 };
 
 const slice = createSlice({
@@ -49,7 +49,9 @@ const slice = createSlice({
                     rate5000: '.19 per lb',
                     rate10000: '.17 per lb',
                     max: '1755.00',
-                    expiryDate: "01-30-2026"
+                    expiryDate: "01-30-2026",
+                    warehouse : "RM Warehouse",
+                    rateLB : "0.29 per lb",
                 },
                 {
                     id: 2,
@@ -66,7 +68,9 @@ const slice = createSlice({
                     rate5000: '.19 per lb',
                     rate10000: '.17 per lb',
                     max: '1755.00',
-                    expiryDate: "01-30-2026"
+                    expiryDate: "01-30-2026",
+                    warehouse : "RM Warehouse",
+                    rateLB : "0.29 per lb",
                 },
                 {
                     id: 3,
@@ -83,7 +87,9 @@ const slice = createSlice({
                     rate5000: '.19 per lb',
                     rate10000: '.17 per lb',
                     max: '1755.00',
-                    expiryDate: "01-30-2026"
+                    expiryDate: "01-30-2026",
+                    warehouse : "RM Warehouse",
+                    rateLB : "0.29 per lb",
                 },                
             ];
         },

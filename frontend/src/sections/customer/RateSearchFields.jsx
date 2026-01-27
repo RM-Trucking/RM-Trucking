@@ -6,7 +6,7 @@ import {
     Box,
     MenuItem,
     Stack,
-    Typography,
+    CircularProgress,
     Divider
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
@@ -15,22 +15,28 @@ import { setRateSearchObj } from '../../redux/slices/rate';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
-    type: PropTypes.string
+    type: PropTypes.string,
+    currentTab: PropTypes.string,
+    handleCloseConfirm: PropTypes.func
 };
 
-export default function RateSearchFields({ padding, type }) {
+export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm }) {
     const dispatch = useDispatch();
+    const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const {
         control,
         handleSubmit,
         formState: { errors },
-        getValues
+        getValues,
+        setValue,
     } = useForm({
         defaultValues: {
             origin: '',
             originZipCode: '',
             destination: '',
             destinationZipCode: '',
+            warehouse: '',
+            department: '',
         }
     });
 
@@ -41,16 +47,24 @@ export default function RateSearchFields({ padding, type }) {
     const handleCLear = () => {
         console.log('Clear clicked');
         // reset form fields    
+        setValue('origin', '');
+        setValue('originZipCode', '');
+        setValue('destination', '');
+        setValue('destinationZipCode', '');
+        setValue('warehouse', '');
         dispatch(setRateSearchObj({}));
     };
+    useEffect(() => {
+        console.log(type);
+    }, [type])
 
     return (
         <>
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4} sx={{ p: padding }}>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={5} alignItems={'flex-end'}>
-                        <Controller
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={5} alignItems={'flex-end'} justifyContent={type === 'Search' ? 'flex-end' : '"flex-start"'}>
+                        {currentTab === 'transportation' && <Controller
                             name="origin"
                             control={control}
                             rules={{ required: 'Origin is required' }}
@@ -68,8 +82,8 @@ export default function RateSearchFields({ padding, type }) {
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                 </StyledTextField>
                             )}
-                        />
-                        <Controller
+                        />}
+                        {currentTab === 'transportation' && <Controller
                             name="originZipCode"
                             control={control}
                             rules={{ required: 'Origin Zip Code is required' }}
@@ -84,8 +98,8 @@ export default function RateSearchFields({ padding, type }) {
                                     error={!!errors.originZipCode} helperText={errors.originZipCode?.message}
                                 />
                             )}
-                        />
-                        <Controller
+                        />}
+                        {currentTab === 'transportation' && <Controller
                             name="destination"
                             control={control}
                             rules={{ required: 'Destination is required' }}
@@ -103,8 +117,8 @@ export default function RateSearchFields({ padding, type }) {
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                 </StyledTextField>
                             )}
-                        />
-                        <Controller
+                        />}
+                        {currentTab === 'transportation' && <Controller
                             name="destinationZipCode"
                             control={control}
                             rules={{ required: 'Destination Zip Code is required' }}
@@ -119,7 +133,91 @@ export default function RateSearchFields({ padding, type }) {
                                     error={!!errors.destinationZipCode} helperText={errors.destinationZipCode?.message}
                                 />
                             )}
-                        />
+                        />}
+                        {
+                            currentTab === 'warehouse' && (type === 'Add' || type === 'Edit') && <Controller
+                                name="department"
+                                control={control}
+                                rules={{
+                                    required: 'Department is required',
+                                    maxLength: {
+                                        value: 100,
+                                        message: 'Department cannot exceed 100 characters'
+                                    },
+                                    // Ensures the value isn't just whitespace if manual input is ever enabled
+                                    validate: (val) => val?.trim().length > 0 || 'Selection cannot be empty'
+                                }}
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        value={value || ''}
+                                        select
+                                        label="Department"
+                                        variant="standard"
+                                        fullWidth
+                                        required
+                                        sx={{ width: '25%' }}
+                                        error={!!errors.department}
+                                        helperText={errors.department?.message}
+                                        // 1. Prevent selecting/inputting strings starting with a space
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val.startsWith(' ')) {
+                                                return;
+                                            }
+                                            onChange(val.slice(0, 100)); // 2. Enforce 100 char limit
+                                        }}
+                                        // 3. Physical restriction for the underlying input
+                                        SelectProps={{
+                                            inputProps: { maxLength: 100 }
+                                        }}
+                                    >
+                                        <MenuItem value="Air Export">Air Export</MenuItem>
+                                        <MenuItem value="Ocean Export">Ocean Export</MenuItem>
+                                        <MenuItem value="Air Import">Air Import</MenuItem>
+                                        <MenuItem value="Ocean Import">Ocean Import</MenuItem>
+                                        <MenuItem value="Domestic">Domestic</MenuItem>
+                                    </StyledTextField>
+                                )}
+                            />
+                        }
+                        {
+                            currentTab === 'warehouse' && <Controller
+                                name="warehouse"
+                                control={control}
+                                rules={{
+                                    required: 'Warehouse is required',
+                                    maxLength: {
+                                        value: 250,
+                                        message: 'Warehouse cannot exceed 250 characters'
+                                    },
+                                    validate: (value) => value.trim().length > 0 || 'Warehouse cannot be only spaces'
+                                }}
+                                render={({ field, fieldState: { error } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        variant="standard"
+                                        fullWidth
+                                        sx={{
+                                            width: '25%',
+                                        }}
+                                        // Intercept onChange to prevent leading spaces
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            // prevent only leading spaces while typing
+                                            if (value.startsWith(' ')) {
+                                                field.onChange(value.trimStart());
+                                            } else {
+                                                field.onChange(value);
+                                            }
+                                        }}
+                                        label="Warehouse *"
+                                        error={!!error}
+                                        helperText={error ? error.message : ''}
+                                    />
+                                )}
+                            />
+                        }
                         {type === 'Search' && <Button
                             variant="outlined"
                             size="small"
@@ -165,6 +263,53 @@ export default function RateSearchFields({ padding, type }) {
                             Search
                         </Button>}
                     </Stack>
+                    {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                        <Button
+                            variant="outlined"
+                            onClick={handleCloseConfirm}
+                            size="small"
+                            sx={{
+                                '&.MuiButton-outlined': {
+                                    borderRadius: '4px',
+                                    color: '#000',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#fff',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                    mr: 1,
+                                    borderColor: '#000'
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Box>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                type='submit'
+                                onClick={handleSubmit(onSubmit)}
+                                sx={{
+                                    '&.MuiButton-contained': {
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        boxShadow: 'none',
+                                        fontSize: '14px',
+                                        p: '2px 16px',
+                                        bgcolor: '#A22',
+                                        fontWeight: 'normal',
+                                        ml: 1,
+                                    },
+                                }}
+                            >
+                                {type === 'Add' ? 'Add' : 'Edit'}
+                            </Button>
+                            {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
+                        </Box>
+                    </Stack>}
                 </Stack>
             </Box>
         </>

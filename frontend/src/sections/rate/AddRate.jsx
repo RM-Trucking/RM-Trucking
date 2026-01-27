@@ -23,6 +23,7 @@ AddRate.propTypes = {
 export default function AddRate({ type, handleCloseConfirm }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { currentRateTab } = useSelector(({ ratedata }) => ratedata);
 
 
     // error boundary info
@@ -51,8 +52,7 @@ export default function AddRate({ type, handleCloseConfirm }) {
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb: 1 }} />
                 </>
                 {/* adding rate search fields here */}
-                <RateSearchFields padding={0} type={'Add Rate'} />
-
+                <RateSearchFields padding={0} type={type} currentTab={currentRateTab} handleCloseConfirm={handleCloseConfirm}/>
             </ErrorBoundary>
         </>
     );

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -10,7 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCurrentRateRow, getRateDashboardData } from '../../redux/slices/rate';
+import { setSelectedCurrentRateRow, getRateDashboardData, deleteWarehouseRate, setOperationalMessage } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -19,13 +19,16 @@ import AddRate from './AddRate';
 
 export default function RateTable() {
     const dispatch = useDispatch();
-    const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj } = useSelector((state) => state.ratedata);
+    const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
         pageSize: 10,
     });
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -230,7 +233,9 @@ export default function RateTable() {
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
+                                dispatch(deleteWarehouseRate(params?.row?.rateId));
+                            }} />
                         </Tooltip>
                     </Box>
                 );
@@ -252,6 +257,19 @@ export default function RateTable() {
             });
         }
     }, [pagination]);
+    useEffect(() => {
+        if (error) {
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
+            setSnackbarOpen(true);
+        }
+    }, [error])
+    // operational message on customer
+    useEffect(() => {
+        if (operationalMessage) {
+            setSnackbarMessage(operationalMessage);
+            setSnackbarOpen(true);
+        }
+    }, [operationalMessage])
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -316,9 +334,19 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                        <AddRate type={'Edit'} handleCloseConfirm={handleCloseConfirm} />
+                        <AddRate type={'Edit'} handleCloseConfirm={handleCloseConfirm} selectedCurrentRateRow={selectedCurrentRateRow} />
                     </DialogContent>
                 </Dialog>
+                <Snackbar
+                    open={snackbarOpen}
+                    autoHideDuration={1000} // Adjust the duration as needed
+                    onClose={() => {
+                        setSnackbarOpen(false);
+                        dispatch(setOperationalMessage());
+                    }}
+                    message={snackbarMessage}
+                    anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+                />
             </ErrorBoundary>
         </>
     );

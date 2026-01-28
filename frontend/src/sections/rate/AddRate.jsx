@@ -17,10 +17,11 @@ import Iconify from '../../components/iconify';
 
 AddRate.propTypes = {
     type: PropTypes.string,
-    handleCloseConfirm: PropTypes.func
+    handleCloseConfirm: PropTypes.func,
+    selectedCurrentRateRow: PropTypes.object,
 };
 
-export default function AddRate({ type, handleCloseConfirm }) {
+export default function AddRate({ type, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { currentRateTab } = useSelector(({ ratedata }) => ratedata);
@@ -52,7 +53,7 @@ export default function AddRate({ type, handleCloseConfirm }) {
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb: 1 }} />
                 </>
                 {/* adding rate search fields here */}
-                <RateSearchFields padding={0} type={type} currentTab={currentRateTab} handleCloseConfirm={handleCloseConfirm}/>
+                <RateSearchFields padding={0} type={type} currentTab={currentRateTab} handleCloseConfirm={handleCloseConfirm} selectedCurrentRateRow={selectedCurrentRateRow}/>
             </ErrorBoundary>
         </>
     );

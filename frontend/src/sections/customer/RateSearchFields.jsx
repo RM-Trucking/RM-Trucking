@@ -11,17 +11,21 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setRateSearchObj, getRateDashboardData } from '../../redux/slices/rate';
+import {
+    setRateSearchObj, getRateDashboardData, postWarehouseRate,
+    putWarehouseRate
+} from '../../redux/slices/rate';
 import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
     type: PropTypes.string,
     currentTab: PropTypes.string,
-    handleCloseConfirm: PropTypes.func
+    handleCloseConfirm: PropTypes.func,
+    selectedCurrentRateRow : PropTypes.object,
 };
 
-export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm }) {
+export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const {
@@ -41,11 +45,23 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     });
 
+    useEffect(() => {
+        if (type === 'Edit' && selectedCurrentRateRow) {
+            console.log('Selected Row:', selectedCurrentRateRow);
+        }
+    },[selectedCurrentRateRow])
+
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         dispatch(setRateSearchObj(data));
-        if (currentTab === 'warehouse') {
+        if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
+        }
+        if (type === 'Add') {
+
+        }
+        if (type === 'Edit') {
+
         }
     };
     const handleCLear = () => {
@@ -58,9 +74,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         setValue('warehouse', '');
         dispatch(setRateSearchObj({}));
     };
-    useEffect(() => {
-        console.log(type);
-    }, [type])
 
     return (
         <>

@@ -46,17 +46,20 @@ const slice = createSlice({
         postRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
+            state.operationalMessage = "Rate added successfully";
             // update table data by adding new record at the start
             state.pagination.totalRecords = action.payload.total + 1;
         },
         putRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
+            state.operationalMessage = "Rate updated successfully";
             // update table data by updating record
         },
         deleteRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
+            state.operationalMessage = "Rate deleted successfully";
         },
         getRateChargeDataSuccess(state, action) {
             state.isLoading = false;
@@ -71,11 +74,15 @@ const slice = createSlice({
         setSelectedCurrentRateRow(state, action) {
             state.selectedCurrentRateRow = action.payload;
         },
+        setOperationalMessage(state) {
+            state.operationalMessage = '';
+        },
 
     },
 });
 
 export const {
+    setOperationalMessage,
     setRateSearchObj,
     setCurrentRateTab,
     setSelectedCurrentRateRow,
@@ -108,7 +115,7 @@ export function postWarehouseRate(obj) {
         }
     };
 }
-export function putWarehouseRate(id,obj) {
+export function putWarehouseRate(id, obj) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {

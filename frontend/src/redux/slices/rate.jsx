@@ -16,6 +16,7 @@ const initialState = {
     selectedCurrentRateRow: {},
     currentRateTab: 'warehouse',
     rateFieldChargeData: [],
+    rateFieldChargeDataWarehouse: [],
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
     operationalMessage: '',
 };
@@ -33,6 +34,7 @@ const slice = createSlice({
             state.isLoading = true;
             state.rateSuccess = false;
             state.error = null;
+            state.operationalMessage = '';
         },
         getRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
@@ -41,13 +43,13 @@ const slice = createSlice({
             state.pagination.page = action.payload.page;
             state.pagination.pageSize = action.payload.pageSize;
             state.pagination.totalRecords = action.payload.total;
-
         },
         postRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
             state.operationalMessage = "Rate added successfully";
             // update table data by adding new record at the start
+            state.rateTableData.unshift(action.payload.data);
             state.pagination.totalRecords = action.payload.total + 1;
         },
         putRateDashboarddataSuccess(state, action) {
@@ -55,6 +57,10 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.operationalMessage = "Rate updated successfully";
             // update table data by updating record
+            const index = state.rateTableData.findIndex((row) => row.rateId === action.payload?.data?.rateId);
+            if (index === 0 || index > 0) {
+                state.rateTableData.splice(index, 1, action.payload.data);
+            }
         },
         deleteRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
@@ -77,11 +83,14 @@ const slice = createSlice({
         setOperationalMessage(state) {
             state.operationalMessage = '';
         },
-
+        setWarehouseRatesFieldChargeData(state, action) {
+            state.rateFieldChargeDataWarehouse = action.payload;
+        },
     },
 });
 
 export const {
+    setWarehouseRatesFieldChargeData,
     setOperationalMessage,
     setRateSearchObj,
     setCurrentRateTab,
@@ -131,7 +140,9 @@ export function deleteWarehouseRate(id) {
         dispatch(slice.actions.startLoading());
         try {
             const response = await axios.delete(`maintenance/customer-rate/warehouse-rate/${id}`);
-            dispatch(slice.actions.deleteRateDashboarddataSuccess(response.data));
+            dispatch(slice.actions.deleteRateDashboarddataSuccess({
+                id, message: response.data
+            }));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

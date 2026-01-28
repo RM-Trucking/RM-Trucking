@@ -15,19 +15,21 @@ import {
     setRateSearchObj, getRateDashboardData, postWarehouseRate,
     putWarehouseRate
 } from '../../redux/slices/rate';
-import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
+import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
     type: PropTypes.string,
     currentTab: PropTypes.string,
     handleCloseConfirm: PropTypes.func,
-    selectedCurrentRateRow : PropTypes.object,
+    selectedCurrentRateRow: PropTypes.object,
 };
 
 export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    const operationalMessage = useSelector((state) => state?.ratedata?.operationalMessage);
+    const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
     const {
         control,
         handleSubmit,
@@ -46,10 +48,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     });
 
     useEffect(() => {
-        if (type === 'Edit' && selectedCurrentRateRow) {
-            console.log('Selected Row:', selectedCurrentRateRow);
+        if (type === 'Edit' && selectedCurrentRateRow && currentTab === 'warehouse') {
+            setValue('warehouse', selectedCurrentRateRow.warehouse || '');
+            setValue('department', selectedCurrentRateRow.department || '');
         }
-    },[selectedCurrentRateRow])
+    }, [selectedCurrentRateRow])
+    useEffect(() => {
+            if (operationalMessage && handleCloseConfirm) {
+                handleCloseConfirm();
+            }
+        }, [operationalMessage]);
 
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
@@ -57,11 +65,25 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
-        if (type === 'Add') {
-
+        if (type === 'Add' && currentTab === 'warehouse') {
+            const obj = {
+                "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
+                "ratePerPound": parseFloat(rateFieldChargeDataWarehouse[1]?.charge),
+                "maxRate": parseFloat(rateFieldChargeDataWarehouse[2]?.charge),
+                "department": data.department,
+                "warehouse": data.warehouse
+            };
+            dispatch(postWarehouseRate(obj));
         }
-        if (type === 'Edit') {
-
+        if (type === 'Edit' && currentTab === 'warehouse') {
+            const obj = {
+                "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
+                "ratePerPound": parseFloat(rateFieldChargeDataWarehouse[1]?.charge),
+                "maxRate": parseFloat(rateFieldChargeDataWarehouse[2]?.charge),
+                "department": data.department,
+                "warehouse": data.warehouse
+            };
+            dispatch(putWarehouseRate(selectedCurrentRateRow?.rateId, obj));
         }
     };
     const handleCLear = () => {
@@ -283,7 +305,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         </Button>}
                     </Stack>
                     <Box sx={{ mt: 2 }}>
-                        {(type === 'Add' || type === 'Edit') && <RateFieldAndChargeTable />}
+                        {((type === 'Add' || type === 'Edit') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse />}
                     </Box>
                     {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                         <Button

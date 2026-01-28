@@ -269,6 +269,9 @@ export default function RateTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
+        if (operationalMessage === 'Rate deleted successfully') {
+            dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        }
     }, [operationalMessage])
 
     const handleCloseConfirm = () => {

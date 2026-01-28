@@ -48,7 +48,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     });
 
     useEffect(() => {
-        if (type === 'Edit' && selectedCurrentRateRow && currentTab === 'warehouse') {
+        if ((type === 'Edit' || type === 'Copy') && selectedCurrentRateRow && currentTab === 'warehouse') {
             setValue('warehouse', selectedCurrentRateRow.warehouse || '');
             setValue('department', selectedCurrentRateRow.department || '');
         }
@@ -56,6 +56,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
             handleCloseConfirm();
+            dispatch(setRateSearchObj({}));
         }
     }, [operationalMessage]);
 
@@ -64,7 +65,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
-        if (type === 'Add' && currentTab === 'warehouse') {
+        if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
             const obj = {
                 "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
                 "ratePerPound": parseFloat(rateFieldChargeDataWarehouse[1]?.charge),
@@ -175,7 +176,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             )}
                         />}
                         {
-                            currentTab === 'warehouse' && (type === 'Add' || type === 'Edit') && <Controller
+                            currentTab === 'warehouse' && (type === 'Add' || type === 'Edit' || type === 'Copy') && <Controller
                                 name="department"
                                 control={control}
                                 rules={{
@@ -306,9 +307,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         </Button>}
                     </Stack>
                     <Box sx={{ mt: 2 }}>
-                        {((type === 'Add' || type === 'Edit') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse />}
+                        {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse />}
                     </Box>
-                    {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                    {(type === 'Add' || type === 'Edit' || type === 'Copy') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                         <Button
                             variant="outlined"
                             onClick={handleCloseConfirm}
@@ -350,7 +351,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     },
                                 }}
                             >
-                                {type === 'Add' ? 'Add' : 'Edit'}
+                                {(type === 'Add' || type === 'Copy') ? 'Add' : 'Edit'}
                             </Button>
                             {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                         </Box>

@@ -21,6 +21,7 @@ export default function RateTable() {
     const dispatch = useDispatch();
     const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [actionType, setActionType] = useState('');
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -197,16 +198,16 @@ export default function RateTable() {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 1, mb: 1, }}>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{width : "70px"}}>Min</Typography>
-                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.minRate}</Typography>
+                            <Typography variant="normal" sx={{ width: "70px" }}>Min</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.minRate}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{width : "70px"}}>Rate/lb</Typography>
-                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.ratePerPound}</Typography>
+                            <Typography variant="normal" sx={{ width: "70px" }}>Rate/lb</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{width : "70px"}}>Max</Typography>
-                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.maxRate}</Typography>
+                            <Typography variant="normal" sx={{ width: "70px" }}>Max</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.maxRate}</Typography>
                         </Stack>
                     </Stack>
                 );
@@ -232,13 +233,16 @@ export default function RateTable() {
                     >
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                                setActionType("Edit");
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 setOpenConfirmDialog(true);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Copy'} arrow>
                             <Iconify icon="bxs:copy" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                                setActionType("Copy");
                                 dispatch(setSelectedCurrentRateRow(params?.row));
+                                setOpenConfirmDialog(true);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
@@ -285,6 +289,7 @@ export default function RateTable() {
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
+        setActionType("");
     };
     return (
         <>
@@ -346,7 +351,7 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                        <AddRate type={'Edit'} handleCloseConfirm={handleCloseConfirm} selectedCurrentRateRow={selectedCurrentRateRow} />
+                        <AddRate type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCurrentRateRow={selectedCurrentRateRow} />
                     </DialogContent>
                 </Dialog>
                 <Snackbar

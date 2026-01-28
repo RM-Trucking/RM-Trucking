@@ -26,7 +26,7 @@ const slice = createSlice({
     reducers: {
         hasError(state, action) {
             state.isLoading = false;
-            state.error = 'error';
+            state.error = action.payload || action.payload.error;
         },
         // START LOADING
         startLoading(state) {
@@ -42,6 +42,21 @@ const slice = createSlice({
             state.pagination.pageSize = action.payload.pageSize;
             state.pagination.totalRecords = action.payload.total;
 
+        },
+        postRateDashboarddataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            // update table data by adding new record at the start
+            state.pagination.totalRecords = action.payload.total + 1;
+        },
+        putRateDashboarddataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            // update table data by updating record
+        },
+        deleteRateDashboarddataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
         },
         getRateChargeDataSuccess(state, action) {
             state.isLoading = false;
@@ -77,6 +92,39 @@ export function getRateDashboardData({ pageNo, pageSize, searchStr }) {
         try {
             const response = await axios.get(`maintenance/customer-rate/warehouse-rate?${searchStr ? `search=${searchStr}&` : ''}&page=${pageNo}&pageSize=${pageSize}`);
             dispatch(slice.actions.getRateDashboarddataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function postWarehouseRate(obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/customer-rate/warehouse-rate`, obj);
+            dispatch(slice.actions.postRateDashboarddataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function putWarehouseRate(id,obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/customer-rate/warehouse-rate/${id}`, obj);
+            dispatch(slice.actions.putRateDashboarddataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function deleteWarehouseRate(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/customer-rate/warehouse-rate/${id}`);
+            dispatch(slice.actions.deleteRateDashboarddataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

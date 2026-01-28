@@ -16,6 +16,8 @@ const initialState = {
     selectedCurrentRateRow: {},
     currentRateTab: 'warehouse',
     rateFieldChargeData: [],
+    pagination: { page: 1, pageSize: 10, totalRecords: 0 },
+    operationalMessage: '',
 };
 
 const slice = createSlice({
@@ -34,65 +36,12 @@ const slice = createSlice({
         },
         getRateDashboarddataSuccess(state, action) {
             state.isLoading = false;
-            state.rateTableData = [
-                {
-                    id: 1,
-                    rateID: "RID10001",
-                    origin: "ORD",
-                    originZipCode: "10001, 10002",
-                    destination: "Los Angeles",
-                    destinationZipCode: "90001, 90002",
-                    status: "Active",
-                    min: '140.00',
-                    rate100: '.29 per lb',
-                    rate1000: '.24 per lb',
-                    rate3000: '.21 per lb',
-                    rate5000: '.19 per lb',
-                    rate10000: '.17 per lb',
-                    max: '1755.00',
-                    expiryDate: "01-30-2026",
-                    warehouse: "RM Warehouse",
-                    rateLB: "0.29 per lb",
-                },
-                {
-                    id: 2,
-                    rateID: "RID10003",
-                    origin: "ORD",
-                    originZipCode: "10001, 10002",
-                    destination: "Los Angeles",
-                    destinationZipCode: "90001, 90002",
-                    status: "Active",
-                    min: '140.00',
-                    rate100: '.29 per lb',
-                    rate1000: '.24 per lb',
-                    rate3000: '.21 per lb',
-                    rate5000: '.19 per lb',
-                    rate10000: '.17 per lb',
-                    max: '1755.00',
-                    expiryDate: "01-30-2026",
-                    warehouse: "RM Warehouse",
-                    rateLB: "0.29 per lb",
-                },
-                {
-                    id: 3,
-                    rateID: "RID10004",
-                    origin: "ORD",
-                    originZipCode: "10001, 10002",
-                    destination: "Los Angeles",
-                    destinationZipCode: "90001, 90002",
-                    status: "Active",
-                    min: '140.00',
-                    rate100: '.29 per lb',
-                    rate1000: '.24 per lb',
-                    rate3000: '.21 per lb',
-                    rate5000: '.19 per lb',
-                    rate10000: '.17 per lb',
-                    max: '1755.00',
-                    expiryDate: "01-30-2026",
-                    warehouse: "RM Warehouse",
-                    rateLB: "0.29 per lb",
-                },
-            ];
+            state.rateSuccess = true;
+            state.rateTableData = action.payload.rates;
+            state.pagination.page = action.payload.page;
+            state.pagination.pageSize = action.payload.pageSize;
+            state.pagination.totalRecords = action.payload.total;
+
         },
         getRateChargeDataSuccess(state, action) {
             state.isLoading = false;
@@ -122,12 +71,12 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
-export function getRateDashboardData() {
+export function getRateDashboardData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            //   const response = await axios.get('/ratedashboarddata');
-            dispatch(slice.actions.getRateDashboarddataSuccess([]));
+            const response = await axios.get(`maintenance/customer-rate/warehouse-rate?${searchStr ? `search=${searchStr}&` : ''}&page=${pageNo}&pageSize=${pageSize}`);
+            dispatch(slice.actions.getRateDashboarddataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

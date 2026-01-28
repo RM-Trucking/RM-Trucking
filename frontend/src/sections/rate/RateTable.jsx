@@ -19,8 +19,13 @@ import AddRate from './AddRate';
 
 export default function RateTable() {
     const dispatch = useDispatch();
-    const { rateTableData, isLoading, currentRateTab } = useSelector((state) => state.ratedata);
+    const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    // pagination model
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
 
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -152,14 +157,14 @@ export default function RateTable() {
     ];
     const rateWarehouseColumns = [
         {
-            field: 'rateID',
+            field: 'rateId',
             headerName: 'Rate ID',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateID}
+                    {params?.row?.rateId}
                 </Box>
             )
         },
@@ -171,7 +176,14 @@ export default function RateTable() {
             cellClassName: 'center-status-cell',
         },
         {
-            field: "rate",
+            field: 'department',
+            headerName: 'Department',
+            width: 200,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: "minRate",
             headerName: "Rates",
             minWidth: 200,
             minHeight: 200,
@@ -181,9 +193,9 @@ export default function RateTable() {
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Typography variant="normal">Min {params?.row?.min}</Typography>
-                        <Typography variant="normal">Rate/lb {params?.row?.rateLB}</Typography>
-                        <Typography variant="normal">Max {params?.row?.max}</Typography>
+                        <Typography variant="normal">Min {params?.row?.minRate}</Typography>
+                        <Typography variant="normal">Rate/lb {params?.row?.ratePerPound}</Typography>
+                        <Typography variant="normal">Max {params?.row?.maxRate}</Typography>
                     </Stack>
                 );
                 return element;
@@ -230,8 +242,16 @@ export default function RateTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
-        dispatch(getRateDashboardData());
+        dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
     }, []);
+    useEffect(() => {
+        if (pagination) {
+            setPaginationModel({
+                page: pagination.page ? parseInt(pagination.page, 10) - 1 : 0,
+                pageSize: pagination.pageSize || 10,
+            });
+        }
+    }, [pagination]);
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -252,17 +272,33 @@ export default function RateTable() {
                         rows={rateTableData}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
                         loading={isLoading}
-                        getRowId={(row) => row?.id}
+                        getRowId={(row) => row?.rateId}
                         pagination
                         slots={{
                             noRowsOverlay: CustomNoRowsOverlay,
                         }}
                         getRowHeight={() => 'auto'}
-                        onRowClick={(params, event) => {
-                            console.log('Row clicked:', params);
-                            // dispatch(setStationRateData({ row: params.row, checked: event.target.checked }));
-                        }}
                         hideFooterSelectedRowCount
+                        paginationMode="server"
+                        paginationModel={paginationModel}
+                        onPaginationModelChange={(newModel) => {
+                            setPaginationModel(newModel);
+                            dispatch(getRateDashboardData({
+                                pageNo: newModel.page + 1,
+                                pageSize: newModel.pageSize,
+                                searchStr: rateSearchObj?.warehouse
+                            }));
+                        }}
+                        onPageChange={(newPage) => {
+                            dispatch(getRateDashboardData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: rateSearchObj?.warehouse }));
+                        }}
+                        onPageSizeChange={(newPageSize) => {
+                            dispatch(getRateDashboardData({ pageNo: 1, pageSize: newPageSize, searchStr: rateSearchObj?.warehouse }));
+                        }}
+                        pageSizeOptions={[5, 10, 50, 100]}
+                        rowCount={parseInt(pagination?.totalRecords || '0', 10)}
+                        autoHeight
+
                     />
                 </Box>
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

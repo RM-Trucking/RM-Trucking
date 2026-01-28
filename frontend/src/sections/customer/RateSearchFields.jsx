@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setRateSearchObj } from '../../redux/slices/rate';
+import { setRateSearchObj, getRateDashboardData } from '../../redux/slices/rate';
 import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 
 RateSearchFields.propTypes = {
@@ -44,6 +44,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         dispatch(setRateSearchObj(data));
+        if (currentTab === 'warehouse') {
+            dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
+        }
     };
     const handleCLear = () => {
         console.log('Clear clicked');
@@ -192,10 +195,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         value: 100,
                                         message: 'Warehouse cannot exceed 100 characters'
                                     },
-                                    validate: (value) => value.trim().length > 0 || 'Warehouse cannot be only spaces'
+                                    validate: (value) => (value && value.trim().length > 0) || 'Warehouse cannot be only spaces'
                                 }}
-                                render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField
+                                render={({ field, fieldState: { error } }) => {
+                                    const hasValue = field.value && field.value.trim().length > 0;
+                                    const shouldShowError = !!error && hasValue;
+                                    return (<StyledTextField
                                         {...field}
                                         variant="standard"
                                         fullWidth
@@ -213,10 +218,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             }
                                         }}
                                         label="Warehouse *"
-                                        error={!!error}
-                                        helperText={error ? error.message : ''}
-                                    />
-                                )}
+                                        error={shouldShowError}
+                                        helperText={shouldShowError ? error.message : ''}
+                                    />)
+                                }}
                             />
                         }
                         {type === 'Search' && <Button

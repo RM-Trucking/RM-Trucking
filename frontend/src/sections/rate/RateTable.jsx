@@ -195,10 +195,19 @@ export default function RateTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
-                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Typography variant="normal">Min {params?.row?.minRate}</Typography>
-                        <Typography variant="normal">Rate/lb {params?.row?.ratePerPound}</Typography>
-                        <Typography variant="normal">Max {params?.row?.maxRate}</Typography>
+                    <Stack flexDirection={'column'} sx={{ mt: 1, mb: 1, }}>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{width : "70px"}}>Min</Typography>
+                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.minRate}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{width : "70px"}}>Rate/lb</Typography>
+                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.ratePerPound}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{width : "70px"}}>Max</Typography>
+                            <Typography variant="normal" sx={{width : "auto"}}>{params?.row?.maxRate}</Typography>
+                        </Stack>
                     </Stack>
                 );
                 return element;

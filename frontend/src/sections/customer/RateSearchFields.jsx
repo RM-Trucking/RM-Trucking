@@ -54,13 +54,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     }, [selectedCurrentRateRow])
     useEffect(() => {
-            if (operationalMessage && handleCloseConfirm) {
-                handleCloseConfirm();
-            }
-        }, [operationalMessage]);
+        if (operationalMessage && handleCloseConfirm) {
+            handleCloseConfirm();
+        }
+    }, [operationalMessage]);
 
     const onSubmit = (data) => {
-        console.log('Form Submitted:', data);
         dispatch(setRateSearchObj(data));
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
@@ -87,7 +86,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     };
     const handleCLear = () => {
-        console.log('Clear clicked');
         // reset form fields    
         setValue('origin', '');
         setValue('originZipCode', '');
@@ -95,6 +93,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         setValue('destinationZipCode', '');
         setValue('warehouse', '');
         dispatch(setRateSearchObj({}));
+        if (type === 'Search' && currentTab === 'warehouse') {
+            dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
+        }
     };
 
     return (

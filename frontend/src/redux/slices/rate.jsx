@@ -15,6 +15,7 @@ const initialState = {
     rateSearchObj: {},
     selectedCurrentRateRow: {},
     currentRateTab: 'warehouse',
+    rateFieldChargeData: [],
 };
 
 const slice = createSlice({
@@ -50,8 +51,8 @@ const slice = createSlice({
                     rate10000: '.17 per lb',
                     max: '1755.00',
                     expiryDate: "01-30-2026",
-                    warehouse : "RM Warehouse",
-                    rateLB : "0.29 per lb",
+                    warehouse: "RM Warehouse",
+                    rateLB: "0.29 per lb",
                 },
                 {
                     id: 2,
@@ -69,8 +70,8 @@ const slice = createSlice({
                     rate10000: '.17 per lb',
                     max: '1755.00',
                     expiryDate: "01-30-2026",
-                    warehouse : "RM Warehouse",
-                    rateLB : "0.29 per lb",
+                    warehouse: "RM Warehouse",
+                    rateLB: "0.29 per lb",
                 },
                 {
                     id: 3,
@@ -88,10 +89,14 @@ const slice = createSlice({
                     rate10000: '.17 per lb',
                     max: '1755.00',
                     expiryDate: "01-30-2026",
-                    warehouse : "RM Warehouse",
-                    rateLB : "0.29 per lb",
-                },                
+                    warehouse: "RM Warehouse",
+                    rateLB: "0.29 per lb",
+                },
             ];
+        },
+        getRateChargeDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateFieldChargeData = [];
         },
         setRateSearchObj(state, action) {
             state.rateSearchObj = action.payload;
@@ -123,6 +128,17 @@ export function getRateDashboardData() {
         try {
             //   const response = await axios.get('/ratedashboarddata');
             dispatch(slice.actions.getRateDashboarddataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function getRateChargeData() {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            //   const response = await axios.get('/ratechargedata');
+            dispatch(slice.actions.getRateChargeDataSuccess([]));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

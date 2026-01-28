@@ -12,6 +12,7 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setRateSearchObj } from '../../redux/slices/rate';
+import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
@@ -188,8 +189,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 rules={{
                                     required: 'Warehouse is required',
                                     maxLength: {
-                                        value: 250,
-                                        message: 'Warehouse cannot exceed 250 characters'
+                                        value: 100,
+                                        message: 'Warehouse cannot exceed 100 characters'
                                     },
                                     validate: (value) => value.trim().length > 0 || 'Warehouse cannot be only spaces'
                                 }}
@@ -263,6 +264,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             Search
                         </Button>}
                     </Stack>
+                    <Box sx={{ mt: 2 }}>
+                        {(type === 'Add' || type === 'Edit') && <RateFieldAndChargeTable />}
+                    </Box>
                     {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                         <Button
                             variant="outlined"

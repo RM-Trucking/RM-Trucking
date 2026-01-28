@@ -236,6 +236,8 @@ export default function CustomerViewStationTable() {
             headerName: "Action",
             minWidth: 300,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box

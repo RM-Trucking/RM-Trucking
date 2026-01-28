@@ -151,6 +151,8 @@ export default function CustomerHomePageTable() {
         headerName: "Action",
         minWidth: 300,
         flex: 1,
+        sortable: false,
+        filterable: false,
         renderCell: (params) => {
             const handleSwitchChange = async (event) => {
                 try {
@@ -209,7 +211,7 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}` }`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])

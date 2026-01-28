@@ -192,8 +192,10 @@ export default function RateTable() {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 400,
+            width: 300,
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -204,11 +206,6 @@ export default function RateTable() {
                             alignItems: 'flex-end'
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedCurrentRateRow(params.row));
-                            }} />
-                        </Tooltip>
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params?.row));

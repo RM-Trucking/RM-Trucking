@@ -114,6 +114,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             headerName: "Action",
             minWidth: 300,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -225,6 +227,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             headerName: "Action",
             minWidth: 300,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -333,6 +337,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             minWidth: 110,
             flex: 1,
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -417,6 +423,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             headerName: "Action",
             minWidth: 300,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box

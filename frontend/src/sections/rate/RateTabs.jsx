@@ -147,7 +147,7 @@ export default function RateTabs({ }) {
                     }}
                 >
                     <DialogContent>
-                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm} />                  
+                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm}/>                  
                     </DialogContent>
                 </Dialog>
 

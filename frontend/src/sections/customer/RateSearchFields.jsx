@@ -13,7 +13,7 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setRateSearchObj, getRateDashboardData, postWarehouseRate,
-    putWarehouseRate
+    putWarehouseRate, setSelectedCurrentRateRow
 } from '../../redux/slices/rate';
 import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
 
@@ -56,6 +56,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
             handleCloseConfirm();
+            dispatch(setSelectedCurrentRateRow({}));
             dispatch(setRateSearchObj({}));
         }
     }, [operationalMessage]);
@@ -255,8 +256,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             }
                                         }}
                                         label="Warehouse *"
-                                        error={shouldShowError}
-                                        helperText={shouldShowError ? error.message : ''}
+                                        error={(type !== 'Search') ? !!error : shouldShowError}
+                                        helperText={(type !== 'Search') ? error?.message : (shouldShowError ? error?.message : '')}
                                     />)
                                 }}
                             />
@@ -307,7 +308,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         </Button>}
                     </Stack>
                     <Box sx={{ mt: 2 }}>
-                        {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse />}
+                        {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse type={type} />}
                     </Box>
                     {(type === 'Add' || type === 'Edit' || type === 'Copy') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                         <Button

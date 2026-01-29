@@ -10,7 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCurrentRateRow, getRateChargeData } from '../../redux/slices/rate';
+import { getRateChargeData } from '../../redux/slices/rate';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
 import { set } from 'react-hook-form';

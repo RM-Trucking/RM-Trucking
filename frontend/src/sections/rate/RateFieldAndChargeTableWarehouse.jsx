@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import {
     Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent
@@ -14,13 +15,16 @@ import { setWarehouseRatesFieldChargeData, getRateChargeData } from '../../redux
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------
+RateFieldAndChargeTableWarehouse.propTypes = {
+type: PropTypes.string,
+};
 
-export default function RateFieldAndChargeTableWarehouse() {
+export default function RateFieldAndChargeTableWarehouse({ type }) {
     const dispatch = useDispatch();
     const initialArrayValue = [
-        { id: 1, rateField: 'Min Charge', charge: '', readonly: true },
-        { id: 2, rateField: 'Rate/lb', charge: '', readonly: true },
-        { id: 3, rateField: 'Max Charge', charge: '', readonly: true },
+        { id: 1, rateField: 'Min Charge', charge: '', readonly: false },
+        { id: 2, rateField: 'Rate/lb', charge: '', readonly: false },
+        { id: 3, rateField: 'Max Charge', charge: '', readonly: false },
     ];
     const { isLoading, selectedCurrentRateRow, } = useSelector((state) => state.ratedata);
     const [tableData, setTableData] = useState(initialArrayValue);
@@ -117,10 +121,10 @@ export default function RateFieldAndChargeTableWarehouse() {
                         }}
                     >
 
-                        {params.row.readonly && <Tooltip title={'Edit'} arrow>
+                        {params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => onEdit()} />
                         </Tooltip>}
-                        {!params.row.readonly && <Tooltip title={'Save'} arrow>
+                        {!params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Save'} arrow>
                             <Iconify icon="ic:baseline-save" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => onSave()} />
                         </Tooltip>}
 
@@ -139,7 +143,7 @@ export default function RateFieldAndChargeTableWarehouse() {
     }, []);
 
     useEffect(() => {
-        if (selectedCurrentRateRow) {
+        if (Object.keys(selectedCurrentRateRow).length !== 0) {
             // Update table data based on selectedCurrentRateRow
             const charges = [
                 selectedCurrentRateRow.minRate,
@@ -148,7 +152,7 @@ export default function RateFieldAndChargeTableWarehouse() {
             ];
 
             const updatedData = tableData.map((item, index) =>
-                index < 3 ? { ...item, charge: charges[index] } : item
+                index < 3 ? { ...item, charge: charges[index], readonly: true } : item
             );
 
             setTableData(updatedData);

@@ -189,11 +189,8 @@ export default function RateTable() {
         {
             field: "minRate",
             headerName: "Rates",
-            minWidth: 200,
+            minWidth: 300,
             minHeight: 200,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 1, mb: 1, }}>

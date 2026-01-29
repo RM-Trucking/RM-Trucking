@@ -290,6 +290,7 @@ export default function RateTable() {
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         setActionType("");
+        dispatch(setSelectedCurrentRateRow({}));
     };
     return (
         <>

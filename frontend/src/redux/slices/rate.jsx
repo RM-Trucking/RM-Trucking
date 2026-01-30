@@ -50,7 +50,7 @@ const slice = createSlice({
             state.operationalMessage = "Rate added successfully";
             // update table data by adding new record at the start
             state.rateTableData.unshift(action.payload.data);
-            state.pagination.totalRecords = action.payload.total + 1;
+            state.pagination.totalRecords = action.payload.total + 1 || state.pagination.totalRecords + 1;
         },
         putRateDashboarddataSuccess(state, action) {
             state.isLoading = false;

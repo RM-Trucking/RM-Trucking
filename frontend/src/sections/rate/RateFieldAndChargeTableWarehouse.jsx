@@ -76,7 +76,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
                         // - An optional decimal point
                         // - Up to 2 digits after the decimal
                         // - NO spaces or characters allowed
-                        const regex = /^\d{0,10}(\.\d{0,2})?$/;
+                        const regex = /^\d{0,8}(\.\d{0,2})?$/;
 
                         if (regex.test(val)) {
                             // update your table data here

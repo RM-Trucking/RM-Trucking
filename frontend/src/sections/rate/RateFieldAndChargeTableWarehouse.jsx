@@ -72,7 +72,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
                         const val = e.target.value;
 
                         // 1. Regex to allow:
-                        // - Up to 10 digits before the decimal
+                        // - Up to 8 digits before the decimal
                         // - An optional decimal point
                         // - Up to 2 digits after the decimal
                         // - NO spaces or characters allowed

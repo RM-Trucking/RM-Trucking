@@ -4,6 +4,7 @@ import { Box, Stack, InputAdornment, TextField, IconButton } from '@mui/material
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setCustomerSearchStr, setStationSearchStr, getCustomerData, getCustomerStationData } from '../../redux/slices/customer';
+import { getZoneData, setZoneSearchStr } from '../../redux/slices/zone';
 // ----------------------------------------------------------------------
 
 
@@ -19,14 +20,20 @@ export default function SharedSearchField({ page }) {
     const pagination = useSelector((state) => state?.customerdata?.pagination);
     const customerSearchStr = useSelector((state) => state?.customerdata?.customerSearchStr);
     const stationSearchStr = useSelector((state) => state?.customerdata?.stationSearchStr);
+    const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
+    const zonePagination = useSelector((state) => state?.zonedata?.pagination);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
 
     const handleSearch = (event) => {
         setSearchValue(event.target.value);
+        // setting search str in redux store
         if (page === 'customers') dispatch(setCustomerSearchStr(event?.target?.value));
         if (page === 'station') dispatch(setStationSearchStr(event?.target?.value));
+        if (page === 'zone') dispatch(setZoneSearchStr(event?.target?.value));
+        // calling api on each change of search input
         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value })); }
         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value, customerId: selectedCustomerRowDetails.customerId })); }
+        if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
     }
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
@@ -35,6 +42,7 @@ export default function SharedSearchField({ page }) {
             // Call your API function here
             if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue })); }
             if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
+            if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
         }
     };
     useEffect(() => {
@@ -44,7 +52,10 @@ export default function SharedSearchField({ page }) {
         if (page === 'station') {
             setSearchValue(stationSearchStr);
         }
-    }, [customerSearchStr, stationSearchStr]);
+        if (page === 'zone') {
+            setSearchValue(zoneSearchStr);
+        }
+    }, [customerSearchStr, stationSearchStr, zoneSearchStr]);
 
     return (
         <>
@@ -63,6 +74,7 @@ export default function SharedSearchField({ page }) {
                                     <IconButton edge="end" onClick={() => {
                                         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
+                                        if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
                                     }}>
                                         <Iconify icon="material-symbols:search" sx={{ mr: 1 }} />
                                     </IconButton>

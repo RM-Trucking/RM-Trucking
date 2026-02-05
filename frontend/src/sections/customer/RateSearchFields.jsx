@@ -16,6 +16,7 @@ import {
     putWarehouseRate, setSelectedCurrentRateRow
 } from '../../redux/slices/rate';
 import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
+import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
@@ -44,6 +45,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             destinationZipCode: '',
             warehouse: '',
             department: '',
+            notes: '',
         }
     });
 
@@ -62,6 +64,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     }, [operationalMessage]);
 
     const onSubmit = (data) => {
+        console.log(data);
         dispatch(setRateSearchObj(data));
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
@@ -128,19 +131,50 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         {currentTab === 'transportation' && <Controller
                             name="originZipCode"
                             control={control}
-                            rules={{ required: 'Origin Zip Code is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Origin Zip Code is required',
+                                validate: (value) => {
+                                    if (!value || value.trim().length === 0) return 'Origin Zip Code cannot be empty';
+                                    const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                                    const zipOrRangeRegex = /^(\d{5})(-\d{5})?$/;
+                                    return segments.every(s => zipOrRangeRegex.test(s)) || "Format: 12345 or 12345-67890";
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     label="Origin Zip Code"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '20%',
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '20%' }}
+                                    error={!!errors.originZipCode}
+                                    helperText={errors.originZipCode?.message}
+                                    onChange={(e) => {
+                                        let val = e.target.value.replace(/[^\d,-]/g, ''); // Numbers, hyphens, commas only
+                                        if (val.startsWith(' ')) return;
+
+                                        const segments = val.split(',');
+                                        const lastSegment = segments[segments.length - 1];
+
+                                        // AUTO-COMMA LOGIC
+                                        // 1. If last segment is a 5-digit zip code
+                                        const isFullZip = /^\d{5}$/.test(lastSegment);
+                                        // 2. If last segment is a full range (12345-67890)
+                                        const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
+
+                                        if ((isFullZip || isFullRange) && !e.target.value.endsWith(',')) {
+                                            val = val + ',';
+                                        }
+
+                                        onChange(val);
                                     }}
-                                    error={!!errors.originZipCode} helperText={errors.originZipCode?.message}
                                 />
                             )}
-                        />}
+                        />
+
+                        }
                         {currentTab === 'transportation' && <Controller
                             name="destination"
                             control={control}
@@ -163,19 +197,56 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         {currentTab === 'transportation' && <Controller
                             name="destinationZipCode"
                             control={control}
-                            rules={{ required: 'Destination Zip Code is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Destination Zip Code is required',
+                                validate: (value) => {
+                                    // 1. Check for empty space or null
+                                    if (!value || value.trim().length === 0) return 'Destination Zip Code cannot be empty';
+
+                                    // 2. Validate segments (single zip or range)
+                                    const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
+                                    const zipOrRangeRegex = /^(\d{5})(-\d{5})?$/;
+
+                                    return segments.every(s => zipOrRangeRegex.test(s)) || "Use format: 12345 or 12345-67890";
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value || ''}
                                     label="Destination Zip Code"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '20%',
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    placeholder="12345, 67890-67895"
+                                    sx={{ width: '20%' }}
+                                    error={!!errors.destinationZipCode}
+                                    helperText={errors.destinationZipCode?.message}
+                                    onChange={(e) => {
+                                        // Remove non-numeric, non-hyphen, non-comma characters
+                                        let val = e.target.value.replace(/[^\d,-]/g, '');
+
+                                        // Block leading space
+                                        if (val.startsWith(' ')) return;
+
+                                        const segments = val.split(',');
+                                        const lastSegment = segments[segments.length - 1];
+
+                                        // AUTO-COMMA LOGIC
+                                        const isFullZip = /^\d{5}$/.test(lastSegment);
+                                        const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
+
+                                        // Append comma if segment is complete and comma doesn't already exist
+                                        if ((isFullZip || isFullRange) && !e.target.value.endsWith(',')) {
+                                            val = val + ',';
+                                        }
+
+                                        onChange(val);
                                     }}
-                                    error={!!errors.destinationZipCode} helperText={errors.destinationZipCode?.message}
                                 />
                             )}
-                        />}
+                        />
+                        }
                         {
                             currentTab === 'warehouse' && (type === 'Add' || type === 'Edit' || type === 'Copy') && <Controller
                                 name="department"
@@ -309,6 +380,76 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     </Stack>
                     <Box sx={{ mt: 2 }}>
                         {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse type={type} />}
+                    </Box>
+                    <Box>
+                        {((type === 'Add' || type === 'Edit') && currentTab === 'transportation') && <Stack flexDirection={'row'} alignItems={'center'}>
+                            <RateFieldAndChargeTable type={type} />
+                            <Stack flexDirection={'column'} sx={{width : '50%', ml:2}} alignItems={'flex-end'}>
+                                <Button
+                                    variant="outlined"
+                                    onClick={() => onClickofCustomerList()}
+                                    sx={{
+                                        height: '30px',
+                                        fontWeight: 600,
+                                        color: '#fff',
+                                        width : '25%',
+                                        textTransform: 'none', // Prevent uppercase styling
+                                        '&.MuiButton-outlined': {
+                                            borderRadius: '4px',
+                                            color: '#fff',
+                                            boxShadow: 'none',
+                                            p: '2px 16px',
+                                            bgcolor: '#a22',
+                                            borderColor: '#a22',
+                                            mb:2,
+                                        },
+                                    }}
+                                >
+                                    Customer list ({selectedCurrentRateRow?.customers ?? 0})
+                                </Button>
+                                <Controller
+                                    name="notes"
+                                    control={control}
+                                    rules={{
+                                        validate: (value) => {
+                                            // 1. If it's empty, it's valid (because it's optional)
+                                            if (!value || value.length === 0) return true;
+
+                                            // 2. If it has value, ensure it's not just whitespace
+                                            if (value.trim().length === 0) {
+                                                return "Notes cannot be empty spaces";
+                                            }
+
+                                            // 3. Ensure the first character is not a space (prevents " empty starts")
+                                            if (value.startsWith(" ")) {
+                                                return "Notes cannot start with a space";
+                                            }
+
+                                            return true;
+                                        }
+                                    }}
+                                    render={({ field }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            label="Notes"
+                                            variant="outlined"
+                                            fullWidth
+                                            multiline
+                                            rows={10}
+                                            error={!!errors.notes}
+                                            helperText={errors.notes?.message}
+                                            disabled={type === 'View'}
+                                            // Optional: Prevent typing a space as the very first character
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val === " ") return; // Blocks leading space in real-time
+                                                field.onChange(e);
+                                            }}
+                                        />
+                                    )}
+                                />
+                            </Stack>
+                        </Stack>}
                     </Box>
                     {(type === 'Add' || type === 'Edit' || type === 'Copy') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                         <Button

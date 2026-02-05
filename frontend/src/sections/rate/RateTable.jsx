@@ -38,13 +38,14 @@ export default function RateTable() {
     };
     const rateTransportationColumns = [
         {
-            field: 'rateID',
+            field: 'rateId',
             headerName: 'Rate ID',
             width: 150,
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateID}
+                    {params?.row?.rateId}
                 </Box>
             )
         },
@@ -52,37 +53,49 @@ export default function RateTable() {
             field: 'origin',
             headerName: 'Origin',
             width: 100,
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
             field: 'originZipCode',
             headerName: 'Origin Zip Code',
             width: 150,
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
             field: 'destination',
             headerName: 'Destination',
             width: 100,
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
             field: 'destinationZipCode',
             headerName: 'Destination Zip Code',
             width: 170,
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
             field: 'customers',
             headerName: 'Customers',
             width: 150,
+            align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                // have to add customer list 
+                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                    <Typography variant='normal'>{params?.row?.customers}</Typography>
+                </Stack>
+            )
         },
         {
             field: 'status',
             headerName: 'Status',
             width: 100,
-            align: 'center',
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
@@ -92,7 +105,7 @@ export default function RateTable() {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'inactive') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -144,7 +157,7 @@ export default function RateTable() {
             field: 'expiryDate',
             headerName: 'Expiry Date',
             width: 150,
-            align: 'center',
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
@@ -152,7 +165,7 @@ export default function RateTable() {
                     day: '2-digit',
                     year: 'numeric'
                 }).replace(/\//g, '-');
-                <Box sx={{ fontWeight: 'bold' }}>
+                <Box>
                     {formatted}
                 </Box>
             }
@@ -161,6 +174,7 @@ export default function RateTable() {
             field: 'actions',
             headerName: 'Actions',
             width: 150,
+            align: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
@@ -179,7 +193,7 @@ export default function RateTable() {
                         </Tooltip>
 
                         <StyledCheckbox
-                            sx={{ mt: -1 }}
+                            sx={{ mt: -1.5 }}
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
                             }} />
@@ -283,6 +297,59 @@ export default function RateTable() {
             },
         }
     ];
+    const rateData = [
+        {
+            rateId: 1,
+            origin: 'ORD',
+            originZipCode: '60501',
+            destination: 'Ankeny',
+            destinationZipCode: '50007',
+            customers: 26,
+            status: 'Y',
+            min: '100',
+            rate100: '100',
+            rate1000: '1000',
+            rate3000: '3000',
+            rate5000: '5000',
+            rate10000: '10000',
+            max: '10000',
+            expiryDate: '12-30-2026',
+        },
+        {
+            rateId: 2,
+            origin: 'ORD',
+            originZipCode: '60501',
+            destination: 'Ankeny',
+            destinationZipCode: '50007',
+            customers: 26,
+            status: 'Y',
+            min: '100',
+            rate100: '100',
+            rate1000: '1000',
+            rate3000: '3000',
+            rate5000: '5000',
+            rate10000: '10000',
+            max: '10000',
+            expiryDate: '12-30-2026',
+        },
+        {
+            rateId: 3,
+            origin: 'ORD',
+            originZipCode: '60501',
+            destination: 'Ankeny',
+            destinationZipCode: '50007',
+            customers: 26,
+            status: 'Y',
+            min: '100',
+            rate100: '100',
+            rate1000: '1000',
+            rate3000: '3000',
+            rate5000: '5000',
+            rate10000: '10000',
+            max: '10000',
+            expiryDate: '12-30-2026',
+        },
+    ]
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
@@ -291,6 +358,11 @@ export default function RateTable() {
             dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
         }
     }, []);
+    useEffect(() => {
+        if (currentRateTab === 'warehouse') {
+            dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        }
+    }, [currentRateTab]);
     useEffect(() => {
         if (pagination) {
             setPaginationModel({
@@ -334,7 +406,7 @@ export default function RateTable() {
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
 
                     <DataGrid
-                        rows={rateTableData}
+                        rows={currentRateTab === 'warehouse' ? rateTableData : rateData}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.rateId}

@@ -39,12 +39,17 @@ export default function RateFieldAndChargeTable() {
             renderCell: (params) => {
                 const handleTableUpdate = (id, field, value) => {
                     console.log(`Updating row id ${id}, field ${field} with value: ${value}`);
+                    const updatedData = [...tableData];
+                     const index = updatedData.findIndex(item => item.id === id);
+                    // Clone the specific object to make it writable
+                    updatedData[index] = { ...updatedData[index], rateField: value };
+                    setTableData(updatedData);
                 }
                 const element = <StyledTextField
                     variant="standard"
                     fullWidth
                     value={params.row.rateField}
-                    label="Rate Field*"
+                    label=""
                     // 1. Enforce max length at the HTML level
                     slotProps={{
                         htmlInput: { maxLength: 50 }
@@ -60,7 +65,7 @@ export default function RateFieldAndChargeTable() {
                         // Proceed with your table data update logic
                         handleTableUpdate(params.row.id, 'rateField', value);
                     }}
-                    
+
                     disabled={params.row.readonly}
                 />
                 return element
@@ -75,12 +80,17 @@ export default function RateFieldAndChargeTable() {
             renderCell: (params) => {
                 const updateRowValue = (id, field, value) => {
                     console.log(`Updating row id ${id}, field ${field} with value: ${value}`);
+                    const updatedData = [...tableData];
+                    const index = updatedData.findIndex(item => item.id === id);
+                    // Clone the specific object to make it writable
+                    updatedData[index] = { ...updatedData[index], charge: value };
+                    setTableData(updatedData);
                 }
                 const element = <StyledTextField
                     variant="standard"
                     fullWidth
                     value={params.row.charge}
-                    label="Charges ($/lb)*"
+                    label=""
                     onChange={(e) => {
                         const val = e.target.value;
 
@@ -101,7 +111,6 @@ export default function RateFieldAndChargeTable() {
                 return element;
             }
         },
-
         {
             field: 'actions',
             headerName: '',
@@ -118,6 +127,12 @@ export default function RateFieldAndChargeTable() {
                 }
                 const onAdd = () => {
                     console.log(params.row.rateField);
+                    const updatedData = [...tableData];
+                    const obj = {
+                        id: updatedData.length, rateField: '', charge: '', readonly: false
+                    };
+                    updatedData.push(obj);
+                    setTableData(updatedData);
                 }
                 const element = (
                     <Box
@@ -125,7 +140,7 @@ export default function RateFieldAndChargeTable() {
                             display: 'flex',
                             flex: 1,
                             mb: 1.2,
-                            alignItems: 'flex-end',ml:2
+                            alignItems: 'flex-end', ml: 2
                         }}
                     >
 

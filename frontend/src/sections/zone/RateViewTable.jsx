@@ -76,8 +76,8 @@ export default function RateViewTable({ rateDataArr }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor : 'rgba(224, 242, 255, 1)', p:1 }} flexDirection={'row'} alignItems={'center'}>
-                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }}  />
+                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
                     <Typography variant='normal'>{params?.row?.customers}</Typography>
                 </Stack>
             )
@@ -111,13 +111,34 @@ export default function RateViewTable({ rateDataArr }) {
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Typography variant="normal">Min: {params?.row?.min}</Typography>
-                        <Typography variant="normal">100: {params?.row?.rate100}</Typography>
-                        <Typography variant="normal">1000: {params?.row?.rate1000}</Typography>
-                        <Typography variant="normal">3000: {params?.row?.rate3000}</Typography>
-                        <Typography variant="normal">5000: {params?.row?.rate5000}</Typography>
-                        <Typography variant="normal">10000: {params?.row?.rate10000}</Typography>
-                        <Typography variant="normal">Max: {params?.row?.max}</Typography>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                        </Stack>
                     </Stack>
                 );
                 return element;
@@ -129,6 +150,16 @@ export default function RateViewTable({ rateDataArr }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {formatted}
+                </Box>
+            }
         },
     ];
 

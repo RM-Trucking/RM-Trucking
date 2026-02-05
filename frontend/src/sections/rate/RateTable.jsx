@@ -104,18 +104,37 @@ export default function RateTable() {
             minWidth: 200,
             minHeight: 200,
             flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Typography variant="normal">Min: {params?.row?.min}</Typography>
-                        <Typography variant="normal">100: {params?.row?.rate100}</Typography>
-                        <Typography variant="normal">1000: {params?.row?.rate1000}</Typography>
-                        <Typography variant="normal">3000: {params?.row?.rate3000}</Typography>
-                        <Typography variant="normal">5000: {params?.row?.rate5000}</Typography>
-                        <Typography variant="normal">10000: {params?.row?.rate10000}</Typography>
-                        <Typography variant="normal">Max: {params?.row?.max}</Typography>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                        </Stack>
                     </Stack>
                 );
                 return element;
@@ -125,7 +144,18 @@ export default function RateTable() {
             field: 'expiryDate',
             headerName: 'Expiry Date',
             width: 150,
+            align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {formatted}
+                </Box>
+            }
         },
         {
             field: 'actions',
@@ -199,7 +229,7 @@ export default function RateTable() {
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.minRate}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Rate/lb</Typography>
+                            <Typography variant="normal" sx={{ width: "70px" }}>Rate Per 100 LB</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
@@ -257,7 +287,9 @@ export default function RateTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
-        dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        if (currentRateTab === 'warehouse') {
+            dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        }
     }, []);
     useEffect(() => {
         if (pagination) {

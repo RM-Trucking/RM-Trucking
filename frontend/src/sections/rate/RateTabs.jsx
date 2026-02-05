@@ -21,10 +21,10 @@ export default function RateTabs({ }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const TABS = [
-        // {
-        //     value: 'transportation',
-        //     label: 'Transportation',
-        // },
+        {
+            value: 'transportation',
+            label: 'Transportation',
+        },
         {
             value: 'warehouse',
             label: 'Warehouse',
@@ -128,7 +128,6 @@ export default function RateTabs({ }) {
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb:2 }} />
                 {/* rate search details  */}
                 <RateSearchFields padding = {0} type={'Search'} currentTab = {currentRateTab}/>
-                {/* table for rate tabs */}
 
                 {/*  dialog for add station tab item can go here */}
 

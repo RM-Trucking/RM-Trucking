@@ -5,6 +5,7 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setCustomerSearchStr, setStationSearchStr, getCustomerData, getCustomerStationData } from '../../redux/slices/customer';
 import { getZoneData, setZoneSearchStr } from '../../redux/slices/zone';
+import { setAccessorialSearchStr, getAccessorialData } from '../../redux/slices/accessorial';
 // ----------------------------------------------------------------------
 
 
@@ -22,6 +23,8 @@ export default function SharedSearchField({ page }) {
     const stationSearchStr = useSelector((state) => state?.customerdata?.stationSearchStr);
     const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
     const zonePagination = useSelector((state) => state?.zonedata?.pagination);
+    const accessorialSearchStr = useSelector((state) => state?.accessorialdata?.accessorialSearchStr);
+    const accessorialPagination = useSelector((state) => state?.accessorialdata?.pagination);
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
 
     const handleSearch = (event) => {
@@ -30,10 +33,12 @@ export default function SharedSearchField({ page }) {
         if (page === 'customers') dispatch(setCustomerSearchStr(event?.target?.value));
         if (page === 'station') dispatch(setStationSearchStr(event?.target?.value));
         if (page === 'zone') dispatch(setZoneSearchStr(event?.target?.value));
+        if (page === 'accessorial') dispatch(setAccessorialSearchStr(event?.target?.value));
         // calling api on each change of search input
         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value })); }
         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value, customerId: selectedCustomerRowDetails.customerId })); }
         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
+        if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
     }
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
@@ -43,6 +48,7 @@ export default function SharedSearchField({ page }) {
             if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue })); }
             if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
             if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
+            if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
         }
     };
     useEffect(() => {
@@ -55,7 +61,10 @@ export default function SharedSearchField({ page }) {
         if (page === 'zone') {
             setSearchValue(zoneSearchStr);
         }
-    }, [customerSearchStr, stationSearchStr, zoneSearchStr]);
+        if (page === 'accessorial') {
+            setSearchValue(accessorialSearchStr);
+        }
+    }, [customerSearchStr, stationSearchStr, zoneSearchStr, accessorialSearchStr]);
 
     return (
         <>
@@ -75,6 +84,7 @@ export default function SharedSearchField({ page }) {
                                         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
                                         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
+                                        if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
                                     }}>
                                         <Iconify icon="material-symbols:search" sx={{ mr: 1 }} />
                                     </IconButton>

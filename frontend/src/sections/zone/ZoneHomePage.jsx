@@ -11,6 +11,7 @@ import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ZoneTable from './ZoneTable';
 import ZoneDetails from './ZoneDetails';
+import { setSelectedZoneRowDetails } from '../../redux/slices/zone';
 // ----------------------------------------------------------------
 
 export default function ZoneHomePage() {
@@ -21,7 +22,7 @@ export default function ZoneHomePage() {
     console.log(error);
   };
   const onClickOfAddZone = () => {
-    // dispatch(setSelectedZoneRowDetails({}));
+    dispatch(setSelectedZoneRowDetails({}));
     setOpenConfirmDialog(true);
   }
   const handleCloseConfirm = () => {

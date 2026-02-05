@@ -6,6 +6,7 @@ import customerReducer from './slices/customer';
 import rateReducer from './slices/rate';
 import noteReducer from './slices/note';
 import zoneReducer from './slices/zone';
+import accessorialReducer from './slices/accessorial';
 // ----------------------------------------------------------------------
 
 const rootPersistConfig = {
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
   ratedata : rateReducer,
   notedata : noteReducer,
   zonedata : zoneReducer,
+  accessorialdata : accessorialReducer,
 });
 
 export { rootPersistConfig, rootReducer };

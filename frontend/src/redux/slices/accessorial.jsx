@@ -48,9 +48,9 @@ const slice = createSlice({
             state.accessorialSuccess = true;
             state.accessorialData = action.payload.data;
             state.pagination = {
-                page: action.payload.pagination.page,
-                pageSize: action.payload.pagination.pageSize,
-                totalRecords: action.payload.pagination.total,
+                page: action.payload?.pagination?.page || state.pagination?.page,
+                pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
+                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.accessorialData.length,
             };
         },
         postAccessorialDataSuccess(state,action){
@@ -98,41 +98,41 @@ export function getAccessorialData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            const response = await axios.get(`maintenance/zone?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getZoneDataSuccess(response.data));
+            const response = await axios.get(`maintenance/accessorial?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getAccessorialDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
-export function postZoneData(obj) {
+export function postAccessorialData(obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post(`maintenance/zone`, obj);
-      dispatch(slice.actions.postZoneDataSuccess(response.data));
+      const response = await axios.post(`maintenance/accessorial`, obj);
+      dispatch(slice.actions.postAccessorialDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
   };
 }
-export function putZoneData(id, obj) {
+export function putAccessorialData(id, obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.put(`maintenance/zone/${id}`, obj);
-      dispatch(slice.actions.putZoneDataSuccess(response.data));
+      const response = await axios.put(`maintenance/accessorial/${id}`, obj);
+      dispatch(slice.actions.putAccessorialDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
   };
 }
-export function deleteZone(id, callback) {
+export function deleteAccessorial(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.delete(`maintenance/zone/${id}`);
-      dispatch(slice.actions.deleteZoneDataSuccess({
+      const response = await axios.delete(`maintenance/accessorial/${id}`);
+      dispatch(slice.actions.deleteAccessorialDataSuccess({
         id, message: response.data
       }));
       callback();

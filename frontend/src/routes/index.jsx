@@ -19,6 +19,7 @@ import {
   WarehouseMaintenancePage,
   RateLayout,
   ZoneLayout,
+  AccessorialLayout,
   RateMaintenancePage,
   ZoneMaintenancePage,
   CarrierMaintenancePage,
@@ -99,7 +100,13 @@ export default function Router() {
                 { index: true, element: <ZoneMaintenancePage /> }
               ]
             },
-            { path: 'accesorial-maintenance', element: <AccesorialMaintenancePage /> },
+            {
+              path: 'accesorial-maintenance',
+              element: <AccessorialLayout />,
+              children: [
+                { index: true, element: <AccesorialMaintenancePage /> }
+              ]
+            },
           ],
         },
       ],

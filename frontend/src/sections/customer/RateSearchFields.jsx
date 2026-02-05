@@ -7,7 +7,8 @@ import {
     MenuItem,
     Stack,
     CircularProgress,
-    Divider
+    Divider,
+    Typography
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -53,6 +54,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if ((type === 'Edit' || type === 'Copy') && selectedCurrentRateRow && currentTab === 'warehouse') {
             setValue('warehouse', selectedCurrentRateRow.warehouse || '');
             setValue('department', selectedCurrentRateRow.department || '');
+        }
+        if(type === 'Edit' && selectedCurrentRateRow && currentTab === 'transportation'){
+            setValue('origin', selectedCurrentRateRow.origin || '');
+            setValue('originZipCode', selectedCurrentRateRow.originZipCode || '');
+            setValue('destination', selectedCurrentRateRow.destination || '');
+            setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
+            setValue('notes', selectedCurrentRateRow.notes || '');
         }
     }, [selectedCurrentRateRow])
     useEffect(() => {
@@ -102,9 +110,18 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
         }
     };
+    useEffect(()=>{
+        console.log(type, currentTab);
+    },[type,currentTab])
 
     return (
         <>
+            {type === 'View' && currentTab === 'transportation' && <>
+                <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
+                </Stack>
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+            </>}
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4} sx={{ p: padding }}>
@@ -123,6 +140,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         width: '20%',
                                     }}
                                     error={!!errors.origin} helperText={errors.origin?.message}
+                                    disabled = {type === 'View'}
                                 >
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                 </StyledTextField>
@@ -170,6 +188,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                         onChange(val);
                                     }}
+                                    disabled = {type === 'View'}
                                 />
                             )}
                         />
@@ -188,6 +207,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     sx={{
                                         width: '20%',
                                     }}
+                                    disabled = {type === 'View'}
                                     error={!!errors.destination} helperText={errors.destination?.message}
                                 >
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
@@ -243,6 +263,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                         onChange(val);
                                     }}
+                                    disabled = {type === 'View'}
                                 />
                             )}
                         />
@@ -382,9 +403,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse type={type} />}
                     </Box>
                     <Box>
-                        {((type === 'Add' || type === 'Edit') && currentTab === 'transportation') && <Stack flexDirection={'row'} alignItems={'center'}>
+                        {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Stack flexDirection={'row'} alignItems={'center'}>
                             <RateFieldAndChargeTable type={type} />
-                            <Stack flexDirection={'column'} sx={{width : '50%', ml:2}} alignItems={'flex-end'}>
+                            <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
                                 <Button
                                     variant="outlined"
                                     onClick={() => onClickofCustomerList()}
@@ -392,7 +413,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         height: '30px',
                                         fontWeight: 600,
                                         color: '#fff',
-                                        width : '25%',
+                                        width: '25%',
                                         textTransform: 'none', // Prevent uppercase styling
                                         '&.MuiButton-outlined': {
                                             borderRadius: '4px',
@@ -401,7 +422,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             p: '2px 16px',
                                             bgcolor: '#a22',
                                             borderColor: '#a22',
-                                            mb:2,
+                                            mb: 2,
                                         },
                                     }}
                                 >

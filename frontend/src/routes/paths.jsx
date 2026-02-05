@@ -49,7 +49,10 @@ export const PATH_DASHBOARD = {
     carrierMaintenance: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
     zoneMaintenance: path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),
     accesorialMaintenance: path(ROOTS_DASHBOARD, '/maintenance/accesorial-maintenance'),
-    rateMaintenance : path(ROOTS_DASHBOARD,'/maintenance/rate-maintenance'),
+    rateMaintenance : {
+      root : path(ROOTS_DASHBOARD,'/maintenance/rate-maintenance'),
+      rateView : path(ROOTS_DASHBOARD,'/maintenance/rate-maintenance/rate-view')
+    },
   },
 };
 

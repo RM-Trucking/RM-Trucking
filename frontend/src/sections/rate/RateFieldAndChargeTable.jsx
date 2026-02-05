@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import {
     Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent
@@ -16,7 +17,10 @@ import StyledTextField from '../shared/StyledTextField';
 import { set } from 'react-hook-form';
 // ----------------------------------------------------------------
 
-export default function RateFieldAndChargeTable() {
+RateFieldAndChargeTable.propTypes = {
+    type: PropTypes.string,
+};
+export default function RateFieldAndChargeTable({type}) {
     const dispatch = useDispatch();
     const initialArrayValue = [
         { id: 1, rateField: '', charge: '', readonly: false },
@@ -166,6 +170,10 @@ export default function RateFieldAndChargeTable() {
         dispatch(setTableBeingViewed('charge'));
         dispatch(getRateChargeData());
     }, []);
+    useEffect(() => {
+        // if type is view table should not be editable
+        console.log(type,'in transportation sub table')
+    }, [type]);
     useEffect(() => {
         console.log(rateFieldChargeData);
         let list = [];

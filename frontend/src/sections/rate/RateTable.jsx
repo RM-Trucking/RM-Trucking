@@ -5,8 +5,10 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // shared components
+import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -19,6 +21,8 @@ import AddRate from './AddRate';
 
 export default function RateTable() {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
+    
     const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -173,7 +177,7 @@ export default function RateTable() {
         {
             field: 'actions',
             headerName: 'Actions',
-            width: 150,
+            width: 300,
             align: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
@@ -189,6 +193,15 @@ export default function RateTable() {
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params.row));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                            }} />
+                        </Tooltip>
+                        <Tooltip title={'Edit'} arrow>
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
+                                dispatch(setSelectedCurrentRateRow(params?.row));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                setOpenEditDialog(true);
                             }} />
                         </Tooltip>
 

@@ -14,6 +14,7 @@ import {
   ShipmentBuildingPage,
   CustomerMaintenancePage,
   CustomerViewPage,
+  RateViewPage,
   CustomerStationViewPage,
   CustomerLayout,
   WarehouseMaintenancePage,
@@ -90,7 +91,8 @@ export default function Router() {
               path: 'rate-maintenance',
               element: <RateLayout />,
               children: [
-                { index: true, element: <RateMaintenancePage /> }
+                { index: true, element: <RateMaintenancePage /> },
+                { path: 'rate-view', element: <RateViewPage /> },
               ]
             },
             {

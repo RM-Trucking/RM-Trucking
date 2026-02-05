@@ -31,7 +31,7 @@ export default function Main({ children, sx, ...other }) {
         position : 'absolute',
         left : {sm: '280px'},
         ...sx,
-        bgcolor : (pathname.includes('customer-view') || pathname.includes('station-view')) ? 'rgb(229, 229, 229)' : '#fff',
+        bgcolor : (pathname.includes('customer-view') || pathname.includes('station-view') || pathname.includes('rate-view')) ? 'rgb(229, 229, 229)' : '#fff',
       }}
       {...other}
     >

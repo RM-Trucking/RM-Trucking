@@ -23,7 +23,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
     const dispatch = useDispatch();
     const initialArrayValue = [
         { id: 1, rateField: 'Min Charge', charge: '', readonly: false },
-        { id: 2, rateField: 'Rate/lb', charge: '', readonly: false },
+        { id: 2, rateField: 'Rate Per 100 LB', charge: '', readonly: false },
         { id: 3, rateField: 'Max Charge', charge: '', readonly: false },
     ];
     const { isLoading, selectedCurrentRateRow, } = useSelector((state) => state.ratedata);

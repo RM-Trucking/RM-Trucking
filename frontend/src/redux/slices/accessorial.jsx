@@ -10,16 +10,16 @@ import { dispatch } from '../store';
 const initialState = {
     isLoading: false,
     error: null,
-    zoneSuccess: false,
-    zoneData: [],
-    zoneSearchStr: '',
+    accessorialSuccess: false,
+    accessorialData: [],
+    accessorialSearchStr: '',
     operationalMessage: '',
-    selectedZoneRowDetails: {},
+    selectedAccessorialRowDetails: {},
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
 };
 
 const slice = createSlice({
-    name: 'zone',
+    name: 'accesssorial',
     initialState,
     reducers: {
         hasError(state, action) {
@@ -29,51 +29,51 @@ const slice = createSlice({
         // START LOADING
         startLoading(state) {
             state.isLoading = true;
-            state.zoneSuccess = false;
+            state.accessorialSuccess = false;
             state.error = null;
             state.operationalMessage = '';
         },
         setPaginationObject(state, action) {
             state.pagination = action.payload;
         },
-        setZoneSearchStr(state, action) {
-            state.zoneSearchStr = action.payload;
+        setAccessorialSearchStr(state, action) {
+            state.accessorialSearchStr = action.payload;
         },
-        // zone row details
-        setSelectedZoneRowDetails(state, action) {
-            state.selectedZoneRowDetails = action.payload;
+        // accessorial row details
+        setSelectedAccessorialRowDetails(state, action) {
+            state.selectedAccessorialRowDetails = action.payload;
         },
-        getZoneDataSuccess(state, action) {
+        getAccessorialDataSuccess(state, action) {
             state.isLoading = false;
-            state.zoneSuccess = true;
-            state.zoneData = action.payload.data;
+            state.accessorialSuccess = true;
+            state.accessorialData = action.payload.data;
             state.pagination = {
                 page: action.payload.pagination.page,
                 pageSize: action.payload.pagination.pageSize,
                 totalRecords: action.payload.pagination.total,
             };
         },
-        postZoneDataSuccess(state,action){
+        postAccessorialDataSuccess(state,action){
             state.isLoading = false;
-            state.zoneSuccess = true;
-            state.operationalMessage = `Zone added successfully.`;
-            state.zoneData.unshift(action.payload.data);
+            state.accessorialSuccess = true;
+            state.operationalMessage = `Accessorial added successfully.`;
+            state.accessorialData.unshift(action.payload.data);
             state.pagination.totalRecords = action.payload?.total + 1 || state.pagination.totalRecords + 1;
         },
-        putZoneDataSuccess(state, action) {
+        putAccessorialDataSuccess(state, action) {
             state.isLoading = false;
-            state.zoneSuccess = true;
-            state.operationalMessage = "Zone updated successfully";
+            state.accessorialSuccess = true;
+            state.operationalMessage = "Accessorial updated successfully";
             // update table data by updating record
-            const index = state.zoneData.findIndex((row) => row.zoneId === action.payload?.data?.zoneId);
+            const index = state.accessorialData.findIndex((row) => row.accessorialId === action.payload?.data?.accessorialId);
             if (index === 0 || index > 0) {
-                state.zoneData.splice(index, 1, action.payload.data);
+                state.accessorialData.splice(index, 1, action.payload.data);
             }
         },
-        deleteZoneDataSuccess(state, action) {
+        deleteAccessorialDataSuccess(state, action) {
             state.isLoading = false;
-            state.zoneSuccess = true;
-            state.operationalMessage = `Zone deleted successfully.`;
+            state.accessorialSuccess = true;
+            state.operationalMessage = `Accessorial deleted successfully.`;
         },
         setOperationalMessage(state) {
             state.operationalMessage = '';
@@ -85,8 +85,8 @@ const slice = createSlice({
 export const {
     setOperationalMessage,
     setPaginationObject,
-    setZoneSearchStr,
-    setSelectedZoneRowDetails,
+    setAccessorialSearchStr,
+    setSelectedAccessorialRowDetails,
 } = slice.actions;
 export default slice.reducer;
 
@@ -94,7 +94,7 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
-export function getZoneData({ pageNo, pageSize, searchStr }) {
+export function getAccessorialData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {

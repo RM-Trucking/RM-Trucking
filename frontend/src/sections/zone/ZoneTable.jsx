@@ -5,7 +5,8 @@ import { alpha, styled } from '@mui/material/styles';
 import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
-import { PATH_DASHBOARD } from '../../routes/paths';
+import ZoneDetails from './ZoneDetails';
+import RateViewTable from './RateViewTable';
 import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone } from '../../redux/slices/zone';
 
 
@@ -33,6 +34,27 @@ export default function ZoneTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    // rate data
+    const rateData = [
+        {
+            rateId : 1,
+            origin : 'ORD',
+            originZipCode : '60501',
+            destination : 'Ankeny',
+            destinationZipCode : '50007',
+            customers : 26,
+            status : 'Y',
+            min : '100',
+            rate100 : '100',
+            rate1000 : '1000',
+            rate3000 : '3000',
+            rate5000 : '5000',
+            rate10000 : '10000',
+            max : '10000',
+            expiryDate : '12-30-2026',
+        }
+    ]
 
 
     // datagrid columns
@@ -210,14 +232,14 @@ export default function ZoneTable() {
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
                     width: '1543px',
-                    height: '600px',
+                    height: (actionType === 'Edit') ? '450px' : '400px',
                     maxHeight: 'none',
                     maxWidth: 'none',
                 }
             }}
         >
             <DialogContent>
-                Add content of {actionType} dialog here
+                <ZoneDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedZoneRowDetails={selectedZoneRowDetails}/>
             </DialogContent>
         </Dialog>
         <Dialog open={openRateDialog} onClose={handleCloseRate} onKeyDown={(event) => {
@@ -235,7 +257,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                rate details dialog content here
+                <RateViewTable rateDataArr={rateData}/>
             </DialogContent>
         </Dialog>
 

@@ -10,6 +10,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ZoneTable from './ZoneTable';
+import ZoneDetails from './ZoneDetails';
 // ----------------------------------------------------------------
 
 export default function ZoneHomePage() {
@@ -47,14 +48,14 @@ export default function ZoneHomePage() {
           sx={{
             '& .MuiDialog-paper': { // Target the paper class
               width: '1543px',
-              height: '520px',
+              height: '450px',
               maxHeight: 'none',
               maxWidth: 'none',
             }
           }}
         >
           <DialogContent>
-            Add Zone Details
+            <ZoneDetails type="Add" handleCloseConfirm={handleCloseConfirm} />
           </DialogContent>
         </Dialog>
       </ErrorBoundary>

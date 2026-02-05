@@ -14,7 +14,7 @@ const initialState = {
     rateTableData: [],
     rateSearchObj: {},
     selectedCurrentRateRow: {},
-    currentRateTab: 'transportation',
+    currentRateTab: 'warehouse',
     rateFieldChargeData: [],
     rateFieldChargeDataWarehouse: [],
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },

@@ -8,7 +8,8 @@ import {
     Stack,
     CircularProgress,
     Divider,
-    Typography
+    Typography,
+    Dialog, DialogContent,
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -18,6 +19,7 @@ import {
 } from '../../redux/slices/rate';
 import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
 import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
+import CustomerListTable from '../rate/CustomersListTable';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
@@ -32,6 +34,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const operationalMessage = useSelector((state) => state?.ratedata?.operationalMessage);
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
+    const [openCustomersList, setOpenCustomersList] = useState(false);
     const {
         control,
         handleSubmit,
@@ -49,13 +52,25 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             notes: '',
         }
     });
+    const customerData = [
+        {
+            customerId : 1,
+            customerName : 'Liam Johnson',
+            stationName : 'Station 1'
+        },
+        {
+            customerId : 2,
+            customerName : 'Emma Thompson',
+            stationName : 'Station 2'
+        }
+    ]
 
     useEffect(() => {
         if ((type === 'Edit' || type === 'Copy') && selectedCurrentRateRow && currentTab === 'warehouse') {
             setValue('warehouse', selectedCurrentRateRow.warehouse || '');
             setValue('department', selectedCurrentRateRow.department || '');
         }
-        if(type === 'Edit' && selectedCurrentRateRow && currentTab === 'transportation'){
+        if (type === 'Edit' && selectedCurrentRateRow && currentTab === 'transportation') {
             setValue('origin', selectedCurrentRateRow.origin || '');
             setValue('originZipCode', selectedCurrentRateRow.originZipCode || '');
             setValue('destination', selectedCurrentRateRow.destination || '');
@@ -110,9 +125,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
         }
     };
-    useEffect(()=>{
-        console.log(type, currentTab);
-    },[type,currentTab])
+    const onClickofCustomerList = () => {
+        setOpenCustomersList(true);
+    }
+    const handleCloseOfCustomersList = () => {
+        setOpenCustomersList(false);
+    };
 
     return (
         <>
@@ -140,7 +158,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         width: '20%',
                                     }}
                                     error={!!errors.origin} helperText={errors.origin?.message}
-                                    disabled = {type === 'View'}
+                                    disabled={type === 'View'}
                                 >
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                 </StyledTextField>
@@ -188,7 +206,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                         onChange(val);
                                     }}
-                                    disabled = {type === 'View'}
+                                    disabled={type === 'View'}
                                 />
                             )}
                         />
@@ -207,7 +225,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     sx={{
                                         width: '20%',
                                     }}
-                                    disabled = {type === 'View'}
+                                    disabled={type === 'View'}
                                     error={!!errors.destination} helperText={errors.destination?.message}
                                 >
                                     <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
@@ -263,7 +281,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                         onChange(val);
                                     }}
-                                    disabled = {type === 'View'}
+                                    disabled={type === 'View'}
                                 />
                             )}
                         />
@@ -521,6 +539,24 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     </Stack>}
                 </Stack>
             </Box>
+            <Dialog open={openCustomersList} onClose={handleCloseOfCustomersList} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleCloseOfCustomersList();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '800px',
+                        height: 'auto',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <CustomerListTable customerData={customerData} handleCloseConfirm={handleCloseOfCustomersList} />
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

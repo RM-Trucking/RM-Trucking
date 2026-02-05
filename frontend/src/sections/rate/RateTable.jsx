@@ -17,14 +17,16 @@ import { setTableBeingViewed, setStationRateData } from '../../redux/slices/cust
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import AddRate from './AddRate';
+import CustomerListTable from './CustomersListTable';
 // ----------------------------------------------------------------
 
 export default function RateTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    
+
     const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [openCustomersList, setOpenCustomersList] = useState(false);
     const [actionType, setActionType] = useState('');
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
@@ -89,7 +91,10 @@ export default function RateTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick = {() => {
+                    setOpenCustomersList(true);
+                     dispatch(setSelectedCurrentRateRow(params.row));
+                }}>
                     <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
                     <Typography variant='normal'>{params?.row?.customers}</Typography>
                 </Stack>
@@ -363,6 +368,18 @@ export default function RateTable() {
             expiryDate: '12-30-2026',
         },
     ]
+    const customerData = [
+        {
+            customerId : 1,
+            customerName : 'Liam Johnson',
+            stationName : 'Station 1'
+        },
+        {
+            customerId : 2,
+            customerName : 'Emma Thompson',
+            stationName : 'Station 2'
+        }
+    ]
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
@@ -404,6 +421,10 @@ export default function RateTable() {
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         setActionType("");
+        dispatch(setSelectedCurrentRateRow({}));
+    };
+    const handleCloseOfCustomersList = () => {
+        setOpenCustomersList(false);
         dispatch(setSelectedCurrentRateRow({}));
     };
     return (
@@ -467,6 +488,24 @@ export default function RateTable() {
                 >
                     <DialogContent>
                         <AddRate type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCurrentRateRow={selectedCurrentRateRow} />
+                    </DialogContent>
+                </Dialog>
+                <Dialog open={openCustomersList} onClose={handleCloseOfCustomersList} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleCloseOfCustomersList();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '800px',
+                            height: 'auto',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                      <CustomerListTable customerData={customerData} handleCloseConfirm = {handleCloseOfCustomersList}/>
                     </DialogContent>
                 </Dialog>
                 <Snackbar

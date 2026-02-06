@@ -12,7 +12,7 @@ import {
     setSelectedStationTabRowDetails, getStationDepartmentData,
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
     deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
-    deleteStationAccessorial, getAccessorialData, setOperationalMessage
+    deleteStationAccessorial, getAccessorialData, setOperationalMessage, setStationTabTableData
 } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
@@ -260,47 +260,42 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     ];
     const rateColumns = [
         {
-            field: "rateID",
-            headerName: "Rate ID",
-            minWidth: 200,
-            flex: 1,
+            field: 'rateId',
+            headerName: 'Rate ID',
+            width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateID}
+                    {params?.row?.rateId}
                 </Box>
             )
         },
         {
-            field: "origin",
-            headerName: "Origin",
-            minWidth: 200,
-            flex: 1,
+            field: 'origin',
+            headerName: 'Origin',
+            width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: "originZipCode",
-            headerName: "Origin Zip Code",
-            minWidth: 200,
-            flex: 1,
+            field: 'originZipCode',
+            headerName: 'Origin Zip Code',
+            width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: "destination",
-            headerName: "Destination",
-            minWidth: 200,
-            flex: 1,
+            field: 'destination',
+            headerName: 'Destination',
+            width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: "destinationZipCode",
-            headerName: "Destination Zip Code",
-            minWidth: 200,
-            flex: 1,
+            field: 'destinationZipCode',
+            headerName: 'Destination Zip Code',
+            width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
@@ -310,26 +305,58 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             minWidth: 200,
             minHeight: 200,
             flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Typography variant="normal">Min: {params?.row?.minRate}</Typography>
-                        <Typography variant="normal">Rate/LB: {params?.row?.rateLB}</Typography>
-                        <Typography variant="normal">Max: {params?.row?.maxRate}</Typography>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                        </Stack>
                     </Stack>
                 );
                 return element;
             }
         },
         {
-            field: "expiryDate",
-            headerName: "Expiry Date",
-            minWidth: 200,
-            flex: 1,
-            cellClassName: 'center-status-cell',
+            field: 'expiryDate',
+            headerName: 'Expiry Date',
+            width: 150,
             headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box>
+                    {formatted}
+                </Box>
+            }
         },
         {
             field: "actions",
@@ -459,6 +486,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     ];
 
     useEffect(() => {
+        dispatch(setStationTabTableData());
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
             dispatch(clearNotesState());
@@ -569,13 +597,14 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
-                    getRowId={(row) => row?.id || row?.rateID}
+                    getRowId={(row) => row?.rateId}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     getRowHeight={() => 'auto'}
                     hideFooterSelectedRowCount
+                    autoHeight
                 />
             </Box>}
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

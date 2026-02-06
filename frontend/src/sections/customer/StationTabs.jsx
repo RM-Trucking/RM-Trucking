@@ -17,6 +17,8 @@ import StationAccessorial from './StationAccessorial';
 import RateSearchFields from './RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
+import AddRate from '../rate/AddRate';
+import { setCurrentRateTab } from '../../redux/slices/rate';
 // ----------------------------------------------------------------------
 
 
@@ -49,6 +51,7 @@ export default function StationTabs({ }) {
     const { rateSearchObj } = useSelector(({ ratedata }) => ratedata);
 
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const [openConfirmRateDialog, setOpenConfirmRateDialog] = useState(false);
     const [actionType, setActionType] = useState('');
 
     // error boundary info
@@ -56,6 +59,7 @@ export default function StationTabs({ }) {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
+        // navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
     };
     const OnTabChange = (newValue) => {
         console.log('new tab value', newValue);
@@ -66,6 +70,9 @@ export default function StationTabs({ }) {
         setOpenConfirmDialog(false);
         setActionType('');
     };
+    const handleCloseConfirmRateDilog = () => {
+        setOpenConfirmRateDialog(false);
+    };
 
     const onClickOfAddStationTabButton = () => {
         // Implement the logic for adding a new item based on the current tab
@@ -75,7 +82,7 @@ export default function StationTabs({ }) {
         setOpenConfirmDialog(true);
     }
     useEffect(() => {
-        dispatch(setStationCurrentTab('department'));
+        dispatch(setStationCurrentTab(stationCurrentTab));
     }, []);
     useEffect(() => {
         if (actionType === 'Edit') {
@@ -154,6 +161,12 @@ export default function StationTabs({ }) {
                         <Stack direction="row" spacing={1} alignItems={'center'}>
                             <Button
                                 variant="outlined"
+                                onClick={() => {
+                                    // depending on which rate to create we can enable this
+                                    // here I have to update this data on both customer rate table and rate slice (on rate slice it will be done by call)
+                                    dispatch(setCurrentRateTab('transportation'));
+                                    setOpenConfirmRateDialog(true);
+                                }}
                                 sx={{
                                     height: '22px',
                                     fontWeight: 600,
@@ -173,7 +186,7 @@ export default function StationTabs({ }) {
                             </Button>
                             <Button
                                 variant="outlined"
-                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance)}
+                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.root)}
                                 sx={{
                                     height: '22px',
                                     fontWeight: 600,
@@ -197,7 +210,7 @@ export default function StationTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3} type={'Search'} currentTab = {'transportation'} />}
+                {stationCurrentTab.toLowerCase() === 'rate' && <RateSearchFields padding={3} type={'Search'} currentTab={'transportation'} />}
                 <StationTabsTable currentTab={stationCurrentTab} setActionType={setActionType} />
 
                 {/*  dialog for add station tab item can go here */}
@@ -227,6 +240,26 @@ export default function StationTabs({ }) {
                             stationCurrentTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
                         }
 
+                    </DialogContent>
+                </Dialog>
+
+                {/* add rate dilog  */}
+                <Dialog open={openConfirmRateDialog} onClose={handleCloseConfirmRateDilog} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleCloseConfirmRateDilog();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '1545px',
+                            height: 'auto',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirmRateDilog} />
                     </DialogContent>
                 </Dialog>
 

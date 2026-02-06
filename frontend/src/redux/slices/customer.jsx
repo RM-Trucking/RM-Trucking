@@ -200,31 +200,62 @@ const slice = createSlice({
       state.isLoading = false;
       state.stationTabTableData = [
         {
-          rateID: "RID10002",
-          origin: "ORD",
-          originZipCode: "10001, 10002",
-          destination: "Los Angeles",
-          destinationZipCode: "90001, 90002",
-          minRate: "$25.50",
-          rateLB: "$25.50",
-          maxRate: "$25.50",
-          expiryDate: "01-30-2026"
+          rateId: 1,
+          origin: 'ORD',
+          originZipCode: '60501',
+          destination: 'Ankeny',
+          destinationZipCode: '50007',
+          customers: 26,
+          status: 'Y',
+          min: '100',
+          rate100: '100',
+          rate1000: '1000',
+          rate3000: '3000',
+          rate5000: '5000',
+          rate10000: '10000',
+          max: '10000',
+          expiryDate: '12-30-2026',
         },
         {
-          rateID: "RID10005",
-          origin: "ORD",
-          originZipCode: "10001, 10002",
-          destination: "Los Angeles",
-          destinationZipCode: "90001, 90002",
-          minRate: "$25.50",
-          rateLB: "$25.50",
-          maxRate: "$25.50",
-          expiryDate: "01-30-2026"
+          rateId: 2,
+          origin: 'ORD',
+          originZipCode: '60501',
+          destination: 'Ankeny',
+          destinationZipCode: '50007',
+          customers: 26,
+          status: 'Y',
+          min: '100',
+          rate100: '100',
+          rate1000: '1000',
+          rate3000: '3000',
+          rate5000: '5000',
+          rate10000: '10000',
+          max: '10000',
+          expiryDate: '12-30-2026',
+        },
+        {
+          rateId: 3,
+          origin: 'ORD',
+          originZipCode: '60501',
+          destination: 'Ankeny',
+          destinationZipCode: '50007',
+          customers: 26,
+          status: 'Y',
+          min: '100',
+          rate100: '100',
+          rate1000: '1000',
+          rate3000: '3000',
+          rate5000: '5000',
+          rate10000: '10000',
+          max: '10000',
+          expiryDate: '12-30-2026',
         },
       ];
-      for (let i = 0; i < state.checkedRates.length; i++) {
-        state.stationTabTableData.push(state.checkedRates[i]);
-      }
+      // if (state.checkedRates.length > 0) {
+      //   for (let i = 0; i < state.checkedRates.length; i++) {
+      //     state.stationTabTableData.push(state.checkedRates[i]);
+      //   }
+      // }
     },
 
     // accessorial
@@ -269,7 +300,7 @@ const slice = createSlice({
       console.log('Setting station rate data in customer slice:', action.payload);
       if (action.payload.checked) {
         state.checkedRates.push({
-          rateID: action.payload.row.rateID,
+          rateID: action.payload.row.rateId,
           origin: action.payload.row.origin,
           originZipCode: action.payload.row.originZipCode,
           destination: action.payload.row.destination,

@@ -14,6 +14,7 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { postZoneData, putZoneData } from '../../redux/slices/zone';
+import Iconify from '../../components/iconify';
 
 ZoneDetails.propTypes = {
     type: PropTypes.string,
@@ -81,6 +82,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Zone Details</Typography>
+                    {type === 'View' && <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />}
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>

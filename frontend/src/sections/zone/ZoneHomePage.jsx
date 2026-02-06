@@ -6,6 +6,7 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 
 // shared components
+import { useDispatch } from '../../redux/store';
 import ErrorFallback from '../shared/ErrorBoundary';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
@@ -15,6 +16,7 @@ import { setSelectedZoneRowDetails } from '../../redux/slices/zone';
 // ----------------------------------------------------------------
 
 export default function ZoneHomePage() {
+  const dispatch = useDispatch();
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const logError = (error, info) => {
     // Use an error reporting service here

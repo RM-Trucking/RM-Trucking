@@ -596,7 +596,7 @@ export function getAccessorialData() {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get('maintenance/accessorial');
+      const response = await axios.get('/maintenance/accessorial/dropdown');
       dispatch(slice.actions.getAccessorialDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));

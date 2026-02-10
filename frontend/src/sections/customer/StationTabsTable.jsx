@@ -302,38 +302,22 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         {
             field: "rates",
             headerName: "Rates",
-            minWidth: 200,
+            minWidth: 300,
             minHeight: 200,
             flex: 1,
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
                         </Stack>
                     </Stack>

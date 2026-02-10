@@ -36,10 +36,10 @@ export default function StationTabs({ }) {
             value: 'personnel',
             label: 'Personnel',
         },
-        // {
-        //     value: 'rate',
-        //     label: 'Rate',
-        // },
+        {
+            value: 'rate',
+            label: 'Rate',
+        },
         {
             value: 'accessorial',
             label: 'Accessorial',
@@ -65,6 +65,9 @@ export default function StationTabs({ }) {
         console.log('new tab value', newValue);
         dispatch(setStationCurrentTab(newValue));
         dispatch(setStationTabTableData([]));
+        if (newValue === 'rate') {
+            dispatch(setCurrentRateTab('warehouse'));
+        }
     }
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -162,9 +165,6 @@ export default function StationTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    // depending on which rate to create we can enable this
-                                    // here I have to update this data on both customer rate table and rate slice (on rate slice it will be done by call)
-                                    dispatch(setCurrentRateTab('transportation'));
                                     setOpenConfirmRateDialog(true);
                                 }}
                                 sx={{

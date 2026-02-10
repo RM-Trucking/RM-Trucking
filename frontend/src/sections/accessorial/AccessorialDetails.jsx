@@ -40,7 +40,7 @@ export default function AccessorialDetails({ type, handleCloseConfirm, selectedA
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         let obj = {
-            "accessorialName": data.zone,
+            "accessorialName": data.accessorialName,
         }
         if (type === 'Add') {
             dispatch(postAccessorialData(obj));

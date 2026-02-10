@@ -1,19 +1,33 @@
 import { useState, useEffect } from 'react';
 import {
-  Box, Typography
+  Box, Typography, Dialog,
+  DialogContent
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 
 // shared components
 import ErrorFallback from '../shared/ErrorBoundary';
+import { useDispatch, useSelector } from '../../redux/store';
+import SharedHomePageHeader from '../shared/SharedHomepageHeader';
+import SharedSearchField from '../shared/SharedSearchField';
+import { setSelectedCarrierRowDetails } from '../../redux/slices/carrier';
 
 // ----------------------------------------------------------------
 
 export default function CarrierHomePage() {
+  const dispatch = useDispatch();
+  const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const logError = (error, info) => {
     // Use an error reporting service here
     console.error("Error caught:", info);
     console.log(error);
+  };
+  const onClickOfNewCarrier = () => {
+    dispatch(setSelectedCarrierRowDetails({}));
+    setOpenConfirmDialog(true);
+  }
+  const handleCloseConfirm = () => {
+    setOpenConfirmDialog(false);
   };
   return (
     <>
@@ -25,9 +39,28 @@ export default function CarrierHomePage() {
           console.log("Error boundary reset triggered");
         }}
       >
-        <Box sx={{ p: 3 }}>
-          hi
+        <Box>
+          <SharedHomePageHeader title="Carrier Maintenance" buttonText='New Carrier' onButtonClick={onClickOfNewCarrier} />
+          <SharedSearchField page="carrier" />
         </Box>
+        <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            handleCloseConfirm();
+          }
+        }}
+          sx={{
+            '& .MuiDialog-paper': { // Target the paper class
+              width: '1543px',
+              height: '520px',
+              maxHeight: 'none',
+              maxWidth: 'none',
+            }
+          }}
+        >
+          <DialogContent>
+            Carrier dialog details
+          </DialogContent>
+        </Dialog>
       </ErrorBoundary>
     </>
   );

@@ -391,7 +391,7 @@ export default function CustomerViewStationTable() {
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
                     width: (openNotesDilog) ? "1000px" : '1545px',
-                    height: (openNotesDilog) ? '720px' : '550px',
+                    height: (openNotesDilog) ? '80%' : '70%',
                     maxHeight: 'none',
                     maxWidth: 'none',
                 }

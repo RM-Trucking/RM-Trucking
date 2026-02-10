@@ -1,11 +1,34 @@
+import { useState, useEffect } from 'react';
+import {
+  Box, Typography
+} from '@mui/material';
+import { ErrorBoundary } from 'react-error-boundary';
 
-// ----------------------------------------------------------------------
+// shared components
+import ErrorFallback from '../shared/ErrorBoundary';
+
+// ----------------------------------------------------------------
 
 export default function CarrierHomePage() {
+  const logError = (error, info) => {
+    // Use an error reporting service here
+    console.error("Error caught:", info);
+    console.log(error);
+  };
   return (
     <>
-      Carrier Maintenance section
-      hi
+      <ErrorBoundary
+        FallbackComponent={ErrorFallback}
+        onError={logError}
+        onReset={() => {
+          // Optional: reset app state here if necessary before retry
+          console.log("Error boundary reset triggered");
+        }}
+      >
+        <Box sx={{ p: 3 }}>
+          hi
+        </Box>
+      </ErrorBoundary>
     </>
   );
 }

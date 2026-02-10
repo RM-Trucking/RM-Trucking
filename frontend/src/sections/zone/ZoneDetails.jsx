@@ -155,7 +155,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                        <Controller
+                        {/* <Controller
                             name="rangeZipCodes"
                             control={control}
                             defaultValue={[]}
@@ -163,13 +163,75 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 validate: (value) => {
                                     if (!value || value.length === 0) return true;
                                     for (let range of value) {
-                                        if (!/^\d{5}-\d{5}$/.test(range)) return `Invalid format: ${range}`;
+                                        const match = range.match(/^(\d{3})\d{2}-(\d{3})\d{2}$/);
+                                        if (!match) return `Invalid format: ${range}`;
+                                        const [, prefix1, prefix2] = match;
+                                        if (prefix1 !== prefix2) return `Prefix mismatch: ${range}`;
                                     }
                                     return true;
                                 }
                             }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => {
                                 const [typedText, setTypedText] = useState("");
+                                const [localError, setLocalError] = useState("");
+
+                                const handleInputChange = (newInputValue) => {
+                                    let val = newInputValue.replace(/[^\d-]/g, '');
+
+                                    // Auto-fill prefix after hyphen
+                                    if (val.length === 6 && !val.includes('-')) {
+                                        const prefix = val.substring(0, 3);
+                                        val = val.slice(0, 5) + '-' + prefix + val.slice(5);
+                                    } else if (val.endsWith('-') && val.length === 6) {
+                                        const prefix = val.substring(0, 3);
+                                        val = val + prefix;
+                                    }
+
+                                    if (val.length <= 11) setTypedText(val);
+                                };
+
+                                const handleKeyDown = (event) => {
+                                    const { selectionStart, selectionEnd } = event.target;
+
+                                    // 1. BLOCK DELETION OF AUTO-PREFIX
+                                    // The prefix occupies indices 6, 7, and 8 (e.g., "12345-123")
+                                    if (typedText.includes('-')) {
+                                        const hyphenIndex = typedText.indexOf('-');
+                                        const prefixEndIndex = hyphenIndex + 4; // hyphen + 3 digits
+
+                                        if (event.key === 'Backspace') {
+                                            // Prevent backspace if it would delete chars in the prefix (indices hyphen+1 to hyphen+3)
+                                            if (selectionStart > hyphenIndex + 1 && selectionStart <= prefixEndIndex && selectionStart === selectionEnd) {
+                                                event.preventDefault();
+                                                return;
+                                            }
+                                        }
+
+                                        if (event.key === 'Delete') {
+                                            // Prevent delete if it targets the prefix
+                                            if (selectionStart >= hyphenIndex + 1 && selectionStart < prefixEndIndex) {
+                                                event.preventDefault();
+                                                return;
+                                            }
+                                        }
+                                    }
+
+                                    // 2. HANDLE CHIP CREATION
+                                    if (event.key === ',' || event.key === 'Enter') {
+                                        event.preventDefault();
+                                        const parts = typedText.split('-');
+                                        const isValid = /^\d{5}-\d{5}$/.test(typedText);
+                                        const match = parts[0]?.substring(0, 3) === parts[1]?.substring(0, 3);
+
+                                        if (isValid && match) {
+                                            if (!value.includes(typedText)) onChange([...value, typedText]);
+                                            setTypedText("");
+                                            setLocalError("");
+                                        } else {
+                                            setLocalError("Invalid range or prefix mismatch");
+                                        }
+                                    }
+                                };
 
                                 return (
                                     <Autocomplete
@@ -182,26 +244,8 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         onChange={(event, newValue) => onChange(newValue)}
                                         inputValue={typedText}
                                         onInputChange={(event, newInputValue, reason) => {
-                                            if (reason === 'input') {
-                                                let val = newInputValue.replace(/[^\d-]/g, '');
-                                                if (val.length >= 6 && !val.includes('-')) {
-                                                    val = val.slice(0, 5) + '-' + val.slice(5);
-                                                }
-                                                if (val.length <= 11) setTypedText(val);
-                                            } else {
-                                                setTypedText("");
-                                            }
-                                        }}
-                                        onKeyDown={(event) => {
-                                            if (event.key === ',' || event.key === 'Enter') {
-                                                event.preventDefault();
-                                                if (/^\d{5}-\d{5}$/.test(typedText)) {
-                                                    if (!value.includes(typedText)) {
-                                                        onChange([...value, typedText]);
-                                                    }
-                                                    setTypedText("");
-                                                }
-                                            }
+                                            if (reason === 'input') handleInputChange(newInputValue);
+                                            else { setTypedText(""); setLocalError(""); }
                                         }}
                                         renderTags={(tagValue, getTagProps) =>
                                             tagValue.map((option, index) => {
@@ -230,17 +274,130 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                                 fullWidth
                                                 rows={4}
                                                 label="Range Zipcode"
-                                                variant="outlined"
-                                                error={!!error}
-                                                helperText={error?.message || "Format: 12345-67890"}
+                                                onKeyDown={handleKeyDown} // Use the new handler here
+                                                error={!!error || !!localError}
+                                                helperText={localError || error?.message || "Example: 45236-45296"}
                                             />
                                         )}
                                     />
                                 );
                             }}
+                        /> */}
+                        <Controller
+                            name="rangeZipCodes"
+                            control={control}
+                            defaultValue={[]}
+                            rules={{
+                                validate: (value) => {
+                                    if (!value || value.length === 0) return true;
+                                    for (let range of value) {
+                                        const match = range.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
+                                        if (!match) return `Invalid format: ${range}`;
+                                        const [, p1, s1, p2, s2] = match;
+                                        if (p1 !== p2) return `Prefix mismatch: ${range}`;
+                                        if (parseInt(s2) <= parseInt(s1)) return `End (${s2}) must be > Start (${s1})`;
+                                    }
+                                    return true;
+                                }
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => {
+                                const [typedText, setTypedText] = useState("");
+                                const [localError, setLocalError] = useState("");
+
+                                const handleInputChange = (newInputValue) => {
+                                    let val = newInputValue.replace(/[^\d-]/g, '');
+
+                                    // 1. Auto-fill Prefix Logic
+                                    if (val.length === 6 && !val.includes('-')) {
+                                        val = val.slice(0, 5) + '-' + val.slice(0, 3) + val.slice(5);
+                                    } else if (val.endsWith('-') && val.length === 6) {
+                                        val = val + val.substring(0, 3);
+                                    }
+
+                                    // 2. Real-time Suffix Validation (indices 3-5 and 9-11)
+                                    if (val.length === 11) {
+                                        const parts = val.split('-');
+                                        const s1 = parseInt(parts[0].substring(3));
+                                        const s2 = parseInt(parts[1].substring(3));
+
+                                        if (s2 <= s1) {
+                                            setLocalError(`Invalid: ${s2} must be greater than ${s1}`);
+                                        } else {
+                                            setLocalError("");
+                                        }
+                                    } else {
+                                        // Keep error visible if they are mid-correction at 11 chars
+                                        if (val.length < 11) setLocalError("");
+                                    }
+
+                                    if (val.length <= 11) setTypedText(val);
+                                };
+
+                                const handleKeyDown = (event) => {
+                                    const { selectionStart, selectionEnd } = event.target;
+
+                                    // Lock auto-prefix
+                                    if (typedText.includes('-')) {
+                                        const hyphenIndex = typedText.indexOf('-');
+                                        if (event.key === 'Backspace' && selectionStart > hyphenIndex + 1 && selectionStart <= hyphenIndex + 4 && selectionStart === selectionEnd) {
+                                            event.preventDefault(); return;
+                                        }
+                                    }
+
+                                    // Add Chip Logic
+                                    if (event.key === ',' || event.key === 'Enter') {
+                                        event.preventDefault();
+                                        const match = typedText.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
+
+                                        if (match) {
+                                            const [, p1, s1, p2, s2] = match;
+                                            if (p1 === p2 && parseInt(s2) > parseInt(s1)) {
+                                                if (!value.includes(typedText)) onChange([...value, typedText]);
+                                                setTypedText("");
+                                                setLocalError("");
+                                            } else if (p1 !== p2) {
+                                                setLocalError("Prefix mismatch!");
+                                            } else {
+                                                setLocalError(`Range Error: ${s2} is not > ${s1}`);
+                                            }
+                                        } else if (typedText !== "") {
+                                            setLocalError("Incomplete range format");
+                                        }
+                                    }
+                                };
+
+                                return (
+                                    <Autocomplete
+                                        multiple
+                                        freeSolo
+                                        fullWidth
+                                        options={[]}
+                                        value={value || []}
+                                        disabled={type === 'View'}
+                                        onChange={(event, newValue) => onChange(newValue)}
+                                        inputValue={typedText}
+                                        onInputChange={(event, newInput, reason) => {
+                                            if (reason === 'input') handleInputChange(newInput);
+                                            else if (reason === 'clear') { setTypedText(""); setLocalError(""); }
+                                        }}
+                                        renderInput={(params) => (
+                                            <StyledTextField
+                                                {...params}
+                                                multiline
+                                                fullWidth
+                                                rows={4}
+                                                label="Range Zipcode"
+                                                onKeyDown={handleKeyDown}
+                                                // Ensure localError triggers the red border and text
+                                                error={!!localError || !!error}
+                                                helperText={localError || error?.message || "Example: 45236-45296"}
+                                            />
+                                        )}
+                                    // ... rest of your renderTags logic
+                                    />
+                                );
+                            }}
                         />
-
-
                         <Controller
                             name="notes"
                             control={control}

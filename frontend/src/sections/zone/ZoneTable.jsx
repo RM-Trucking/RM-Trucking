@@ -72,7 +72,7 @@ export default function ZoneTable() {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
                         {params.row.ranges?.map((range, index) => (
-                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)' }} />
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt:'2px !important',mb:'2px !important' }} />
                         ))}
                         <Typography variant="normal">
                             {params.row.zipCodes?.join(", ")}
@@ -88,14 +88,14 @@ export default function ZoneTable() {
             width: 100,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width : "50px", pl: 0.5, height : '25px', mt: 1.2, pt:0.5}} alignItems={'flex-start'} 
+                    <Stack direction="row" spacing={1} sx={{ mb:0.5,flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width : "50px", pl: 0.5, height : '25px', mt: 1.2, pt:0.5}} alignItems={'flex-start'} 
                         onClick={() => {
                             setOpenRateDialog(true);
                             dispatch(setSelectedZoneRowDetails(params?.row));
                         }}
                     >
                         <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
-                        <Typography variant="normal" sx={{ height : '25px', mt : '-15px !important' }}>
+                        <Typography variant="normal" sx={{ height : '25px' }}>
                             06
                         </Typography>
                     </Stack>
@@ -221,6 +221,7 @@ export default function ZoneTable() {
                 rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 autoHeight
                 pagination
+                getRowHeight={() => 'auto'}
             />
         </Box>
 

@@ -16,6 +16,7 @@ const initialState = {
     operationalMessage: '',
     selectedCarrierRowDetails: {},
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
+    currentCarrierTab : 'active',
 };
 
 const slice = createSlice({
@@ -46,6 +47,9 @@ const slice = createSlice({
         setOperationalMessage(state) {
             state.operationalMessage = '';
         },
+        setCurrentCarrierTab(state, action){
+            state.currentCarrierTab = action.payload;
+        },
         getCarrierDataSuccess(state,action){
             state.isLoading = false;
             state.carrierSuccess = true;
@@ -65,6 +69,7 @@ export const {
     setPaginationObject,
     setCarrierSearchStr,
     setSelectedCarrierRowDetails,
+    setCurrentCarrierTab,
 } = slice.actions;
 export default slice.reducer;
 

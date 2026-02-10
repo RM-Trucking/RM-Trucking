@@ -10,6 +10,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
+import CarrierTabs from './CarrierTabs';
 import { setSelectedCarrierRowDetails } from '../../redux/slices/carrier';
 
 // ----------------------------------------------------------------
@@ -41,6 +42,7 @@ export default function CarrierHomePage() {
       >
         <Box>
           <SharedHomePageHeader title="Carrier Maintenance" buttonText='New Carrier' onButtonClick={onClickOfNewCarrier} />
+          <CarrierTabs />
           <SharedSearchField page="carrier" />
         </Box>
         <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

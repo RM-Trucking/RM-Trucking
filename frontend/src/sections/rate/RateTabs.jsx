@@ -139,7 +139,7 @@ export default function RateTabs({ }) {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1545px',
-                            height: 'auto',
+                            height: '80%',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }

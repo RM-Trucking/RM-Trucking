@@ -130,31 +130,31 @@ export default function RateTable() {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>100:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>1000:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>3000:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>5000:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>10000:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
                         </Stack>
                     </Stack>
@@ -257,15 +257,15 @@ export default function RateTable() {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 1, mb: 1, }}>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Min</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Min</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.minRate}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Rate Per 100 LB</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
                         </Stack>
                         <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Max</Typography>
+                            <Typography variant="normal" sx={{ width: "130px" }}>Max</Typography>
                             <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.maxRate}</Typography>
                         </Stack>
                     </Stack>
@@ -480,7 +480,7 @@ export default function RateTable() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1545px',
-                            height: 'auto',
+                            height: '80%',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }

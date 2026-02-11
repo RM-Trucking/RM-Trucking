@@ -54,14 +54,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     });
     const customerData = [
         {
-            customerId : 1,
-            customerName : 'Liam Johnson',
-            stationName : 'Station 1'
+            customerId: 1,
+            customerName: 'Liam Johnson',
+            stationName: 'Station 1'
         },
         {
-            customerId : 2,
-            customerName : 'Emma Thompson',
-            stationName : 'Station 2'
+            customerId: 2,
+            customerName: 'Emma Thompson',
+            stationName: 'Station 2'
         }
     ]
 
@@ -143,7 +143,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4} sx={{ p: padding }}>
-                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={5} alignItems={'flex-end'} justifyContent={type === 'Search' ? 'flex-end' : '"flex-start"'}>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={'flex-end'} justifyContent={type === 'Search' ? 'flex-end' : '"flex-start"'}>
                         {currentTab === 'transportation' && <Controller
                             name="origin"
                             control={control}
@@ -154,9 +154,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     select
                                     label="Origin"
                                     variant="standard" fullWidth required
-                                    sx={{
-                                        width: '20%',
-                                    }}
                                     error={!!errors.origin} helperText={errors.origin?.message}
                                     disabled={type === 'View'}
                                 >
@@ -164,53 +161,92 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 </StyledTextField>
                             )}
                         />}
-                        {currentTab === 'transportation' && <Controller
-                            name="originZipCode"
-                            control={control}
-                            rules={{
-                                required: 'Origin Zip Code is required',
-                                validate: (value) => {
-                                    if (!value || value.trim().length === 0) return 'Origin Zip Code cannot be empty';
-                                    const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                                    const zipOrRangeRegex = /^(\d{5})(-\d{5})?$/;
-                                    return segments.every(s => zipOrRangeRegex.test(s)) || "Format: 12345 or 12345-67890";
-                                }
-                            }}
-                            render={({ field: { onChange, value, ...field } }) => (
-                                <StyledTextField
-                                    {...field}
-                                    value={value || ''}
-                                    label="Origin Zip Code"
-                                    variant="standard"
-                                    fullWidth
-                                    required
-                                    sx={{ width: '20%' }}
-                                    error={!!errors.originZipCode}
-                                    helperText={errors.originZipCode?.message}
-                                    onChange={(e) => {
-                                        let val = e.target.value.replace(/[^\d,-]/g, ''); // Numbers, hyphens, commas only
-                                        if (val.startsWith(' ')) return;
+                        {currentTab === 'transportation' &&
+                            <Controller
+                                name="originZipCode"
+                                control={control}
+                                rules={{
+                                    required: 'Origin Zip Code is required',
+                                    validate: (value) => {
+                                        if (!value || value.trim().length === 0) return 'Origin Zip Code cannot be empty';
+                                        const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
-                                        const segments = val.split(',');
-                                        const lastSegment = segments[segments.length - 1];
+                                        for (let s of segments) {
+                                            // Check general format
+                                            if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Format: 12345 or 12345-67890";
 
-                                        // AUTO-COMMA LOGIC
-                                        // 1. If last segment is a 5-digit zip code
-                                        const isFullZip = /^\d{5}$/.test(lastSegment);
-                                        // 2. If last segment is a full range (12345-67890)
-                                        const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
-
-                                        if ((isFullZip || isFullRange) && !e.target.value.endsWith(',')) {
-                                            val = val + ',';
+                                            // Range specific validation
+                                            if (s.includes('-')) {
+                                                const [start, end] = s.split('-');
+                                                if (start.substring(0, 3) !== end.substring(0, 3)) {
+                                                    return `Prefix mismatch in range: ${s}`;
+                                                }
+                                                if (parseInt(end.substring(3)) <= parseInt(start.substring(3))) {
+                                                    return `End range must be > start in: ${s}`;
+                                                }
+                                            }
                                         }
+                                        return true;
+                                    }
+                                }}
+                                render={({ field: { onChange, value, ...field } }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        value={value || ''}
+                                        label="Origin Zip Code"
+                                        variant="standard"
+                                        fullWidth
+                                        required
+                                        error={!!errors.originZipCode}
+                                        placeholder="12345, 67890-67895"
+                                        helperText={errors.originZipCode?.message}
+                                        onChange={(e) => {
+                                            let input = e.target.value.replace(/[^\d,-]/g, '');
+                                            if (input.startsWith(' ')) return;
 
-                                        onChange(val);
-                                    }}
-                                    disabled={type === 'View'}
-                                />
-                            )}
-                        />
+                                            let segments = input.split(',');
+                                            let lastIdx = segments.length - 1;
+                                            let lastSegment = segments[lastIdx];
 
+                                            // --- 1. AUTO-FILL PREFIX LOGIC ---
+                                            // If user types hyphen (e.g., 45236-) or starts 6th digit (e.g., 452361)
+                                            if (lastSegment.length === 6 && !lastSegment.includes('-')) {
+                                                const prefix = lastSegment.substring(0, 3);
+                                                segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
+                                            } else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
+                                                const prefix = lastSegment.substring(0, 3);
+                                                segments[lastIdx] = lastSegment + prefix;
+                                            }
+
+                                            // Re-join segments to check current state
+                                            let val = segments.join(',');
+
+                                            // --- 2. AUTO-COMMA LOGIC ---
+                                            const currentLast = segments[segments.length - 1];
+                                            const isFullZip = /^\d{5}$/.test(currentLast);
+                                            const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
+
+                                            // Add comma only if we just completed a valid entry and didn't have a comma
+                                            if ((isFullZip || isFullRange) && !input.endsWith(',')) {
+                                                // Check suffix math for ranges before adding comma
+                                                if (isFullRange) {
+                                                    const [start, end] = currentLast.split('-');
+                                                    if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
+                                                        val = val + ',';
+                                                    }
+                                                    // Note: If suffix is invalid, we don't add the comma, 
+                                                    // forcing the user to correct it or let 'rules' catch it.
+                                                } else {
+                                                    val = val + ',';
+                                                }
+                                            }
+
+                                            onChange(val);
+                                        }}
+                                        disabled={type === 'View'}
+                                    />
+                                )}
+                            />
                         }
                         {currentTab === 'transportation' && <Controller
                             name="destination"
@@ -222,9 +258,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     select
                                     label="Destination"
                                     variant="standard" fullWidth required
-                                    sx={{
-                                        width: '20%',
-                                    }}
                                     disabled={type === 'View'}
                                     error={!!errors.destination} helperText={errors.destination?.message}
                                 >
@@ -238,14 +271,27 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             rules={{
                                 required: 'Destination Zip Code is required',
                                 validate: (value) => {
-                                    // 1. Check for empty space or null
                                     if (!value || value.trim().length === 0) return 'Destination Zip Code cannot be empty';
 
-                                    // 2. Validate segments (single zip or range)
                                     const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-                                    const zipOrRangeRegex = /^(\d{5})(-\d{5})?$/;
 
-                                    return segments.every(s => zipOrRangeRegex.test(s)) || "Use format: 12345 or 12345-67890";
+                                    for (let s of segments) {
+                                        // 1. General Format Check
+                                        if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Use format: 12345 or 12345-67890";
+
+                                        // 2. Range Specific Validation (Prefix & Suffix)
+                                        if (s.includes('-')) {
+                                            const [start, end] = s.split('-');
+                                            const pref1 = start.substring(0, 3);
+                                            const pref2 = end.substring(0, 3);
+                                            const suff1 = parseInt(start.substring(3));
+                                            const suff2 = parseInt(end.substring(3));
+
+                                            if (pref1 !== pref2) return `Prefix mismatch in ${s} (Must start with ${pref1})`;
+                                            if (suff2 <= suff1) return `End range must be > ${suff1} in ${s}`;
+                                        }
+                                    }
+                                    return true;
                                 }
                             }}
                             render={({ field: { onChange, value, ...field } }) => (
@@ -257,34 +303,61 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     fullWidth
                                     required
                                     placeholder="12345, 67890-67895"
-                                    sx={{ width: '20%' }}
                                     error={!!errors.destinationZipCode}
                                     helperText={errors.destinationZipCode?.message}
                                     onChange={(e) => {
-                                        // Remove non-numeric, non-hyphen, non-comma characters
-                                        let val = e.target.value.replace(/[^\d,-]/g, '');
+                                        let input = e.target.value.replace(/[^\d,-]/g, '');
+                                        if (input.startsWith(' ')) return;
 
-                                        // Block leading space
-                                        if (val.startsWith(' ')) return;
+                                        let segments = input.split(',');
+                                        let lastIdx = segments.length - 1;
+                                        let lastSegment = segments[lastIdx];
 
-                                        const segments = val.split(',');
-                                        const lastSegment = segments[segments.length - 1];
+                                        // --- 1. AUTO-FILL PREFIX LOGIC ---
+                                        // If user types 6th digit (e.g. 452361 -> 45236-4521)
+                                        if (lastSegment.length === 6 && !lastSegment.includes('-')) {
+                                            const prefix = lastSegment.substring(0, 3);
+                                            segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
+                                        }
+                                        // If user types hyphen manually (e.g. 45236- -> 45236-452)
+                                        else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
+                                            const prefix = lastSegment.substring(0, 3);
+                                            segments[lastIdx] = lastSegment + prefix;
+                                        }
 
-                                        // AUTO-COMMA LOGIC
-                                        const isFullZip = /^\d{5}$/.test(lastSegment);
-                                        const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
+                                        let val = segments.join(',');
 
-                                        // Append comma if segment is complete and comma doesn't already exist
-                                        if ((isFullZip || isFullRange) && !e.target.value.endsWith(',')) {
-                                            val = val + ',';
+                                        // --- 2. SMART AUTO-COMMA LOGIC ---
+                                        const currentLast = segments[segments.length - 1];
+                                        const isFullZip = /^\d{5}$/.test(currentLast);
+                                        const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
+
+                                        if (!input.endsWith(',')) {
+                                            if (isFullZip) {
+                                                val = val + ',';
+                                            } else if (isFullRange) {
+                                                // Only add comma if suffix validation passes
+                                                const [start, end] = currentLast.split('-');
+                                                if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
+                                                    val = val + ',';
+                                                }
+                                            }
                                         }
 
                                         onChange(val);
                                     }}
                                     disabled={type === 'View'}
+                                    // sx={{
+                                    //     '& .MuiFormHelperText-root': {
+                                    //         position: 'absolute',
+                                    //         top: '-40px', // Adjust based on your label/spacing
+                                    //         margin: 0,
+                                    //     },
+                                    // }}
                                 />
                             )}
                         />
+
                         }
                         {
                             currentTab === 'warehouse' && (type === 'Add' || type === 'Edit' || type === 'Copy') && <Controller
@@ -417,11 +490,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             Search
                         </Button>}
                     </Stack>
-                    <Box sx={{ mt: 2 }}>
-                        {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <RateFieldAndChargeTableWarehouse type={type} />}
-                    </Box>
-                    <Box>
-                        {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Stack flexDirection={'row'} alignItems={'center'}>
+                    {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <Box sx={{ mt: '16px !important' }}>
+                        <RateFieldAndChargeTableWarehouse type={type} />
+                    </Box>}
+                    {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Box>
+                        <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
                                 <Button
@@ -488,9 +561,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     )}
                                 />
                             </Stack>
-                        </Stack>}
-                    </Box>
-                    {(type === 'Add' || type === 'Edit' || type === 'Copy') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                        </Stack>
+                    </Box>}
+                    {(type === 'Add' || type === 'Edit' || type === 'Copy') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: '32px !important' }}>
                         <Button
                             variant="outlined"
                             onClick={handleCloseConfirm}

@@ -251,7 +251,7 @@ export default function ZoneTable() {
             sx={{
                 '& .MuiDialog-paper': { // Target the paper class
                     width: '1543px',
-                    height: '600px',
+                    height: '80%',
                     maxHeight: 'none',
                     maxWidth: 'none',
                 }

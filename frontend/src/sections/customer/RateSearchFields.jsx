@@ -147,13 +147,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         {currentTab === 'transportation' && <Controller
                             name="origin"
                             control={control}
-                            rules={{ required: 'Origin is required' }}
+                            // rules={{ required: 'Origin is required' }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
                                     select
                                     label="Origin"
-                                    variant="standard" fullWidth required
+                                    variant="standard" fullWidth
                                     error={!!errors.origin} helperText={errors.origin?.message}
                                     disabled={type === 'View'}
                                 >
@@ -166,16 +166,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 name="originZipCode"
                                 control={control}
                                 rules={{
-                                    required: 'Origin Zip Code is required',
                                     validate: (value) => {
-                                        if (!value || value.trim().length === 0) return 'Origin Zip Code cannot be empty';
+                                        // 1. Allow empty value (Not Required)
+                                        if (!value || value.trim().length === 0) return true;
+
                                         const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
                                         for (let s of segments) {
-                                            // Check general format
+                                            // 2. Check general format if data exists
                                             if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Format: 12345 or 12345-67890";
 
-                                            // Range specific validation
+                                            // 3. Range specific validation
                                             if (s.includes('-')) {
                                                 const [start, end] = s.split('-');
                                                 if (start.substring(0, 3) !== end.substring(0, 3)) {
@@ -196,7 +197,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         label="Origin Zip Code"
                                         variant="standard"
                                         fullWidth
-                                        required
                                         error={!!errors.originZipCode}
                                         placeholder="12345, 67890-67895"
                                         helperText={errors.originZipCode?.message}
@@ -208,8 +208,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             let lastIdx = segments.length - 1;
                                             let lastSegment = segments[lastIdx];
 
-                                            // --- 1. AUTO-FILL PREFIX LOGIC ---
-                                            // If user types hyphen (e.g., 45236-) or starts 6th digit (e.g., 452361)
+                                            // --- AUTO-FILL PREFIX LOGIC ---
                                             if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                                 const prefix = lastSegment.substring(0, 3);
                                                 segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
@@ -218,24 +217,19 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                 segments[lastIdx] = lastSegment + prefix;
                                             }
 
-                                            // Re-join segments to check current state
                                             let val = segments.join(',');
 
-                                            // --- 2. AUTO-COMMA LOGIC ---
+                                            // --- AUTO-COMMA LOGIC ---
                                             const currentLast = segments[segments.length - 1];
                                             const isFullZip = /^\d{5}$/.test(currentLast);
                                             const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
 
-                                            // Add comma only if we just completed a valid entry and didn't have a comma
                                             if ((isFullZip || isFullRange) && !input.endsWith(',')) {
-                                                // Check suffix math for ranges before adding comma
                                                 if (isFullRange) {
                                                     const [start, end] = currentLast.split('-');
                                                     if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
                                                         val = val + ',';
                                                     }
-                                                    // Note: If suffix is invalid, we don't add the comma, 
-                                                    // forcing the user to correct it or let 'rules' catch it.
                                                 } else {
                                                     val = val + ',';
                                                 }
@@ -247,17 +241,19 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     />
                                 )}
                             />
+
                         }
                         {currentTab === 'transportation' && <Controller
                             name="destination"
                             control={control}
-                            rules={{ required: 'Destination is required' }}
+                            // rules={{ required: 'Destination is required' }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
                                     select
                                     label="Destination"
-                                    variant="standard" fullWidth required
+                                    variant="standard" fullWidth
+                                    // required
                                     disabled={type === 'View'}
                                     error={!!errors.destination} helperText={errors.destination?.message}
                                 >
@@ -269,17 +265,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             name="destinationZipCode"
                             control={control}
                             rules={{
-                                required: 'Destination Zip Code is required',
                                 validate: (value) => {
-                                    if (!value || value.trim().length === 0) return 'Destination Zip Code cannot be empty';
+                                    // 1. Allow empty value (Makes the field optional)
+                                    if (!value || value.trim().length === 0) return true;
 
                                     const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
                                     for (let s of segments) {
-                                        // 1. General Format Check
+                                        // 2. General Format Check (only if data exists)
                                         if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Use format: 12345 or 12345-67890";
 
-                                        // 2. Range Specific Validation (Prefix & Suffix)
+                                        // 3. Range Specific Validation (Prefix & Suffix)
                                         if (s.includes('-')) {
                                             const [start, end] = s.split('-');
                                             const pref1 = start.substring(0, 3);
@@ -301,7 +297,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     label="Destination Zip Code"
                                     variant="standard"
                                     fullWidth
-                                    required
                                     placeholder="12345, 67890-67895"
                                     error={!!errors.destinationZipCode}
                                     helperText={errors.destinationZipCode?.message}
@@ -313,13 +308,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         let lastIdx = segments.length - 1;
                                         let lastSegment = segments[lastIdx];
 
-                                        // --- 1. AUTO-FILL PREFIX LOGIC ---
-                                        // If user types 6th digit (e.g. 452361 -> 45236-4521)
+                                        // --- AUTO-FILL PREFIX LOGIC ---
                                         if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
                                         }
-                                        // If user types hyphen manually (e.g. 45236- -> 45236-452)
                                         else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment + prefix;
@@ -327,7 +320,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                         let val = segments.join(',');
 
-                                        // --- 2. SMART AUTO-COMMA LOGIC ---
+                                        // --- SMART AUTO-COMMA LOGIC ---
                                         const currentLast = segments[segments.length - 1];
                                         const isFullZip = /^\d{5}$/.test(currentLast);
                                         const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
@@ -336,7 +329,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             if (isFullZip) {
                                                 val = val + ',';
                                             } else if (isFullRange) {
-                                                // Only add comma if suffix validation passes
                                                 const [start, end] = currentLast.split('-');
                                                 if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
                                                     val = val + ',';
@@ -347,16 +339,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         onChange(val);
                                     }}
                                     disabled={type === 'View'}
-                                    // sx={{
-                                    //     '& .MuiFormHelperText-root': {
-                                    //         position: 'absolute',
-                                    //         top: '-40px', // Adjust based on your label/spacing
-                                    //         margin: 0,
-                                    //     },
-                                    // }}
                                 />
                             )}
                         />
+
 
                         }
                         {
@@ -504,7 +490,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         height: '30px',
                                         fontWeight: 600,
                                         color: '#fff',
-                                        width: '25%',
+                                        width: '50%',
                                         textTransform: 'none', // Prevent uppercase styling
                                         '&.MuiButton-outlined': {
                                             borderRadius: '4px',

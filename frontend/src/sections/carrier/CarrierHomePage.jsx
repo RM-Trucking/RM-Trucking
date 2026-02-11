@@ -13,6 +13,7 @@ import SharedSearchField from '../shared/SharedSearchField';
 import CarrierTabs from './CarrierTabs';
 import { setSelectedCarrierRowDetails } from '../../redux/slices/carrier';
 import CarrierTable from './CarrierTable';
+import CarrierDetails from './CarrierDetails';
 
 // ----------------------------------------------------------------
 
@@ -62,7 +63,7 @@ export default function CarrierHomePage() {
           }}
         >
           <DialogContent>
-            Carrier dialog details
+            <CarrierDetails type='Add' handleCloseConfirm={handleCloseConfirm}/>
           </DialogContent>
         </Dialog>
       </ErrorBoundary>

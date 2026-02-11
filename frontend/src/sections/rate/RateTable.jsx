@@ -185,6 +185,8 @@ export default function RateTable() {
             width: 300,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable : false,
+            filterable : false,
             renderCell: (params) => {
                 const element = (
                     <Box

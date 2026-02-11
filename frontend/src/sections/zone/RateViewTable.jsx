@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Box, Typography, Chip, Stack, Divider, Dialog, DialogContent, Snackbar
+    Box, Typography, Chip, Stack, Divider, Tooltip, DialogContent, Snackbar
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -13,6 +14,8 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
+import { PATH_DASHBOARD } from '../../routes/paths';
+import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
 
 // ----------------------------------------------------------------
 RateViewTable.propTypes = {
@@ -20,6 +23,7 @@ RateViewTable.propTypes = {
 };
 
 export default function RateViewTable({ rateDataArr }) {
+    const navigate = useNavigate();
     const [rateData, setrateData] = useState(rateDataArr);
     const dispatch = useDispatch();
     const logError = (error, info) => {
@@ -161,6 +165,36 @@ export default function RateViewTable({ rateDataArr }) {
                 </Box>
             }
         },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable : false,
+            filterable : false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                            }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        }
     ];
 
     useEffect(() => {

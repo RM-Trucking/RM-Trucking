@@ -16,6 +16,7 @@ import { setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage, de
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
+import CarrierDetails from './CarrierDetails';
 
 // ----------------------------------------------------------------
 
@@ -639,14 +640,14 @@ export default function RateTable() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1545px',
-                            height: 'auto',
+                            height: '520px',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }
                     }}
                 >
                     <DialogContent>
-                        Edit details
+                        <CarrierDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCarrierRowDetails={selectedCarrierRowDetails}/>
                     </DialogContent>
                 </Dialog>
 

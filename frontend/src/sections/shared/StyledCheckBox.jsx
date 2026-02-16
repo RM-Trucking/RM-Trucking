@@ -14,6 +14,15 @@ const StyledCheckbox = styled(Checkbox)({
   '&.Mui-focusVisible': {
     boxShadow: '0 0 0 2px #00194c',
   },
+   // --- ADD THIS SECTION FOR THE DISABLED RED STATE ---
+  '&.Mui-disabled': {
+    color: '#000', // Makes the unchecked box red
+    opacity: 1,    // Removes the default faded/grey look
+  },
+  
+  '&.Mui-checked.Mui-disabled': {
+    color: '#000', // Makes the checkmark and box red when checked AND disabled
+  },
 });
 
 export default StyledCheckbox;

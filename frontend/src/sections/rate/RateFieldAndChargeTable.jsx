@@ -45,7 +45,7 @@ export default function RateFieldAndChargeTable({ type }) {
     const columns = [
         {
             field: 'rateField',
-            headerName: 'Rate Field',
+            headerName: 'Weight Break in Pounds',
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
@@ -132,7 +132,7 @@ export default function RateFieldAndChargeTable({ type }) {
         },
         {
             field: 'charge',
-            headerName: 'Charges ($/lb)',
+            headerName: 'Rate (per 100 lbs)',
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',

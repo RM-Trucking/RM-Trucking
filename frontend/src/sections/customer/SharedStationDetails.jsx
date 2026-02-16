@@ -663,6 +663,17 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     sx={{
                                         width: '25%',
                                         display: 'flex', alignItems: 'flex-end',
+                                        // 1. Target the Label specifically when disabled
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'black', // Change to '#00194c' if you want it to match the checkbox
+                                            opacity: 1,      // Removes the "light/faded" look
+                                            WebkitTextFillColor: 'black', // Fix for Safari/Chrome
+                                        },
+                                        // 2. Ensure the Checkbox within the label is also red when disabled
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                        }
                                     }}
                                     control={<StyledCheckbox checked={!!value}
                                         onChange={(e) => {

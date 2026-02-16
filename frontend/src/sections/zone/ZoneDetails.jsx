@@ -244,6 +244,35 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                             if (reason === 'input') handleInputChange(newInput);
                                             else if (reason === 'clear') { setTypedText(""); setLocalError(""); }
                                         }}
+                                        sx={{
+                                            // 1. Style the Chips (Tags) when disabled
+                                            "& .MuiChip-root.Mui-disabled": {
+                                                color: "#00",
+                                                borderColor: "#000",
+                                                opacity: 1, // Remove default fading
+                                                "& .MuiChip-deleteIcon": {
+                                                    display: 'none' // Hide delete 'x' when disabled
+                                                }
+                                            },
+                                            // 2. Style the Label when disabled
+                                            "& .MuiInputLabel-root.Mui-disabled": {
+                                                color: "#000",
+                                            },
+                                            // 3. Style the Input Text (if any) when disabled
+                                            "& .MuiInputBase-input.Mui-disabled": {
+                                                WebkitTextFillColor: "#000",
+                                                color: "#000",
+                                            },
+                                            // 4. Style the border/underline when disabled
+                                            "& .MuiInput-underline.Mui-disabled:before": {
+                                                borderBottomColor: "#000 !important",
+                                                borderBottomStyle: "solid",
+                                            },
+                                            // If using 'outlined' variant, use this instead:
+                                            "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
+                                                borderColor: "#000",
+                                            }
+                                        }}
                                         renderInput={(params) => (
                                             <StyledTextField
                                                 {...params}

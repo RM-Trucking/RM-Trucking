@@ -256,7 +256,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             }}
                         />
 
-
                         <Controller
                             name="carrierStatus"
                             control={control}
@@ -627,7 +626,21 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     control={control}
                                     render={({ field: { onChange, value } }) => (
                                         <FormControlLabel
-                                            sx={{ alignItems: 'flex-end' }}
+
+                                            sx={{
+                                                alignItems: 'flex-end',
+                                                // 1. Target the Label specifically when disabled
+                                                "& .MuiFormControlLabel-label.Mui-disabled": {
+                                                    color: 'black', // Change to '#00194c' if you want it to match the checkbox
+                                                    opacity: 1,      // Removes the "light/faded" look
+                                                    WebkitTextFillColor: 'black', // Fix for Safari/Chrome
+                                                },
+                                                // 2. Ensure the Checkbox within the label is also red when disabled
+                                                "& .MuiCheckbox-root.Mui-disabled": {
+                                                    color: 'black',
+                                                    opacity: 1,
+                                                }
+                                            }}
                                             control={
                                                 <StyledCheckbox
                                                     checked={!!value}
@@ -681,12 +694,12 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         />
                                     )}
                                 />
-                                
+
                                 <Controller
                                     name="mcNo"
                                     control={control}
                                     rules={{
-                                         required: 'MC No is required',
+                                        required: 'MC No is required',
                                         pattern: {
                                             // Added ^$| to allow empty values, otherwise check the MC format
                                             value: /^$|^(MC|FF|MX)\d{5,7}$/i,
@@ -747,7 +760,28 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                                         error: !!error,
                                                         helperText: error ? error.message : '',
                                                         sx: { ml: 2 },
-                                                        InputLabelProps: { shrink: true }, 
+                                                        InputLabelProps: { shrink: true },
+                                                        sx: {
+                                                            ml: 2,
+                                                            // 1. Style the Input Text when disabled
+                                                            "& .MuiInputBase-input.Mui-disabled": {
+                                                                WebkitTextFillColor: "#000",
+                                                                color: "#000",
+                                                            },
+                                                            // 2. Style the Label when disabled
+                                                            "& .MuiInputLabel-root.Mui-disabled": {
+                                                                color: "#000",
+                                                            },
+                                                            // 3. Style the Bottom Underline when disabled
+                                                            "& .MuiInput-underline.Mui-disabled:before": {
+                                                                borderBottomColor: "#000 !important",
+                                                                borderBottomStyle: "solid",
+                                                            },
+                                                            // 4. Style the Calendar Icon when disabled
+                                                            "& .MuiIconButton-root.Mui-disabled": {
+                                                                color: "#000",
+                                                            }
+                                                        }
                                                     }
                                                 }}
                                                 disabled={type === 'View'}
@@ -784,7 +818,28 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                                         error: !!error,
                                                         helperText: error ? error.message : '',
                                                         sx: { ml: 2 },
-                                                        InputLabelProps: { shrink: true }, 
+                                                        InputLabelProps: { shrink: true },
+                                                        sx: {
+                                                            ml: 2,
+                                                            // 1. Style the Input Text when disabled
+                                                            "& .MuiInputBase-input.Mui-disabled": {
+                                                                WebkitTextFillColor: "#000",
+                                                                color: "#000",
+                                                            },
+                                                            // 2. Style the Label when disabled
+                                                            "& .MuiInputLabel-root.Mui-disabled": {
+                                                                color: "#000",
+                                                            },
+                                                            // 3. Style the Bottom Underline when disabled
+                                                            "& .MuiInput-underline.Mui-disabled:before": {
+                                                                borderBottomColor: "#000 !important",
+                                                                borderBottomStyle: "solid",
+                                                            },
+                                                            // 4. Style the Calendar Icon when disabled
+                                                            "& .MuiIconButton-root.Mui-disabled": {
+                                                                color: "#000",
+                                                            }
+                                                        }
                                                     }
                                                 }}
                                                 disabled={type === 'View'}
@@ -798,7 +853,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
                     <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                         {
-                            type === 'View' && <fieldset style={{marginRight : '15px'}}>
+                            type === 'View' && <fieldset style={{ marginRight: '15px' }}>
                                 <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Quality &nbsp;</Typography></legend>
                                 <Stack flexDirection={'column'}>
                                     <Stack flexDirection={'row'} alignItems={'center'}>
@@ -816,7 +871,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 </Stack>
                             </fieldset>
                         }
-                        <fieldset style={{ width: '100%',padding : '12px' }}>
+                        <fieldset style={{ width: '100%', padding: '12px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Sales Rep Info &nbsp;</Typography></legend>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pb: 2 }}>
                                 <Controller

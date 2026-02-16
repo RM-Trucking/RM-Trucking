@@ -14,6 +14,19 @@ const StyledTextField = styled(TextField)({
   '& .MuiInput-underline:hover:not(.Mui-disabled):before': {
     borderBottomColor: 'rgba(107, 107, 107, 1)',
   },
+
+  "& .MuiInputBase-input.Mui-disabled": {
+    WebkitTextFillColor: "#000", // Required for Safari/Chrome
+    color: "#000",
+  },
+  "& .MuiInputLabel-root.Mui-disabled": {
+    color: "#000",
+  },
+  "& .MuiInput-underline.Mui-disabled:before": {
+    borderBottomStyle: "solid", // Keeps the line visible
+    borderBottomColor: "#000",
+  }
+
 });
 
 export default StyledTextField;

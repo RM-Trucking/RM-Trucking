@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Button,
     Box,
@@ -15,6 +16,7 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { postZoneData, putZoneData } from '../../redux/slices/zone';
 import Iconify from '../../components/iconify';
+import { PATH_DASHBOARD } from '../../routes/paths';
 
 ZoneDetails.propTypes = {
     type: PropTypes.string,
@@ -24,6 +26,7 @@ ZoneDetails.propTypes = {
 
 export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowDetails }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const operationalMessage = useSelector((state) => state?.zonedata?.operationalMessage);
     const isLoading = useSelector((state) => state?.zonedata?.isLoading);
     const [openConfirmDialog, setopenConfirmDialog] = useState(false);
@@ -463,6 +466,31 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             }}
                         >
                             Cancel
+                        </Button>
+                        <Button
+                            variant="contained"
+                            // on click it have to open a new page with the list of zones and their details where this zip code is present. For now it will just close the dialog.
+                            onClick={(e) => {
+                                // get the api details
+                                // Replace with your actual route path
+                                window.open(PATH_DASHBOARD.maintenance.zoneMaintenance, '_blank');
+                                e.stopPropagation(); // Stops the popup from auto-closing
+                            }}
+                            size="small"
+                            sx={{
+                                '&.MuiButton-contained': {
+                                    borderRadius: '4px',
+                                    color: '#ffffff',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#A22',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                },
+                            }}
+                        >
+                            Zone List
                         </Button>
 
                         <Box>

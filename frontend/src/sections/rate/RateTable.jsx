@@ -201,6 +201,7 @@ export default function RateTable() {
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
+                                setActionType("View");
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
                             }} />
                         </Tooltip>
@@ -208,7 +209,8 @@ export default function RateTable() {
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
-                                setOpenConfirmDialog(false);
+                                setActionType("Edit");
+                                setOpenConfirmDialog(true);
                             }} />
                         </Tooltip>
 

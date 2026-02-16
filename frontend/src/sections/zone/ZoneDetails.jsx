@@ -99,20 +99,58 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         <Controller
                             name="zone"
                             control={control}
-                            rules={{ required: 'Zone Name is required' }}
-                            render={({ field }) => (
+                            rules={{
+                                required: 'Zone Name is required',
+                                pattern: {
+                                    value: /^[A-Z]{3}\d+$/,
+                                    message: 'Must be 3 letters followed by numbers (e.g., MKE999)'
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
                                 <StyledTextField
                                     {...field}
+                                    value={value}
                                     label="Zone Name"
-                                    variant="standard" fullWidth required
+                                    variant="standard"
+                                    fullWidth
+                                    required
                                     sx={{
                                         width: '25%',
+                                        // Red color logic for disabled state
+                                        "& .MuiInputBase-input.Mui-disabled": {
+                                            WebkitTextFillColor: "black",
+                                            color: "black",
+                                        },
+                                        "& .MuiInputLabel-root.Mui-disabled": {
+                                            color: "black",
+                                        }
                                     }}
-                                    error={!!errors.zone} helperText={errors.zone?.message}
+                                    error={!!errors.zone}
+                                    helperText={errors.zone?.message}
                                     disabled={type === 'View'}
+                                    onChange={(e) => {
+                                        let val = e.target.value.toUpperCase(); // Force uppercase
+
+                                        // 1. Remove any characters that aren't letters or numbers
+                                        val = val.replace(/[^A-Z0-9]/g, '');
+
+                                        // 2. Enforce logic: First 3 must be letters, rest must be numbers
+                                        if (val.length <= 3) {
+                                            // While typing the first 3, remove any digits
+                                            val = val.replace(/[0-9]/g, '');
+                                        } else {
+                                            // After the first 3, the remaining string must only be digits
+                                            const prefix = val.substring(0, 3).replace(/[0-9]/g, '');
+                                            const suffix = val.substring(3).replace(/[A-Z]/g, '');
+                                            val = prefix + suffix;
+                                        }
+
+                                        onChange(val);
+                                    }}
                                 />
                             )}
                         />
+
                         <Controller
                             name="individualZipCodes"
                             control={control}

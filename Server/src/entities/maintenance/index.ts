@@ -11,4 +11,5 @@ export * from './Note';
 export * from './Station';
 export * from './Department';
 export * from './CustomerPersonnel';
+export * from './CustomerRate';
 

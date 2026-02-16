@@ -1,0 +1,428 @@
+openapi: 3.0.0
+info:
+  title: Rate Module API
+  version: 1.0.0
+  description: CRUD APIs for Warehouse and Transport rates, plus Station Rate mapping.
+
+paths:
+  /api/maintenance/customer-rate/warehouse-rate:
+    post:
+      summary: Create a warehouse rate
+      tags: [Warehouse Rate]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateWarehouseRateRequest"
+      responses:
+        "201":
+          description: Warehouse rate created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WarehouseRateResponse"
+    get:
+      summary: List warehouse rates with search and pagination
+      tags: [Warehouse Rate]
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Search by department or warehouse
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+      responses:
+        "200":
+          description: List of warehouse rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WarehouseRateListResponse"
+
+  /api/maintenance/customer-rate/warehouse-rate/{id}:
+    get:
+      summary: Get warehouse rate by ID
+      tags: [Warehouse Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Warehouse rate found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WarehouseRateResponse"
+        "404":
+          description: Not found
+    put:
+      summary: Update warehouse rate
+      tags: [Warehouse Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateWarehouseRateRequest"
+      responses:
+        "200":
+          description: Updated warehouse rate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WarehouseRateResponse"
+    delete:
+      summary: Delete warehouse rate
+      tags: [Warehouse Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted successfully
+
+  /api/maintenance/customer-rate/transport-rate:
+    post:
+      summary: Create a transport rate
+      tags: [Transport Rate]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransportRateRequest"
+      responses:
+        "201":
+          description: Transport rate created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+
+    get:
+      summary: List transport rates with search and pagination
+      tags: [Transport Rate]
+      parameters:
+        - in: query
+          name: originZoneId
+          schema: { type: integer }
+          description: Filter by origin zone ID
+        - in: query
+          name: originZipOrRange
+          schema: { type: string }
+          description: Filter by origin zone zip code or range (e.g., "600001" or "600100-600200")
+        - in: query
+          name: destinationZoneId
+          schema: { type: integer }
+          description: Filter by destination zone ID
+        - in: query
+          name: destinationZipOrRange
+          schema: { type: string }
+          description: Filter by destination zone zip code or range (e.g., "700001" or "700100-700200")
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Page number for pagination
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+          description: Number of records per page
+      responses:
+        "200":
+          description: List of transport rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateListResponse"
+
+  /api/maintenance/customer-rate/transport-rate/by-zone:
+    get:
+      summary: List transport rates by zone
+      tags: [Transport Rate]
+      parameters:
+        - in: query
+          name: zoneId
+          schema: { type: integer }
+          required: true
+          description: Zone ID to filter rates (matches either origin or destination zone)
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Page number for pagination
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+          description: Number of records per page
+      responses:
+        "200":
+          description: List of transport rates for the given zone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/TransportRateResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      page: { type: integer }
+                      pageSize: { type: integer }
+
+  /api/maintenance/customer-rate/transport-rate/{id}:
+    get:
+      summary: Get transport rate by ID
+      tags: [Transport Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Transport rate found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+        "404":
+          description: Not found
+    put:
+      summary: Update transport rate
+      tags: [Transport Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransportRateRequest"
+      responses:
+        "200":
+          description: Updated transport rate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+    delete:
+      summary: Delete transport rate
+      tags: [Transport Rate]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted successfully
+
+  /api/maintenance/customer-rate/station-rate-map:
+    post:
+      summary: Assign one or more rates to a station
+      tags: [Station Rate Map]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: "#/components/schemas/AssignRateToStationRequest"
+      responses:
+        "201":
+          description: Rates assigned to station
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StationRateMapResponse"
+
+    /api/maintenance/customer-rate/station-rate-map/{stationId}:
+    get:
+      summary: Get rates assigned to a station (optionally filtered by type)
+      tags: [Station Rate Map]
+      parameters:
+        - in: query
+          name: stationId
+          required: true
+          schema: { type: integer }
+        - in: query
+          name: rateType
+          required: false
+          schema:
+            type: string
+            enum: [WAREHOUSE, TRANSPORT]
+          description: Filter rates by type. If omitted, returns all rates.
+      responses:
+        "200":
+          description: List of station rates (filtered if rateType provided)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/StationRateMapResponse"
+
+  /api/maintenance/customer-rate/station-rate-map/{id}:
+    delete:
+      summary: Delete station rate mapping
+      tags: [Station Rate Map]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted successfully
+
+components:
+  schemas:
+    CreateWarehouseRateRequest:
+      type: object
+      properties:
+        minRate: { type: number, format: decimal }
+        ratePerPound: { type: number, format: decimal }
+        maxRate: { type: number, format: decimal, nullable: true }
+        department: { type: string, nullable: true }
+        warehouse: { type: string, nullable: true }
+      required: [minRate, ratePerPound]
+
+    UpdateWarehouseRateRequest:
+      type: object
+      properties:
+        minRate: { type: number, format: decimal }
+        ratePerPound: { type: number, format: decimal }
+        maxRate: { type: number, format: decimal, nullable: true }
+        department: { type: string, nullable: true }
+        warehouse: { type: string, nullable: true }
+
+    WarehouseRateResponse:
+      allOf:
+        - $ref: "#/components/schemas/CreateWarehouseRateRequest"
+        - type: object
+          properties:
+            rateId: { type: integer }
+
+    WarehouseRateListResponse:
+      type: object
+      properties:
+        rates:
+          type: array
+          items:
+            $ref: "#/components/schemas/WarehouseRateResponse"
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+
+    CreateTransportRateRequest:
+      type: object
+      properties:
+        originZoneId: { type: integer }
+        destinationZoneId: { type: integer }
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransportRateDetail"
+      required: [originZoneId, destinationZoneId]
+
+    UpdateTransportRateRequest:
+      type: object
+      properties:
+        originZoneId: { type: integer }
+        destinationZoneId: { type: integer }
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransportRateDetail"
+
+    TransportRateResponse:
+      type: object
+      properties:
+        rateId: { type: integer }
+        originZoneId: { type: integer }
+        destinationZoneId: { type: integer }
+        details:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransportRateDetail"
+
+    TransportRateListResponse:
+      type: object
+      properties:
+        rates:
+          type: array
+          items:
+            $ref: "#/components/schemas/TransportRateResponse"
+        total:
+          type: integer
+          description: Total number of matching records
+        page:
+          type: integer
+          description: Current page number
+        pageSize:
+          type: integer
+          description: Number of records per page
+
+    TransportRateDetail:
+      type: object
+      properties:
+        rateField: { type: string }
+        chargeValue: { type: number, format: decimal }
+        perUnitFlag: { type: string, enum: [Y, N] }
+
+    AssignRateToStationRequest:
+      type: object
+      properties:
+        stationId:
+          type: integer
+        rateId:
+          type: integer
+        rateType:
+          type: string
+          enum: [WAREHOUSE, TRANSPORT]
+      required: [stationId, rateId, rateType]
+
+    StationRateMapResponse:
+      type: object
+      properties:
+        stationRateId: { type: integer }
+        stationId: { type: integer }
+        rateId: { type: integer }
+        rateType: { type: string }
+        assignedBy: { type: integer }
+        assignedAt: { type: string, format: date-time }

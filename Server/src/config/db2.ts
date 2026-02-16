@@ -1,7 +1,4 @@
 import odbc, { Connection } from 'odbc';
-import { config } from 'dotenv';
-// Load environment variables
-config();
 
 /**
  * DB2 Connection Configuration
@@ -13,6 +10,9 @@ interface DB2Config {
 }
 
 export const SCHEMA = process.env.DB2_LIBRARY || 'RANDM_LCL';
+
+export function getSchema(): string { return process.env.DB2_LIBRARY || 'RANDM_LCL'; }
+
 /**
  * Transaction Manager for handling ACID operations
  */
@@ -345,6 +345,9 @@ export async function initializeDB2Pool(): Promise<DB2> {
     if (!connectionString) {
         throw new Error('No DB2 connection string configured');
     }
+
+    console.log("Database Lib", SCHEMA);
+
 
     const db2Instance = DB2.getInstance({ connectionString });
     await db2Instance.initialize();

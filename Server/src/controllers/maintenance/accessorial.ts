@@ -23,15 +23,49 @@ export async function createAccessorial(req: Request, res: Response, conn: Conne
  */
 export async function getAllAccessorials(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const accessorials = await accessorialService.getAllAccessorialsService(conn);
-        res.status(200).json({ success: true, data: accessorials });
+        const { page = 1, limit = 10, search } = req.query;
+
+        const result = await accessorialService.getAllAccessorialsService(
+            conn,
+            search ? String(search) : null,
+            Number(page),      // ✅ page
+            Number(limit)      // ✅ pageSize
+        );
+
+        res.status(200).json({
+            success: true,
+            data: result.accessorials,
+            pagination: {
+                total: result.total,
+                page: result.page,
+                pageSize: result.pageSize
+            }
+        });
     } catch (error) {
+        console.error(error);
         res.status(400).json({
             error: 'Failed to fetch accessorials',
             message: (error as Error).message
         });
     }
 }
+
+export async function getAccessorialDropdown(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const dropdownData = await accessorialService.getAccessorialDropdownService(conn);
+        res.status(200).json({ success: true, data: dropdownData });
+    } catch (error) {
+        console.log(error);
+
+
+
+        res.status(400).json({
+            error: 'Failed to fetch dropdown data',
+            message: (error as Error).message
+        });
+    }
+}
+
 
 /**
  * Update an accessorial

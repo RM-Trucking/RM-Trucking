@@ -16,6 +16,28 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/maintenance/zone?page=1&pageSize=10&search=North
+ * Paginated list of zones, optionally filtered by zoneName
+ */
+router.get('/', authenticateJWT, async (req: Request, res: Response) => {
+    const conn = await db();
+    await zoneController.listZones(req, res, conn);
+    if (conn) conn.close();
+});
+
+
+/**
+ * GET /api/maintenance/zone/dropdown
+ * Lightweight list of zones for dropdowns (zoneId, zoneName, zipCodes, ranges)
+ */
+router.get('/dropdown', authenticateJWT, async (req: Request, res: Response) => {
+    const conn = await db();
+    await zoneController.listZonesDropdown(req, res, conn);
+    if (conn) conn.close();
+});
+
+
+/**
  * GET /api/maintenance/zone/:zoneId
  * Get zone details by ID (including zips and notes)
  */

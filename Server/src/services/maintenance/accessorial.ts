@@ -1,6 +1,7 @@
 import { Connection } from 'odbc';
 import * as accessorialDB from '../../database/maintenance/accessorial';
 import {
+    Accessorial,
     AccessorialResponse,
     CreateAccessorialRequest
 } from '../../entities/maintenance/Accessorial';
@@ -16,8 +17,7 @@ export async function createAccessorialService(
     const accessorialId = await accessorialDB.createAccessorial(conn, req, userId);
 
     // Fetch the newly created record
-    const all = await accessorialDB.getAllAccessorials(conn);
-    const created = all.find(a => a.accessorialId === accessorialId);
+    const created = await accessorialDB.getAccessorialById(conn, accessorialId);
     if (!created) throw new Error('Failed to create accessorial');
 
     return created;
@@ -27,10 +27,31 @@ export async function createAccessorialService(
  * Get all accessorials (for dropdown)
  */
 export async function getAllAccessorialsService(
-    conn: Connection
-): Promise<AccessorialResponse[]> {
-    return await accessorialDB.getAllAccessorials(conn);
+    conn: Connection,
+    searchTerm: string | null,
+    page: number,
+    pageSize: number
+): Promise<{ accessorials: AccessorialResponse[]; total: number; page: number; pageSize: number }> {
+    // Fetch paginated accessorials
+    const accessorials = await accessorialDB.getAllAccessorials(conn, searchTerm, page, pageSize);
+
+    // Count total for pagination metadata
+    const total = await accessorialDB.countAccessorials(conn, searchTerm);
+
+    return {
+        accessorials,
+        total,
+        page,
+        pageSize
+    };
 }
+
+
+
+export async function getAccessorialDropdownService(conn: Connection) {
+    return await accessorialDB.getAccessorialDropdown(conn);
+}
+
 
 /**
  * Update an accessorial

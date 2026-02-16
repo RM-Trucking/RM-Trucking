@@ -30,11 +30,11 @@ if [ -d "$SERVER_DIR/dist" ]; then
   cp -r "$SERVER_DIR/dist/"* dist/server/ || true
 fi
 
-# Build frontend
-echo "Building frontend in $FRONTEND_DIR..."
-cd "$FRONTEND_DIR" || { echo "$FRONTEND_DIR not found"; exit 1; }
-npm run build
-cd ..
+# # Build frontend
+# echo "Building frontend in $FRONTEND_DIR..."
+# cd "$FRONTEND_DIR" || { echo "$FRONTEND_DIR not found"; exit 1; }
+# npm run build
+# cd ..
 
 mkdir -p dist/frontend
 if [ -d "$FRONTEND_DIR/dist" ]; then
@@ -88,7 +88,7 @@ sshpass -p "$password" ssh "$REMOTE_USER"@"$REMOTE_HOST" << EOF
 export PATH=/QOpenSys/pkgs/bin:\$PATH
 cd $REMOTE_BASE || exit 0
   cd dist/server || exit 0
-  npx pm2 stop development || true
+  npx pm2 stop uat || true
 cd $REMOTE_BASE
 rm -rf server frontend || true
 EOF
@@ -110,7 +110,7 @@ export PATH=/QOpenSys/pkgs/bin:\$PATH
 cd $REMOTE_BASE/dist/server
 npm ci --omit=dev
 export NODE_ENV=production
-npx pm2 start index.js --name development
+npx pm2 start index.js --name uat
 EOF
 
 echo "Server started..."

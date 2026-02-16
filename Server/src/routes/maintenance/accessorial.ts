@@ -19,6 +19,13 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
     if (conn) conn.close();
 });
 
+router.get('/dropdown', authenticateJWT, async (req: Request, res: Response) => {
+    const conn = await db();
+    await accessorialController.getAccessorialDropdown(req, res, conn);
+    if (conn) conn.close();
+});
+
+
 // ✅ Update an accessorial
 router.put('/:accessorialId', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();

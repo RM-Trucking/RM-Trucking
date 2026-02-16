@@ -15,6 +15,7 @@ import {
   CustomerMaintenancePage,
   CustomerViewPage,
   RateViewPage,
+  CarrierViewPage,
   CustomerStationViewPage,
   CustomerLayout,
   WarehouseMaintenancePage,
@@ -92,6 +93,7 @@ export default function Router() {
               element: <CarrierLayout />,
               children: [
                 { index:true, element : <CarrierMaintenancePage /> },
+                { path: 'carrier-view', element: <CarrierViewPage /> },
               ]
             },
             {

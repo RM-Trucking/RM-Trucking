@@ -12,6 +12,12 @@ import {
     DialogContent, CircularProgress, MenuItem,
     ListSubheader, Checkbox, ListItemText
 } from '@mui/material';
+// for date picker
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
+
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -50,6 +56,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         ustDotNo: '',
         mcNo: '',
         insuranceExpiryDate: '',
+        tariffRenewalDate: '',
         salesRepName: '',
         salesRepPhoneNumber: '',
         salesRepEmailId: '',
@@ -219,6 +226,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         FormHelperTextProps={{
                                             sx: { color: error ? "error.main" : "#ed6c02", fontWeight: 500 }
                                         }}
+                                        disabled={(type === 'View')}
                                     >
                                         {/* --- LTL GROUP --- */}
                                         <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold' }}>
@@ -263,6 +271,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     label="Carrier Status*"
                                     error={!!error}
                                     helperText={error ? 'Carrier status is required' : ''}
+                                    disabled={(type === 'View')}
                                 >
                                     <MenuItem value="inactive">Inactive</MenuItem>
                                     <MenuItem value="active">Active</MenuItem>
@@ -629,7 +638,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                                         onChange(isChecked);
                                                         setReadOnly(isChecked);
                                                     }}
-                                                    disabled={(type === 'View') ? readOnly : false}
+                                                    disabled={(type === 'View')}
                                                 />
                                             }
                                             label="TSA"
@@ -638,7 +647,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 />
                             </Box>
                         </fieldset>
-                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '25px' }}>
+                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '15px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Government Info &nbsp;</Typography></legend>
                             <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                                 <Controller
@@ -667,16 +676,17 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             }}
                                             label="U.S. DOT No. *"
                                             error={!!error}
-                                            helperText={error ? error.message : "Example: 1234567"}
-                                            disabled={type === 'View' ? readOnly : false}
+                                            helperText={error ? error.message : ""}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
+                                
                                 <Controller
                                     name="mcNo"
                                     control={control}
                                     rules={{
-                                        // Removed 'required' rule
+                                         required: 'MC No is required',
                                         pattern: {
                                             // Added ^$| to allow empty values, otherwise check the MC format
                                             value: /^$|^(MC|FF|MX)\d{5,7}$/i,
@@ -701,161 +711,225 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             // Removed asterisk from label since it is no longer required
                                             label="MC No"
                                             error={!!error}
-                                            helperText={error ? error.message : "Example: MC123456 (Optional)"}
-                                            disabled={type === 'View' ? readOnly : false}
+                                            helperText={error ? error.message : ""}
+                                            disabled={type === 'View'}
                                             sx={{ ml: 2 }}
+                                            required
                                         />
                                     )}
                                 />
 
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <Controller
+                                        name="insuranceExpiryDate"
+                                        control={control}
+                                        rules={{
+                                            required: 'Insurance Expiry Date is required',
+                                            validate: (value) => {
+                                                if (!value) return true;
+                                                const selectedDate = new Date(value);
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                return selectedDate >= today || 'Date cannot be in the past';
+                                            }
+                                        }}
+                                        render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                            <DatePicker
+                                                label="Insurance Exipiry Date*"
+                                                format="MM/DD/YYYY" // Forces the MM/DD/YYYY display
+                                                value={value ? dayjs(value) : null}
+                                                onChange={(newValue) => onChange(newValue ? newValue.format('YYYY-MM-DD') : null)}
+                                                minDate={dayjs()} // Disables past dates in the UI
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "standard",
+                                                        fullWidth: true,
+                                                        error: !!error,
+                                                        helperText: error ? error.message : '',
+                                                        sx: { ml: 2 },
+                                                        InputLabelProps: { shrink: true }, 
+                                                    }
+                                                }}
+                                                disabled={type === 'View'}
+                                            />
+                                        )}
+                                    />
+                                </LocalizationProvider>
+
+                                <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                    <Controller
+                                        name="tariffRenewalDate"
+                                        control={control}
+                                        rules={{
+                                            required: 'Tariff Renewal Date is required',
+                                            validate: (value) => {
+                                                if (!value) return true;
+                                                const selectedDate = new Date(value);
+                                                const today = new Date();
+                                                today.setHours(0, 0, 0, 0);
+                                                return selectedDate >= today || 'Date cannot be in the past';
+                                            }
+                                        }}
+                                        render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                            <DatePicker
+                                                label="Tariff Renewal Date*"
+                                                format="MM/DD/YYYY" // Forces the MM/DD/YYYY display
+                                                value={value ? dayjs(value) : null}
+                                                onChange={(newValue) => onChange(newValue ? newValue.format('YYYY-MM-DD') : null)}
+                                                minDate={dayjs()} // Disables past dates in the UI
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: "standard",
+                                                        fullWidth: true,
+                                                        error: !!error,
+                                                        helperText: error ? error.message : '',
+                                                        sx: { ml: 2 },
+                                                        InputLabelProps: { shrink: true }, 
+                                                    }
+                                                }}
+                                                disabled={type === 'View'}
+                                            />
+                                        )}
+                                    />
+                                </LocalizationProvider>
+                            </Stack>
+                        </fieldset>
+                    </Stack>
+
+                    <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
+                        {
+                            type === 'View' && <fieldset style={{marginRight : '15px'}}>
+                                <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Quality &nbsp;</Typography></legend>
+                                <Stack flexDirection={'column'}>
+                                    <Stack flexDirection={'row'} alignItems={'center'}>
+                                        <Typography variant='normal' sx={{ width: '200px' }}>Total No of Shipments</Typography>
+                                        <Typography variant='normal' sx={{ fontWeight: 'bold' }}>05</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} alignItems={'center'}>
+                                        <Typography variant='normal' sx={{ width: '200px' }}>R&M On Time % </Typography>
+                                        <Typography variant='normal' sx={{ fontWeight: 'bold' }}>80%</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} alignItems={'center'}>
+                                        <Typography variant='normal' sx={{ width: '200px' }}>Late Shipments</Typography>
+                                        <Typography variant='normal' sx={{ fontWeight: 'bold' }}>80%</Typography>
+                                    </Stack>
+                                </Stack>
+                            </fieldset>
+                        }
+                        <fieldset style={{ width: '100%',padding : '12px' }}>
+                            <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Sales Rep Info &nbsp;</Typography></legend>
+                            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pb: 2 }}>
                                 <Controller
-                                    name="insuranceExpiryDate"
+                                    name="salesRepName"
                                     control={control}
                                     rules={{
-                                        required: 'Insurance Expiry Date is required',
-                                        validate: (value) => {
-                                            const selectedDate = new Date(value);
-                                            const today = new Date();
-                                            today.setHours(0, 0, 0, 0);
-                                            return selectedDate >= today || 'Date cannot be in the past';
+                                        // Removed 'required' and 'validate' (no longer mandatory)
+                                        maxLength: {
+                                            value: 255,
+                                            message: 'Sales rep name cannot exceed 255 characters'
                                         }
                                     }}
                                     render={({ field, fieldState: { error } }) => (
                                         <StyledTextField
                                             {...field}
-                                            type="date"
                                             variant="standard"
                                             fullWidth
-                                            InputLabelProps={{ shrink: true }}
-                                            // --- DISABLES PREVIOUS DATES IN PICKER ---
-                                            inputProps={{
-                                                min: new Date().toISOString().split('T')[0]
+                                            sx={{
+                                                width: '30%',
                                             }}
-                                            label="Insurance Expiry Date*"
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value.startsWith(' ')) {
+                                                    field.onChange(value.trimStart());
+                                                } else {
+                                                    field.onChange(value);
+                                                }
+                                            }}
+                                            // Removed "*" from the label
+                                            label="Sales Rep Name"
                                             error={!!error}
-                                            helperText={error ? error.message : 'Select a current or future date'}
-                                            disabled={(type === 'View') ? readOnly : false}
-                                            sx={{ ml: 2 }}
+                                            helperText={error ? error.message : ''}
+                                            disabled={(type === 'View')}
                                         />
                                     )}
                                 />
+
+                                <Controller
+                                    name="salesRepPhoneNumber"
+                                    control={control}
+                                    rules={{
+                                        // Removed 'required' rule
+                                        maxLength: {
+                                            value: 20,
+                                            message: 'Sales Rep Phone number cannot exceed 20 characters'
+                                        },
+                                        pattern: {
+                                            // Added ^$| to allow the field to be empty without triggering an error
+                                            value: /^$|^\(\d{3}\) \d{3}-\d{4}.*$/,
+                                            message: 'Invalid phone format'
+                                        }
+                                    }}
+                                    render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            value={value || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val.startsWith(' ')) return;
+
+                                                const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                                onChange(formattedValue);
+                                            }}
+                                            variant="standard"
+                                            fullWidth
+                                            sx={{ width: '30%' }}
+                                            // Removed "*" from the label
+                                            label="Sales rep Phone Number"
+                                            inputProps={{ maxLength: 20 }}
+                                            error={!!error}
+                                            helperText={error ? error.message : ''}
+                                            disabled={(type === 'View')}
+                                        />
+                                    )}
+                                />
+
+                                <Controller
+                                    name="salesRepEmailId"
+                                    control={control}
+                                    rules={{
+                                        // Removed 'required' rule
+                                        pattern: {
+                                            // Added ^$| to allow the field to be empty
+                                            value: /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+                                            message: 'Please enter a valid email address'
+                                        }
+                                    }}
+                                    render={({ field, fieldState: { error } }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            variant="standard"
+                                            fullWidth
+                                            sx={{ width: '30%' }}
+                                            onChange={(e) => {
+                                                const value = e.target.value;
+                                                if (value.startsWith(' ')) {
+                                                    field.onChange(value.trimStart());
+                                                } else {
+                                                    field.onChange(value);
+                                                }
+                                            }}
+                                            // Removed asterisk from label
+                                            label="Sales Rep Email ID"
+                                            error={!!error}
+                                            helperText={error ? error.message : ''}
+                                            disabled={(type === 'View')}
+                                        />
+                                    )}
+                                />
+
                             </Stack>
                         </fieldset>
                     </Stack>
-
-                    <fieldset>
-                        <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Sales Rep Info &nbsp;</Typography></legend>
-                        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pb: 2 }}>
-                            <Controller
-                                name="salesRepName"
-                                control={control}
-                                rules={{
-                                    // Removed 'required' and 'validate' (no longer mandatory)
-                                    maxLength: {
-                                        value: 255,
-                                        message: 'Sales rep name cannot exceed 255 characters'
-                                    }
-                                }}
-                                render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField
-                                        {...field}
-                                        variant="standard"
-                                        fullWidth
-                                        sx={{
-                                            width: '30%',
-                                        }}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (value.startsWith(' ')) {
-                                                field.onChange(value.trimStart());
-                                            } else {
-                                                field.onChange(value);
-                                            }
-                                        }}
-                                        // Removed "*" from the label
-                                        label="Sales Rep Name"
-                                        error={!!error}
-                                        helperText={error ? error.message : ''}
-                                        disabled={(type === 'View') ? readOnly : false}
-                                    />
-                                )}
-                            />
-
-                            <Controller
-                                name="salesRepPhoneNumber"
-                                control={control}
-                                rules={{
-                                    // Removed 'required' rule
-                                    maxLength: {
-                                        value: 20,
-                                        message: 'Sales Rep Phone number cannot exceed 20 characters'
-                                    },
-                                    pattern: {
-                                        // Added ^$| to allow the field to be empty without triggering an error
-                                        value: /^$|^\(\d{3}\) \d{3}-\d{4}.*$/,
-                                        message: 'Invalid phone format'
-                                    }
-                                }}
-                                render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-                                    <StyledTextField
-                                        {...field}
-                                        value={value || ''}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (val.startsWith(' ')) return;
-
-                                            const formattedValue = formatPhoneNumber(val).slice(0, 20);
-                                            onChange(formattedValue);
-                                        }}
-                                        variant="standard"
-                                        fullWidth
-                                        sx={{ width: '30%' }}
-                                        // Removed "*" from the label
-                                        label="Sales rep Phone Number"
-                                        inputProps={{ maxLength: 20 }}
-                                        error={!!error}
-                                        helperText={error ? error.message : ''}
-                                        disabled={(type === 'View') ? readOnly : false}
-                                    />
-                                )}
-                            />
-
-                            <Controller
-                                name="salesRepEmailId"
-                                control={control}
-                                rules={{
-                                    // Removed 'required' rule
-                                    pattern: {
-                                        // Added ^$| to allow the field to be empty
-                                        value: /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-                                        message: 'Please enter a valid email address'
-                                    }
-                                }}
-                                render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField
-                                        {...field}
-                                        variant="standard"
-                                        fullWidth
-                                        sx={{ width: '30%' }}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (value.startsWith(' ')) {
-                                                field.onChange(value.trimStart());
-                                            } else {
-                                                field.onChange(value);
-                                            }
-                                        }}
-                                        // Removed asterisk from label
-                                        label="Sales Rep Email ID"
-                                        error={!!error}
-                                        helperText={error ? error.message : ''}
-                                        disabled={(type === 'View') ? readOnly : false}
-                                    />
-                                )}
-                            />
-
-                        </Stack>
-                    </fieldset>
 
                     {/* Carrier notes */}
                     {type === 'Add' && <Controller
@@ -936,7 +1010,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 </Stack>}
 
             </Box>
-            {/* station table */}
+            {/* Carrier table */}
             {/* {
                 type === 'View' && <CustomerViewStationTable />
             } */}
@@ -991,7 +1065,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </>
                     <Stack flexDirection="column" alignItems={'center'}>
                         <Iconify icon="mingcute:alert-fill" sx={{ width: '78px', height: '78px' }} />
-                        <Typography sx={{p:2, textAlign: 'center' }}>
+                        <Typography sx={{ p: 2, textAlign: 'center' }}>
                             Please select either LTL or Airport Service. Both cannot be selected at the same time.
                         </Typography>
                         <Button

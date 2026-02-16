@@ -23,6 +23,7 @@ export const CustomerMaintenancePage = Loadable(lazy(() => import('../pages/cust
 export const CustomerLayout = Loadable(lazy(() => import('../pages/customer/CustomerLayout')));
 export const CustomerViewPage = Loadable(lazy(() => import('../pages/customer/CustomerViewPage')));
 export const RateViewPage = Loadable(lazy(() => import('../pages/rate/RateViewPage')));
+export const CarrierViewPage = Loadable(lazy(() => import('../pages/carrier/CarrierViewPage')));
 export const CustomerStationViewPage = Loadable(lazy(() => import('../pages/customer/CustomerStationView')));
 export const WarehouseMaintenancePage = Loadable(lazy(() => import('../pages/warehouse/WarehouseMaintenance')));
 export const ZoneMaintenancePage = Loadable(lazy(() => import('../pages/zone/ZoneMaintenance')));

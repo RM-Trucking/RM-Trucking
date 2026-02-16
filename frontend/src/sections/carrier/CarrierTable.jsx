@@ -170,7 +170,7 @@ export default function RateTable() {
                                 dispatch(setSelectedCarrierRowDetails(params.row));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
-                                // navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
@@ -323,7 +323,7 @@ export default function RateTable() {
                                 dispatch(setSelectedCarrierRowDetails(params.row));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
-                                // navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
@@ -476,7 +476,7 @@ export default function RateTable() {
                                 dispatch(setSelectedCarrierRowDetails(params.row));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
-                                // navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>

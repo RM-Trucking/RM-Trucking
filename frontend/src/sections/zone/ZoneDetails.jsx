@@ -5,7 +5,7 @@ import {
     Button,
     Box,
     Autocomplete,
-    Chip,
+    Dialog, DialogContent,
     Stack,
     Typography,
     Divider,
@@ -26,7 +26,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.zonedata?.operationalMessage);
     const isLoading = useSelector((state) => state?.zonedata?.isLoading);
-
+    const [openConfirmDialog, setopenConfirmDialog] = useState(false);
     const {
         control,
         handleSubmit,
@@ -37,7 +37,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
         defaultValues: {
             zone: '',
             individualZipCodes: '',
-            rangeZipCodes: '',
+            rangeZipCodes: [],
             notes: '',
         }
     });
@@ -71,10 +71,16 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
         if (selectedZoneRowDetails) {
             setValue('zone', selectedZoneRowDetails?.zoneName || '');
             setValue('individualZipCodes', selectedZoneRowDetails?.zipCodes?.join(', ') || '');
-            setValue('rangeZipCodes', selectedZoneRowDetails?.ranges || '');
-            setValue('notes', selectedZoneRowDetails?.notes[0]?.messageText || '');
+            setValue('rangeZipCodes', selectedZoneRowDetails?.ranges || []);
+            setValue('notes', selectedZoneRowDetails?.notes?.[0]?.messageText || '');
         }
     }, [selectedZoneRowDetails]);
+    const handleCloseConfirmDialog = () => {
+        setopenConfirmDialog(false);
+    }
+    const handleCheckZipCode = () => {
+        setopenConfirmDialog(true);
+    }
 
     return (
         <>
@@ -82,7 +88,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
                     <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Zone Details</Typography>
-                    {type === 'View' && <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />}
+                    {type === 'View' && <Iconify icon="carbon:close" onClick={handleCloseConfirm} sx={{ cursor: 'pointer' }} />}
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
@@ -155,134 +161,6 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                        {/* <Controller
-                            name="rangeZipCodes"
-                            control={control}
-                            defaultValue={[]}
-                            rules={{
-                                validate: (value) => {
-                                    if (!value || value.length === 0) return true;
-                                    for (let range of value) {
-                                        const match = range.match(/^(\d{3})\d{2}-(\d{3})\d{2}$/);
-                                        if (!match) return `Invalid format: ${range}`;
-                                        const [, prefix1, prefix2] = match;
-                                        if (prefix1 !== prefix2) return `Prefix mismatch: ${range}`;
-                                    }
-                                    return true;
-                                }
-                            }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => {
-                                const [typedText, setTypedText] = useState("");
-                                const [localError, setLocalError] = useState("");
-
-                                const handleInputChange = (newInputValue) => {
-                                    let val = newInputValue.replace(/[^\d-]/g, '');
-
-                                    // Auto-fill prefix after hyphen
-                                    if (val.length === 6 && !val.includes('-')) {
-                                        const prefix = val.substring(0, 3);
-                                        val = val.slice(0, 5) + '-' + prefix + val.slice(5);
-                                    } else if (val.endsWith('-') && val.length === 6) {
-                                        const prefix = val.substring(0, 3);
-                                        val = val + prefix;
-                                    }
-
-                                    if (val.length <= 11) setTypedText(val);
-                                };
-
-                                const handleKeyDown = (event) => {
-                                    const { selectionStart, selectionEnd } = event.target;
-
-                                    // 1. BLOCK DELETION OF AUTO-PREFIX
-                                    // The prefix occupies indices 6, 7, and 8 (e.g., "12345-123")
-                                    if (typedText.includes('-')) {
-                                        const hyphenIndex = typedText.indexOf('-');
-                                        const prefixEndIndex = hyphenIndex + 4; // hyphen + 3 digits
-
-                                        if (event.key === 'Backspace') {
-                                            // Prevent backspace if it would delete chars in the prefix (indices hyphen+1 to hyphen+3)
-                                            if (selectionStart > hyphenIndex + 1 && selectionStart <= prefixEndIndex && selectionStart === selectionEnd) {
-                                                event.preventDefault();
-                                                return;
-                                            }
-                                        }
-
-                                        if (event.key === 'Delete') {
-                                            // Prevent delete if it targets the prefix
-                                            if (selectionStart >= hyphenIndex + 1 && selectionStart < prefixEndIndex) {
-                                                event.preventDefault();
-                                                return;
-                                            }
-                                        }
-                                    }
-
-                                    // 2. HANDLE CHIP CREATION
-                                    if (event.key === ',' || event.key === 'Enter') {
-                                        event.preventDefault();
-                                        const parts = typedText.split('-');
-                                        const isValid = /^\d{5}-\d{5}$/.test(typedText);
-                                        const match = parts[0]?.substring(0, 3) === parts[1]?.substring(0, 3);
-
-                                        if (isValid && match) {
-                                            if (!value.includes(typedText)) onChange([...value, typedText]);
-                                            setTypedText("");
-                                            setLocalError("");
-                                        } else {
-                                            setLocalError("Invalid range or prefix mismatch");
-                                        }
-                                    }
-                                };
-
-                                return (
-                                    <Autocomplete
-                                        multiple
-                                        freeSolo
-                                        fullWidth
-                                        options={[]}
-                                        value={value || []}
-                                        disabled={type === 'View'}
-                                        onChange={(event, newValue) => onChange(newValue)}
-                                        inputValue={typedText}
-                                        onInputChange={(event, newInputValue, reason) => {
-                                            if (reason === 'input') handleInputChange(newInputValue);
-                                            else { setTypedText(""); setLocalError(""); }
-                                        }}
-                                        renderTags={(tagValue, getTagProps) =>
-                                            tagValue.map((option, index) => {
-                                                const { key, ...tagProps } = getTagProps({ index });
-                                                return (
-                                                    <Chip
-                                                        key={key}
-                                                        label={option}
-                                                        {...tagProps}
-                                                        variant="outlined"
-                                                        sx={{ bgcolor: 'rgba(224, 242, 255, 1)' }}
-                                                        onClick={() => {
-                                                            if (type !== 'View') {
-                                                                onChange(value.filter((_, i) => i !== index));
-                                                                setTypedText(option);
-                                                            }
-                                                        }}
-                                                    />
-                                                );
-                                            })
-                                        }
-                                        renderInput={(params) => (
-                                            <StyledTextField
-                                                {...params}
-                                                multiline
-                                                fullWidth
-                                                rows={4}
-                                                label="Range Zipcode"
-                                                onKeyDown={handleKeyDown} // Use the new handler here
-                                                error={!!error || !!localError}
-                                                helperText={localError || error?.message || "Example: 45236-45296"}
-                                            />
-                                        )}
-                                    />
-                                );
-                            }}
-                        /> */}
                         <Controller
                             name="rangeZipCodes"
                             control={control}
@@ -314,54 +192,39 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         val = val + val.substring(0, 3);
                                     }
 
-                                    // 2. Real-time Suffix Validation (indices 3-5 and 9-11)
+                                    // 2. Real-time Suffix Validation
                                     if (val.length === 11) {
                                         const parts = val.split('-');
                                         const s1 = parseInt(parts[0].substring(3));
                                         const s2 = parseInt(parts[1].substring(3));
-
-                                        if (s2 <= s1) {
-                                            setLocalError(`Invalid: ${s2} must be greater than ${s1}`);
-                                        } else {
-                                            setLocalError("");
-                                        }
-                                    } else {
-                                        // Keep error visible if they are mid-correction at 11 chars
-                                        if (val.length < 11) setLocalError("");
+                                        if (s2 <= s1) setLocalError(`Invalid: ${s2} must be > ${s1}`);
+                                        else setLocalError("");
+                                    } else if (val.length < 11) {
+                                        setLocalError("");
                                     }
 
                                     if (val.length <= 11) setTypedText(val);
                                 };
 
                                 const handleKeyDown = (event) => {
-                                    const { selectionStart, selectionEnd } = event.target;
-
-                                    // Lock auto-prefix
-                                    if (typedText.includes('-')) {
-                                        const hyphenIndex = typedText.indexOf('-');
-                                        if (event.key === 'Backspace' && selectionStart > hyphenIndex + 1 && selectionStart <= hyphenIndex + 4 && selectionStart === selectionEnd) {
-                                            event.preventDefault(); return;
-                                        }
-                                    }
-
-                                    // Add Chip Logic
-                                    if (event.key === ',' || event.key === 'Enter') {
+                                    // CRITICAL: Prevent Enter from submitting the whole form/closing popup
+                                    if (event.key === 'Enter' || event.key === ',') {
                                         event.preventDefault();
-                                        const match = typedText.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
 
+                                        const match = typedText.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
                                         if (match) {
                                             const [, p1, s1, p2, s2] = match;
                                             if (p1 === p2 && parseInt(s2) > parseInt(s1)) {
-                                                if (!value.includes(typedText)) onChange([...value, typedText]);
+                                                // Correctly update the RHF state array
+                                                const currentArray = Array.isArray(value) ? value : [];
+                                                if (!currentArray.includes(typedText)) {
+                                                    onChange([...currentArray, typedText]);
+                                                }
                                                 setTypedText("");
                                                 setLocalError("");
-                                            } else if (p1 !== p2) {
-                                                setLocalError("Prefix mismatch!");
                                             } else {
-                                                setLocalError(`Range Error: ${s2} is not > ${s1}`);
+                                                setLocalError(p1 !== p2 ? "Prefix mismatch!" : "Range Error");
                                             }
-                                        } else if (typedText !== "") {
-                                            setLocalError("Incomplete range format");
                                         }
                                     }
                                 };
@@ -374,6 +237,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         options={[]}
                                         value={value || []}
                                         disabled={type === 'View'}
+                                        // Syncs RHF when chips are deleted via the 'x' button
                                         onChange={(event, newValue) => onChange(newValue)}
                                         inputValue={typedText}
                                         onInputChange={(event, newInput, reason) => {
@@ -388,16 +252,15 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                                 rows={4}
                                                 label="Range Zipcode"
                                                 onKeyDown={handleKeyDown}
-                                                // Ensure localError triggers the red border and text
                                                 error={!!localError || !!error}
                                                 helperText={localError || error?.message || "Example: 45236-45296"}
                                             />
                                         )}
-                                    // ... rest of your renderTags logic
                                     />
                                 );
                             }}
                         />
+
                         <Controller
                             name="notes"
                             control={control}
@@ -469,8 +332,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         <Button
                             variant="contained"
                             size="small"
-                            type='submit'
-                            onClick={handleSubmit(onSubmit)}
+                            onClick={handleCheckZipCode}
                             sx={{
                                 '&.MuiButton-contained': {
                                     borderRadius: '4px',
@@ -490,6 +352,78 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                     </Box>
                 </Stack>}
             </Box>
+            <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleCloseConfirmDialog();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '800px',
+                        height: 'auto',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <>
+                        <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                            <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Alert!</Typography>
+                            <Iconify icon="carbon:close" onClick={() => handleCloseConfirmDialog()} sx={{ cursor: 'pointer' }} />
+                        </Stack>
+                        <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                        <Typography sx={{ mt: 3 }}>This zipcode is already registered on another zone. Do you still want to add to this zone?</Typography>
+                    </>
+                    {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                        <Button
+                            variant="outlined"
+                            onClick={handleCloseConfirmDialog}
+                            size="small"
+                            sx={{
+                                '&.MuiButton-outlined': {
+                                    borderRadius: '4px',
+                                    color: '#000',
+                                    boxShadow: 'none',
+                                    fontSize: '14px',
+                                    p: '2px 16px',
+                                    bgcolor: '#fff',
+                                    fontWeight: 'normal',
+                                    ml: 1,
+                                    mr: 1,
+                                    borderColor: '#000'
+                                },
+                            }}
+                        >
+                            Cancel
+                        </Button>
+
+                        <Box>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                type='submit'
+                                onClick={handleSubmit(onSubmit)}
+                                sx={{
+                                    '&.MuiButton-contained': {
+                                        borderRadius: '4px',
+                                        color: '#ffffff',
+                                        boxShadow: 'none',
+                                        fontSize: '14px',
+                                        p: '2px 16px',
+                                        bgcolor: '#A22',
+                                        fontWeight: 'normal',
+                                        ml: 1,
+                                    },
+                                }}
+                            >
+                                {type === 'Add' ? 'Add' : 'Edit'}
+                            </Button>
+                            {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
+                        </Box>
+                    </Stack>}
+                </DialogContent>
+            </Dialog>
         </>
     );
 };

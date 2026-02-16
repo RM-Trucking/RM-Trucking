@@ -70,6 +70,11 @@ const slice = createSlice({
                 state.zoneData.splice(index, 1, action.payload.data);
             }
         },
+        getZoneByIdSuccess(state, action) {
+            state.isLoading = false;
+            state.zoneSuccess = true;
+            state.selectedZoneRowDetails = action.payload.data;
+        },
         deleteZoneDataSuccess(state, action) {
             state.isLoading = false;
             state.zoneSuccess = true;
@@ -141,4 +146,14 @@ export function deleteZone(id, callback) {
     }
   };
 }
-
+export function getZoneById(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/zone/${id}`);
+      dispatch(slice.actions.getZoneByIdSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}

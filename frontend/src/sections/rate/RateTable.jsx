@@ -208,7 +208,7 @@ export default function RateTable() {
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
-                                setOpenEditDialog(true);
+                                setOpenConfirmDialog(false);
                             }} />
                         </Tooltip>
 
@@ -444,7 +444,7 @@ export default function RateTable() {
                     <DataGrid
                         rows={currentRateTab === 'warehouse' ? rateTableData : rateData}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
-                        loading={isLoading}
+                        // loading={isLoading}
                         getRowId={(row) => row?.rateId}
                         pagination
                         slots={{

@@ -17,9 +17,14 @@ import {
     setRateSearchObj, getRateDashboardData, postWarehouseRate,
     putWarehouseRate, setSelectedCurrentRateRow
 } from '../../redux/slices/rate';
+import {
+    getZoneById, setSelectedZoneRowDetails
+} from '../../redux/slices/zone';
 import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
 import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 import CustomerListTable from '../rate/CustomersListTable';
+import Iconify from '../../components/iconify';
+import ZoneDetails from '../zone/ZoneDetails';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
@@ -33,8 +38,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const operationalMessage = useSelector((state) => state?.ratedata?.operationalMessage);
+    const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
+    const zoneSuccess = useSelector((state) => state?.zonedata?.zoneSuccess);
+    const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
     const [openCustomersList, setOpenCustomersList] = useState(false);
+    const [openZoneView, setOpenZoneView] = useState(false);
     const {
         control,
         handleSubmit,
@@ -85,6 +94,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(setRateSearchObj({}));
         }
     }, [operationalMessage]);
+    useEffect(() => {
+        if(zoneSuccess && selectedZoneRowDetails?.zoneId){
+            setOpenZoneView(true);
+        }
+    }, [zoneSuccess])
 
     const onSubmit = (data) => {
         console.log(data);
@@ -131,6 +145,15 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const handleCloseOfCustomersList = () => {
         setOpenCustomersList(false);
     };
+    const handleZoneView = (type) => {
+        getValues(type === 'origin' ? 'origin' : 'destination');
+         // Get current values of origin and destination
+        dispatch(getZoneById(7)); // Pass the ID of the zone you want to view
+    }
+    const handleCloseOfZoneView = () => {
+        setOpenZoneView(false);
+        dispatch(setSelectedZoneRowDetails({}));
+    }
 
     return (
         <>
@@ -144,23 +167,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4} sx={{ p: padding }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={'flex-end'} justifyContent={type === 'Search' ? 'flex-end' : '"flex-start"'}>
-                        {currentTab === 'transportation' && <Controller
-                            name="origin"
-                            control={control}
-                            // rules={{ required: 'Origin is required' }}
-                            render={({ field }) => (
-                                <StyledTextField
-                                    {...field}
-                                    select
-                                    label="Origin"
-                                    variant="standard" fullWidth
-                                    error={!!errors.origin} helperText={errors.origin?.message}
-                                    disabled={type === 'View'}
-                                >
-                                    <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
-                                </StyledTextField>
-                            )}
-                        />}
                         {currentTab === 'transportation' &&
                             <Controller
                                 name="originZipCode"
@@ -241,26 +247,32 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     />
                                 )}
                             />
-
                         }
-                        {currentTab === 'transportation' && <Controller
-                            name="destination"
-                            control={control}
-                            // rules={{ required: 'Destination is required' }}
-                            render={({ field }) => (
-                                <StyledTextField
-                                    {...field}
-                                    select
-                                    label="Destination"
-                                    variant="standard" fullWidth
-                                    // required
-                                    disabled={type === 'View'}
-                                    error={!!errors.destination} helperText={errors.destination?.message}
-                                >
-                                    <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
-                                </StyledTextField>
-                            )}
-                        />}
+                        {currentTab === 'transportation' &&
+                            <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>
+                                <Controller
+                                    name="origin"
+                                    control={control}
+                                    // rules={{ required: 'Origin is required' }}
+                                    render={({ field }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            select
+                                            label="Origin"
+                                            variant="standard" fullWidth
+                                            error={!!errors.origin} helperText={errors.origin?.message}
+                                            disabled={type === 'View'}
+                                        >
+                                            <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
+                                        </StyledTextField>
+                                    )}
+                                />
+                                <Iconify icon="famicons:open" onClick={() => {
+                                    handleZoneView('origin');
+                                }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                            </Stack>
+                        }
+
                         {currentTab === 'transportation' && <Controller
                             name="destinationZipCode"
                             control={control}
@@ -342,9 +354,33 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 />
                             )}
                         />
-
-
                         }
+                        {currentTab === 'transportation' &&
+                            <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>
+                                <Controller
+                                    name="destination"
+                                    control={control}
+                                    // rules={{ required: 'Destination is required' }}
+                                    render={({ field }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            select
+                                            label="Destination"
+                                            variant="standard" fullWidth
+                                            // required
+                                            disabled={type === 'View'}
+                                            error={!!errors.destination} helperText={errors.destination?.message}
+                                        >
+                                            <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
+                                        </StyledTextField>
+                                    )}
+                                />
+                                <Iconify icon="famicons:open" onClick={() => {
+                                    handleZoneView('destination');
+                                }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                            </Stack>
+                        }
+
                         {
                             currentTab === 'warehouse' && (type === 'Add' || type === 'Edit' || type === 'Copy') && <Controller
                                 name="department"
@@ -431,6 +467,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 }}
                             />
                         }
+                        {zoneLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                         {type === 'Search' && <Button
                             variant="outlined"
                             size="small"
@@ -614,6 +651,24 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             >
                 <DialogContent>
                     <CustomerListTable customerData={customerData} handleCloseConfirm={handleCloseOfCustomersList} />
+                </DialogContent>
+            </Dialog>
+            <Dialog open={openZoneView} onClose={handleCloseOfZoneView} onKeyDown={(event) => {
+                if (event.key === 'Escape') {
+                    handleCloseOfZoneView();
+                }
+            }}
+                sx={{
+                    '& .MuiDialog-paper': { // Target the paper class
+                        width: '800px',
+                        height: 'auto',
+                        maxHeight: 'none',
+                        maxWidth: 'none',
+                    }
+                }}
+            >
+                <DialogContent>
+                    <ZoneDetails type={'View'} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails}/>
                 </DialogContent>
             </Dialog>
         </>

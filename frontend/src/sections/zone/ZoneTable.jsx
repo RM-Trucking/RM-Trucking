@@ -187,6 +187,8 @@ export default function ZoneTable() {
     const handleCloseEdit = () => {
          setActionType('');
         setOpenEditDialog(false);
+        dispatch(setSelectedZoneRowDetails({}));
+
     };
     const handleCloseRate = () => {
         setOpenRateDialog(false);

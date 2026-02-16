@@ -21,10 +21,10 @@ export default function RateTabs({ }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const TABS = [
-        // {
-        //     value: 'transportation',
-        //     label: 'Transportation',
-        // },
+        {
+            value: 'transportation',
+            label: 'Transportation',
+        },
         {
             value: 'warehouse',
             label: 'Warehouse',

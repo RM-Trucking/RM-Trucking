@@ -1,5 +1,5 @@
+import './config/env'; // load env first
 import express, { Express, Request, Response, NextFunction } from 'express';
-import { config } from 'dotenv';
 import { Server } from 'http';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
@@ -8,10 +8,8 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import routes from './routes';
 import cors from 'cors';
-import { initializeDB2Pool, closeDB2Pool, db } from './config/db2';
+import { initializeDB2Pool, closeDB2Pool, getSchema } from './config/db2';
 
-// Load environment variables
-config();
 
 // ============================================================================
 // CONFIGURATION
@@ -55,8 +53,8 @@ function getPort(): number {
 }
 
 
-
 const port = getPort();
+const SCHEMA = getSchema();
 
 const serverConfig: ServerConfig = {
     port,
@@ -305,7 +303,7 @@ async function startServer(): Promise<void> {
 
     server = app.listen(PORT, () => {
         console.log(`Server started on http://localhost:${PORT} | Env: ${NODE_ENV} | DB: ${serverConfig.database.environment} | Started: ${new Date().toISOString()}`);
-        console.log(`Port - ${process.env.PORT} | Database Lib - ${process.env.DB2_LIBRARY}`)
+        console.log(`Port - ${process.env.PORT} | Database Lib - ${SCHEMA}`)
     });
 
     server.on('error', (err: NodeJS.ErrnoException) => {

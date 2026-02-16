@@ -9,8 +9,8 @@ export interface Station {
     airportCode: string;
     phoneNumber: string;
     faxNumber: string;
-    openTime: string;          // HH:mm:ss
-    closeTime: string;         // HH:mm:ss
+    openTime: string | null;          // HH:mm:ss
+    closeTime: string | null;         // HH:mm:ss
     hours: string;
     warehouse: 'Y' | 'N';
     warehouseDetail: string;

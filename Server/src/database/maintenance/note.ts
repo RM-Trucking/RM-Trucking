@@ -80,3 +80,17 @@ export async function getMessagesByThread(
     return result as (NoteMessage & { createdByName: string })[];
 }
 
+// database/maintenance/note.ts
+export async function updateNoteMessage(
+    conn: Connection,
+    noteId: number,
+    messageText: string,
+    userId: number
+): Promise<void> {
+    const query = `
+    UPDATE ${SCHEMA}."NoteMessage"
+    SET "messageText" = ?, "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), "updatedBy" = ?
+    WHERE "noteId" = ?
+  `;
+    await conn.query(query, [messageText, userId, noteId]);
+}

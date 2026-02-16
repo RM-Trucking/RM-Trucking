@@ -11,6 +11,7 @@ import departmentRouter from './department';
 import noteRouter from './note';
 import customerPersonnelRouter from './customerPersonnel';
 import entityAccessorialMapRouter from './entityAccessorialMap';
+import customerRateRouter from './customerRate';
 
 const router = Router();
 
@@ -37,6 +38,8 @@ router.use('/department', departmentRouter);
 router.use('/note', noteRouter);
 
 router.use('/customer-personnel', customerPersonnelRouter);
+
+router.use('/customer-rate', customerRateRouter);
 
 
 export default router;

@@ -33,20 +33,79 @@ paths:
 
     get:
       tags: [Accessorial]
-      summary: Get all accessorials (for dropdown)
+      summary: Get paginated and searchable list of accessorials
+      description: >
+        Returns a paginated list of accessorials with optional search by name.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number (default 1)
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            default: 10
+          description: Number of records per page (default 10)
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Search term for filtering by accessorial name
+      responses:
+        "200":
+          description: Paginated list of accessorials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AccessorialResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total:
+                        type: integer
+                      page:
+                        type: integer
+                      pageSize:
+                        type: integer
+        "400":
+          description: Failed to fetch accessorials
+
+  /api/maintenance/accessorial/dropdown:
+    get:
+      tags: [Accessorial]
+      summary: Get all accessorials for dropdown
+      description: >
+        Returns a lightweight list of accessorials (id + name) for dropdown menus.
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: List of accessorials
+          description: List of accessorials for dropdown
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/AccessorialResponse"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/AccessorialDropdown"
         "400":
-          description: Failed to fetch accessorials
+          description: Failed to fetch dropdown data
 
   /api/maintenance/accessorial/{accessorialId}:
     put:
@@ -145,3 +204,11 @@ components:
     AccessorialResponse:
       allOf:
         - $ref: "#/components/schemas/Accessorial"
+
+    AccessorialDropdown:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string

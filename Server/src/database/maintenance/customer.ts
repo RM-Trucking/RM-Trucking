@@ -7,6 +7,7 @@ import { Customer } from '../../entities/maintenance';
  * Create a new customer (supports noteThreadId at insert)
  */
 export async function createCustomer(conn: Connection, customer: Partial<Customer>): Promise<number> {
+
     const insertQuery = `
     SELECT "customerId"
     FROM FINAL TABLE (

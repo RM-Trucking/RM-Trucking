@@ -31,6 +31,39 @@ paths:
         "400":
           description: Failed to create zone
 
+    get:
+      tags: [Zone]
+      summary: List zones with pagination and search
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Filter zones by zoneName (case-insensitive)
+      responses:
+        "200":
+          description: Paginated list of zones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  total: { type: integer }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ZoneResponse"
+
   /api/maintenance/zone/{zoneId}:
     get:
       tags: [Zone]
@@ -73,6 +106,10 @@ paths:
       responses:
         "200":
           description: Zone updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ZoneResponse"
         "400":
           description: Failed to update zone
 
@@ -96,6 +133,24 @@ paths:
         "400":
           description: Failed to delete zone
 
+  /api/maintenance/zone/dropdown:
+    get:
+      tags: [Zone]
+      summary: Get zones for dropdown
+      description: >
+        Returns a lightweight list of zones with zoneId, zoneName, zipCodes, and ranges.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dropdown zone list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ZoneDropdownResponse"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -112,9 +167,9 @@ components:
         noteThreadId: { type: integer }
         entityId: { type: integer }
         createdAt: { type: string, format: date-time }
-        createdBy: { type: integer }
+        createdBy: { type: string }
         updatedAt: { type: string, format: date-time }
-        updatedBy: { type: integer }
+        updatedBy: { type: string }
         activeStatus:
           type: string
           enum: [Y, N]
@@ -148,30 +203,71 @@ components:
     UpdateZoneRequest:
       type: object
       properties:
-        zoneName: { type: string }
+        zoneName:
+          type: string
         activeStatus:
           type: string
           enum: [Y, N]
+        zipCodes:
+          type: array
+          items:
+            type: string
+        ranges:
+          type: array
+          items:
+            type: string
+        note:
+          type: object
+          properties:
+            noteId:
+              type: integer
+              description: Existing note ID to update (optional)
+            messageText:
+              type: string
+              description: Note message text
 
     ZoneResponse:
-      allOf:
-        - $ref: "#/components/schemas/Zone"
-        - type: object
-          properties:
-            zips:
-              type: array
-              items:
-                $ref: "#/components/schemas/ZoneZip"
-            notes:
-              type: array
-              items:
-                $ref: "#/components/schemas/NoteMessageResponse"
+      type: object
+      properties:
+        zoneId: { type: integer }
+        noteThreadId: { type: integer }
+        entityId: { type: integer }
+        zoneName: { type: string }
+        zipCodes:
+          type: array
+          items: { type: string }
+        ranges:
+          type: array
+          items: { type: string }
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NoteMessageResponse"
+        activeStatus:
+          type: string
+          enum: [Y, N]
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: string }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: string }
 
     NoteMessageResponse:
       type: object
       properties:
-        noteMessageId: { type: integer }
+        noteId: { type: integer }
         noteThreadId: { type: integer }
         messageText: { type: string }
         createdAt: { type: string, format: date-time }
-        createdBy: { type: integer }
+        createdBy: { type: string }
+
+    ZoneDropdownResponse:
+      type: object
+      properties:
+        zoneId: { type: integer }
+        zoneName: { type: string }
+        zipCodes:
+          type: array
+          items: { type: string }
+        ranges:
+          type: array
+          items: { type: string }

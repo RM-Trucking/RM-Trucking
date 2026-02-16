@@ -16,11 +16,64 @@ export async function createAccessorial(conn: Connection, req: CreateAccessorial
   return result[0]?.accessorialId;
 }
 
-export async function getAllAccessorials(conn: Connection): Promise<Accessorial[]> {
-  const query = `SELECT * FROM ${SCHEMA}."Accessorial" ORDER BY "accessorialName" ASC`;
-  const result = await conn.query(query) as any[];
+export async function getAllAccessorials(
+  conn: Connection,
+  searchTerm: string | null,
+  page: number = 1,
+  pageSize: number = 10
+): Promise<Accessorial[]> {
+  const offset = (page - 1) * pageSize;
+
+  let query = `
+        SELECT "accessorialId", "accessorialName", "activeStatus",
+               "createdAt", "createdBy", "updatedAt", "updatedBy"
+        FROM ${SCHEMA}."Accessorial"
+    `;
+  const params: any[] = [];
+
+  if (searchTerm) {
+    query += ` WHERE LOWER("accessorialName") LIKE ? `;
+    params.push(`%${searchTerm.toLowerCase()}%`);
+  }
+
+  query += ` ORDER BY "accessorialName" ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY `;
+  params.push(offset, pageSize);
+
+  console.log(query);
+  
+
+  const result = (await conn.query(query, params)) as any[];
+
+  console.log(result);
+
+
   return result as Accessorial[];
 }
+
+export async function countAccessorials(
+  conn: Connection,
+  searchTerm: string | null
+): Promise<number> {
+  let query = `SELECT COUNT(*) as total FROM ${SCHEMA}."Accessorial"`;
+  const params: any[] = [];
+
+  if (searchTerm) {
+    query += ` WHERE LOWER("accessorialName") LIKE ? `;
+    params.push(`%${searchTerm.toLowerCase()}%`);
+  }
+
+  const result = await conn.query(query, params) as any[];
+  return parseInt(result[0].TOTAL, 10);
+}
+
+
+export async function getAccessorialDropdown(conn: Connection): Promise<{ id: number, name: string }[]> {
+  const query = `SELECT "accessorialId", "accessorialName" FROM ${SCHEMA}."Accessorial" ORDER BY "accessorialName" ASC`;
+  const result = await conn.query(query) as any[];
+  return result;
+}
+
+
 
 export async function getAccessorialById(conn: Connection, accessorialId: number): Promise<Accessorial | null> {
   const query = `

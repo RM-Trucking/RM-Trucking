@@ -86,6 +86,9 @@ const slice = createSlice({
         setWarehouseRatesFieldChargeData(state, action) {
             state.rateFieldChargeDataWarehouse = action.payload;
         },
+        setIsLoading(state, action) {
+            state.isLoading = action.payload;
+        },
     },
 });
 
@@ -95,6 +98,7 @@ export const {
     setRateSearchObj,
     setCurrentRateTab,
     setSelectedCurrentRateRow,
+    setIsLoading
 } = slice.actions;
 export default slice.reducer;
 

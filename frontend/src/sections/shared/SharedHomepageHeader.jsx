@@ -15,7 +15,7 @@ export default function SharedHomePageHeader({title, buttonText, onButtonClick})
     <Box width = '100%'>
       <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'space-between'} sx={{padding : 2}}>
         <Typography variant='subtitle1' sx={{fontWeight : 700}}>{title}</Typography>
-        <Button sx={{bgcolor : '#A22', color : "#fff"}} onClick={onButtonClick}>{buttonText}</Button>
+        {buttonText && <Button sx={{bgcolor : '#A22', color : "#fff"}} onClick={onButtonClick}>{buttonText}</Button>}
       </Stack>
       </Box>
     </>

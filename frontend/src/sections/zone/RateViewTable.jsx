@@ -171,8 +171,8 @@ export default function RateViewTable({ rateDataArr }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
-            sortable : false,
-            filterable : false,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -196,6 +196,21 @@ export default function RateViewTable({ rateDataArr }) {
             },
         }
     ];
+    const pagination = useSelector((state) => state?.ratedata?.pagination);
+    const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    // pagination model
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
+    useEffect(() => {
+        if (pagination) {
+            setPaginationModel({
+                page: pagination.page ? parseInt(pagination.page, 10) - 1 : 0,
+                pageSize: pagination.pageSize || 10,
+            });
+        }
+    }, [pagination]);
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
@@ -220,9 +235,21 @@ export default function RateViewTable({ rateDataArr }) {
                 </>
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
                     <DataGrid
+                        paginationMode="server"
+                        paginationModel={paginationModel}
+                        onPaginationModelChange={(newModel) => {
+                            setPaginationModel(newModel);
+                            // call api which gets rate data by zone id
+                            // dispatch(getZoneData({
+                            //     pageNo: newModel.page + 1,
+                            //     pageSize: newModel.pageSize,
+                            //     searchStr: zoneSearchStr
+                            // }));
+                        }}
+
                         rows={rateData}
                         columns={rateTransportationColumns}
-                        loading={rateData.length === 0}
+                        loading={isLoading}
                         getRowId={(row) => row?.rateId}
                         pagination
                         slots={{
@@ -231,6 +258,14 @@ export default function RateViewTable({ rateDataArr }) {
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
                         autoHeight
+                        onPageChange={(newPage) => {
+                            // dispatch(getZoneData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: zoneSearchStr }));
+                        }}
+                        onPageSizeChange={(newPageSize) => {
+                            // dispatch(getZoneData({ pageNo: 1, pageSize: newPageSize, searchStr: zoneSearchStr }));
+                        }}
+                        pageSizeOptions={[5, 10, 50, 100]}
+                        rowCount={parseInt(pagination?.totalRecords || rateData.length || '0', 10)}
                     />
                 </Box>
             </ErrorBoundary>

@@ -83,8 +83,8 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'zoneId',
-            headerName: 'rate ID',
+            field: 'rateCount',
+            headerName: 'Rate ID',
             width: 100,
             renderCell: (params) => {
                 const element = (
@@ -96,7 +96,7 @@ export default function ZoneTable() {
                     >
                         <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
                         <Typography variant="normal" sx={{ height : '25px' }}>
-                            06
+                            {params.row.rateCount}
                         </Typography>
                     </Stack>
                 );

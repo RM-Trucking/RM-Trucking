@@ -12,7 +12,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage, deleteCarrier } from '../../redux/slices/carrier';
+import { setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage, deleteCarrier, setSelectedRowCarrierType } from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -168,6 +168,7 @@ export default function RateTable() {
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCarrierRowDetails(params.row));
+                                dispatch(setSelectedRowCarrierType('LTL'));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);

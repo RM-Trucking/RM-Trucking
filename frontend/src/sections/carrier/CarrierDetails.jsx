@@ -23,6 +23,9 @@ import StyledCheckbox from '../shared/StyledCheckBox';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
+import CarrierViewTabs from './CarrierViewTabs';
+import CarrierViewTable from './CarrierViewTable';
+import { setTableBeingViewed } from '../../redux/slices/customer';
 // ----------------------------------------------------------------------
 
 
@@ -36,6 +39,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.carrierdata?.operationalMessage);
     const isLoading = useSelector((state) => state?.carrierdata?.isLoading);
+    const selectedRowCarrierType = useSelector((state) => state?.carrierdata?.selectedRowCarrierType);
     // Define default values for the form
     const defaultValues = {
         carrierName: '',
@@ -68,7 +72,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     const [warning, setWarning] = useState(false);
 
     const { control, handleSubmit, watch, getValues, setValue } = useForm({ defaultValues });
-
+   
     // Watch the checkbox value to conditionally render billing address
     const sameAsCorporate = watch('sameAsCorporate');
 
@@ -89,7 +93,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         }
     };
     useEffect(() => {
-        // dispatch(setTableBeingViewed('terminal'));
+        dispatch(setTableBeingViewed('terminal'));
     }, []);
     useEffect(() => {
         if (warning) setAlertDialog(true);
@@ -281,7 +285,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </Stack>
 
                     {/* Corporate Address Section */}
-                    <fieldset>
+                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Corporate Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                             <Controller
@@ -432,7 +436,20 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             control={control}
                             render={({ field: { onChange, value } }) => (
                                 <FormControlLabel
-                                    sx={{ alignItems: 'flex-end' }}
+                                    sx={{
+                                        display: 'flex', alignItems: 'flex-end',
+                                        // 1. Target the Label specifically when disabled
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'black', // Change to '#00194c' if you want it to match the checkbox
+                                            opacity: 1,      // Removes the "light/faded" look
+                                            WebkitTextFillColor: 'black', // Fix for Safari/Chrome
+                                        },
+                                        // 2. Ensure the Checkbox within the label is also red when disabled
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                        }
+                                    }}
                                     control={
                                         <StyledCheckbox
                                             checked={!!value}
@@ -466,7 +483,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </Box>
 
                     {/* Billing Address Section - Conditionally rendered */}
-                    <fieldset>
+                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Billing Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 2 }}>
                             <Controller
@@ -618,7 +635,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </fieldset>
 
                     <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
-                        <fieldset>
+                        <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Complaince &nbsp;</Typography></legend>
                             <Box sx={{ pt: 4, pb: 4, pr: 15 }}>
                                 <Controller
@@ -660,7 +677,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 />
                             </Box>
                         </fieldset>
-                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '15px' }}>
+                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '15px', borderColor:'#000', borderRadius:'8px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Government Info &nbsp;</Typography></legend>
                             <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                                 <Controller
@@ -853,7 +870,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
                     <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                         {
-                            type === 'View' && <fieldset style={{ marginRight: '15px' }}>
+                            type === 'View' && <fieldset style={{ marginRight: '15px', borderColor:'#000', borderRadius:'8px' }}>
                                 <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Quality &nbsp;</Typography></legend>
                                 <Stack flexDirection={'column'}>
                                     <Stack flexDirection={'row'} alignItems={'center'}>
@@ -871,7 +888,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 </Stack>
                             </fieldset>
                         }
-                        <fieldset style={{ width: '100%', padding: '12px' }}>
+                        <fieldset style={{ width: '100%', padding: '12px', borderColor:'#000', borderRadius:'8px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Sales Rep Info &nbsp;</Typography></legend>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pb: 2 }}>
                                 <Controller
@@ -1066,9 +1083,12 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
             </Box>
             {/* Carrier table */}
-            {/* {
-                type === 'View' && <CustomerViewStationTable />
-            } */}
+            {
+                type === 'View' && <CarrierViewTabs selectedRowCarrierType={selectedRowCarrierType}/>
+            }
+            {
+                type === 'View' && <CarrierViewTable />
+            }
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} onKeyDown={(event) => {
                 if (event.key === 'Escape') {
                     handleCloseConfirmDialog();

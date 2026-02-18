@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, current } from '@reduxjs/toolkit';
 // utils
 import axios from '../../utils/axios';
 //
@@ -17,6 +17,11 @@ const initialState = {
     selectedCarrierRowDetails: {},
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
     currentCarrierTab: 'active',
+    currentCarrierViewTab: 'terminal',
+    // terminal details and accessorial data are mapped to this array
+    carrierViewTabData: [],
+    selectedCarrierTabRowDetails: {},
+    selectedRowCarrierType: '',
 };
 
 const slice = createSlice({
@@ -50,6 +55,9 @@ const slice = createSlice({
         setCurrentCarrierTab(state, action) {
             state.currentCarrierTab = action.payload;
         },
+        setCurrentCarrierViewTab(state, action) {
+            state.currentCarrierViewTab = action.payload;
+        },
         getCarrierDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
@@ -82,7 +90,7 @@ const slice = createSlice({
                 ];
             }
             if (state.currentCarrierTab === 'inactive') {
-                  state.carrierData = [
+                state.carrierData = [
                     {
                         carrierId: 'CID10001',
                         carrierName: 'FedEx',
@@ -131,7 +139,81 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = `Carrier deleted successfully.`;
         },
-
+        // on view tab table details
+        getTerminalCarrierDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            if (state.currentCarrierViewTab === 'terminal') {
+                state.carrierViewTabData = [
+                    {
+                        terminalId: 1,
+                        terminalName: 'Terminal 1',
+                        rmAccountNumber: 'RM5675765',
+                        airportCode: 'JFK',
+                        totalShipments: 100,
+                        onTimePercentage: '95%',
+                        lateShipments: 5,
+                        address: '123 Main Street',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCodes: ['10001', '10002'],
+                        phoneNumber: '123-456-7890',
+                        faxNumber: '123-456-7891',
+                        openTime: '08:00',
+                        closeTime: '17:00',
+                        status: 'Y',
+                        hours: '8'
+                    },
+                    {
+                        terminalId: 2,
+                        terminalName: 'Terminal 2',
+                        rmAccountNumber: 'RM5675766',
+                        airportCode: 'LAX',
+                        totalShipments: 150,
+                        onTimePercentage: '90%',
+                        lateShipments: 5,
+                        address: '123 Main Street',
+                        city: 'New York',
+                        state: 'NY',
+                        zipCodes: ['10001', '10002'],
+                        phoneNumber: '123-456-7890',
+                        faxNumber: '123-456-7891',
+                        openTime: '08:00',
+                        closeTime: '17:00',
+                        status: 'N',
+                        hours: '5'
+                    },
+                ];
+            }
+        },
+        getAccessorialCarrierDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            if (state.currentCarrierViewTab === 'accessorial') {
+                state.carrierViewTabData = [
+                    {
+                        accessorialId: 1,
+                        accessorialName : 'Accessorial 1',
+                        chargeType: 'Flat Fee',
+                        chargeValue: '1100',
+                        notes: 'This is a sample accessorial note.'
+                    },
+                    {
+                        accessorialId: 2,
+                        accessorialName : 'Accessorial 2',
+                        chargeType: 'Flat Fee',
+                        chargeValue: '1100',
+                        notes: 'This is a sample accessorial note.'
+                    }
+                ];
+            }
+        },
+        setSelectedRowCarrierType(state, action) {
+            state.selectedRowCarrierType = action.payload;
+        },
+        setSelectedCarrierTabRowDetails(state, action) {
+            state.selectedCarrierTabRowDetails = action.payload;
+        },
     },
 });
 
@@ -141,6 +223,9 @@ export const {
     setCarrierSearchStr,
     setSelectedCarrierRowDetails,
     setCurrentCarrierTab,
+    setCurrentCarrierViewTab,
+    setSelectedRowCarrierType,
+    setSelectedCarrierTabRowDetails
 } = slice.actions;
 export default slice.reducer;
 
@@ -171,6 +256,28 @@ export function deleteCarrier(id, callback) {
             callback();
         } catch (error) {
             dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function getTerminalCarrierData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getTerminalCarrierDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function getAccessorialCarrierData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getAccessorialCarrierDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
         }
     };
 }

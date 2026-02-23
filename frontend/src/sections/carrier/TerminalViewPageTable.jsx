@@ -12,20 +12,31 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCarrierRowDetails, setOperationalMessage, getTerminalCarrierData, setSelectedCarrierTabRowDetails, getAccessorialCarrierData } from '../../redux/slices/carrier';
+import {
+    setSelectedCarrierRowDetails,
+    setOperationalMessage,
+    setSelectedTeminalTabRowDetails,
+    getPersonnelTerminalData,
+    getAccessorialTerminalData,
+    getQualityTerminalData,
+    getRateTerminalData,
+} from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
-import TerminalDetails from './TerminalDetails';
+import StyledCheckbox from '../shared/StyledCheckBox';
+import AddRate from '../rate/AddRate';
+import TerminalPersonnelDetails from './TerminalPersonnelDetails';
+
 
 // ----------------------------------------------------------------
 
-export default function CarrierViewTable() {
+export default function TerminalViewPageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { carrierViewTabData, isLoading, currentCarrierViewTab, pagination, operationalMessage, error, selectedCarrierTabRowDetails } = useSelector((state) => state.carrierdata);
+    const { carrierViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage, error, selectedTerminalTabRowDetails, } = useSelector((state) => state.carrierdata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -45,200 +56,70 @@ export default function CarrierViewTable() {
         console.error("Error caught:", info);
         console.log(error);
     };
-    const terminalColumns = [
+    const personnelColumns = [
         {
-            field: 'terminalName',
-            headerName: 'Terminal Name',
+            field: 'personnelName',
+            headerName: 'Personnel Name',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'rmAccountNumber',
-            headerName: 'RM Account #',
+            field: 'personType',
+            headerName: 'Person Type',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'airportCode',
-            headerName: 'Airport Code',
+            field: 'email',
+            headerName: 'Email ID',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'totalShipments',
-            headerName: 'Total No of Shipments',
+            field: 'officePhoneNo',
+            headerName: 'Office Phone #',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'onTimePercentage',
-            headerName: 'R&M On Time % ',
+            field: 'cellPhoneNo',
+            headerName: 'Cell Phone #',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'lateShipments',
-            headerName: 'R&M Late Shipments',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Typography
-                        sx={{ color: '#A22', textDecoration: 'underline', }}
-                    >
-                        {params?.row?.lateShipments}
-                    </Typography>
-                );
-                return element;
-            },
-        },
-        {
-            field: 'address',
-            headerName: 'Address',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            // renderCell: (params) => {
-            //     const element = (
-            //         <Typography
-            //         >
-            //             {params?.row?.tsa === 'Y' ? 'Yes' : 'No'}
-            //         </Typography>
-            //     );
-            //     return element;
-            // },
-        },
-        {
-            field: 'city',
-            headerName: 'City',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'state',
-            headerName: 'State',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'zipCodes',
-            headerName: 'Zip Codes',
-            width: 700,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
-                        {params.row.ranges?.map((range, index) => (
-                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
-                        ))}
-                        <Typography variant="normal">
-                            {params.row.zipCodes?.join(", ")}
-                        </Typography>
-                    </Stack>
-                );
-                return element;
-            }
-        },
-        {
-            field: "phoneNumber",
-            headerName: "Phone #",
-            minWidth: 150,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: "faxNumber",
-            headerName: "Fax #",
-            minWidth: 150,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: "openTime",
-            headerName: "Open Time",
-            minWidth: 110,
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row;
+                }
                 const element = (
                     <Box
                         sx={{
                             display: 'flex',
                             flex: 1,
+                            justifyContent: 'center',
+                            mb: 0.5,
                         }}
                     >
 
-                        {(params?.row?.openTime === '00:00:00') ? '' : params?.row?.openTime?.substring(0, 5)}
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
 
                     </Box>
                 );
                 return element;
             },
-        },
-        {
-            field: "closeTime",
-            headerName: "Close Time",
-            minWidth: 110,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-
-                        {(params?.row?.closeTime === '00:00:00') ? '' : params?.row?.closeTime?.substring(0, 5)}
-
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: "status",
-            headerName: "Status",
-            minWidth: 150,
-            cellClassName: 'center-status-cell',
-            headerAlign: 'center',
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-                        <Chip label={params?.row?.status?.toLowerCase() === 'y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: "hours",
-            headerName: "Hrs",
-            minWidth: 110,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
         },
         {
             field: 'actions',
@@ -259,13 +140,14 @@ export default function CarrierViewTable() {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedCarrierTabRowDetails(params.row));
-                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.terminalView);
+                                dispatch(setSelectedTeminalTabRowDetails(params.row));
+                                setActionType('View');
+                                setOpenEditDialog(true);
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
-                                dispatch(setSelectedCarrierTabRowDetails(params?.row));
+                                dispatch(setSelectedTeminalTabRowDetails(params?.row));
                                 setOpenEditDialog(true);
                                 setActionType('Edit');
                             }} />
@@ -285,6 +167,77 @@ export default function CarrierViewTable() {
             },
         }
     ];
+    const qualityColumns = [
+        {
+            field: "totalShipments",
+            headerName: "Total No of Shipments",
+            minWidth: 200,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: "onTimePercentage",
+            headerName: "R&M On Time % ",
+            minWidth: 200,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: "lateShipment",
+            headerName: "Late Shipments",
+            minWidth: 400,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+
+                const element = (
+                    <Typography
+                        sx={{
+                            textDecoration: 'underline',
+                            color: '#A22',
+                        }}
+                    >
+
+                        {params?.row?.lateShipment}
+
+                    </Typography>
+                );
+                return element;
+            },
+        },
+        {
+            field: "actions",
+            headerName: "Action",
+            minWidth: 150,
+            flex: 1,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedTeminalTabRowDetails(params.row));
+                                setActionType('View');
+                            }} />
+                        </Tooltip>
+
+                    </Box>
+                );
+                return element;
+            },
+        },
+    ];
     const accessorialColumns = [
         {
             field: "accessorialName",
@@ -293,6 +246,35 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+        },
+        {
+            field: "serviceNotOffered",
+            headerName: "Service Not Offered",
+            minWidth: 200,
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+
+                        <StyledCheckbox
+                            sx={{ mt: -1.5 }}
+                            checked={params?.row?.serviceNotOffered}
+                            onChange={(e, i) => {
+                                const isChecked = e.target.checked;
+                                // here need to call api to post data
+                            }} />
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "chargeType",
@@ -360,7 +342,7 @@ export default function CarrierViewTable() {
                         <Tooltip title={'Edit'} arrow onClick={() => {
                             setActionType('Edit');
                             setOpenEditDialog(true);
-                            dispatch(setSelectedCarrierTabRowDetails(params.row));
+                            dispatch(setSelectedTeminalTabRowDetails(params.row));
                         }}>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
                         </Tooltip>
@@ -379,27 +361,154 @@ export default function CarrierViewTable() {
             },
         },
     ];
+    const rateColumns = [
+        {
+            field: 'rateId',
+            headerName: 'Rate ID',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.rateId}
+                </Box>
+            )
+        },
+        {
+            field: 'origin',
+            headerName: 'Origin',
+            width: 100,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: 'originZipCode',
+            headerName: 'Origin Zip Code',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: 'destination',
+            headerName: 'Destination',
+            width: 100,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: 'destinationZipCode',
+            headerName: 'Destination Zip Code',
+            width: 170,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+        },
+        {
+            field: "rates",
+            headerName: "Rates",
+            minWidth: 300,
+            minHeight: 200,
+            flex: 1,
+            renderCell: (params) => {
+                const element = (
+                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
+                        </Stack>
+                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
+                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                        </Stack>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'expiryDate',
+            headerName: 'Expiry Date',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box>
+                    {formatted}
+                </Box>
+            }
+        },
+        {
+            field: "actions",
+            headerName: "Action",
+            minWidth: 110,
+            flex: 1,
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedTeminalTabRowDetails(params.row));
+                            }} />
+                        </Tooltip>
+
+                        <Tooltip title={'Delete'} arrow>
+                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        },
+    ];
 
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
-        dispatch(setTableBeingViewed('terminal'));
-        if (currentCarrierViewTab === 'terminal') {
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+        dispatch(setTableBeingViewed('personnel'));
+        if (currentTerminalTab === 'personnel') {
+            dispatch(getPersonnelTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
     }, []);
     useEffect(() => {
-        if (currentCarrierViewTab === 'terminal') {
+        if (currentTerminalTab === 'personnel') {
             dispatch(clearNotesState());
-            setTableColumns(terminalColumns);
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            setTableColumns(personnelColumns);
+            dispatch(getPersonnelTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
-        if (currentCarrierViewTab === 'accessorial') {
+        if (currentTerminalTab === 'quality') {
+            dispatch(clearNotesState());
+            setTableColumns(qualityColumns);
+            dispatch(getQualityTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+        }
+        if (currentTerminalTab === 'accessorial') {
             dispatch(clearNotesState());
             setTableColumns(accessorialColumns);
-            dispatch(getAccessorialCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            dispatch(getAccessorialTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
-    }, [currentCarrierViewTab]);
+        if (currentTerminalTab === 'rate') {
+            dispatch(clearNotesState());
+            setTableColumns(rateColumns);
+            dispatch(getRateTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+        }
+    }, [currentTerminalTab]);
     useEffect(() => {
         if (pagination) {
             setPaginationModel({
@@ -420,9 +529,9 @@ export default function CarrierViewTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Terminal deleted successfully') {
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-        }
+        // if (operationalMessage === 'Terminal deleted successfully') {
+        //     dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+        // }
     }, [operationalMessage])
 
     const handleCloseConfirm = () => {
@@ -452,7 +561,7 @@ export default function CarrierViewTable() {
                         rows={carrierViewTabData}
                         columns={tableColumns}
                         loading={isLoading}
-                        getRowId={(row) => row?.terminalId || row?.accessorialId}
+                        getRowId={(row) => row?.personnelId || row?.accessorialId || row?.rateId || row.qualityId}
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
@@ -460,17 +569,16 @@ export default function CarrierViewTable() {
                         paginationModel={paginationModel}
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
-                            dispatch(getTerminalCarrierData({
+                            dispatch(getPersonnelTerminalData({
                                 pageNo: newModel.page + 1,
                                 pageSize: newModel.pageSize,
-                                searchStr: carrierSearchStr
                             }));
                         }}
                         onPageChange={(newPage) => {
-                            dispatch(getTerminalCarrierData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: carrierSearchStr }));
+                            dispatch(getPersonnelTerminalData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, }));
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            dispatch(getTerminalCarrierData({ pageNo: 1, pageSize: newPageSize, searchStr: carrierSearchStr }));
+                            dispatch(getPersonnelTerminalData({ pageNo: 1, pageSize: newPageSize, }));
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || '0', 10)}
@@ -520,8 +628,13 @@ export default function CarrierViewTable() {
                 >
                     <DialogContent>
                         {
-                            currentCarrierViewTab === 'accessorial' ? <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedCarrierTabRowDetails} /> : 
-                            <TerminalDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
+                            currentTerminalTab.toLowerCase() === 'personnel' && <TerminalPersonnelDetails type={actionType} handleCloseConfirm={handleCloseEdit} />
+                        }
+                        {
+                            currentTerminalTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} />
+                        }
+                        {
+                            currentTerminalTab.toLowerCase() === 'rate' && <AddRate type={'Add'} handleCloseConfirm={handleCloseEdit} />
                         }
                     </DialogContent>
                 </Dialog>

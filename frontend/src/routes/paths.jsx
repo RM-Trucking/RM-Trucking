@@ -49,6 +49,7 @@ export const PATH_DASHBOARD = {
     carrierMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
       carrierView :  path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/carrier-view'),
+      terminalView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/terminal-view'),
     },
     zoneMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),

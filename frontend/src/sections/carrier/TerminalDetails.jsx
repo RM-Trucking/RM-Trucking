@@ -705,13 +705,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                 </Stack>}
 
             </Box>
-            {/* terminal table */}
-            {/* {
-                type === 'View' && <CarrierViewTabs selectedRowCarrierType={selectedRowCarrierType} />
-            }
-            {
-                type === 'View' && <CarrierViewTable />
-            } */}
+
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog} onKeyDown={(event) => {
                 if (event.key === 'Escape') {
                     handleCloseConfirmDialog();

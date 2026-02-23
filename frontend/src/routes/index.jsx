@@ -26,6 +26,7 @@ import {
   RateMaintenancePage,
   ZoneMaintenancePage,
   ZoneTableView,
+  TerminalViewPage,
   CarrierMaintenancePage,
   AccesorialMaintenancePage,
   Page500,
@@ -95,6 +96,7 @@ export default function Router() {
               children: [
                 { index:true, element : <CarrierMaintenancePage /> },
                 { path: 'carrier-view', element: <CarrierViewPage /> },
+                { path: 'terminal-view', element: <TerminalViewPage /> },
               ]
             },
             {

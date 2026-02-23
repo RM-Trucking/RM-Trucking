@@ -16,12 +16,16 @@ const initialState = {
     operationalMessage: '',
     selectedCarrierRowDetails: {},
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
+    // carrier tab details
     currentCarrierTab: 'active',
     currentCarrierViewTab: 'terminal',
     // terminal details and accessorial data are mapped to this array
     carrierViewTabData: [],
     selectedCarrierTabRowDetails: {},
     selectedRowCarrierType: '',
+    // terminal tab details
+    selectedTerminalTabRowDetails: {},
+    currentTerminalTab: 'personnel',
 };
 
 const slice = createSlice({
@@ -193,14 +197,14 @@ const slice = createSlice({
                 state.carrierViewTabData = [
                     {
                         accessorialId: 1,
-                        accessorialName : 'Accessorial 1',
+                        accessorialName: 'Accessorial 1',
                         chargeType: 'Flat Fee',
                         chargeValue: '1100',
                         notes: 'This is a sample accessorial note.'
                     },
                     {
                         accessorialId: 2,
-                        accessorialName : 'Accessorial 2',
+                        accessorialName: 'Accessorial 2',
                         chargeType: 'Flat Fee',
                         chargeValue: '1100',
                         notes: 'This is a sample accessorial note.'
@@ -211,9 +215,140 @@ const slice = createSlice({
         setSelectedRowCarrierType(state, action) {
             state.selectedRowCarrierType = action.payload;
         },
+        // carrier view tab row details
         setSelectedCarrierTabRowDetails(state, action) {
             state.selectedCarrierTabRowDetails = action.payload;
         },
+        // terminal view row details
+        setSelectedTeminalTabRowDetails(state, action) {
+            state.selectedTerminalTabRowDetails = action.payload;
+        },
+        setCurrentTerminalTab(state, action) {
+            state.currentTerminalTab = action.payload;
+        },
+        // terminal tab success slices
+        getPersonnelTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.carrierViewTabData = [
+                {
+                    personnelId: 1,
+                    personnelName: 'Bravo',
+                    personType: 'Warehouse',
+                    email: 'email1@gmail.com',
+                    officePhoneNo: '8569999954',
+                    cellPhoneNo: '8569999955',
+                    notes: 'Sample notes for personnel.'
+                },
+                {
+                    personnelId: 2,
+                    personnelName: 'Charlie',
+                    personType: 'Sales',
+                    email: 'email2@gmail.com',
+                    officePhoneNo: '8569999954',
+                    cellPhoneNo: '8569999955',
+                    notes: 'Sample notes for personnel.'
+                }
+            ]
+        },
+        getAccessorialTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.carrierViewTabData = [
+                {
+                    accessorialId: 1,
+                    serviceNotOffered: true,
+                    accessorialName: 'Accessorial 1',
+                    chargeType: 'Flat Fee',
+                    chargeValue: '1100',
+                    notes: 'This is a sample accessorial note.'
+                },
+                {
+                    accessorialId: 2,
+                    serviceNotOffered: false,
+                    accessorialName: 'Accessorial 2',
+                    chargeType: 'Flat Fee',
+                    chargeValue: '1100',
+                    notes: 'This is a sample accessorial note.'
+                }
+            ];
+        },
+        getQualityTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.carrierViewTabData = [
+                {
+                    qualityId: 1,
+                    totalShipments: '05',
+                    onTimePercentage: '95%',
+                    lateShipment: '02',
+                },
+                {
+                    qualityId: 2,
+                    totalShipments: '100',
+                    onTimePercentage: '55%',
+                    lateShipment: '92',
+                },
+            ]
+        },
+        getRateTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.carrierViewTabData = [
+                {
+                    rateId: 1,
+                    origin: 'ORD',
+                    originZipCode: '60501',
+                    destination: 'Ankeny',
+                    destinationZipCode: '50007',
+                    customers: 26,
+                    status: 'Y',
+                    min: '100',
+                    rate100: '100',
+                    rate1000: '1000',
+                    rate3000: '3000',
+                    rate5000: '5000',
+                    rate10000: '10000',
+                    max: '10000',
+                    expiryDate: '12-30-2026',
+                },
+                {
+                    rateId: 2,
+                    origin: 'ORD',
+                    originZipCode: '60501',
+                    destination: 'Ankeny',
+                    destinationZipCode: '50007',
+                    customers: 26,
+                    status: 'Y',
+                    min: '100',
+                    rate100: '100',
+                    rate1000: '1000',
+                    rate3000: '3000',
+                    rate5000: '5000',
+                    rate10000: '10000',
+                    max: '10000',
+                    expiryDate: '12-30-2026',
+                },
+                {
+                    rateId: 3,
+                    origin: 'ORD',
+                    originZipCode: '60501',
+                    destination: 'Ankeny',
+                    destinationZipCode: '50007',
+                    customers: 26,
+                    status: 'Y',
+                    min: '100',
+                    rate100: '100',
+                    rate1000: '1000',
+                    rate3000: '3000',
+                    rate5000: '5000',
+                    rate10000: '10000',
+                    max: '10000',
+                    expiryDate: '12-30-2026',
+                },
+            ];
+        }
+
     },
 });
 
@@ -225,7 +360,9 @@ export const {
     setCurrentCarrierTab,
     setCurrentCarrierViewTab,
     setSelectedRowCarrierType,
-    setSelectedCarrierTabRowDetails
+    setSelectedCarrierTabRowDetails,
+    setSelectedTeminalTabRowDetails,
+    setCurrentTerminalTab
 } = slice.actions;
 export default slice.reducer;
 
@@ -281,3 +418,48 @@ export function getAccessorialCarrierData({ pageNo, pageSize, searchStr }) {
         }
     };
 }
+// Terminal tab calls
+export function getPersonnelTerminalData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getPersonnelTerminalDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    }
+};
+export function getAccessorialTerminalData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getAccessorialTerminalDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    }
+};
+export function getQualityTerminalData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getQualityTerminalDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    }
+};
+export function getRateTerminalData({ pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getRateTerminalDataSuccess([]));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    }
+};

@@ -87,7 +87,8 @@ export default function Router() {
               children: [
                 { index: true, element: <CustomerMaintenancePage /> },
                 { path: 'customer-view', element: <CustomerViewPage /> },
-                { path: 'station-view', element: <CustomerStationViewPage /> }
+                { path: 'station-view', element: <CustomerStationViewPage /> },
+                { path: 'rate-maintenance', element: <RateMaintenancePage /> },
               ]
             },
             {
@@ -97,6 +98,7 @@ export default function Router() {
                 { index:true, element : <CarrierMaintenancePage /> },
                 { path: 'carrier-view', element: <CarrierViewPage /> },
                 { path: 'terminal-view', element: <TerminalViewPage /> },
+                { path: 'rate-maintenance', element: <RateMaintenancePage /> },
               ]
             },
             {

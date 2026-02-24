@@ -201,7 +201,7 @@ export default function StationTabs({ }) {
                             </Button>
                             <Button
                                 variant="outlined"
-                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.root)}
+                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateMaintenanceView)}
                                 sx={{
                                     height: '22px',
                                     fontWeight: 600,

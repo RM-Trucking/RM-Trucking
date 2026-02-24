@@ -10,13 +10,15 @@ function NavItem({ item, depth = 0 }) {
   const navigate = useNavigate();
   
   const hasActiveChild = (node) => {
-    if (node.path === pathname) return true;
+    if (node.path && pathname.startsWith(node.path)) return true;
+    // if (node.path === pathname) return true;
     return node.children?.some(child => hasActiveChild(child));
   };
 
   const [open, setOpen] = useState(hasActiveChild(item));
   const hasChildren = item.children && item.children.length > 0;
-  const isActive = pathname === item.path;
+  const isActive = item.path ? pathname.startsWith(item.path) : false;
+  // const isActive = pathname === item.path;
 
   // FIX: This function now handles BOTH opening the list AND routing
   const handleClick = (e) => {

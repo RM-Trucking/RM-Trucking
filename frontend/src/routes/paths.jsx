@@ -45,11 +45,13 @@ export const PATH_DASHBOARD = {
       root : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),
       customerView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/customer-view'),
       customerStationView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/station-view'),
+      rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/rate-maintenance'),
     },
     carrierMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
       carrierView :  path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/carrier-view'),
       terminalView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/terminal-view'),
+      rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/rate-maintenance'),
     },
     zoneMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),

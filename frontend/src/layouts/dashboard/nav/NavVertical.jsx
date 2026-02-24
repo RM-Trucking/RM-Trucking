@@ -60,10 +60,10 @@ export default function NavVertical({ }) {
             }
           ],
         },
-        {
-          "title": "Rate Maintenance",
-          "path": "/app/maintenance/rate-maintenance"
-        },
+        // {
+        //   "title": "Rate Maintenance",
+        //   "path": "/app/maintenance/rate-maintenance"
+        // },
         {
           "title": "Zone Maintenance",
           "path": "/app/maintenance/zone-maintenance"

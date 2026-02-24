@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import {
     Box, Stack, Divider, Tabs, Tab,
     Button, Dialog,
-    DialogContent
+    DialogContent, MenuItem
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -19,6 +19,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
 import AddRate from '../rate/AddRate';
 import { setCurrentRateTab } from '../../redux/slices/rate';
+import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------------
 
 
@@ -48,7 +49,7 @@ export default function StationTabs({ }) {
     const {
         stationCurrentTab, selectedStationTabRowDetails, selectedCustomerStationDetails
     } = useSelector(({ customerdata }) => customerdata);
-    const { rateSearchObj } = useSelector(({ ratedata }) => ratedata);
+    const { rateSearchObj, currentRateTab } = useSelector(({ ratedata }) => ratedata);
 
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openConfirmRateDialog, setOpenConfirmRateDialog] = useState(false);
@@ -161,7 +162,21 @@ export default function StationTabs({ }) {
                         Add {stationCurrentTab.charAt(0).toUpperCase() + stationCurrentTab.slice(1)}
                     </Button>}
                     {stationCurrentTab.toLowerCase() === 'rate' &&
-                        <Stack direction="row" spacing={1} alignItems={'center'}>
+                        <Stack direction="row" spacing={1} alignItems={'center'} sx={{ width: '50%', justifyContent: 'flex-end' }}>
+                            <StyledTextField
+                                select
+                                label="Rate"
+                                variant="standard"
+                                onChange={(e) => {
+                                    dispatch(setCurrentRateTab(e.target.value));
+                                    // call api for transportation data on rate table
+                                }}
+                                value={currentRateTab}
+                                sx={{ mr: 1, }}
+                            >
+                                <MenuItem value="warehouse">Warehouse</MenuItem>
+                                <MenuItem value="transportation">Transportation</MenuItem>
+                            </StyledTextField>
                             <Button
                                 variant="outlined"
                                 onClick={() => {
@@ -259,7 +274,7 @@ export default function StationTabs({ }) {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1545px',
-                            height: '80%',
+                            height: 'auto',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }

@@ -12,7 +12,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCarrierRowDetails, setOperationalMessage, getTerminalCarrierData, setSelectedCarrierTabRowDetails, getAccessorialCarrierData } from '../../redux/slices/carrier';
+import { setSelectedCarrierRowDetails, setOperationalMessage, getTerminalCarrierData, setSelectedCarrierTabRowDetails, getAccessorialCarrierData, } from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -384,9 +384,6 @@ export default function CarrierViewTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('terminal'));
-        if (currentCarrierViewTab === 'terminal') {
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
-        }
     }, []);
     useEffect(() => {
         if (currentCarrierViewTab === 'terminal') {

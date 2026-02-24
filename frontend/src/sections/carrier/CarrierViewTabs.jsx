@@ -8,9 +8,8 @@ import {
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentCarrierViewTab } from '../../redux/slices/carrier';
 import ErrorFallback from '../shared/ErrorBoundary';
-import { setSelectedCarrierTabRowDetails } from '../../redux/slices/carrier';
+import { setSelectedCarrierTabRowDetails, setCurrentCarrierViewTab } from '../../redux/slices/carrier';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
 // ----------------------------------------------------------------------

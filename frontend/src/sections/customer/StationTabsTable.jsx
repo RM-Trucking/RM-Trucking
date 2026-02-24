@@ -32,6 +32,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     const error = useSelector((state) => state?.customerdata?.error);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
+    const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
     const [tableColumns, setTableColumns] = useState([]);
     // dialog for notes
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -307,20 +308,59 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             renderCell: (params) => {
                 const element = (
-                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                        </Stack>
-                    </Stack>
+                    <Box>
+                        {
+                            currentRateTab === 'warehouse' && <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                                </Stack>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
+                                </Stack>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                                </Stack>
+                            </Stack>
+                        }
+                        {
+                            currentRateTab === 'transportation' && <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                                <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>100:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>1000:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>3000:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>5000:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>10000:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
+                                    </Stack>
+                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
+                                    </Stack>
+                                </Stack>
+                            </Stack>
+                        }
+
+                    </Box>
                 );
                 return element;
             }
@@ -522,6 +562,13 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             setSnackbarOpen(true);
         }
     }, [operationalMessage])
+    useEffect(() => {
+        if (currentTab === 'rate' && currentRateTab) {
+            dispatch(clearNotesState());
+            dispatch(getStationRateData());
+            setTableColumns(rateColumns);
+        }
+    }, [currentRateTab])
 
     // dialog actions and functions for notes
     const handleCloseConfirm = () => {

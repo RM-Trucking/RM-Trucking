@@ -36,7 +36,7 @@ export default function TerminalViewPageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { carrierViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage, error, selectedTerminalTabRowDetails, } = useSelector((state) => state.carrierdata);
+    const { terminalViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage, error, selectedTerminalTabRowDetails, } = useSelector((state) => state.carrierdata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -483,9 +483,6 @@ export default function TerminalViewPageTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('personnel'));
-        if (currentTerminalTab === 'personnel') {
-            dispatch(getPersonnelTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
-        }
     }, []);
     useEffect(() => {
         if (currentTerminalTab === 'personnel') {
@@ -558,7 +555,7 @@ export default function TerminalViewPageTable() {
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
 
                     <DataGrid
-                        rows={carrierViewTabData}
+                        rows={terminalViewTabData}
                         columns={tableColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.personnelId || row?.accessorialId || row?.rateId || row.qualityId}

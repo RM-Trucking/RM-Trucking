@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails } from '../../redux/slices/carrier';
+import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, } from '../../redux/slices/carrier';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';

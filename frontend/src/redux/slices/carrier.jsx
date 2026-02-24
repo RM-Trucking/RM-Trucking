@@ -24,6 +24,7 @@ const initialState = {
     selectedCarrierTabRowDetails: {},
     selectedRowCarrierType: '',
     // terminal tab details
+    terminalViewTabData: [],
     selectedTerminalTabRowDetails: {},
     currentTerminalTab: 'personnel',
 };
@@ -230,7 +231,7 @@ const slice = createSlice({
         getPersonnelTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.carrierViewTabData = [
+            state.terminalViewTabData = [
                 {
                     personnelId: 1,
                     personnelName: 'Bravo',
@@ -254,7 +255,7 @@ const slice = createSlice({
         getAccessorialTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.carrierViewTabData = [
+            state.terminalViewTabData = [
                 {
                     accessorialId: 1,
                     serviceNotOffered: true,
@@ -276,7 +277,7 @@ const slice = createSlice({
         getQualityTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.carrierViewTabData = [
+            state.terminalViewTabData = [
                 {
                     qualityId: 1,
                     totalShipments: '05',
@@ -294,7 +295,7 @@ const slice = createSlice({
         getRateTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.carrierViewTabData = [
+            state.terminalViewTabData = [
                 {
                     rateId: 1,
                     origin: 'ORD',
@@ -347,8 +348,7 @@ const slice = createSlice({
                     expiryDate: '12-30-2026',
                 },
             ];
-        }
-
+        },
     },
 });
 
@@ -362,7 +362,7 @@ export const {
     setSelectedRowCarrierType,
     setSelectedCarrierTabRowDetails,
     setSelectedTeminalTabRowDetails,
-    setCurrentTerminalTab
+    setCurrentTerminalTab, setCarrierViewTabData,
 } = slice.actions;
 export default slice.reducer;
 

@@ -169,6 +169,7 @@ export default function RateTable() {
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setSelectedCarrierRowDetails(params.row));
                                 dispatch(setSelectedRowCarrierType('LTL'));
+                                // dispatch(setSelectedRowCarrierType('Airport'));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);

@@ -76,8 +76,8 @@ export default function TerminalViewPageDetails() {
         mt: 2,
       }}>
         <TerminalDetails type={'View'} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
-        {/* <TerminalViewTabs />
-        <TerminalViewPageTable /> */}
+        <TerminalViewTabs />
+        <TerminalViewPageTable />
       </Box>
     </>
   );

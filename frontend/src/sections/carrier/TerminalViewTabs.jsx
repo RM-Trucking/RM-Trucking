@@ -119,7 +119,7 @@ export default function TerminalViewTabs({ }) {
                             />
                         ))}
                     </Tabs>
-                    {currentTerminalTab.toLowerCase() !== 'rate' && <Button
+                    {(currentTerminalTab.toLowerCase() !== 'rate' && currentTerminalTab.toLowerCase() !== 'quality') && <Button
                         variant="outlined"
                         onClick={() => onClickOfAddCarrierTabButton()}
                         sx={{

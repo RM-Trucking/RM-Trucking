@@ -203,7 +203,11 @@ export default function RateTable() {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
-                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                if (currentRateRoutedFrom === 'customer') {
+                                    navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
+                                } else if (currentRateRoutedFrom === 'carrier') {
+                                    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
+                                }
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
@@ -393,13 +397,13 @@ export default function RateTable() {
         }
     ]
     useEffect(() => {
-    if(location?.pathname?.includes('customer-maintenance')){
-        dispatch(setCurrentRateRoutedFrom('customer'));
-    }
-    if(location?.pathname?.includes('carrier-maintenance')){
-        dispatch(setCurrentRateRoutedFrom('carrier'));
-    }
-  }, [location]);
+        if (location?.pathname?.includes('customer-maintenance')) {
+            dispatch(setCurrentRateRoutedFrom('customer'));
+        }
+        if (location?.pathname?.includes('carrier-maintenance')) {
+            dispatch(setCurrentRateRoutedFrom('carrier'));
+        }
+    }, [location]);
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
@@ -437,10 +441,10 @@ export default function RateTable() {
         }
     }, [operationalMessage])
     useEffect(() => {
-        if(currentRateRoutedFrom){
+        if (currentRateRoutedFrom) {
             console.log('currentRateRoutedFrom', currentRateRoutedFrom);
         }
-    },[currentRateRoutedFrom])
+    }, [currentRateRoutedFrom])
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);

@@ -88,25 +88,31 @@ export default function Router() {
                 { index: true, element: <CustomerMaintenancePage /> },
                 { path: 'customer-view', element: <CustomerViewPage /> },
                 { path: 'station-view', element: <CustomerStationViewPage /> },
-                { path: 'rate-maintenance', element: <RateMaintenancePage /> },
+                {
+                  path: 'rate-maintenance',
+                  element: <RateLayout />,
+                  children: [
+                    { index: true, element: <RateMaintenancePage /> },
+                    { path: 'rate-view', element: <RateViewPage /> },
+                  ]
+                },
               ]
             },
             {
               path: 'carrier-maintenance',
               element: <CarrierLayout />,
               children: [
-                { index:true, element : <CarrierMaintenancePage /> },
+                { index: true, element: <CarrierMaintenancePage /> },
                 { path: 'carrier-view', element: <CarrierViewPage /> },
                 { path: 'terminal-view', element: <TerminalViewPage /> },
-                { path: 'rate-maintenance', element: <RateMaintenancePage /> },
-              ]
-            },
-            {
-              path: 'rate-maintenance',
-              element: <RateLayout />,
-              children: [
-                { index: true, element: <RateMaintenancePage /> },
-                { path: 'rate-view', element: <RateViewPage /> },
+                {
+                  path: 'rate-maintenance',
+                  element: <RateLayout />,
+                  children: [
+                    { index: true, element: <RateMaintenancePage /> },
+                    { path: 'rate-view', element: <RateViewPage /> },
+                  ]
+                },
               ]
             },
             {

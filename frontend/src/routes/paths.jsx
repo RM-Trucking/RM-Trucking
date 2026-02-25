@@ -46,23 +46,20 @@ export const PATH_DASHBOARD = {
       customerView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/customer-view'),
       customerStationView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/station-view'),
       rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/rate-maintenance'),
+      rateView : path(ROOTS_DASHBOARD,'/maintenance/customer-maintenance/rate-maintenance/rate-view'),
     },
     carrierMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
       carrierView :  path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/carrier-view'),
       terminalView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/terminal-view'),
       rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/rate-maintenance'),
+      rateView : path(ROOTS_DASHBOARD,'/maintenance/carrier-maintenance/rate-maintenance/rate-view')
     },
     zoneMaintenance: {
       root : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),
       zoneTableView : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance/zone-table-view'),
     },
-    
     accesorialMaintenance: path(ROOTS_DASHBOARD, '/maintenance/accesorial-maintenance'),
-    rateMaintenance : {
-      root : path(ROOTS_DASHBOARD,'/maintenance/rate-maintenance'),
-      rateView : path(ROOTS_DASHBOARD,'/maintenance/rate-maintenance/rate-view')
-    },
   },
 };
 

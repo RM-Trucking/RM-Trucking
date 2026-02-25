@@ -9,6 +9,7 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, } from '../../redux/slices/carrier';
+import { setCurrentRateRoutedFrom, } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
@@ -164,7 +165,10 @@ export default function TerminalViewTabs({ }) {
                             </Button>
                             <Button
                                 variant="outlined"
-                                onClick={() => navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView)}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView);
+                                }}
                                 sx={{
                                     height: '22px',
                                     fontWeight: 600,

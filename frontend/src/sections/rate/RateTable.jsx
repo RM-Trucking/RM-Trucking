@@ -12,7 +12,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCurrentRateRow, getRateDashboardData, deleteWarehouseRate, setOperationalMessage, setIsLoading } from '../../redux/slices/rate';
+import { setSelectedCurrentRateRow, getRateDashboardData, deleteWarehouseRate, setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -23,8 +23,9 @@ import CustomerListTable from './CustomersListTable';
 export default function RateTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
+    const { currentRateRoutedFrom, rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -391,7 +392,14 @@ export default function RateTable() {
             stationName: 'Station 2'
         }
     ]
-
+    useEffect(() => {
+    if(location?.pathname?.includes('customer-maintenance')){
+        dispatch(setCurrentRateRoutedFrom('customer'));
+    }
+    if(location?.pathname?.includes('carrier-maintenance')){
+        dispatch(setCurrentRateRoutedFrom('carrier'));
+    }
+  }, [location]);
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
@@ -428,6 +436,11 @@ export default function RateTable() {
             dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
         }
     }, [operationalMessage])
+    useEffect(() => {
+        if(currentRateRoutedFrom){
+            console.log('currentRateRoutedFrom', currentRateRoutedFrom);
+        }
+    },[currentRateRoutedFrom])
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);

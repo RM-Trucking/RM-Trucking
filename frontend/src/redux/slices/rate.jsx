@@ -19,6 +19,7 @@ const initialState = {
     rateFieldChargeDataWarehouse: [],
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
     operationalMessage: '',
+    currentRateRoutedFrom: null,
 };
 
 const slice = createSlice({
@@ -89,6 +90,9 @@ const slice = createSlice({
         setIsLoading(state, action) {
             state.isLoading = action.payload;
         },
+        setCurrentRateRoutedFrom(state, action) {
+            state.currentRateRoutedFrom = action.payload;
+        },
     },
 });
 
@@ -98,7 +102,8 @@ export const {
     setRateSearchObj,
     setCurrentRateTab,
     setSelectedCurrentRateRow,
-    setIsLoading
+    setIsLoading,
+    setCurrentRateRoutedFrom,
 } = slice.actions;
 export default slice.reducer;
 

@@ -42,6 +42,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const zoneSuccess = useSelector((state) => state?.zonedata?.zoneSuccess);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -87,7 +88,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
             setValue('notes', selectedCurrentRateRow.notes || '');
         }
-        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
+        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation' && currentRateRoutedFrom === 'zone') {
             setValue('origin', selectedCurrentRateRow.originZone.zoneName || '');
             setValue('destination', selectedCurrentRateRow.destinationZone.zoneName || '');
             setValue('originZipCode', selectedCurrentRateRow.originZone.zipCodes.join(',').concat(",", selectedCurrentRateRow.originZone.ranges.join(',')) || '');
@@ -550,7 +551,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         },
                                     }}
                                 >
-                                    Customer list ({selectedCurrentRateRow?.customers ?? 0})
+                                    {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({selectedCurrentRateRow?.customers ?? 0})
                                 </Button>
                                 <Controller
                                     name="notes"

@@ -179,18 +179,36 @@ export default function RateFieldAndChargeTable({ type }) {
             filterable: false,
             renderCell: (params) => {
                 const isLastRow = params.row.id === tableData[tableData.length - 1]?.id;
-                const onEdit = () => {
-                    const updatedData = [...tableData];
-                    // Find the index of the row you clicked
-                    const index = updatedData.findIndex(item => item.id === params.row.id);
+                const stableSort = (data) => {
+                    return [...data].sort((a, b) => {
+                        const valA = a.rateField;
+                        const valB = b.rateField;
 
-                    if (index !== -1) {
-                        // Set readonly to false to enable the inputs
-                        updatedData[index] = { ...updatedData[index], readonly: false };
-                        setTableData(updatedData);
-                        console.log(`Row at index ${index} is now editable.`);
-                    }
-                }
+                        // 1. Min Charge is ALWAYS FIRST
+                        if (valA === 'Min Charge') return -1;
+                        if (valB === 'Min Charge') return 1;
+
+                        // 2. Empty Row (rateField === '') is ALWAYS LAST
+                        if (valA === '') return 1;
+                        if (valB === '') return -1;
+
+                        // 3. Max Charge is ALWAYS SECOND-TO-LAST (last before empty)
+                        if (valA === 'Max Charge') return 1;
+                        if (valB === 'Max Charge') return -1;
+
+                        // 4. Numeric sorting for the middle values
+                        const numA = parseFloat(valA);
+                        const numB = parseFloat(valB);
+
+                        if (!isNaN(numA) && !isNaN(numB)) {
+                            return numA - numB;
+                        }
+
+                        return 0; // Maintain original order if both are same
+                    });
+                };
+
+
                 const onAdd = () => {
                     const lastRow = tableData[tableData.length - 1];
                     if (tableData.length > 0 && tableData[tableData.length - 1].rateField === '' || tableData[tableData.length - 1].charge === '') {
@@ -224,9 +242,11 @@ export default function RateFieldAndChargeTable({ type }) {
                         charge: '',
                         readonly: false // This new row remains editable
                     };
-
-                    // 4. Update the state with the locked rows + the new editable row
-                    setTableData([...lockedData, newRow]);
+                    const combinedData = [...lockedData, newRow];
+                    // 4. SORT everything so Min is top, Max is bottom, and numbers are ordered
+                    const sortedData = stableSort(combinedData);
+                    // 5. Update the state with the locked rows + the new editable row
+                    setTableData(sortedData);
                 }
                 const toggleReadonly = (id, status) => {
                     const updatedData = tableData.map((row) =>

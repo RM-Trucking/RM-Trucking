@@ -75,19 +75,30 @@ export default function AccessorialDetails({ type, handleCloseConfirm, selectedA
                         <Controller
                             name="accessorialName"
                             control={control}
-                            rules={{ required: 'Accessorial Name is required' }}
+                            rules={{
+                                required: 'Accessorial Name is required',
+                                // Optional: Also adds a red error message if they bypass the alert
+                                validate: (value) =>
+                                    value.toLowerCase() !== "fuel surcharges" || "Cannot add this accessorial"
+                            }}
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
                                     label="Accessorial Name"
-                                    variant="standard" fullWidth required
-                                    sx={{
-                                        width: '30%',
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    sx={{ width: '30%' }}
+                                    error={!!errors.accessorialName}
+                                    helperText={errors.accessorialName?.message}
+                                    // Custom change handler to trigger alert
+                                    onChange={(e) => {
+                                            field.onChange(e);
                                     }}
-                                    error={!!errors.accessorialName} helperText={errors.accessorialName?.message}
                                 />
                             )}
                         />
+
                     </Stack>
 
                 </Stack>

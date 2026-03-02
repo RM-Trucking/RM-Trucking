@@ -2,57 +2,52 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Box, Stack, Divider, Tabs, Tab,
+    Box, Divider, Tabs, Tab,
     Button, Dialog,
-    DialogContent, MenuItem
+    DialogContent, Stack
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setStationCurrentTab } from '../../redux/slices/customer';
-import StationTabsTable from './StationTabsTable';
+import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, } from '../../redux/slices/carrier';
+import { setCurrentRateRoutedFrom, } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
-import StationDepartment from './StationDepartment';
-import StationPersonnel from './StationPersonnel';
-import StationAccessorial from './StationAccessorial';
-import RateSearchFields from './RateSearchFields';
+import StationAccessorial from '../customer/StationAccessorial';
+import TerminalDetails from './TerminalDetails';
+import RateSearchFields from '../customer/RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
 import AddRate from '../rate/AddRate';
-import { setCurrentRateTab, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
-import StyledTextField from '../shared/StyledTextField';
+import TerminalPersonnelDetails from './TerminalPersonnelDetails';
 // ----------------------------------------------------------------------
 
 
-StationTabs.propTypes = {};
+TerminalViewTabs.propTypes = {
 
-export default function StationTabs({ }) {
+};
+
+export default function TerminalViewTabs({ }) {
+    const { currentTerminalTab, selectedTerminalTabRowDetails } = useSelector(({ carrierdata }) => carrierdata);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const TABS = [
-        {
-            value: 'department',
-            label: 'Department',
-        },
         {
             value: 'personnel',
             label: 'Personnel',
         },
         {
-            value: 'rate',
-            label: 'Rate',
+            value: 'quality',
+            label: 'Quality',
         },
         {
             value: 'accessorial',
             label: 'Accessorial',
         },
+        {
+            value: 'rate',
+            label: 'Rate',
+        },
     ];
-    const {
-        stationCurrentTab, selectedStationTabRowDetails, selectedCustomerStationDetails
-    } = useSelector(({ customerdata }) => customerdata);
-    const { rateSearchObj, currentRateTab } = useSelector(({ ratedata }) => ratedata);
 
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-    const [openConfirmRateDialog, setOpenConfirmRateDialog] = useState(false);
     const [actionType, setActionType] = useState('');
 
     // error boundary info
@@ -60,39 +55,22 @@ export default function StationTabs({ }) {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
-        // navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
     };
     const OnTabChange = (newValue) => {
         console.log('new tab value', newValue);
-        dispatch(setStationCurrentTab(newValue));
-        dispatch(setStationTabTableData([]));
-        if (newValue === 'rate') {
-            dispatch(setCurrentRateTab('transportation'));
-        }
+        dispatch(setCurrentTerminalTab(newValue));
+    }
+    const onClickOfAddCarrierTabButton = () => {
+        // Implement the logic for adding a new item based on the current tab
+        setActionType('Add');
+        dispatch(setSelectedTeminalTabRowDetails({}));
+        console.log('Add button clicked for tab:', currentTerminalTab);
+        setOpenConfirmDialog(true);
     }
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         setActionType('');
     };
-    const handleCloseConfirmRateDilog = () => {
-        setOpenConfirmRateDialog(false);
-    };
-
-    const onClickOfAddStationTabButton = () => {
-        // Implement the logic for adding a new item based on the current tab
-        setActionType('Add');
-        dispatch(setSelectedStationTabRowDetails({}));
-        console.log('Add button clicked for tab:', stationCurrentTab);
-        setOpenConfirmDialog(true);
-    }
-    useEffect(() => {
-        dispatch(setStationCurrentTab(stationCurrentTab));
-    }, []);
-    useEffect(() => {
-        if (actionType === 'Edit') {
-            setOpenConfirmDialog(true);
-        }
-    }, [actionType]);
     return (
         <>
             <ErrorBoundary
@@ -111,7 +89,7 @@ export default function StationTabs({ }) {
                         mt: 2,
                     }}>
                     <Tabs
-                        value={stationCurrentTab}
+                        value={currentTerminalTab}
                         onChange={(event, newValue) => {
                             OnTabChange(newValue);
                         }}
@@ -141,9 +119,9 @@ export default function StationTabs({ }) {
                             />
                         ))}
                     </Tabs>
-                    {stationCurrentTab.toLowerCase() !== 'rate' && <Button
+                    {(currentTerminalTab.toLowerCase() !== 'rate' && currentTerminalTab.toLowerCase() !== 'quality') && <Button
                         variant="outlined"
-                        onClick={() => onClickOfAddStationTabButton()}
+                        onClick={() => onClickOfAddCarrierTabButton()}
                         sx={{
                             height: '22px',
                             fontWeight: 600,
@@ -159,28 +137,14 @@ export default function StationTabs({ }) {
                             },
                         }}
                     >
-                        Add {stationCurrentTab.charAt(0).toUpperCase() + stationCurrentTab.slice(1)}
+                        Add {currentTerminalTab.charAt(0).toUpperCase() + currentTerminalTab.slice(1)}
                     </Button>}
-                    {stationCurrentTab.toLowerCase() === 'rate' &&
-                        <Stack direction="row" spacing={1} alignItems={'center'} sx={{ width: '50%', justifyContent: 'flex-end' }}>
-                            <StyledTextField
-                                select
-                                label="Rate"
-                                variant="standard"
-                                onChange={(e) => {
-                                    dispatch(setCurrentRateTab(e.target.value));
-                                    // call api for transportation data on rate table
-                                }}
-                                value={currentRateTab}
-                                sx={{ mr: 1, }}
-                            >
-                                <MenuItem value="warehouse">Warehouse</MenuItem>
-                                <MenuItem value="transportation">Transportation</MenuItem>
-                            </StyledTextField>
+                    {currentTerminalTab.toLowerCase() === 'rate' &&
+                        <Stack direction="row" spacing={1} alignItems={'center'}>
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    setOpenConfirmRateDialog(true);
+                                    setOpenConfirmDialog(true);
                                 }}
                                 sx={{
                                     height: '22px',
@@ -202,8 +166,8 @@ export default function StationTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    dispatch(setCurrentRateRoutedFrom('customer'));
-                                    navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateMaintenanceView);
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView);
                                 }}
                                 sx={{
                                     height: '22px',
@@ -224,11 +188,9 @@ export default function StationTabs({ }) {
                             </Button>
                         </Stack>
                     }
-
                 </Box>
-                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-                {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <Box
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb: 2 }} />
+                {currentTerminalTab.toLowerCase() === 'rate' && <Box
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.stopPropagation(); // Prevents the event from reaching the Dialog/Parent Form
@@ -236,10 +198,6 @@ export default function StationTabs({ }) {
                     }}>
                     <RateSearchFields padding={1} type={'Search'} currentTab={'transportation'} />
                 </Box>}
-                <StationTabsTable currentTab={stationCurrentTab} setActionType={setActionType} />
-
-                {/*  dialog for add station tab item can go here */}
-
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {
                         handleCloseConfirm();
@@ -256,38 +214,17 @@ export default function StationTabs({ }) {
                 >
                     <DialogContent>
                         {
-                            stationCurrentTab.toLowerCase() === 'department' && <StationDepartment type={actionType} handleCloseConfirm={handleCloseConfirm} stationName={selectedCustomerStationDetails.stationName} selectedStationTabRowDetails={selectedStationTabRowDetails} />
+                            currentTerminalTab.toLowerCase() === 'personnel' && <TerminalPersonnelDetails type={actionType} handleCloseConfirm={handleCloseConfirm} />
                         }
                         {
-                            stationCurrentTab.toLowerCase() === 'personnel' && <StationPersonnel type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
+                            currentTerminalTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseConfirm} />
                         }
                         {
-                            stationCurrentTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={selectedStationTabRowDetails} />
+                            currentTerminalTab.toLowerCase() === 'rate' && <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm} />
                         }
 
                     </DialogContent>
                 </Dialog>
-
-                {/* add rate dilog  */}
-                <Dialog open={openConfirmRateDialog} onClose={handleCloseConfirmRateDilog} onKeyDown={(event) => {
-                    if (event.key === 'Escape') {
-                        handleCloseConfirmRateDilog();
-                    }
-                }}
-                    sx={{
-                        '& .MuiDialog-paper': { // Target the paper class
-                            width: '1545px',
-                            height: 'auto',
-                            maxHeight: 'none',
-                            maxWidth: 'none',
-                        }
-                    }}
-                >
-                    <DialogContent>
-                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirmRateDilog} />
-                    </DialogContent>
-                </Dialog>
-
             </ErrorBoundary>
         </>
     );

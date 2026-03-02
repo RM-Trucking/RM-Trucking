@@ -7,33 +7,26 @@ import {
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { useDispatch, useSelector } from '../../redux/store';
-import RateSearchFields from '../customer/RateSearchFields';
-import RateLogs from './RateLogs';
+import TerminalDetails from './TerminalDetails';
+import TerminalViewTabs from './TerminalViewTabs';
+import TerminalViewPageTable from './TerminalViewPageTable';
 // ----------------------------------------------------------------------
 
-export default function CustomerViewDetails() {
+export default function TerminalViewPageDetails() {
   const navigate = useNavigate();
   const location = useLocation();
-  const selectedCurrentRateRow = useSelector((state) => state?.ratedata?.selectedCurrentRateRow);
-  const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
-  const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+  const {
+    selectedCarrierTabRowDetails
+  } = useSelector(({ carrierdata }) => carrierdata);
   const handleBack = () => {
-    if (currentRateRoutedFrom === 'customer') {
-      navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
-    } else {
-      navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
-    }
+    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
   }
   // route back if it reloads
   useEffect(() => {
-    if (location?.pathname === '/app/maintenance/customer-maintenance/rate-maintenance/rate-view' && Object.keys(selectedCurrentRateRow).length === 0) {
-      navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
-    }
-    if (location?.pathname === '/app/maintenance/carrier-maintenance/rate-maintenance/rate-view' && Object.keys(selectedCurrentRateRow).length === 0) {
+    if (location?.pathname === '/app/maintenance/carrier-maintenance/terminal-view' && Object.keys(selectedCarrierTabRowDetails).length === 0) {
       navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
     }
   }, [location]);
-
   return (
     <>
       <Box
@@ -48,7 +41,7 @@ export default function CustomerViewDetails() {
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleBack}>
           <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
           <Typography variant="h7" fontWeight={700} component="span" color="text.primary">
-            Rate Maintenance / Transportation
+            Carrier Maintenance / Terminal
           </Typography>
         </Box>
 
@@ -74,7 +67,7 @@ export default function CustomerViewDetails() {
           Back
         </Button>
       </Box>
-      {/* Rate details content  */}
+      {/* carrier details content  */}
       <Box sx={{
         p: 2,
         ml: 2,
@@ -82,8 +75,9 @@ export default function CustomerViewDetails() {
         borderRadius: '10px',
         mt: 2,
       }}>
-        <RateSearchFields type={'View'} selectedCurrentRateRow={selectedCurrentRateRow} currentTab={currentRateTab} />
-        <RateLogs />
+        <TerminalDetails type={'View'} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
+        <TerminalViewTabs />
+        <TerminalViewPageTable />
       </Box>
     </>
   );

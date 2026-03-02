@@ -42,16 +42,28 @@ export default function NavVertical({ }) {
       "children": [
         {
           "title": "Customer Maintenance",
-          "path": "/app/maintenance/customer-maintenance"
+          "path": "/app/maintenance/customer-maintenance",
+          "children": [
+            {
+              "title": "Rate Maintenance",
+              "path": "/app/maintenance/customer-maintenance/rate-maintenance"
+            }
+          ],
         },
         {
           "title": "Carrier Maintenance",
-          "path": "/app/maintenance/carrier-maintenance"
+          "path": "/app/maintenance/carrier-maintenance",
+          "children": [
+            {
+              "title": "Rate Maintenance",
+              "path": "/app/maintenance/carrier-maintenance/rate-maintenance"
+            }
+          ],
         },
-        {
-          "title": "Rate Maintenance",
-          "path": "/app/maintenance/rate-maintenance"
-        },
+        // {
+        //   "title": "Rate Maintenance",
+        //   "path": "/app/maintenance/rate-maintenance"
+        // },
         {
           "title": "Zone Maintenance",
           "path": "/app/maintenance/zone-maintenance"

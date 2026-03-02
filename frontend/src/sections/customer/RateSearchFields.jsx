@@ -44,6 +44,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
+    const [actionType, setActionType] = useState('');
     const {
         control,
         handleSubmit,
@@ -95,7 +96,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     }, [operationalMessage]);
     useEffect(() => {
-        if(zoneSuccess && selectedZoneRowDetails?.zoneId){
+        if(zoneSuccess && selectedZoneRowDetails?.zoneId && actionType === 'View') {
             setOpenZoneView(true);
         }
     }, [zoneSuccess])
@@ -146,12 +147,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         setOpenCustomersList(false);
     };
     const handleZoneView = (type) => {
+        setActionType('View');
         getValues(type === 'origin' ? 'origin' : 'destination');
          // Get current values of origin and destination
         dispatch(getZoneById(7)); // Pass the ID of the zone you want to view
     }
     const handleCloseOfZoneView = () => {
         setOpenZoneView(false);
+        setActionType('')
         dispatch(setSelectedZoneRowDetails({}));
     }
 
@@ -668,7 +671,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }}
             >
                 <DialogContent>
-                    <ZoneDetails type={'View'} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails}/>
+                    <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails}/>
                 </DialogContent>
             </Dialog>
         </>

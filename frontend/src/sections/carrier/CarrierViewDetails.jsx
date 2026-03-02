@@ -8,15 +8,18 @@ import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { useDispatch, useSelector } from '../../redux/store';
 import CarrierDetails from './CarrierDetails';
+import { setSelectedRowCarrierType } from '../../redux/slices/carrier';
 
 // ----------------------------------------------------------------------
 
 export default function CarrierViewDetails() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const selectedCarrierRowDetails = useSelector((state) => state?.carrierdata?.selectedCarrierRowDetails);
   const currentCarrierTab = useSelector((state) => state?.carrierdata?.currentCarrierTab);
   const handleBack = () => {
+    dispatch(setSelectedRowCarrierType(''));
     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
   }
   // route back if it reloads

@@ -330,7 +330,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </Stack>
 
                     {/* Corporate Address Section */}
-                    <fieldset>
+                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Corporate Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                             <Controller
@@ -481,7 +481,20 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                             control={control}
                             render={({ field: { onChange, value } }) => (
                                 <FormControlLabel
-                                    sx={{ alignItems: 'flex-end' }}
+                                    sx={{
+                                        display: 'flex', alignItems: 'flex-end',
+                                        // 1. Target the Label specifically when disabled
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'black', // Change to '#00194c' if you want it to match the checkbox
+                                            opacity: 1,      // Removes the "light/faded" look
+                                            WebkitTextFillColor: 'black', // Fix for Safari/Chrome
+                                        },
+                                        // 2. Ensure the Checkbox within the label is also red when disabled
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                        }
+                                    }}
                                     control={
                                         <StyledCheckbox
                                             checked={!!value}
@@ -515,7 +528,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     </Box>
 
                     {/* Billing Address Section - Conditionally rendered */}
-                    <fieldset>
+                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Billing Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 2 }}>
                             <Controller
@@ -695,7 +708,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                     />}
 
                     {/* status section  */}
-                    {/* {type === 'View' && <fieldset>
+                    {/* {type === 'View' && <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Status &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={4} sx={{ mb: 2 }}>
                             <Controller
@@ -786,7 +799,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         >
                             {type === 'Add' ? 'Add' : 'Edit'}
                         </Button>
-                        {isLoading && <CircularProgress color="inherit" size={16} sx={{ml:1}} />}
+                        {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>
                 </Stack>}
                 {/* {type === 'View' && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

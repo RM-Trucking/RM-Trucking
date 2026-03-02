@@ -25,6 +25,8 @@ import {
   CarrierLayout,
   RateMaintenancePage,
   ZoneMaintenancePage,
+  ZoneTableView,
+  TerminalViewPage,
   CarrierMaintenancePage,
   AccesorialMaintenancePage,
   Page500,
@@ -85,30 +87,40 @@ export default function Router() {
               children: [
                 { index: true, element: <CustomerMaintenancePage /> },
                 { path: 'customer-view', element: <CustomerViewPage /> },
-                { path: 'station-view', element: <CustomerStationViewPage /> }
+                { path: 'station-view', element: <CustomerStationViewPage /> },
+                {
+                  path: 'rate-maintenance',
+                  element: <RateLayout />,
+                  children: [
+                    { index: true, element: <RateMaintenancePage /> },
+                    { path: 'rate-view', element: <RateViewPage /> },
+                  ]
+                },
               ]
             },
             {
               path: 'carrier-maintenance',
               element: <CarrierLayout />,
               children: [
-                { index:true, element : <CarrierMaintenancePage /> },
+                { index: true, element: <CarrierMaintenancePage /> },
                 { path: 'carrier-view', element: <CarrierViewPage /> },
-              ]
-            },
-            {
-              path: 'rate-maintenance',
-              element: <RateLayout />,
-              children: [
-                { index: true, element: <RateMaintenancePage /> },
-                { path: 'rate-view', element: <RateViewPage /> },
+                { path: 'terminal-view', element: <TerminalViewPage /> },
+                {
+                  path: 'rate-maintenance',
+                  element: <RateLayout />,
+                  children: [
+                    { index: true, element: <RateMaintenancePage /> },
+                    { path: 'rate-view', element: <RateViewPage /> },
+                  ]
+                },
               ]
             },
             {
               path: 'zone-maintenance',
               element: <ZoneLayout />,
               children: [
-                { index: true, element: <ZoneMaintenancePage /> }
+                { index: true, element: <ZoneMaintenancePage /> },
+                { path: 'zone-table-view', element: <ZoneTableView /> }
               ]
             },
             {

@@ -12,7 +12,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCurrentRateRow, getRateDashboardData, deleteWarehouseRate, setOperationalMessage } from '../../redux/slices/rate';
+import { setSelectedCurrentRateRow, getRateDashboardData, deleteWarehouseRate, setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -23,8 +23,9 @@ import CustomerListTable from './CustomersListTable';
 export default function RateTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
 
-    const { rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
+    const { currentRateRoutedFrom, rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -91,9 +92,9 @@ export default function RateTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick = {() => {
+                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
                     setOpenCustomersList(true);
-                     dispatch(setSelectedCurrentRateRow(params.row));
+                    dispatch(setSelectedCurrentRateRow(params.row));
                 }}>
                     <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
                     <Typography variant='normal'>{params?.row?.customers}</Typography>
@@ -185,8 +186,8 @@ export default function RateTable() {
             width: 300,
             align: 'center',
             cellClassName: 'center-status-cell',
-            sortable : false,
-            filterable : false,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -202,7 +203,11 @@ export default function RateTable() {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
-                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                if (currentRateRoutedFrom === 'customer') {
+                                    navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
+                                } else if (currentRateRoutedFrom === 'carrier') {
+                                    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
+                                }
                             }} />
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
@@ -218,6 +223,13 @@ export default function RateTable() {
                             sx={{ mt: -1.5 }}
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
+                                dispatch(setIsLoading(true));
+                                setTimeout(() => {
+                                    dispatch(setIsLoading(false));
+                                    setSnackbarMessage(`Rate has been ${isChecked ? 'activated' : 'deactivated'} successfully`);
+                                    setSnackbarOpen(true);
+                                }, 1000);
+                                // here need to call api to post data
                             }} />
                     </Box>
                 );
@@ -374,17 +386,24 @@ export default function RateTable() {
     ]
     const customerData = [
         {
-            customerId : 1,
-            customerName : 'Liam Johnson',
-            stationName : 'Station 1'
+            customerId: 1,
+            customerName: 'Liam Johnson',
+            stationName: 'Station 1'
         },
         {
-            customerId : 2,
-            customerName : 'Emma Thompson',
-            stationName : 'Station 2'
+            customerId: 2,
+            customerName: 'Emma Thompson',
+            stationName: 'Station 2'
         }
     ]
-
+    useEffect(() => {
+        if (location?.pathname?.includes('customer-maintenance')) {
+            dispatch(setCurrentRateRoutedFrom('customer'));
+        }
+        if (location?.pathname?.includes('carrier-maintenance')) {
+            dispatch(setCurrentRateRoutedFrom('carrier'));
+        }
+    }, [location]);
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
@@ -421,6 +440,11 @@ export default function RateTable() {
             dispatch(getRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
         }
     }, [operationalMessage])
+    useEffect(() => {
+        if (currentRateRoutedFrom) {
+            console.log('currentRateRoutedFrom', currentRateRoutedFrom);
+        }
+    }, [currentRateRoutedFrom])
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -446,7 +470,7 @@ export default function RateTable() {
                     <DataGrid
                         rows={currentRateTab === 'warehouse' ? rateTableData : rateData}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
-                        // loading={isLoading}
+                        loading={isLoading}
                         getRowId={(row) => row?.rateId}
                         pagination
                         slots={{
@@ -509,7 +533,7 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                      <CustomerListTable customerData={customerData} handleCloseConfirm = {handleCloseOfCustomersList}/>
+                        <CustomerListTable customerData={customerData} handleCloseConfirm={handleCloseOfCustomersList} />
                     </DialogContent>
                 </Dialog>
                 <Snackbar

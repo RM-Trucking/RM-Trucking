@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postZoneData, putZoneData } from '../../redux/slices/zone';
+import { postZoneData, putZoneData, setZoneZipCodeToCheck } from '../../redux/slices/zone';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 
@@ -83,6 +83,10 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     }
     const handleCheckZipCode = () => {
         setopenConfirmDialog(true);
+        const individualZipCodes = getValues('individualZipCodes').toString().slice(0, -1);
+        const rangeZipCodes = getValues('rangeZipCodes').toString();
+        const zipCodesToCheck = [individualZipCodes, rangeZipCodes].filter(Boolean).join(', ');
+        dispatch(setZoneZipCodeToCheck(zipCodesToCheck));
     }
 
     return (
@@ -202,6 +206,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                        
                         <Controller
                             name="rangeZipCodes"
                             control={control}
@@ -224,23 +229,37 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 const [localError, setLocalError] = useState("");
 
                                 const handleInputChange = (newInputValue) => {
+                                    // 1. Remove non-numeric/non-hyphen chars
                                     let val = newInputValue.replace(/[^\d-]/g, '');
 
-                                    // 1. Auto-fill Prefix Logic
-                                    if (val.length === 6 && !val.includes('-')) {
-                                        val = val.slice(0, 5) + '-' + val.slice(0, 3) + val.slice(5);
-                                    } else if (val.endsWith('-') && val.length === 6) {
-                                        val = val + val.substring(0, 3);
+                                    // 2. Dynamic Prefix Sync & Hyphen Logic
+                                    if (val.includes('-')) {
+                                        const parts = val.split('-');
+                                        const startZip = parts[0] || "";
+                                        const endZip = parts[1] || "";
+
+                                        // Get prefix from the first 3 digits of startZip
+                                        const prefix = startZip.substring(0, 3);
+
+                                        if (prefix.length > 0) {
+                                            // Strip the prefix from the second part to find only the new suffix digits
+                                            const cleanSuffix = endZip.replace(prefix, '').replace(/[^\d]/g, '');
+                                            val = `${startZip}-${prefix}${cleanSuffix}`;
+                                        }
+                                    } else if (val.length === 6 && !val.endsWith('-')) {
+                                        // Auto-insert hyphen and mirror prefix if 6th digit typed
+                                        const prefix = val.substring(0, 3);
+                                        val = val.slice(0, 5) + '-' + prefix + val.slice(5);
                                     }
 
-                                    // 2. Real-time Suffix Validation
+                                    // 3. Real-time Suffix Comparison (Indices 3-4 vs 9-10)
                                     if (val.length === 11) {
                                         const parts = val.split('-');
                                         const s1 = parseInt(parts[0].substring(3));
                                         const s2 = parseInt(parts[1].substring(3));
                                         if (s2 <= s1) setLocalError(`Invalid: ${s2} must be > ${s1}`);
                                         else setLocalError("");
-                                    } else if (val.length < 11) {
+                                    } else {
                                         setLocalError("");
                                     }
 
@@ -248,15 +267,27 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 };
 
                                 const handleKeyDown = (event) => {
-                                    // CRITICAL: Prevent Enter from submitting the whole form/closing popup
+                                    const { selectionStart, selectionEnd } = event.target;
+
+                                    // 4. Hard-lock Backspace on fixed prefix (Indices after hyphen)
+                                    if (event.key === 'Backspace' && typedText.includes('-')) {
+                                        const hyphenIndex = typedText.indexOf('-');
+                                        // Block backspace if cursor is on hyphen or the 3 digits following it
+                                        if (selectionStart > hyphenIndex && selectionStart <= hyphenIndex + 4 && selectionStart === selectionEnd) {
+                                            event.preventDefault();
+                                            return;
+                                        }
+                                    }
+
+                                    // 5. Add Chip Logic (Enter/Comma) + Prevent Popup Auto-Close
                                     if (event.key === 'Enter' || event.key === ',') {
-                                        event.preventDefault();
+                                        event.preventDefault(); // STOPS POPUP FROM CLOSING
+                                        event.stopPropagation();
 
                                         const match = typedText.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
                                         if (match) {
                                             const [, p1, s1, p2, s2] = match;
                                             if (p1 === p2 && parseInt(s2) > parseInt(s1)) {
-                                                // Correctly update the RHF state array
                                                 const currentArray = Array.isArray(value) ? value : [];
                                                 if (!currentArray.includes(typedText)) {
                                                     onChange([...currentArray, typedText]);
@@ -278,7 +309,6 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         options={[]}
                                         value={value || []}
                                         disabled={type === 'View'}
-                                        // Syncs RHF when chips are deleted via the 'x' button
                                         onChange={(event, newValue) => onChange(newValue)}
                                         inputValue={typedText}
                                         onInputChange={(event, newInput, reason) => {
@@ -286,32 +316,21 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                             else if (reason === 'clear') { setTypedText(""); setLocalError(""); }
                                         }}
                                         sx={{
-                                            // 1. Style the Chips (Tags) when disabled
+                                            // 6. Style for View/Disabled Mode (Solid Black)
                                             "& .MuiChip-root.Mui-disabled": {
-                                                color: "#00",
-                                                borderColor: "#000",
-                                                opacity: 1, // Remove default fading
-                                                "& .MuiChip-deleteIcon": {
-                                                    display: 'none' // Hide delete 'x' when disabled
-                                                }
-                                            },
-                                            // 2. Style the Label when disabled
-                                            "& .MuiInputLabel-root.Mui-disabled": {
                                                 color: "#000",
+                                                borderColor: "#000",
+                                                opacity: 1,
+                                                "& .MuiChip-deleteIcon": { display: 'none' }
                                             },
-                                            // 3. Style the Input Text (if any) when disabled
+                                            "& .MuiInputLabel-root.Mui-disabled": { color: "#000" },
                                             "& .MuiInputBase-input.Mui-disabled": {
                                                 WebkitTextFillColor: "#000",
                                                 color: "#000",
                                             },
-                                            // 4. Style the border/underline when disabled
                                             "& .MuiInput-underline.Mui-disabled:before": {
                                                 borderBottomColor: "#000 !important",
                                                 borderBottomStyle: "solid",
-                                            },
-                                            // If using 'outlined' variant, use this instead:
-                                            "& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline": {
-                                                borderColor: "#000",
                                             }
                                         }}
                                         renderInput={(params) => (
@@ -416,7 +435,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 },
                             }}
                         >
-                            {type === 'Add' ? 'Add' : 'Edit'}
+                            Check
                         </Button>
                         {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>
@@ -473,7 +492,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             onClick={(e) => {
                                 // get the api details
                                 // Replace with your actual route path
-                                window.open(PATH_DASHBOARD.maintenance.zoneMaintenance, '_blank');
+                                window.open(PATH_DASHBOARD.maintenance.zoneMaintenance.zoneTableView, '_blank');
                                 e.stopPropagation(); // Stops the popup from auto-closing
                             }}
                             size="small"

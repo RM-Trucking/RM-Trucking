@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, checkZipCode } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage,setZoneZipCodeData } from '../../redux/slices/zone';
 
 
 
@@ -21,7 +21,6 @@ export default function ZoneTableView() {
     const pagination = useSelector((state) => state?.zonedata?.pagination);
     const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
-    const zoneZipCodeToCheck = useSelector((state) => state?.zonedata?.zoneZipCodeToCheck);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openRateDialog, setOpenRateDialog] = useState(false);
@@ -64,6 +63,7 @@ export default function ZoneTableView() {
             field: 'zoneName',
             headerName: 'Zone Name',
             width: 300,
+            cellClassName: 'padded-column',
         },
         {
             field: 'zipCodes',
@@ -71,7 +71,7 @@ export default function ZoneTableView() {
             width: 700,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt:1 }} alignItems={'center'} >
                         {params.row.ranges?.map((range, index) => (
                             <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                         ))}
@@ -145,7 +145,10 @@ export default function ZoneTableView() {
     }, [pagination]);
     
     useEffect(() => {
-      dispatch(checkZipCode(zoneZipCodeToCheck));
+      const data = localStorage.getItem('zoneZipCodeCheckData');
+      if (data) {
+        dispatch(setZoneZipCodeData(JSON.parse(data)));
+      }
     }, []);
 
     useEffect(() => {
@@ -180,33 +183,17 @@ export default function ZoneTableView() {
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
             <DataGrid
-                paginationMode="server"
-                paginationModel={paginationModel}
-                onPaginationModelChange={(newModel) => {
-                    setPaginationModel(newModel);
-                    dispatch(getZoneData({
-                        pageNo: newModel.page + 1,
-                        pageSize: newModel.pageSize,
-                        searchStr: zoneSearchStr
-                    }));
-                }}
-
                 rows={zoneZipCodeCheckData || []}
                 columns={columns}
                 loading={zoneLoading}
                 getRowId={(row) => row?.zoneId}
                 hideFooterSelectedRowCount
-                onPageChange={(newPage) => {
-                    dispatch(getZoneData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: zoneSearchStr }));
-                }}
-                onPageSizeChange={(newPageSize) => {
-                    dispatch(getZoneData({ pageNo: 1, pageSize: newPageSize, searchStr: zoneSearchStr }));
-                }}
-                pageSizeOptions={[5, 10, 50, 100]}
-                rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 autoHeight
                 pagination
                 getRowHeight={() => 'auto'}
+                sx={{
+                    '& .padded-column': { paddingTop: 1 },
+                }}
             />
         </Box>
 
@@ -243,7 +230,7 @@ export default function ZoneTableView() {
             }}
         >
             <DialogContent>
-                <RateViewTable rateDataArr={rateData} />
+                <RateViewTable rateDataArr={rateData} handleCloseRate={handleCloseRate}/>
             </DialogContent>
         </Dialog>
 

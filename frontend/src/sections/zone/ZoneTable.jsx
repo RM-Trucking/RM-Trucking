@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneRateData } from '../../redux/slices/zone';
 
 
 
@@ -22,6 +22,7 @@ export default function ZoneTable() {
     const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
+    const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openRateDialog, setOpenRateDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -35,34 +36,13 @@ export default function ZoneTable() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    // rate data
-    const rateData = [
-        {
-            rateId : 1,
-            origin : 'ORD',
-            originZipCode : '60501',
-            destination : 'Ankeny',
-            destinationZipCode : '50007',
-            customers : 26,
-            status : 'Y',
-            min : '100',
-            rate100 : '100',
-            rate1000 : '1000',
-            rate3000 : '3000',
-            rate5000 : '5000',
-            rate10000 : '10000',
-            max : '10000',
-            expiryDate : '12-30-2026',
-        }
-    ]
-
-
     // datagrid columns
     const columns = [
         {
             field: 'zoneName',
             headerName: 'Zone Name',
             width: 300,
+            cellClassName: 'padded-column',
         },
         {
             field: 'zipCodes',
@@ -70,9 +50,9 @@ export default function ZoneTable() {
             width: 700,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                         {params.row.ranges?.map((range, index) => (
-                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt:'2px !important',mb:'2px !important' }} />
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                         ))}
                         <Typography variant="normal">
                             {params.row.zipCodes?.join(", ")}
@@ -88,14 +68,17 @@ export default function ZoneTable() {
             width: 100,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ mb:0.5,flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width : "50px", pl: 0.5, height : '25px', mt: 1.2, pt:0.5}} alignItems={'flex-start'} 
+                    <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', mt: 1.2, pt: 0.5 }} alignItems={'flex-start'}
                         onClick={() => {
                             setOpenRateDialog(true);
+                            dispatch(getZoneRateData(params?.row?.zoneId, () => {
+                                setOpenRateDialog(true);
+                            }));
                             dispatch(setSelectedZoneRowDetails(params?.row));
                         }}
                     >
                         <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
-                        <Typography variant="normal" sx={{ height : '25px' }}>
+                        <Typography variant="normal" sx={{ height: '25px' }}>
                             {params.row.rateCount}
                         </Typography>
                     </Stack>
@@ -167,7 +150,7 @@ export default function ZoneTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.message || error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -185,7 +168,7 @@ export default function ZoneTable() {
 
     // dialog actions and functions
     const handleCloseEdit = () => {
-         setActionType('');
+        setActionType('');
         setOpenEditDialog(false);
         dispatch(setSelectedZoneRowDetails({}));
 
@@ -224,6 +207,9 @@ export default function ZoneTable() {
                 autoHeight
                 pagination
                 getRowHeight={() => 'auto'}
+                sx={{
+                    '& .padded-column': { paddingTop: 1 },
+                }}
             />
         </Box>
 
@@ -242,7 +228,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <ZoneDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedZoneRowDetails={selectedZoneRowDetails}/>
+                <ZoneDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedZoneRowDetails={selectedZoneRowDetails} />
             </DialogContent>
         </Dialog>
         <Dialog open={openRateDialog} onClose={handleCloseRate} onKeyDown={(event) => {
@@ -260,7 +246,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <RateViewTable rateDataArr={rateData}/>
+                <RateViewTable rateDataArr={rateData} handleCloseRate={handleCloseRate} />
             </DialogContent>
         </Dialog>
 

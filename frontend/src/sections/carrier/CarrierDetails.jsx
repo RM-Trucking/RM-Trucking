@@ -1035,7 +1035,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"
-                        onClick={handleCloseConfirm}
+                        onClick={() => handleCloseConfirm()}
                         size="small"
                         sx={{
                             '&.MuiButton-outlined': {

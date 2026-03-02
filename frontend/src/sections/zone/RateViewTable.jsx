@@ -19,10 +19,11 @@ import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
 
 // ----------------------------------------------------------------
 RateViewTable.propTypes = {
+    handleCloseRate: PropTypes.func,
     rateDataArr: PropTypes.array,
 };
 
-export default function RateViewTable({ rateDataArr }) {
+export default function RateViewTable({ handleCloseRate, rateDataArr }) {
     const navigate = useNavigate();
     const [rateData, setrateData] = useState(rateDataArr);
     const dispatch = useDispatch();
@@ -230,6 +231,7 @@ export default function RateViewTable({ rateDataArr }) {
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
                         <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Rate Details</Typography>
+                        <Iconify icon="carbon:close" sx={{ color: '#000', cursor: 'pointer' }} onClick={handleCloseRate} />
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 </>

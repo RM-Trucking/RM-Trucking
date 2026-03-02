@@ -130,6 +130,14 @@ export default function Router() {
                 { index: true, element: <AccesorialMaintenancePage /> }
               ]
             },
+            {
+              path: 'rate-maintenance',
+              element: <RateLayout />,
+              children: [
+                { index: true, element: <RateMaintenancePage /> },
+                { path: 'rate-view', element: <RateViewPage /> },
+              ]
+            },
           ],
         },
       ],

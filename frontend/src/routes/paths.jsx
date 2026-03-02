@@ -37,27 +37,31 @@ export const PATH_DASHBOARD = {
   general: {
     dashboard: path(ROOTS_DASHBOARD, '/dashboard'),
   },
-  shipmentBuilding : path(ROOTS_DASHBOARD, '/shipment-building'),
-  warehouseMaintenance : path(ROOTS_DASHBOARD, '/warehouse-maintenance'),
+  shipmentBuilding: path(ROOTS_DASHBOARD, '/shipment-building'),
+  warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),
   maintenance: {
     root: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),
     customerMaintenance: {
-      root : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),
-      customerView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/customer-view'),
-      customerStationView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/station-view'),
-      rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/rate-maintenance'),
-      rateView : path(ROOTS_DASHBOARD,'/maintenance/customer-maintenance/rate-maintenance/rate-view'),
+      root: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),
+      customerView: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/customer-view'),
+      customerStationView: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/station-view'),
+      rateMaintenanceView: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/rate-maintenance'),
+      rateView: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance/rate-maintenance/rate-view'),
     },
     carrierMaintenance: {
-      root : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
-      carrierView :  path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/carrier-view'),
-      terminalView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/terminal-view'),
-      rateMaintenanceView : path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/rate-maintenance'),
-      rateView : path(ROOTS_DASHBOARD,'/maintenance/carrier-maintenance/rate-maintenance/rate-view')
+      root: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance'),
+      carrierView: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/carrier-view'),
+      terminalView: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/terminal-view'),
+      rateMaintenanceView: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/rate-maintenance'),
+      rateView: path(ROOTS_DASHBOARD, '/maintenance/carrier-maintenance/rate-maintenance/rate-view')
+    },
+    rateMaintenance: {
+      root: path(ROOTS_DASHBOARD, '/maintenance/rate-maintenance'),
+      rateView: path(ROOTS_DASHBOARD, '/maintenance/rate-maintenance/rate-view'),
     },
     zoneMaintenance: {
-      root : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),
-      zoneTableView : path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance/zone-table-view'),
+      root: path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance'),
+      zoneTableView: path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance/zone-table-view'),
     },
     accesorialMaintenance: path(ROOTS_DASHBOARD, '/maintenance/accesorial-maintenance'),
   },

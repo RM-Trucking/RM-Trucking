@@ -35,28 +35,6 @@ export default function ZoneTableView() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    // rate data
-    const rateData = [
-        {
-            rateId: 1,
-            origin: 'ORD',
-            originZipCode: '60501',
-            destination: 'Ankeny',
-            destinationZipCode: '50007',
-            customers: 26,
-            status: 'Y',
-            min: '100',
-            rate100: '100',
-            rate1000: '1000',
-            rate3000: '3000',
-            rate5000: '5000',
-            rate10000: '10000',
-            max: '10000',
-            expiryDate: '12-30-2026',
-        }
-    ]
-
-
     // datagrid columns
     const columns = [
         {
@@ -230,7 +208,7 @@ export default function ZoneTableView() {
             }}
         >
             <DialogContent>
-                <RateViewTable rateDataArr={rateData} handleCloseRate={handleCloseRate}/>
+                <RateViewTable handleCloseRate={handleCloseRate}/>
             </DialogContent>
         </Dialog>
 

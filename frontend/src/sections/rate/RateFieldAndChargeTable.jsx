@@ -31,7 +31,7 @@ export default function RateFieldAndChargeTable({ type }) {
         { id: 7, rateField: 'Max Charge', charge: '', readonly: true },
         { id: 8, rateField: '', charge: '', readonly: false },
     ];
-    const { isLoading, rateFieldChargeData } = useSelector((state) => state.ratedata);
+    const { isLoading, rateFieldChargeData, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [tableData, setTableData] = useState(initialArrayValue);
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -178,6 +178,7 @@ export default function RateFieldAndChargeTable({ type }) {
             sortable: false,
             filterable: false,
             renderCell: (params) => {
+                if (type === 'View') return null;
                 const isLastRow = params.row.id === tableData[tableData.length - 1]?.id;
                 const stableSort = (data) => {
                     return [...data].sort((a, b) => {
@@ -348,6 +349,19 @@ export default function RateFieldAndChargeTable({ type }) {
             setTableData(list);
         }
     }, [rateFieldChargeData]);
+    useEffect(() => {
+        if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length > 0 && selectedCurrentRateRow?.details) {
+            const list = selectedCurrentRateRow?.details?.map((item, index) => {
+                return {
+                    id: index,
+                    rateField: item.rateField,
+                    charge: item.chargeValue,
+                    readonly: true,
+                };
+            });
+            setTableData(list);
+        }
+    }, [selectedCurrentRateRow]);
 
     return (
         <>

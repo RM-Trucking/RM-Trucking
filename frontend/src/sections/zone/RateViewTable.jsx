@@ -207,7 +207,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
-                                navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
+                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
                             }} />
                         </Tooltip>
                     </Box>

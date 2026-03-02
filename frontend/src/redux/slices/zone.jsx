@@ -111,6 +111,9 @@ const slice = createSlice({
       state.isLoading = false;
       state.zoneSuccess = true;
       state.zoneRateData = action.payload.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
     },
     setZoneRateData(state, action) {
       state.zoneRateData = action.payload;

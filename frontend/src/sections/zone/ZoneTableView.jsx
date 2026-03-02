@@ -7,8 +7,8 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage,setZoneZipCodeData } from '../../redux/slices/zone';
-
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage,setZoneZipCodeData, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
 
 
 export default function ZoneTableView() {
@@ -155,6 +155,8 @@ export default function ZoneTableView() {
 
     };
     const handleCloseRate = () => {
+        dispatch(setZoneRateData([]));
+        dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);
     };
 

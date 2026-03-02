@@ -120,7 +120,7 @@ export default function RateViewTable({ handleCloseRate, }) {
             renderCell: (params) => (
                 // have to add customer list 
                 <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
-                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                    {/* <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} /> */}
                     <Typography variant='normal'>{params?.row?.customers}</Typography>
                 </Stack>
             )

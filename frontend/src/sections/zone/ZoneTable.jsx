@@ -8,6 +8,7 @@ import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
 import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneRateData, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
 
 
 
@@ -63,22 +64,57 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'rateCount',
-            headerName: 'Rate ID',
-            width: 100,
+            field: 'rateCount1',
+            headerName: 'Customer Rate ID',
+            width: 200,
+            cellClassName: 'padded-column',
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', mt: 1.2, pt: 0.5 }} alignItems={'flex-start'}
-                        onClick={() => {
-                            dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
-                            dispatch(setSelectedZoneRowDetails(params?.row));
-                        }}
-                    >
-                        <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
-                        <Typography variant="normal" sx={{ height: '25px' }}>
-                            {params.row.rateCount}
-                        </Typography>
-                    </Stack>
+                    <>
+                        {
+                            params?.row?.rateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.rateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.rateCount}
+                            </Typography>
+                        }
+                    </>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'rateCount',
+            headerName: 'Carrier Rate ID',
+            width: 200,
+            cellClassName: 'padded-column',
+            renderCell: (params) => {
+                const element = (
+                    <>
+                        {
+                            params?.row?.rateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.rateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.rateCount}
+                            </Typography>
+                        }
+                    </>
                 );
                 return element;
             }
@@ -133,7 +169,7 @@ export default function ZoneTable() {
 
     // call api to get table data
     useEffect(() => {
-        dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
+        dispatch(getZoneData({ pageNo:1, pageSize: 10, searchStr: zoneSearchStr }));
     }, []);
 
     useEffect(() => {
@@ -178,7 +214,9 @@ export default function ZoneTable() {
         localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
     };
     const handleCloseRate = () => {
+        dispatch(getZoneData({ pageNo:1, pageSize: 10, searchStr: zoneSearchStr }));
         dispatch(setZoneRateData([]));
+        dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);
     };
 
@@ -251,7 +289,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <RateViewTable  handleCloseRate={handleCloseRate} />
+                <RateViewTable handleCloseRate={handleCloseRate} />
             </DialogContent>
         </Dialog>
 

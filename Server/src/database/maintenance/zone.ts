@@ -100,6 +100,14 @@ export async function getZoneById(conn: Connection, zoneId: number): Promise<Zon
   return result.length ? (result[0] as Zone) : null;
 }
 
+export async function getZoneByName(conn: Connection, zoneName: string): Promise<Zone | null> {
+  const normalizedName = zoneName.trim().toUpperCase();
+  const query = `SELECT * FROM ${SCHEMA}."Zone" WHERE UPPER(TRIM("zoneName")) = ?`;
+  const result = await conn.query(query, [normalizedName]) as any[];
+  return result.length ? (result[0] as Zone) : null;
+}
+
+
 // -------------------- Get Zone Zips --------------------
 export async function getZoneZips(conn: Connection, zoneId: number): Promise<ZoneZip[]> {
   const query = `SELECT * FROM ${SCHEMA}."Zone_Zip" WHERE "zoneId" = ?`;
@@ -146,4 +154,18 @@ export async function softDeleteZone(conn: Connection, zoneId: number): Promise<
 export async function deleteZoneZips(conn: Connection, zoneId: number): Promise<void> {
   const query = `DELETE FROM ${SCHEMA}."Zone_Zip" WHERE "zoneId" = ?`;
   await conn.query(query, [zoneId]);
+}
+
+
+export async function findZonesByZip(conn: Connection, zipCode: string): Promise<{ zoneId: number, zoneName: string }[]> {
+  const query = `
+    SELECT z."zoneId", z."zoneName"
+    FROM ${SCHEMA}."Zone_Zip" zz
+    JOIN ${SCHEMA}."Zone" z ON zz."zoneId" = z."zoneId"
+    WHERE zz."zipCode" = ?
+       OR (zz."rangeStart" IS NOT NULL AND zz."rangeEnd" IS NOT NULL 
+           AND ? BETWEEN zz."rangeStart" AND zz."rangeEnd")
+  `;
+  const result = await conn.query(query, [zipCode, zipCode]) as any[];
+  return result.map(r => ({ zoneId: r.zoneId, zoneName: r.zoneName }));
 }

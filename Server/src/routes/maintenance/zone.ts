@@ -25,7 +25,6 @@ router.get('/', authenticateJWT, async (req: Request, res: Response) => {
     if (conn) conn.close();
 });
 
-
 /**
  * GET /api/maintenance/zone/dropdown
  * Lightweight list of zones for dropdowns (zoneId, zoneName, zipCodes, ranges)
@@ -35,7 +34,6 @@ router.get('/dropdown', authenticateJWT, async (req: Request, res: Response) => 
     await zoneController.listZonesDropdown(req, res, conn);
     if (conn) conn.close();
 });
-
 
 /**
  * GET /api/maintenance/zone/:zoneId
@@ -66,5 +64,12 @@ router.delete('/:zoneId', authenticateJWT, async (req: Request, res: Response) =
     await zoneController.deleteZone(req, res, conn);
     if (conn) conn.close();
 });
+
+router.get("/zone/check-zip", authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await zoneController.checkZipZone(req, res, conn);
+    conn.close();
+});
+
 
 export default router;

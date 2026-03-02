@@ -46,6 +46,12 @@ router.post('/transport-rate', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+router.get('/transport-rate/by-zone', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.listTransportRatesByZone(req, res, conn);
+    conn.close();
+});
+
 router.get('/transport-rate/:id', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.getTransportRate(req, res, conn);
@@ -68,13 +74,6 @@ router.delete('/transport-rate/:id', authenticateJWT, async (req, res) => {
 router.get('/transport-rate', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.listTransportRates(req, res, conn);
-    conn.close();
-});
-
-
-router.get('/transport-rate/by-zone', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.listTransportRatesByZone(req, res, conn);
     conn.close();
 });
 

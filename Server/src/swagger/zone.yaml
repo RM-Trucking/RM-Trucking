@@ -13,8 +13,24 @@ paths:
     post:
       tags: [Zone]
       summary: Create a new zone
+      description: >
+        Creates a new zone with a name, optional individual zip codes, optional zip ranges, 
+        and an optional note. Before creation, the service checks whether any of the provided 
+        zips or ranges already belong to existing zones. If conflicts are found, the request 
+        fails unless the query parameter `force=true` is provided to allow duplicates.
+        On success, the response includes the newly created zone. On conflict, the response 
+        includes the conflicting zips and the list of zones that already contain them.
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: force
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: >
+            If true, allows creating a zone even if some zips already belong to other zones.
       requestBody:
         required: true
         content:
@@ -27,9 +43,75 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ZoneResponse"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: "#/components/schemas/ZoneResponse"
+              examples:
+                success:
+                  summary: Zone created
+                  value:
+                    success: true
+                    data:
+                      zoneId: 12
+                      zoneName: "New Zone"
+                      zipCodes: ["560001"]
+                      ranges: ["560050-560055"]
+                      notes: []
+                      activeStatus: "Y"
+                      createdAt: "2026-03-02T10:30:00"
+                      createdBy: "Admin"
         "400":
-          description: Failed to create zone
+          description: Failed to create zone (validation or conflict error)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        zip:
+                          type: string
+                        zones:
+                          type: array
+                          items:
+                            type: string
+                  zones:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ZoneSummary"
+              examples:
+                conflict:
+                  summary: Conflict detected
+                  value:
+                    success: false
+                    message: "Conflict detected. Some zips already belong to other zones."
+                    conflicts:
+                      - zip: "560001"
+                        zones: ["East Zone"]
+                      - zip: "560052"
+                        zones: ["North Zone"]
+                    zones:
+                      - zoneId: 1
+                        zoneName: "East Zone"
+                        activeStatus: "Y"
+                      - zoneId: 2
+                        zoneName: "North Zone"
+                        activeStatus: "Y"
+                invalid:
+                  summary: Invalid input
+                  value:
+                    success: false
+                    message: "Invalid range format"
 
     get:
       tags: [Zone]
@@ -89,6 +171,12 @@ paths:
     put:
       tags: [Zone]
       summary: Update zone by ID
+      description: >
+        Updates an existing zone by its ID. Zone names must be unique (case-insensitive, trimmed).
+        If the new zone name already exists for another zone, the request fails with a 400 error.
+        Zip codes and ranges are also checked for conflicts. If conflicts are found and `force=false`,
+        the response is still successful (200) but includes conflict details and the list of zones
+        that already contain those zips.
       security:
         - bearerAuth: []
       parameters:
@@ -97,6 +185,14 @@ paths:
           required: true
           schema:
             type: integer
+        - in: query
+          name: force
+          required: false
+          schema:
+            type: boolean
+            default: false
+          description: >
+            If true, allows updating a zone even if some zips already belong to other zones.
       requestBody:
         required: true
         content:
@@ -105,13 +201,113 @@ paths:
               $ref: "#/components/schemas/UpdateZoneRequest"
       responses:
         "200":
-          description: Zone updated successfully
+          description: Zone updated successfully OR updated with conflicts
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/ZoneResponse"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: "#/components/schemas/ZoneResponse"
+                  conflicts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        zip:
+                          type: string
+                        zones:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              zoneId: { type: integer }
+                              zoneName: { type: string }
+                  zones:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ZoneResponse"
+              examples:
+                success:
+                  summary: Zone updated successfully
+                  value:
+                    success: true
+                    message: "Zone updated successfully"
+                    data:
+                      zoneId: 12
+                      zoneName: "Central Zone"
+                      zipCodes: ["560001"]
+                      ranges: ["560050-560055"]
+                      notes: []
+                      activeStatus: "Y"
+                      createdAt: "2026-03-02T10:30:00"
+                      createdBy: "Admin"
+                conflict:
+                  summary: Zone updated with conflicts
+                  value:
+                    success: true
+                    message: "Conflict detected. Some zips already belong to other zones."
+                    data:
+                      zoneId: 12
+                      zoneName: "Central Zone"
+                      zipCodes: ["560001"]
+                      ranges: ["560050-560055"]
+                      notes: []
+                      activeStatus: "Y"
+                      createdAt: "2026-03-02T10:30:00"
+                      createdBy: "Admin"
+                    conflicts:
+                      - zip: "560001"
+                        zones:
+                          - zoneId: 1
+                            zoneName: "East Zone"
+                      - zip: "560052"
+                        zones:
+                          - zoneId: 2
+                            zoneName: "North Zone"
+                    zones:
+                      - zoneId: 1
+                        zoneName: "East Zone"
+                        zipCodes: ["560001"]
+                        ranges: ["560010-560020"]
+                        notes: []
+                        activeStatus: "Y"
+                        createdAt: "2026-01-15T09:00:00"
+                        createdBy: "Admin"
+                      - zoneId: 2
+                        zoneName: "North Zone"
+                        zipCodes: ["560052"]
+                        ranges: []
+                        notes: []
+                        activeStatus: "Y"
+                        createdAt: "2026-01-20T11:00:00"
+                        createdBy: "Admin"
         "400":
           description: Failed to update zone
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              examples:
+                duplicateName:
+                  summary: Duplicate zone name
+                  value:
+                    success: false
+                    message: 'Zone name "East Zone" already exists. Zone names must be unique.'
+                notFound:
+                  summary: Zone not found
+                  value:
+                    success: false
+                    message: "Zone not found"
 
     delete:
       tags: [Zone]
@@ -150,6 +346,75 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ZoneDropdownResponse"
+
+  /api/maintenance/zone/check-zip:
+    get:
+      summary: Check which zones contain a given zip code or range
+      description: >
+        This endpoint checks if the provided zip code belongs to any zone.
+        It supports both:
+        - Individual zip codes (e.g., "12345")
+        - Zip ranges (e.g., "12345-12349")
+        If multiple zones contain the zip(s), all zone names are returned.
+        For ranges, each zip in the range is checked individually and messages are returned per zip.
+      tags: [Zone]
+      parameters:
+        - in: query
+          name: zipCode
+          required: true
+          schema:
+            type: string
+            example: "12345"
+            description: >
+              The zip code to check. Can be a single zip (e.g., "12345") or a range (e.g., "12345-12349").
+      responses:
+        "200":
+          description: Zones containing the zip code(s)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    description: List of zone names that contain the zip(s)
+                  message:
+                    type: string
+                    description: Detailed message per zip in the range
+              examples:
+                singleZip:
+                  summary: Single zip belongs to one zone
+                  value:
+                    success: true
+                    data: ["East Zone"]
+                    message: "Zip code 12345 belongs to zone East Zone."
+                rangeZip:
+                  summary: Range of zips with multiple matches
+                  value:
+                    success: true
+                    data: ["North Zone", "Central Zone"]
+                    message: "Zip code 12347 belongs to North Zone. Zip code 12348 belongs to Central Zone."
+                noZone:
+                  summary: Zip(s) not found in any zone
+                  value:
+                    success: true
+                    data: []
+                    message: "Zip range 99990-99995 does not belong to any zone."
+        "400":
+          description: Invalid request (missing or malformed zipCode)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
 
 components:
   securitySchemes:

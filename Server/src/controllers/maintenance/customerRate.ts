@@ -202,6 +202,7 @@ export async function listTransportRatesByZone(
     conn: Connection
 ): Promise<void> {
     try {
+
         const zoneId = Number(req.query.zoneId);
         const page = parseInt(req.query.page as string, 10) || 1;
         const pageSize = parseInt(req.query.pageSize as string, 10) || 10;

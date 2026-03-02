@@ -17,7 +17,7 @@ else
 fi
 
 rm -rf dist
-rm -f dist.zip
+rm -f dist.jar
 
 # Build backend
 echo "Building backend in $SERVER_DIR..."
@@ -62,14 +62,14 @@ PORT=5500
 ENVFILE
 
 # Remove existing zip on remote
-sshpass -p "$password" ssh "$REMOTE_USER"@"$REMOTE_HOST" "cd $REMOTE_BASE || exit 0; rm -f dist.zip" || true
+sshpass -p "$password" ssh "$REMOTE_USER"@"$REMOTE_HOST" "cd $REMOTE_BASE || exit 0; rm -f dist.jar" || true
 
 # Compress
 if command -v jar >/dev/null 2>&1; then
-  jar -cvf dist.zip dist
+  jar -cvf dist.jar dist
 else
   if command -v zip >/dev/null 2>&1; then
-    zip -r dist.zip dist
+    zip -r dist.jar dist
   else
     echo "Neither jar nor zip found — cannot compress. Exiting."
     exit 1
@@ -79,7 +79,7 @@ fi
 echo "Dist Compressed...."
 
 # Push to remote
-sshpass -p "$password" scp dist.zip "$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_BASE" || { echo "scp failed"; exit 1; }
+sshpass -p "$password" scp dist.jar "$REMOTE_USER"@"$REMOTE_HOST":"$REMOTE_BASE" || { echo "scp failed"; exit 1; }
 
 echo "Files pushed..."
 
@@ -99,7 +99,7 @@ echo "Clean up on server done....."
 sshpass -p "$password" ssh "$REMOTE_USER"@"$REMOTE_HOST" << EOF
 export PATH=/QOpenSys/pkgs/bin:\$PATH
 cd $REMOTE_BASE
-jar -xvf dist.zip
+unzip -o dist.jar
 EOF
 
 echo "Dist Un-Compressed on Server...."

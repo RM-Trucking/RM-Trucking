@@ -429,6 +429,7 @@ export async function listTransportRatesByZoneService(
     page: number = 1,
     pageSize: number = 10
 ) {
+
     const offset = (page - 1) * pageSize;
 
     // Query all rates where this zone is origin or destination

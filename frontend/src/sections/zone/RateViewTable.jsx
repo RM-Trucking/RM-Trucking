@@ -15,17 +15,19 @@ import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
+import { setSelectedCurrentRateRow, setCurrentRateTab } from '../../redux/slices/rate';
+import { getZoneRateData, } from '../../redux/slices/zone';
+
 
 // ----------------------------------------------------------------
 RateViewTable.propTypes = {
     handleCloseRate: PropTypes.func,
-    rateDataArr: PropTypes.array,
 };
 
-export default function RateViewTable({ handleCloseRate, rateDataArr }) {
+export default function RateViewTable({ handleCloseRate, }) {
     const navigate = useNavigate();
-    const [rateData, setrateData] = useState(rateDataArr);
+    const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
+    const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const dispatch = useDispatch();
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -46,11 +48,16 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             )
         },
         {
-            field: 'origin',
+            field: 'originZone',
             headerName: 'Origin',
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.originZone?.zoneName}
+                </Typography>
+            )
         },
         {
             field: 'originZipCode',
@@ -58,13 +65,31 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.originZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.originZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
         },
         {
-            field: 'destination',
+            field: 'destinationZone',
             headerName: 'Destination',
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.destinationZone?.zoneName}
+                </Typography>
+            )
         },
         {
             field: 'destinationZipCode',
@@ -72,6 +97,19 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             width: 170,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.destinationZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.destinationZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
         },
         {
             field: 'customers',
@@ -88,7 +126,7 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             )
         },
         {
-            field: 'status',
+            field: 'activeStatus',
             headerName: 'Status',
             width: 100,
             align: 'center',
@@ -101,7 +139,7 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.activeStatus === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -116,34 +154,14 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                        </Stack>
+                        {params.row.details?.map((detail, index) => (
+                            <Stack key={index} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                <Typography variant="normal" sx={{ width: "70px" }}>{detail?.rateField}:</Typography>
+                                <Typography variant="normal" sx={{ width: "auto" }}>{detail?.chargeValue}</Typography>
+                            </Stack>
+                        ))}
+
+
                     </Stack>
                 );
                 return element;
@@ -186,9 +204,10 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
-                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                                navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
                             }} />
                         </Tooltip>
                     </Box>
@@ -197,8 +216,8 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
             },
         }
     ];
-    const pagination = useSelector((state) => state?.ratedata?.pagination);
-    const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    const pagination = useSelector((state) => state?.zonedata?.pagination);
+    const isLoading = useSelector((state) => state?.zonedata?.isLoading);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -215,7 +234,7 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
-        dispatch(setTableBeingViewed('rate'));
+        dispatch(setTableBeingViewed('zone rate'));
     }, []);
 
     return (
@@ -242,11 +261,11 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
                             // call api which gets rate data by zone id
-                            // dispatch(getZoneData({
-                            //     pageNo: newModel.page + 1,
-                            //     pageSize: newModel.pageSize,
-                            //     searchStr: zoneSearchStr
-                            // }));
+                            dispatch(getZoneRateData(
+                                newModel.page + 1,
+                                newModel.pageSize,
+                                selectedZoneRowDetails?.zoneId
+                            ));
                         }}
 
                         rows={rateData}
@@ -261,10 +280,10 @@ export default function RateViewTable({ handleCloseRate, rateDataArr }) {
                         hideFooterSelectedRowCount
                         autoHeight
                         onPageChange={(newPage) => {
-                            // dispatch(getZoneData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: zoneSearchStr }));
+                            dispatch(getZoneRateData(newPage + 1, pagination?.pageSize || 10, selectedZoneRowDetails?.zoneId));
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            // dispatch(getZoneData({ pageNo: 1, pageSize: newPageSize, searchStr: zoneSearchStr }));
+                            dispatch(getZoneRateData(1, newPageSize, selectedZoneRowDetails?.zoneId));
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || rateData.length || '0', 10)}

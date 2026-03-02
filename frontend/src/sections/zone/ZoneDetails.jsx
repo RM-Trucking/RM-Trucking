@@ -76,6 +76,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     };
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
+            localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
             handleCloseConfirm();
         }
     }, [operationalMessage]);

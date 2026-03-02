@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneRateData } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneRateData, setZoneRateData } from '../../redux/slices/zone';
 
 
 
@@ -70,10 +70,7 @@ export default function ZoneTable() {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', mt: 1.2, pt: 0.5 }} alignItems={'flex-start'}
                         onClick={() => {
-                            setOpenRateDialog(true);
-                            dispatch(getZoneRateData(params?.row?.zoneId, () => {
-                                setOpenRateDialog(true);
-                            }));
+                            dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
                             dispatch(setSelectedZoneRowDetails(params?.row));
                         }}
                     >
@@ -166,14 +163,22 @@ export default function ZoneTable() {
         console.log('zone rows updated', zoneData);
     }, [zoneData])
 
+    // when there is data on rate view table for that particular zone id open the dialog to view rate table
+    useEffect(() => {
+        if (rateData && rateData.length > 0) {
+            setOpenRateDialog(true);
+        }
+    }, [rateData])
+
     // dialog actions and functions
     const handleCloseEdit = () => {
         setActionType('');
         setOpenEditDialog(false);
         dispatch(setSelectedZoneRowDetails({}));
-
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
     };
     const handleCloseRate = () => {
+        dispatch(setZoneRateData([]));
         setOpenRateDialog(false);
     };
 
@@ -246,7 +251,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <RateViewTable rateDataArr={rateData} handleCloseRate={handleCloseRate} />
+                <RateViewTable  handleCloseRate={handleCloseRate} />
             </DialogContent>
         </Dialog>
 

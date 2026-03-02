@@ -110,26 +110,11 @@ const slice = createSlice({
     getZoneRateDataSuccess(state, action) {
       state.isLoading = false;
       state.zoneSuccess = true;
-      state.zoneRateData = [
-        {
-          rateId: 1,
-          origin: 'ORD',
-          originZipCode: '60501',
-          destination: 'Ankeny',
-          destinationZipCode: '50007',
-          customers: 26,
-          status: 'Y',
-          min: '100',
-          rate100: '100',
-          rate1000: '1000',
-          rate3000: '3000',
-          rate5000: '5000',
-          rate10000: '10000',
-          max: '10000',
-          expiryDate: '12-30-2026',
-        }
-      ];
+      state.zoneRateData = action.payload.data;
     },
+    setZoneRateData(state, action) {
+      state.zoneRateData = action.payload;
+    }
   },
 });
 
@@ -139,6 +124,7 @@ export const {
   setZoneSearchStr,
   setSelectedZoneRowDetails,
   setZoneZipCodeData,
+  setZoneRateData,
 } = slice.actions;
 export default slice.reducer;
 
@@ -209,9 +195,8 @@ export function getZoneRateData(pageNo, pageSize, zoneId) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get(`maintenance/customer-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
-      // dispatch(slice.actions.getZoneRateDataSuccess(response.data));
-      dispatch(slice.actions.getZoneRateDataSuccess([]));
+      const response = await axios.get(`maintenance/customer-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getZoneRateDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

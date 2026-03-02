@@ -20,8 +20,12 @@ export default function CustomerViewDetails() {
   const handleBack = () => {
     if (currentRateRoutedFrom === 'customer') {
       navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
-    } else {
+    } 
+    if(currentRateRoutedFrom === 'carrier') {
       navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
+    }
+    if(currentRateRoutedFrom === 'zone') {
+      navigate(PATH_DASHBOARD?.maintenance?.zoneMaintenance?.root);
     }
   }
   // route back if it reloads

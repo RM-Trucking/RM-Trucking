@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCurrentRateRow, setCurrentRateTab } from '../../redux/slices/rate';
+import { setSelectedCurrentRateRow, setCurrentRateTab, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 import { getZoneRateData, } from '../../redux/slices/zone';
 
 
@@ -207,6 +207,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
+                                dispatch(setCurrentRateRoutedFrom('zone'));
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
                             }} />
                         </Tooltip>

@@ -87,6 +87,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
             setValue('notes', selectedCurrentRateRow.notes || '');
         }
+        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
+            setValue('origin', selectedCurrentRateRow.originZone.zoneName || '');
+            setValue('destination', selectedCurrentRateRow.destinationZone.zoneName || '');
+            setValue('originZipCode', selectedCurrentRateRow.originZone.zipCodes.join(',').concat(",", selectedCurrentRateRow.originZone.ranges.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow.destinationZone.zipCodes.join(',').concat(",", selectedCurrentRateRow.destinationZone.ranges.join(',')) || '');
+            setValue('notes', selectedCurrentRateRow?.notes || '');
+        }
     }, [selectedCurrentRateRow])
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
@@ -96,7 +103,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     }, [operationalMessage]);
     useEffect(() => {
-        if(zoneSuccess && selectedZoneRowDetails?.zoneId && actionType === 'View') {
+        if (zoneSuccess && selectedZoneRowDetails?.zoneId && actionType === 'View') {
             setOpenZoneView(true);
         }
     }, [zoneSuccess])
@@ -149,7 +156,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const handleZoneView = (type) => {
         setActionType('View');
         getValues(type === 'origin' ? 'origin' : 'destination');
-         // Get current values of origin and destination
+        // Get current values of origin and destination
         dispatch(getZoneById(7)); // Pass the ID of the zone you want to view
     }
     const handleCloseOfZoneView = () => {
@@ -671,7 +678,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }}
             >
                 <DialogContent>
-                    <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails}/>
+                    <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails} />
                 </DialogContent>
             </Dialog>
         </>

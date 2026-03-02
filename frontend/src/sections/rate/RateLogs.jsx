@@ -20,6 +20,7 @@ RateLogs.propTypes = {
 export default function RateLogs({ }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const {  selectedCurrentRateRow } = useSelector((state) => state.ratedata);
 
     // error boundary info
     const logError = (error, info) => {
@@ -51,7 +52,7 @@ export default function RateLogs({ }) {
                     <Stack flexDirection={'row'} alignItems={'center'}>
                         <Typography sx={{ width: '45%' }} variant='normal'>Last Update</Typography>
                         <Stack flexDirection={'column'} alignItems={'flex-start'}>
-                            <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>Noah Williams</Typography>
+                            <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedBy || ""}</Typography>
                             <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>14/09/2025 13:00</Typography>
                         </Stack>
                     </Stack>

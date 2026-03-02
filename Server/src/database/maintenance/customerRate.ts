@@ -293,7 +293,7 @@ export async function countRatesForZone(conn: Connection, zoneId: number): Promi
       AND ("originZoneId" = ? OR "destinationZoneId" = ?)
   `;
     const result = await conn.query(query, [zoneId, zoneId]) as any[];
-    return result[0]?.total || 0;
+    return result[0]?.TOTAL || 0;
 }
 
 export async function listTransportRatesByZone(
@@ -319,5 +319,5 @@ export async function listTransportRatesByZone(
   `;
     const totalResult = await conn.query(totalQuery, [zoneId, zoneId]) as any[];
 
-    return { data: data as CustomerRate[], total: totalResult[0]?.total || 0 };
+    return { data: data as CustomerRate[], total: totalResult[0]?.TOTAL || 0 };
 }

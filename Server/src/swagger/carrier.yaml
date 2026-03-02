@@ -1,0 +1,265 @@
+openapi: 3.0.1
+info:
+  title: Carrier Module API
+  description: CRUD API for managing carriers
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+tags:
+  - name: Carrier
+    description: Carrier management endpoints
+
+paths:
+  /carrier:
+    post:
+      summary: Create a new carrier
+      tags: [Carrier]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCarrierRequest"
+      responses:
+        "201":
+          description: Carrier created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarrierResponse"
+
+    get:
+      summary: List carriers with pagination and search
+      tags: [Carrier]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Page number
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+          description: Number of records per page
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Search term for carrier name
+      responses:
+        "200":
+          description: List of carriers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CarrierResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      page: { type: integer }
+                      pageSize: { type: integer }
+
+  /carrier/{id}:
+    get:
+      summary: Get carrier by ID
+      tags: [Carrier]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Carrier details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarrierResponse"
+        "404":
+          description: Carrier not found
+
+    put:
+      summary: Update carrier by ID
+      tags: [Carrier]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCarrierRequest"
+      responses:
+        "200":
+          description: Carrier updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarrierResponse"
+
+  /carrier/{id}/status:
+    patch:
+      summary: Toggle carrier status (Active/Inactive/Incomplete)
+      tags: [Carrier]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Active, Inactive, Incomplete]
+      responses:
+        "200":
+          description: Carrier status updated
+
+  /carrier/dropdown:
+    get:
+      summary: List carriers for dropdown (id + name only)
+      tags: [Carrier]
+      responses:
+        "200":
+          description: Minimal carrier list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    carrierId: { type: integer }
+                    carrierName: { type: string }
+
+components:
+  schemas:
+    CreateCarrierRequest:
+      type: object
+      properties:
+        carrierName: { type: string }
+        carrierType: { type: string }
+        carrierStatus: { type: string, enum: [Active, Inactive, Incomplete] }
+        tsaCertified: { type: string, enum: [Y, N] }
+        ustDotNo: { type: string }
+        mcnNo: { type: string }
+        insuranceExpiry: { type: string, format: date-time }
+        tariffRenewalDate: { type: string, format: date-time }
+        salesRepName: { type: string }
+        salesRepPhone: { type: string }
+        salesRepEmail: { type: string }
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRequest"
+        note:
+          $ref: "#/components/schemas/NoteMessageRequest"
+
+    UpdateCarrierRequest:
+      type: object
+      properties:
+        carrierName: { type: string }
+        carrierType: { type: string }
+        carrierStatus: { type: string, enum: [Active, Inactive, Incomplete] }
+        tsaCertified: { type: string, enum: [Y, N] }
+        ustDotNo: { type: string }
+        mcnNo: { type: string }
+        insuranceExpiry: { type: string, format: date-time }
+        tariffRenewalDate: { type: string, format: date-time }
+        totalShipments: { type: integer }
+        rmOnTimePercent: { type: number, format: float }
+        lateShipments: { type: integer }
+        salesRepName: { type: string }
+        salesRepPhone: { type: string }
+        salesRepEmail: { type: string }
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUpdateRequest"
+
+    CarrierResponse:
+      type: object
+      properties:
+        carrierId: { type: integer }
+        carrierName: { type: string }
+        carrierType: { type: string }
+        carrierStatus: { type: string, enum: [Active, Inactive, Incomplete] }
+        tsaCertified: { type: string, enum: [Y, N] }
+        ustDotNo: { type: string }
+        mcnNo: { type: string }
+        insuranceExpiry: { type: string, format: date-time }
+        tariffRenewalDate: { type: string, format: date-time }
+        totalShipments: { type: integer }
+        rmOnTimePercent: { type: number, format: float }
+        lateShipments: { type: integer }
+        salesRepName: { type: string }
+        salesRepPhone: { type: string }
+        salesRepEmail: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        updatedAt: { type: string, format: date-time }
+        updatedBy: { type: integer }
+        noteThreadId: { type: integer }
+        entityId: { type: integer }
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressResponse"
+        notes:
+          type: array
+          items:
+            $ref: "#/components/schemas/NoteMessageResponse"
+
+    AddressRequest:
+      type: object
+      properties:
+        line1: { type: string }
+        line2: { type: string }
+        city: { type: string }
+        state: { type: string }
+        zipCode: { type: string }
+        addressRole: { type: string, enum: [Corporate, Billing, Primary] }
+
+    AddressUpdateRequest:
+      allOf:
+        - $ref: "#/components/schemas/AddressRequest"
+        - type: object
+          properties:
+            addressId: { type: integer }
+
+    AddressResponse:
+      allOf:
+        - $ref: "#/components/schemas/AddressRequest"
+        - type: object
+          properties:
+            addressId: { type: integer }
+
+    NoteMessageRequest:
+      type: object
+      properties:
+        messageText: { type: string }
+
+    NoteMessageResponse:
+      type: object
+      properties:
+        noteMessageId: { type: integer }
+        noteThreadId: { type: integer }
+        messageText: { type: string }
+        createdAt: { type: string, format: date-time }
+        createdBy: { type: integer }
+        createdByName: { type: string }

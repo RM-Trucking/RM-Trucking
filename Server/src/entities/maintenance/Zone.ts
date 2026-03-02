@@ -57,3 +57,11 @@ export interface ZoneInfo {
     zipCodes: string[];
     ranges: string[];
 }
+
+
+export interface ZoneDropdownResponse {
+    zoneId: number;
+    zoneName: string;
+    zipCodes: string[];
+    ranges: string[];
+}

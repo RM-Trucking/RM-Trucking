@@ -20,6 +20,7 @@ RateTabs.propTypes = {};
 export default function RateTabs({ }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const { rateSearchObj, currentRateTab, currentRateRoutedFrom } = useSelector(({ ratedata }) => ratedata);
     const TABS = [
         {
             value: 'transportation',
@@ -30,8 +31,14 @@ export default function RateTabs({ }) {
             label: 'Warehouse',
         },
     ];
+    const filteredTabs = TABS.filter((tab) => {
+        if (currentRateRoutedFrom === 'carrier') {
+            return tab.value === 'transportation'; // Only show Transportation
+        }
+        return true; // Show both for 'Warehouse' or others
+    });
     
-    const { rateSearchObj, currentRateTab } = useSelector(({ ratedata }) => ratedata);
+    
     
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
@@ -87,7 +94,7 @@ export default function RateTabs({ }) {
                             },
                         }}
                     >
-                        {TABS.map((tab) => (
+                        {filteredTabs.map((tab) => (
                             <Tab
                                 key={tab.value}
                                 value={tab.value}

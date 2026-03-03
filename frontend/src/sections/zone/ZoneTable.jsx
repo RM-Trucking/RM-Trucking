@@ -64,7 +64,7 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'rateCount1',
+            field: 'customerRateCount',
             headerName: 'Customer Rate ID',
             width: 200,
             cellClassName: 'padded-column',
@@ -72,7 +72,7 @@ export default function ZoneTable() {
                 const element = (
                     <>
                         {
-                            params?.row?.rateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                            params?.row?.customerRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
                                 onClick={() => {
                                     dispatch(setCurrentRateRoutedFrom('customer'));
                                     dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
@@ -81,10 +81,10 @@ export default function ZoneTable() {
                             >
                                 <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
                                 <Typography variant="normal" sx={{ height: '25px' }}>
-                                    {params.row.rateCount}
+                                    {params.row.customerRateCount}
                                 </Typography>
                             </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
-                                {params.row.rateCount}
+                                {params.row.customerRateCount}
                             </Typography>
                         }
                     </>
@@ -93,7 +93,7 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'rateCount',
+            field: 'carrierRateCount',
             headerName: 'Carrier Rate ID',
             width: 200,
             cellClassName: 'padded-column',
@@ -101,7 +101,7 @@ export default function ZoneTable() {
                 const element = (
                     <>
                         {
-                            params?.row?.rateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                            params?.row?.carrierRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
                                 onClick={() => {
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
                                     dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
@@ -110,10 +110,10 @@ export default function ZoneTable() {
                             >
                                 <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
                                 <Typography variant="normal" sx={{ height: '25px' }}>
-                                    {params.row.rateCount}
+                                    {params.row.carrierRateCount}
                                 </Typography>
                             </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
-                                {params.row.rateCount}
+                                {params.row.carrierRateCount}
                             </Typography>
                         }
                     </>
@@ -171,7 +171,7 @@ export default function ZoneTable() {
 
     // call api to get table data
     useEffect(() => {
-        dispatch(getZoneData({ pageNo:1, pageSize: 10, searchStr: zoneSearchStr }));
+        dispatch(getZoneData({ pageNo: 1, pageSize: 10, searchStr: zoneSearchStr }));
     }, []);
 
     useEffect(() => {
@@ -216,7 +216,7 @@ export default function ZoneTable() {
         localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
     };
     const handleCloseRate = () => {
-        dispatch(getZoneData({ pageNo:1, pageSize: 10, searchStr: zoneSearchStr }));
+        dispatch(getZoneData({ pageNo: 1, pageSize: 10, searchStr: zoneSearchStr }));
         dispatch(setZoneRateData([]));
         dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);

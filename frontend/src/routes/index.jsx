@@ -23,6 +23,8 @@ import {
   ZoneLayout,
   AccessorialLayout,
   CarrierLayout,
+  FuelSurchargeLayout,
+  FuelSurchargeMaintenancePage,
   RateMaintenancePage,
   ZoneMaintenancePage,
   ZoneTableView,
@@ -94,6 +96,13 @@ export default function Router() {
                   children: [
                     { index: true, element: <RateMaintenancePage /> },
                     { path: 'rate-view', element: <RateViewPage /> },
+                  ]
+                },
+                {
+                  path: 'fuel-surcharge-maintenance',
+                  element: <FuelSurchargeLayout />,
+                  children: [
+                    { index: true, element: <FuelSurchargeMaintenancePage /> },
                   ]
                 },
               ]

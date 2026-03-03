@@ -18,13 +18,13 @@ export default function CustomerViewDetails() {
   const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
   const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
   const handleBack = () => {
-    if (currentRateRoutedFrom === 'customer') {
+    if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'customer') {
       navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
-    } 
-    if(currentRateRoutedFrom === 'carrier') {
+    }
+    if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'carrier') {
       navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
     }
-    if(currentRateRoutedFrom === 'zone') {
+    if (!location.pathname.includes(currentRateRoutedFrom)) {
       navigate(PATH_DASHBOARD?.maintenance?.zoneMaintenance?.root);
     }
   }

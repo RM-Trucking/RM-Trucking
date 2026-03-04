@@ -107,7 +107,15 @@ const slice = createSlice({
     setZoneZipCodeData(state, action) {
       state.zoneZipCodeCheckData = action.payload;
     },
-    getZoneRateDataSuccess(state, action) {
+    getZoneCustomerRateSuccess(state, action) {
+      state.isLoading = false;
+      state.zoneSuccess = true;
+      state.zoneRateData = action.payload.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
+    },
+    getZoneCarrierRateSuccess(state,action){
       state.isLoading = false;
       state.zoneSuccess = true;
       state.zoneRateData = action.payload.data;
@@ -117,7 +125,8 @@ const slice = createSlice({
     },
     setZoneRateData(state, action) {
       state.zoneRateData = action.payload;
-    }
+    },
+    
   },
 });
 
@@ -194,12 +203,23 @@ export function getZoneById(id) {
   };
 }
 // on rate click get rate retaled data by zoneid
-export function getZoneRateData(pageNo, pageSize, zoneId) {
+export function getZoneCustomerRate(pageNo, pageSize, zoneId) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
       const response = await axios.get(`maintenance/customer-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
-      dispatch(slice.actions.getZoneRateDataSuccess(response.data));
+      dispatch(slice.actions.getZoneCustomerRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getZoneCarrierRate(pageNo, pageSize, zoneId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getZoneCarrierRateSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

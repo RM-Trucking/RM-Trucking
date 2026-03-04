@@ -16,7 +16,7 @@ import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedCurrentRateRow, setCurrentRateTab, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
-import { getZoneRateData, } from '../../redux/slices/zone';
+import { getZoneCustomerRate, getZoneCarrierRate } from '../../redux/slices/zone';
 
 
 // ----------------------------------------------------------------
@@ -37,14 +37,14 @@ export default function RateViewTable({ handleCloseRate, }) {
     };
     const rateTransportationCustomerColumns = [
         {
-            field: 'rateId',
+            field: 'customerRateId',
             headerName: 'Rate ID',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.customerRateId}
                 </Box>
             )
         },
@@ -120,10 +120,17 @@ export default function RateViewTable({ handleCloseRate, }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
-                    {/* <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} /> */}
-                    <Typography variant='normal'>{params?.row?.customers}</Typography>
-                </Stack>
+                <>
+                    {(params?.row?.customers && params?.row?.customers > 0)
+                        ?
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                            <Typography variant='normal'>{params?.row?.customers}</Typography>
+                        </Stack>
+                        :
+                        <Typography variant='normal'>{params?.row?.customers}</Typography>
+                    }
+                </>
             )
         },
         {
@@ -220,14 +227,14 @@ export default function RateViewTable({ handleCloseRate, }) {
     ];
     const rateTransportationCarrierColumns = [
         {
-            field: 'rateId',
+            field: 'carrierRateId',
             headerName: 'Rate ID',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.carrierRateId}
                 </Box>
             )
         },
@@ -303,10 +310,17 @@ export default function RateViewTable({ handleCloseRate, }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
-                    {/* <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} /> */}
-                    <Typography variant='normal'>{params?.row?.carriers}</Typography>
-                </Stack>
+                <>
+                    {(params?.row?.carriers && params?.row?.carriers > 0)
+                        ?
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                            {/* <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} /> */}
+                            <Typography variant='normal'>{params?.row?.carriers}</Typography>
+                        </Stack>
+                        :
+                        <Typography variant='normal'>{params?.row?.carriers}</Typography>
+                    }
+                </>
             )
         },
         {
@@ -434,7 +448,7 @@ export default function RateViewTable({ handleCloseRate, }) {
             >
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Rate Details</Typography>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Details</Typography>
                         <Iconify icon="carbon:close" sx={{ color: '#000', cursor: 'pointer' }} onClick={handleCloseRate} />
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
@@ -446,11 +460,20 @@ export default function RateViewTable({ handleCloseRate, }) {
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
                             // call api which gets rate data by zone id
-                            dispatch(getZoneRateData(
-                                newModel.page + 1,
-                                newModel.pageSize,
-                                selectedZoneRowDetails?.zoneId
-                            ));
+                            if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
 
                         rows={rateData}
@@ -465,10 +488,36 @@ export default function RateViewTable({ handleCloseRate, }) {
                         hideFooterSelectedRowCount
                         autoHeight
                         onPageChange={(newPage) => {
-                            dispatch(getZoneRateData(newPage + 1, pagination?.pageSize || 10, selectedZoneRowDetails?.zoneId));
+                             if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            dispatch(getZoneRateData(1, newPageSize, selectedZoneRowDetails?.zoneId));
+                             if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || rateData.length || '0', 10)}

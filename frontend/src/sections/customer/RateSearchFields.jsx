@@ -88,11 +88,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
             setValue('notes', selectedCurrentRateRow.notes || '');
         }
-        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation' && currentRateRoutedFrom === 'zone') {
-            setValue('origin', selectedCurrentRateRow.originZone.zoneName || '');
-            setValue('destination', selectedCurrentRateRow.destinationZone.zoneName || '');
-            setValue('originZipCode', selectedCurrentRateRow.originZone.zipCodes.join(',').concat(",", selectedCurrentRateRow.originZone.ranges.join(',')) || '');
-            setValue('destinationZipCode', selectedCurrentRateRow.destinationZone.zipCodes.join(',').concat(",", selectedCurrentRateRow.destinationZone.ranges.join(',')) || '');
+        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneName || '');
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneName || '');
+            setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
             setValue('notes', selectedCurrentRateRow?.notes || '');
         }
     }, [selectedCurrentRateRow])
@@ -170,7 +170,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         <>
             {type === 'View' && currentTab === 'transportation' && <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>}
@@ -531,7 +531,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
-                                <Button
+                               {type !== 'Add' && <Button
                                     variant="outlined"
                                     onClick={() => onClickofCustomerList()}
                                     sx={{
@@ -552,7 +552,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     }}
                                 >
                                     {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({selectedCurrentRateRow?.customers ?? 0})
-                                </Button>
+                                </Button>}
                                 <Controller
                                     name="notes"
                                     control={control}

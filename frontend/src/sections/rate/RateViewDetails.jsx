@@ -52,7 +52,7 @@ export default function CustomerViewDetails() {
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleBack}>
           <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
           <Typography variant="h7" fontWeight={700} component="span" color="text.primary">
-            Rate Maintenance / Transportation
+            {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Maintenance / Transportation
           </Typography>
         </Box>
 

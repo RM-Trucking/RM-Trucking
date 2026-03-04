@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneRateData, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate,getZoneCarrierRate, setZoneRateData } from '../../redux/slices/zone';
 import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 
 
@@ -75,7 +75,7 @@ export default function ZoneTable() {
                             params?.row?.customerRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
                                 onClick={() => {
                                     dispatch(setCurrentRateRoutedFrom('customer'));
-                                    dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
+                                    dispatch(getZoneCustomerRate(1, 10, params?.row?.zoneId));
                                     dispatch(setSelectedZoneRowDetails(params?.row));
                                 }}
                             >
@@ -104,7 +104,7 @@ export default function ZoneTable() {
                             params?.row?.carrierRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
                                 onClick={() => {
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
-                                    dispatch(getZoneRateData(1, 10, params?.row?.zoneId));
+                                    dispatch(getZoneCarrierRate(1, 10, params?.row?.zoneId));
                                     dispatch(setSelectedZoneRowDetails(params?.row));
                                 }}
                             >

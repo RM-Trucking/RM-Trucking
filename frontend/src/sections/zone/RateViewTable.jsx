@@ -15,8 +15,14 @@ import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCurrentRateRow, setCurrentRateTab, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
-import { getZoneCustomerRate, getZoneCarrierRate } from '../../redux/slices/zone';
+import {
+    setSelectedCurrentRateRow, setCurrentRateTab, setCurrentRateRoutedFrom,
+    getOriginZoneByZipCode, getDestinationZoneByZipCode, getCustomerListByRateID,
+    getCarrierListByRateID
+} from '../../redux/slices/rate';
+import {
+    getZoneCustomerRate, getZoneCarrierRate,
+} from '../../redux/slices/zone';
 
 
 // ----------------------------------------------------------------
@@ -113,25 +119,26 @@ export default function RateViewTable({ handleCloseRate, }) {
             }
         },
         {
-            field: 'customers',
-            headerName: 'Customers',
+            field: 'customerCount',
+            headerName: 'Customers #',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
-            renderCell: (params) => (
+            renderCell: (params) => {
                 // have to add customer list 
-                <>
-                    {(params?.row?.customers && params?.row?.customers > 0)
+                const element = (<>
+                    {(params?.row?.customerCount && params?.row?.customerCount > 0)
                         ?
-                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
                             <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
-                            <Typography variant='normal'>{params?.row?.customers}</Typography>
+                            <Typography variant='normal'>{params?.row?.customerCount}</Typography>
                         </Stack>
                         :
-                        <Typography variant='normal'>{params?.row?.customers}</Typography>
+                        <Typography variant='normal'>{params?.row?.customerCount}</Typography>
                     }
-                </>
-            )
+                </>);
+                return element;
+            }
         },
         {
             field: 'activeStatus',
@@ -212,6 +219,9 @@ export default function RateViewTable({ handleCloseRate, }) {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
+                                dispatch(getCustomerListByRateID(params.row.rateId));
                                 dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
@@ -303,25 +313,26 @@ export default function RateViewTable({ handleCloseRate, }) {
             }
         },
         {
-            field: 'carriers',
-            headerName: 'Carriers',
+            field: 'carrierCount',
+            headerName: 'Carriers #',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
-            renderCell: (params) => (
+            renderCell: (params) => {
                 // have to add customer list 
-                <>
-                    {(params?.row?.carriers && params?.row?.carriers > 0)
+                const element = (<>
+                    {(params?.row?.carrierCount && params?.row?.carrierCount > 0)
                         ?
-                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
-                            {/* <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} /> */}
-                            <Typography variant='normal'>{params?.row?.carriers}</Typography>
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
+                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                            <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
                         </Stack>
                         :
-                        <Typography variant='normal'>{params?.row?.carriers}</Typography>
+                        <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
                     }
-                </>
-            )
+                </>);
+                return element;
+            }
         },
         {
             field: 'activeStatus',
@@ -402,6 +413,9 @@ export default function RateViewTable({ handleCloseRate, }) {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
+                                dispatch(getCarrierListByRateID(params.row.rateId));
                                 dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
@@ -488,7 +502,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                         hideFooterSelectedRowCount
                         autoHeight
                         onPageChange={(newPage) => {
-                             if (currentRateRoutedFrom === 'customer') {
+                            if (currentRateRoutedFrom === 'customer') {
                                 dispatch(getZoneCustomerRate(
                                     newModel.page + 1,
                                     newModel.pageSize,
@@ -504,7 +518,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                             }
                         }}
                         onPageSizeChange={(newPageSize) => {
-                             if (currentRateRoutedFrom === 'customer') {
+                            if (currentRateRoutedFrom === 'customer') {
                                 dispatch(getZoneCustomerRate(
                                     newModel.page + 1,
                                     newModel.pageSize,

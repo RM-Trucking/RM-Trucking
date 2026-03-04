@@ -126,7 +126,6 @@ const slice = createSlice({
     setZoneRateData(state, action) {
       state.zoneRateData = action.payload;
     },
-    
   },
 });
 

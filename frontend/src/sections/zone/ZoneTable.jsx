@@ -65,7 +65,7 @@ export default function ZoneTable() {
         },
         {
             field: 'customerRateCount',
-            headerName: 'Customer Rate ID',
+            headerName: 'Customer Rate #',
             width: 200,
             cellClassName: 'padded-column',
             renderCell: (params) => {
@@ -94,7 +94,7 @@ export default function ZoneTable() {
         },
         {
             field: 'carrierRateCount',
-            headerName: 'Carrier Rate ID',
+            headerName: 'Carrier Rate #',
             width: 200,
             cellClassName: 'padded-column',
             renderCell: (params) => {

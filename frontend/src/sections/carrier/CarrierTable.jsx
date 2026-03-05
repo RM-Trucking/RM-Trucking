@@ -649,7 +649,7 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                        <CarrierDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCarrierRowDetails={selectedCarrierRowDetails}/>
+                        <CarrierDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierRowDetails={selectedCarrierRowDetails}/>
                     </DialogContent>
                 </Dialog>
 

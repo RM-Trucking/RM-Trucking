@@ -18,10 +18,14 @@ export default function CustomerViewDetails() {
   const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
   const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
   const handleBack = () => {
-    if (currentRateRoutedFrom === 'customer') {
+    if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'customer') {
       navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
-    } else {
+    }
+    if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'carrier') {
       navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
+    }
+    if (!location.pathname.includes(currentRateRoutedFrom)) {
+      navigate(PATH_DASHBOARD?.maintenance?.zoneMaintenance?.root);
     }
   }
   // route back if it reloads
@@ -48,7 +52,7 @@ export default function CustomerViewDetails() {
         <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }} onClick={handleBack}>
           <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
           <Typography variant="h7" fontWeight={700} component="span" color="text.primary">
-            Rate Maintenance / Transportation
+            {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Maintenance / Transportation
           </Typography>
         </Box>
 

@@ -17,7 +17,8 @@ const initialState = {
   operationalMessage: '',
   selectedZoneRowDetails: {},
   pagination: { page: 1, pageSize: 10, totalRecords: 0 },
-  zoneZipCodeToCheck:'',
+  zoneRateData: [],
+  zipCheck: false,
 };
 
 const slice = createSlice({
@@ -26,7 +27,8 @@ const slice = createSlice({
   reducers: {
     hasError(state, action) {
       state.isLoading = false;
-      state.error = action.payload || action.payload.error;
+      state.zipCheck = false;
+      state.error = action.payload || action.payload.error || action.payload.message;
     },
     // START LOADING
     startLoading(state) {
@@ -34,6 +36,7 @@ const slice = createSlice({
       state.zoneSuccess = false;
       state.error = null;
       state.operationalMessage = '';
+      state.zipCheck = false;
     },
     setPaginationObject(state, action) {
       state.pagination = action.payload;
@@ -58,18 +61,34 @@ const slice = createSlice({
     postZoneDataSuccess(state, action) {
       state.isLoading = false;
       state.zoneSuccess = true;
-      state.operationalMessage = `Zone added successfully.`;
-      state.zoneData.unshift(action.payload.data);
-      state.pagination.totalRecords = action.payload?.total + 1 || state.pagination.totalRecords + 1;
+      if (action?.payload?.message.includes('Conflict detected')) {
+        // on conflict zipcode messae we make this zipcheck to true such that we show the confirm dialog
+        state.zipCheck = true;
+        state.zoneZipCodeCheckData = action.payload.zones;
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify(action.payload.zones));
+      } else {
+        state.operationalMessage = `Zone added successfully.`;
+        state.zoneData.unshift(action.payload.data);
+        state.pagination.totalRecords = action.payload?.total + 1 || state.pagination.totalRecords + 1;
+      }
     },
     putZoneDataSuccess(state, action) {
       state.isLoading = false;
       state.zoneSuccess = true;
-      state.operationalMessage = "Zone updated successfully";
-      // update table data by updating record
-      const index = state.zoneData.findIndex((row) => row.zoneId === action.payload?.data?.zoneId);
-      if (index === 0 || index > 0) {
-        state.zoneData.splice(index, 1, action.payload.data);
+      if (action?.payload?.message.includes('Conflict detected')) {
+        // on conflict zipcode messae we make this zipcheck to true such that we show the confirm dialog
+        state.zipCheck = true;
+        state.zoneZipCodeCheckData = action.payload.zones;
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify(action.payload.zones));
+      } else {
+        state.operationalMessage = "Zone updated successfully";
+        // update table data by updating record
+        const index = state.zoneData.findIndex((row) => row.zoneId === action.payload?.data?.zoneId);
+        if (index === 0 || index > 0) {
+          state.zoneData.splice(index, 1, action.payload.data);
+        }
       }
     },
     getZoneByIdSuccess(state, action) {
@@ -82,81 +101,31 @@ const slice = createSlice({
       state.zoneSuccess = true;
       state.operationalMessage = `Zone deleted successfully.`;
     },
-    checkZipCodeSuccess(state, action) {
-      state.isLoading = false;
-      state.zoneSuccess = true;
-      state.zoneZipCodeCheckData = [
-        {
-          "zoneId": 9,
-          "noteThreadId": 300,
-          "entityId": 287,
-          "zoneName": "check zone 1602 1",
-          "zipCodes": [
-            "52525"
-          ],
-          "ranges": [
-            "52525-52526"
-          ],
-          "notes": [],
-          "activeStatus": "Y",
-          "createdAt": "2026-02-16 12:04:48.356630",
-          "createdBy": "Admin",
-          "updatedAt": "2026-02-16 12:14:46.654313",
-          "updatedBy": "Admin",
-          "rateCount": 0
-        },
-        {
-          "zoneId": 8,
-          "noteThreadId": 299,
-          "entityId": 286,
-          "zoneName": "check zone 1602",
-          "zipCodes": [
-            "52525"
-          ],
-          "ranges": [],
-          "notes": [],
-          "activeStatus": "Y",
-          "createdAt": "2026-02-16 12:03:24.874377",
-          "createdBy": "Admin",
-          "updatedAt": "2026-02-16 12:11:32.678284",
-          "updatedBy": "Admin",
-          "rateCount": 0
-        },
-        {
-          "zoneId": 7,
-          "noteThreadId": 298,
-          "entityId": 285,
-          "zoneName": "check zone 56",
-          "zipCodes": [
-            "45455",
-            "45455",
-            "54545",
-            "45555"
-          ],
-          "ranges": [
-            "54554-54558",
-            "45445-45447"
-          ],
-          "notes": [],
-          "activeStatus": "Y",
-          "createdAt": "2026-02-10 16:40:26.486976",
-          "createdBy": "Admin",
-          "updatedAt": "2026-02-10 10:40:26.655917",
-          "rateCount": 0
-        }];
-        state.pagination = {
-        page: 1,
-        pageSize: 10,
-        totalRecords: state.zoneZipCodeCheckData.length,
-      };
-    },
     setOperationalMessage(state) {
       state.operationalMessage = '';
     },
-    setZoneZipCodeToCheck(state, action) {
-      state.zoneZipCodeToCheck = action.payload;
+    setZoneZipCodeData(state, action) {
+      state.zoneZipCodeCheckData = action.payload;
     },
-
+    getZoneCustomerRateSuccess(state, action) {
+      state.isLoading = false;
+      state.zoneSuccess = true;
+      state.zoneRateData = action.payload.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
+    },
+    getZoneCarrierRateSuccess(state,action){
+      state.isLoading = false;
+      state.zoneSuccess = true;
+      state.zoneRateData = action.payload.data;
+      state.pagination.page = action.payload.pagination.page;
+      state.pagination.pageSize = action.payload.pagination.pageSize;
+      state.pagination.totalRecords = action.payload.pagination.total;
+    },
+    setZoneRateData(state, action) {
+      state.zoneRateData = action.payload;
+    },
   },
 });
 
@@ -165,7 +134,8 @@ export const {
   setPaginationObject,
   setZoneSearchStr,
   setSelectedZoneRowDetails,
-  setZoneZipCodeToCheck,
+  setZoneZipCodeData,
+  setZoneRateData,
 } = slice.actions;
 export default slice.reducer;
 
@@ -184,22 +154,22 @@ export function getZoneData({ pageNo, pageSize, searchStr }) {
     }
   };
 }
-export function postZoneData(obj) {
+export function postZoneData(obj, zipCheck) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post(`maintenance/zone`, obj);
+      const response = await axios.post(`maintenance/zone?force=${zipCheck}`, obj);
       dispatch(slice.actions.postZoneDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
   };
 }
-export function putZoneData(id, obj) {
+export function putZoneData(id, obj, zipCheck) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.put(`maintenance/zone/${id}`, obj);
+      const response = await axios.put(`maintenance/zone/${id}?force=${zipCheck}`, obj);
       dispatch(slice.actions.putZoneDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error))
@@ -231,14 +201,26 @@ export function getZoneById(id) {
     }
   };
 }
-export function checkZipCode(zipCode) {
+// on rate click get rate retaled data by zoneid
+export function getZoneCustomerRate(pageNo, pageSize, zoneId) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get(`maintenance/zone/check-zip?zipCode=${zipCode}`);
-      dispatch(slice.actions.checkZipCodeSuccess([]));
+      const response = await axios.get(`maintenance/customer-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getZoneCustomerRateSuccess(response.data));
     } catch (error) {
-      dispatch(slice.actions.hasError(error))
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getZoneCarrierRate(pageNo, pageSize, zoneId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getZoneCarrierRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
     }
   };
 }

@@ -7,7 +7,8 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate,getZoneCarrierRate, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 
 
 
@@ -22,6 +23,7 @@ export default function ZoneTable() {
     const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
+    const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openRateDialog, setOpenRateDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -35,34 +37,13 @@ export default function ZoneTable() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
-    // rate data
-    const rateData = [
-        {
-            rateId : 1,
-            origin : 'ORD',
-            originZipCode : '60501',
-            destination : 'Ankeny',
-            destinationZipCode : '50007',
-            customers : 26,
-            status : 'Y',
-            min : '100',
-            rate100 : '100',
-            rate1000 : '1000',
-            rate3000 : '3000',
-            rate5000 : '5000',
-            rate10000 : '10000',
-            max : '10000',
-            expiryDate : '12-30-2026',
-        }
-    ]
-
-
     // datagrid columns
     const columns = [
         {
             field: 'zoneName',
             headerName: 'Zone Name',
             width: 300,
+            cellClassName: 'padded-column',
         },
         {
             field: 'zipCodes',
@@ -70,9 +51,9 @@ export default function ZoneTable() {
             width: 700,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                         {params.row.ranges?.map((range, index) => (
-                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt:'2px !important',mb:'2px !important' }} />
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                         ))}
                         <Typography variant="normal">
                             {params.row.zipCodes?.join(", ")}
@@ -83,22 +64,59 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'rateCount',
-            headerName: 'Rate ID',
-            width: 100,
+            field: 'customerRateCount',
+            headerName: 'Customer Rate #',
+            width: 200,
+            cellClassName: 'padded-column',
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ mb:0.5,flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width : "50px", pl: 0.5, height : '25px', mt: 1.2, pt:0.5}} alignItems={'flex-start'} 
-                        onClick={() => {
-                            setOpenRateDialog(true);
-                            dispatch(setSelectedZoneRowDetails(params?.row));
-                        }}
-                    >
-                        <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
-                        <Typography variant="normal" sx={{ height : '25px' }}>
-                            {params.row.rateCount}
-                        </Typography>
-                    </Stack>
+                    <>
+                        {
+                            params?.row?.customerRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('customer'));
+                                    dispatch(getZoneCustomerRate(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.customerRateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.customerRateCount}
+                            </Typography>
+                        }
+                    </>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'carrierRateCount',
+            headerName: 'Carrier Rate #',
+            width: 200,
+            cellClassName: 'padded-column',
+            renderCell: (params) => {
+                const element = (
+                    <>
+                        {
+                            params?.row?.carrierRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    dispatch(getZoneCarrierRate(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.carrierRateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.carrierRateCount}
+                            </Typography>
+                        }
+                    </>
                 );
                 return element;
             }
@@ -153,7 +171,7 @@ export default function ZoneTable() {
 
     // call api to get table data
     useEffect(() => {
-        dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
+        dispatch(getZoneData({ pageNo: 1, pageSize: 10, searchStr: zoneSearchStr }));
     }, []);
 
     useEffect(() => {
@@ -167,7 +185,7 @@ export default function ZoneTable() {
 
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.message || error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -183,14 +201,24 @@ export default function ZoneTable() {
         console.log('zone rows updated', zoneData);
     }, [zoneData])
 
+    // when there is data on rate view table for that particular zone id open the dialog to view rate table
+    useEffect(() => {
+        if (rateData && rateData.length > 0) {
+            setOpenRateDialog(true);
+        }
+    }, [rateData])
+
     // dialog actions and functions
     const handleCloseEdit = () => {
-         setActionType('');
+        setActionType('');
         setOpenEditDialog(false);
         dispatch(setSelectedZoneRowDetails({}));
-
+        localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
     };
     const handleCloseRate = () => {
+        dispatch(getZoneData({ pageNo: 1, pageSize: 10, searchStr: zoneSearchStr }));
+        dispatch(setZoneRateData([]));
+        dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);
     };
 
@@ -224,6 +252,9 @@ export default function ZoneTable() {
                 autoHeight
                 pagination
                 getRowHeight={() => 'auto'}
+                sx={{
+                    '& .padded-column': { paddingTop: 1 },
+                }}
             />
         </Box>
 
@@ -242,7 +273,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <ZoneDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedZoneRowDetails={selectedZoneRowDetails}/>
+                <ZoneDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedZoneRowDetails={selectedZoneRowDetails} />
             </DialogContent>
         </Dialog>
         <Dialog open={openRateDialog} onClose={handleCloseRate} onKeyDown={(event) => {
@@ -260,7 +291,7 @@ export default function ZoneTable() {
             }}
         >
             <DialogContent>
-                <RateViewTable rateDataArr={rateData}/>
+                <RateViewTable handleCloseRate={handleCloseRate} />
             </DialogContent>
         </Dialog>
 

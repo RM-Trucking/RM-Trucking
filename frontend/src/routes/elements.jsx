@@ -32,9 +32,11 @@ export const TerminalViewPage = Loadable(lazy(() => import('../pages/carrier/Ter
 export const RateLayout = Loadable(lazy(() => import('../pages/rate/RateLayout')));
 export const ZoneLayout = Loadable(lazy(() => import('../pages/zone/ZoneLayout')));
 export const CarrierLayout = Loadable(lazy(() => import('../pages/carrier/CarrierLayout')));
+export const FuelSurchargeLayout = Loadable(lazy(() => import('../pages/fuelsurcharge/FuelChargeLayout')));
 export const AccessorialLayout = Loadable(lazy(() => import('../pages/accesorial/AccessorialLayout')));
 export const RateMaintenancePage = Loadable(lazy(() => import('../pages/rate/RateMaintenance')));
 export const CarrierMaintenancePage = Loadable(lazy(() => import('../pages/carrier/CarrierMaintenance')));
+export const FuelSurchargeMaintenancePage = Loadable(lazy(() => import('../pages/fuelsurcharge/FuelChargeMaintenance')));
 export const AccesorialMaintenancePage = Loadable(lazy(() => import('../pages/accesorial/AccesorialMaintenance')));
 
 // Error pages

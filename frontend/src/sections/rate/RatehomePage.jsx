@@ -8,6 +8,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from '../shared/ErrorBoundary';
 import RateTabs from './RateTabs';
 import RateTable from './RateTable';
+import { useDispatch, useSelector } from '../../redux/store';
 // ----------------------------------------------------------------
 
 export default function RatehomePage() {
@@ -16,6 +17,7 @@ export default function RatehomePage() {
     console.error("Error caught:", info);
     console.log(error);
   };
+  const { currentRateRoutedFrom,  } = useSelector((state) => state.ratedata);
   return (
     <>
       <ErrorBoundary
@@ -27,7 +29,7 @@ export default function RatehomePage() {
         }}
       >
         <Box sx={{ p: 3 }}>
-         <Typography sx={{ fontSize: '18px', fontWeight: 600, mt:2 }}>Rate Maintenance</Typography>
+         <Typography sx={{ fontSize: '18px', fontWeight: 600, mt:2 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Maintenance</Typography>
           <RateTabs />
           <RateTable />
         </Box>

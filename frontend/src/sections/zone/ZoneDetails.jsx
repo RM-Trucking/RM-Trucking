@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postZoneData, putZoneData, setZoneZipCodeToCheck } from '../../redux/slices/zone';
+import { postZoneData, putZoneData, } from '../../redux/slices/zone';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 
@@ -29,6 +29,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     const navigate = useNavigate();
     const operationalMessage = useSelector((state) => state?.zonedata?.operationalMessage);
     const isLoading = useSelector((state) => state?.zonedata?.isLoading);
+    const zipCheck = useSelector((state) => state?.zonedata?.zipCheck);
     const [openConfirmDialog, setopenConfirmDialog] = useState(false);
     const {
         control,
@@ -59,14 +60,23 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
             }
         }
         if (type === 'Add') {
-            dispatch(postZoneData(obj));
+            if (openConfirmDialog) {
+                dispatch(postZoneData(obj, true));
+            } else {
+                dispatch(postZoneData(obj, false));
+            }
         } else if (type === 'Edit') {
             obj.activeStatus = selectedZoneRowDetails.activeStatus;
-            dispatch(putZoneData(selectedZoneRowDetails.zoneId, obj));
+            if (openConfirmDialog) {
+                dispatch(putZoneData(selectedZoneRowDetails.zoneId, obj, true));
+            } else {
+                dispatch(putZoneData(selectedZoneRowDetails.zoneId, obj, false));
+            }
         }
     };
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
+            localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
             handleCloseConfirm();
         }
     }, [operationalMessage]);
@@ -81,13 +91,11 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     const handleCloseConfirmDialog = () => {
         setopenConfirmDialog(false);
     }
-    const handleCheckZipCode = () => {
-        setopenConfirmDialog(true);
-        const individualZipCodes = getValues('individualZipCodes').toString().slice(0, -1);
-        const rangeZipCodes = getValues('rangeZipCodes').toString();
-        const zipCodesToCheck = [individualZipCodes, rangeZipCodes].filter(Boolean).join(', ');
-        dispatch(setZoneZipCodeToCheck(zipCodesToCheck));
-    }
+    useEffect(() => {
+        if (zipCheck) {
+            setopenConfirmDialog(true);
+        }
+    }, [zipCheck])
 
     return (
         <>
@@ -206,7 +214,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
-                        
+
                         <Controller
                             name="rangeZipCodes"
                             control={control}
@@ -421,7 +429,8 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                         <Button
                             variant="contained"
                             size="small"
-                            onClick={handleCheckZipCode}
+                            type='submit'
+                            onClick={handleSubmit(onSubmit)}
                             sx={{
                                 '&.MuiButton-contained': {
                                     borderRadius: '4px',
@@ -435,7 +444,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 },
                             }}
                         >
-                            Check
+                            {type === 'Add' ? 'Add' : 'Edit'}
                         </Button>
                         {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>

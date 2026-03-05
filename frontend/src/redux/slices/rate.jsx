@@ -20,6 +20,10 @@ const initialState = {
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
     operationalMessage: '',
     currentRateRoutedFrom: null,
+    originZoneListByZipCode: [],
+    destinationZoneListByZipCode: [],
+    customerList: [],
+    carrierList: [],
 };
 
 const slice = createSlice({
@@ -92,6 +96,28 @@ const slice = createSlice({
         },
         setCurrentRateRoutedFrom(state, action) {
             state.currentRateRoutedFrom = action.payload;
+        },
+        // zone by zipcode success
+        getOriginZoneByZipCodeSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.originZoneListByZipCode = action.payload.data;
+        },
+        getDestinationZoneByZipCodeSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.destinationZoneListByZipCode = action.payload.data;
+        },
+        // customer list and carrier list array according to rate id
+        getCustomerListByRateIDSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.customerList = action.payload.data;
+        },
+        getCarrierListByRateIDSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.carrierList = action.payload.data;
         },
     },
 });
@@ -167,4 +193,50 @@ export function getRateChargeData() {
             dispatch(slice.actions.hasError(error));
         }
     };
+}
+// get zone by zipcode
+export function getOriginZoneByZipCode(zipcode) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
+            dispatch(slice.actions.getOriginZoneByZipCodeSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function getDestinationZoneByZipCode(zipcode) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
+            dispatch(slice.actions.getDestinationZoneByZipCodeSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+// customer and carrier list
+export function getCustomerListByRateID(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/customer-rate/transport-rate/${id}`);
+      dispatch(slice.actions.getCustomerListByRateIDSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function getCarrierListByRateID(id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/${id}`);
+      dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
 }

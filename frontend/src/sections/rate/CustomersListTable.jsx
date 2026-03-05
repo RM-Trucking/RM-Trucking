@@ -11,12 +11,13 @@ import Iconify from '../../components/iconify';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 
 CustomerListTable.PropTypes = {
-    customerData: PropTypes.array,
     handleCloseConfirm: PropTypes.func
 };
 
-export default function CustomerListTable({ customerData, handleCloseConfirm }) {
+export default function CustomerListTable({ handleCloseConfirm }) {
     const dispatch = useDispatch();
+    const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.carrierList);
     const customerColumns = [
         {
             field: 'customerName',
@@ -25,7 +26,7 @@ export default function CustomerListTable({ customerData, handleCloseConfirm }) 
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
-                <Box sx={{p:1}}>
+                <Box sx={{ p: 1 }}>
                     {params?.row?.customerName}
                 </Box>
             )
@@ -37,20 +38,44 @@ export default function CustomerListTable({ customerData, handleCloseConfirm }) 
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
-                <Box sx={{p:1}}>
+                <Box sx={{ p: 1 }}>
                     {params?.row?.stationName}
                 </Box>
             )
         },
 
     ];
+    const carrierColumns = [
+        {
+            field: 'carrierName',
+            headerName: 'Carrier',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ p: 1 }}>
+                    {params?.row?.carrierName}
+                </Box>
+            )
+        },
+        {
+            field: 'terminal',
+            headerName: 'Terminal',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ p: 1 }}>
+                    {params?.row?.terminal}
+                </Box>
+            )
+        },
+    ];
 
     // get call for customers for a particular rate
     useEffect(() => {
         dispatch(setTableBeingViewed('Customers'));
     }, []);
-
-
 
     return (
         <>
@@ -61,12 +86,12 @@ export default function CustomerListTable({ customerData, handleCloseConfirm }) 
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
-            <Box sx={{width: "100%", flex: 1, mt: 3 }}>
+            <Box sx={{ width: "100%", flex: 1, mt: 3 }}>
                 <DataGrid
-                    rows={customerData}
-                    columns={customerColumns}
-                    loading={customerData.length === 0}
-                    getRowId={(row) => row?.customerId}
+                    rows={[]}
+                    columns={currentRateRoutedFrom === 'customer' ? customerColumns : carrierColumns}
+                    loading={isLoading}
+                    getRowId={(row) => row?.customerId || row?.carrierid}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,

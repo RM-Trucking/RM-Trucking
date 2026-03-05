@@ -28,8 +28,9 @@ export default function ZoneHomePage() {
     setOpenConfirmDialog(true);
   }
   const handleCloseConfirm = () => {
-        setOpenConfirmDialog(false);
-    };
+    localStorage.setItem('zoneZipCodeCheckData', JSON.stringify([]));
+    setOpenConfirmDialog(false);
+  };
   return (
     <>
       <ErrorBoundary

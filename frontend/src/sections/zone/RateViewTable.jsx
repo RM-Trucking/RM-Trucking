@@ -15,41 +15,56 @@ import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
+import {
+    setSelectedCurrentRateRow, setCurrentRateTab, setCurrentRateRoutedFrom,
+    getOriginZoneByZipCode, getDestinationZoneByZipCode, getCustomerListByRateID,
+    getCarrierListByRateID
+} from '../../redux/slices/rate';
+import {
+    getZoneCustomerRate, getZoneCarrierRate,
+} from '../../redux/slices/zone';
+
 
 // ----------------------------------------------------------------
 RateViewTable.propTypes = {
-    rateDataArr: PropTypes.array,
+    handleCloseRate: PropTypes.func,
 };
 
-export default function RateViewTable({ rateDataArr }) {
+export default function RateViewTable({ handleCloseRate, }) {
     const navigate = useNavigate();
-    const [rateData, setrateData] = useState(rateDataArr);
+    const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+    const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const dispatch = useDispatch();
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
     };
-    const rateTransportationColumns = [
+    const rateTransportationCustomerColumns = [
         {
-            field: 'rateId',
+            field: 'customerRateId',
             headerName: 'Rate ID',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.customerRateId}
                 </Box>
             )
         },
         {
-            field: 'origin',
+            field: 'originZone',
             headerName: 'Origin',
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.originZone?.zoneName}
+                </Typography>
+            )
         },
         {
             field: 'originZipCode',
@@ -57,13 +72,31 @@ export default function RateViewTable({ rateDataArr }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.originZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.originZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
         },
         {
-            field: 'destination',
+            field: 'destinationZone',
             headerName: 'Destination',
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.destinationZone?.zoneName}
+                </Typography>
+            )
         },
         {
             field: 'destinationZipCode',
@@ -71,23 +104,44 @@ export default function RateViewTable({ rateDataArr }) {
             width: 170,
             align: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.destinationZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.destinationZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
         },
         {
-            field: 'customers',
-            headerName: 'Customers',
+            field: 'customerCount',
+            headerName: 'Customers #',
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
-            renderCell: (params) => (
+            renderCell: (params) => {
                 // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'}>
-                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
-                    <Typography variant='normal'>{params?.row?.customers}</Typography>
-                </Stack>
-            )
+                const element = (<>
+                    {(params?.row?.customerCount && params?.row?.customerCount > 0)
+                        ?
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
+                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                            <Typography variant='normal'>{params?.row?.customerCount}</Typography>
+                        </Stack>
+                        :
+                        <Typography variant='normal'>{params?.row?.customerCount}</Typography>
+                    }
+                </>);
+                return element;
+            }
         },
         {
-            field: 'status',
+            field: 'activeStatus',
             headerName: 'Status',
             width: 100,
             align: 'center',
@@ -100,7 +154,7 @@ export default function RateViewTable({ rateDataArr }) {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.activeStatus === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -115,34 +169,14 @@ export default function RateViewTable({ rateDataArr }) {
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Min:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>100:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>1000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>3000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>5000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>10000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "70px" }}>Max:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                        </Stack>
+                        {params.row.details?.map((detail, index) => (
+                            <Stack key={index} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                <Typography variant="normal" sx={{ width: "70px" }}>{detail?.rateField}:</Typography>
+                                <Typography variant="normal" sx={{ width: "auto" }}>{detail?.chargeValue}</Typography>
+                            </Stack>
+                        ))}
+
+
                     </Stack>
                 );
                 return element;
@@ -185,8 +219,13 @@ export default function RateViewTable({ rateDataArr }) {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
+                                dispatch(getCustomerListByRateID(params.row.rateId));
+                                dispatch(setCurrentRateTab('transportation'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
+                                dispatch(setCurrentRateRoutedFrom('customer'));
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
                             }} />
                         </Tooltip>
@@ -196,8 +235,202 @@ export default function RateViewTable({ rateDataArr }) {
             },
         }
     ];
-    const pagination = useSelector((state) => state?.ratedata?.pagination);
-    const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    const rateTransportationCarrierColumns = [
+        {
+            field: 'carrierRateId',
+            headerName: 'Rate ID',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.carrierRateId}
+                </Box>
+            )
+        },
+        {
+            field: 'originZone',
+            headerName: 'Origin',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.originZone?.zoneName}
+                </Typography>
+            )
+        },
+        {
+            field: 'originZipCode',
+            headerName: 'Origin Zip Code',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.originZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.originZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'destinationZone',
+            headerName: 'Destination',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.destinationZone?.zoneName}
+                </Typography>
+            )
+        },
+        {
+            field: 'destinationZipCode',
+            headerName: 'Destination Zip Code',
+            width: 170,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.destinationZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.destinationZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'carrierCount',
+            headerName: 'Carriers #',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                // have to add customer list 
+                const element = (<>
+                    {(params?.row?.carrierCount && params?.row?.carrierCount > 0)
+                        ?
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
+                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                            <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                        </Stack>
+                        :
+                        <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                    }
+                </>);
+                return element;
+            }
+        },
+        {
+            field: 'activeStatus',
+            headerName: 'Status',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+                        <Chip label={params?.row?.activeStatus === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                    </Box>
+                );
+                return element;
+            },
+        },
+        {
+            field: "rates",
+            headerName: "Rates",
+            minWidth: 200,
+            minHeight: 200,
+            flex: 1,
+            renderCell: (params) => {
+                const element = (
+                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                        {params.row.details?.map((detail, index) => (
+                            <Stack key={index} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                <Typography variant="normal" sx={{ width: "70px" }}>{detail?.rateField}:</Typography>
+                                <Typography variant="normal" sx={{ width: "auto" }}>{detail?.chargeValue}</Typography>
+                            </Stack>
+                        ))}
+
+
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'expiryDate',
+            headerName: 'Expiry Date',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {formatted}
+                </Box>
+            }
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
+                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                dispatch(setCurrentRateTab('transportation'));
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                dispatch(setCurrentRateRoutedFrom('carrier'));
+                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                            }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        }
+    ];
+    const pagination = useSelector((state) => state?.zonedata?.pagination);
+    const isLoading = useSelector((state) => state?.zonedata?.isLoading);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -214,7 +447,7 @@ export default function RateViewTable({ rateDataArr }) {
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
-        dispatch(setTableBeingViewed('rate'));
+        dispatch(setTableBeingViewed('zone rate'));
     }, []);
 
     return (
@@ -229,7 +462,8 @@ export default function RateViewTable({ rateDataArr }) {
             >
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Rate Details</Typography>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Details</Typography>
+                        <Iconify icon="carbon:close" sx={{ color: '#000', cursor: 'pointer' }} onClick={handleCloseRate} />
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 </>
@@ -240,15 +474,24 @@ export default function RateViewTable({ rateDataArr }) {
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
                             // call api which gets rate data by zone id
-                            // dispatch(getZoneData({
-                            //     pageNo: newModel.page + 1,
-                            //     pageSize: newModel.pageSize,
-                            //     searchStr: zoneSearchStr
-                            // }));
+                            if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
 
                         rows={rateData}
-                        columns={rateTransportationColumns}
+                        columns={(currentRateRoutedFrom === 'customer') ? rateTransportationCustomerColumns : rateTransportationCarrierColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.rateId}
                         pagination
@@ -259,10 +502,36 @@ export default function RateViewTable({ rateDataArr }) {
                         hideFooterSelectedRowCount
                         autoHeight
                         onPageChange={(newPage) => {
-                            // dispatch(getZoneData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: zoneSearchStr }));
+                            if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            // dispatch(getZoneData({ pageNo: 1, pageSize: newPageSize, searchStr: zoneSearchStr }));
+                            if (currentRateRoutedFrom === 'customer') {
+                                dispatch(getZoneCustomerRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
+                            else if (currentRateRoutedFrom === 'carrier') {
+                                dispatch(getZoneCarrierRate(
+                                    newModel.page + 1,
+                                    newModel.pageSize,
+                                    selectedZoneRowDetails?.zoneId
+                                ));
+                            }
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || rateData.length || '0', 10)}

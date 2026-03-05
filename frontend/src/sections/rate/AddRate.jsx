@@ -24,7 +24,7 @@ AddRate.propTypes = {
 export default function AddRate({ type, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { currentRateTab } = useSelector(({ ratedata }) => ratedata);
+    const { currentRateTab, currentRateRoutedFrom } = useSelector(({ ratedata }) => ratedata);
 
 
     // error boundary info
@@ -48,7 +48,7 @@ export default function AddRate({ type, handleCloseConfirm, selectedCurrentRateR
                 {/* header  */}
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Rate ID</Typography>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate ID</Typography>
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb: 1 }} />
                 </>

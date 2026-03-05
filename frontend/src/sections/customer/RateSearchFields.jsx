@@ -42,6 +42,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const zoneSuccess = useSelector((state) => state?.zonedata?.zoneSuccess);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+    const originZoneListByZipCode = useSelector((state) => state?.ratedata?.originZoneListByZipCode);
+    const destinationZoneListByZipCode = useSelector((state) => state?.ratedata?.destinationZoneListByZipCode);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -62,18 +65,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             notes: '',
         }
     });
-    const customerData = [
-        {
-            customerId: 1,
-            customerName: 'Liam Johnson',
-            stationName: 'Station 1'
-        },
-        {
-            customerId: 2,
-            customerName: 'Emma Thompson',
-            stationName: 'Station 2'
-        }
-    ]
 
     useEffect(() => {
         if ((type === 'Edit' || type === 'Copy') && selectedCurrentRateRow && currentTab === 'warehouse') {
@@ -87,6 +78,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
             setValue('notes', selectedCurrentRateRow.notes || '');
         }
+        if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneName || '');
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneName || '');
+            setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
+            setValue('notes', selectedCurrentRateRow?.notes || '');
+        }
     }, [selectedCurrentRateRow])
     useEffect(() => {
         if (operationalMessage && handleCloseConfirm) {
@@ -96,7 +94,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     }, [operationalMessage]);
     useEffect(() => {
-        if(zoneSuccess && selectedZoneRowDetails?.zoneId && actionType === 'View') {
+        if (zoneSuccess && selectedZoneRowDetails?.zoneId && actionType === 'View') {
             setOpenZoneView(true);
         }
     }, [zoneSuccess])
@@ -149,7 +147,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const handleZoneView = (type) => {
         setActionType('View');
         getValues(type === 'origin' ? 'origin' : 'destination');
-         // Get current values of origin and destination
+        // Get current values of origin and destination
         dispatch(getZoneById(7)); // Pass the ID of the zone you want to view
     }
     const handleCloseOfZoneView = () => {
@@ -162,7 +160,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         <>
             {type === 'View' && currentTab === 'transportation' && <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>}
@@ -266,6 +264,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             error={!!errors.origin} helperText={errors.origin?.message}
                                             disabled={type === 'View'}
                                         >
+                                            {originZoneListByZipCode?.length > 0 && originZoneListByZipCode?.map((data) => (
+                                                <MenuItem key={data.zoneId} value={data.zoneName}>
+                                                    {data.zoneName}
+                                                </MenuItem>
+                                            ))}
                                             <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                         </StyledTextField>
                                     )}
@@ -374,7 +377,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             disabled={type === 'View'}
                                             error={!!errors.destination} helperText={errors.destination?.message}
                                         >
-                                            <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
+                                            {destinationZoneListByZipCode?.length > 0 && destinationZoneListByZipCode?.map((data) => (
+                                                <MenuItem key={data.zoneId} value={data.zoneName}>
+                                                    {data.zoneName}
+                                                </MenuItem>
+                                            ))}
                                         </StyledTextField>
                                     )}
                                 />
@@ -523,9 +530,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
-                                <Button
+                                {type !== 'Add' && <Button
                                     variant="outlined"
-                                    onClick={() => onClickofCustomerList()}
+                                    onClick={onClickofCustomerList}
                                     sx={{
                                         height: '30px',
                                         fontWeight: 600,
@@ -543,8 +550,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         },
                                     }}
                                 >
-                                    Customer list ({selectedCurrentRateRow?.customers ?? 0})
-                                </Button>
+                                    {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({selectedCurrentRateRow?.customers ?? 0})
+                                </Button>}
                                 <Controller
                                     name="notes"
                                     control={control}
@@ -653,7 +660,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }}
             >
                 <DialogContent>
-                    <CustomerListTable customerData={customerData} handleCloseConfirm={handleCloseOfCustomersList} />
+                    <CustomerListTable handleCloseConfirm={handleCloseOfCustomersList} />
                 </DialogContent>
             </Dialog>
             <Dialog open={openZoneView} onClose={handleCloseOfZoneView} onKeyDown={(event) => {
@@ -671,7 +678,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }}
             >
                 <DialogContent>
-                    <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails}/>
+                    <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails} />
                 </DialogContent>
             </Dialog>
         </>

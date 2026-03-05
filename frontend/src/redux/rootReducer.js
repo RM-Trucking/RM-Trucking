@@ -8,6 +8,7 @@ import noteReducer from './slices/note';
 import zoneReducer from './slices/zone';
 import accessorialReducer from './slices/accessorial';
 import carrierReducer from './slices/carrier';
+import fuelReducer from './slices/fuel';
 // ----------------------------------------------------------------------
 
 const rootPersistConfig = {
@@ -26,6 +27,7 @@ const rootReducer = combineReducers({
   zonedata : zoneReducer,
   accessorialdata : accessorialReducer,
   carrierdata : carrierReducer,
+  fueldata : fuelReducer,
 });
 
 export { rootPersistConfig, rootReducer };

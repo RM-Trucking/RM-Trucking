@@ -206,9 +206,6 @@ export async function updateCustomer(
 
     const addresses = await addressDB.getAddressesForEntity(conn, updatedCustomer.entityId);
 
-    console.log(addresses);
-
-
     const notes = updatedCustomer.noteThreadId
         ? await noteDB.getMessagesByThread(conn, updatedCustomer.noteThreadId)
         : [];
@@ -234,4 +231,24 @@ export async function toggleCustomerStatus(
     const updated = await customerDB.getCustomerById(conn, customerId);
     if (!updated) throw new Error('Failed to update customer status');
     return updated;
+}
+
+
+export async function getCustomersByRateIdService(
+    conn: Connection,
+    rateId: number
+): Promise<CustomerResponse[]> {
+    const customers = await customerDB.getCustomersByRateId(conn, rateId);
+
+    const enriched = await Promise.all(
+        customers.map(async (cust) => {
+            const addresses = await addressDB.getAddressesForEntity(conn, cust.entityId);
+            const notes = cust.noteThreadId
+                ? await noteDB.getMessagesByThread(conn, cust.noteThreadId)
+                : [];
+            return { ...cust, addresses, notes };
+        })
+    );
+
+    return enriched;
 }

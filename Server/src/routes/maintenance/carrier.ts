@@ -6,45 +6,52 @@ import { db } from '../../config/db2';
 const router = Router();
 
 // CREATE
-router.post("/carrier", authenticateJWT, async (req, res) => {
+router.post("/", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.createCarrier(req, res, conn);
     conn.close();
 });
 
 // UPDATE
-router.put("/carrier/:id", authenticateJWT, async (req, res) => {
+router.put("/:id", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.updateCarrier(req, res, conn);
     conn.close();
 });
 
 // GET ALL
-router.get("/carrier", authenticateJWT, async (req, res) => {
+router.get("/", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.listCarriers(req, res, conn);
     conn.close();
 });
 
 // GET BY ID
-router.get("/carrier/:id", authenticateJWT, async (req, res) => {
+router.get("/:id", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.getCarrierById(req, res, conn);
     conn.close();
 });
 
 // DROPDOWN
-router.get("/carrier/dropdown", authenticateJWT, async (req, res) => {
+router.get("/dropdown", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.listCarrierDropdown(req, res, conn);
     conn.close();
 });
 
 // TOGGLE STATUS
-router.patch("/carrier/:id/status", authenticateJWT, async (req, res) => {
+router.patch("/:id/status", authenticateJWT, async (req, res) => {
     const conn = await db();
     await carrierController.toggleCarrierStatus(req, res, conn);
     conn.close();
 });
+
+router.get('/by-rate/:rateId', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await carrierController.getCarriersByRateId(req, res, conn);
+    conn.close();
+});
+
 
 export default router;

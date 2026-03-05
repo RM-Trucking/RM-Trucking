@@ -335,17 +335,75 @@ paths:
       summary: Get zones for dropdown
       description: >
         Returns a lightweight list of zones with zoneId, zoneName, zipCodes, and ranges.
+        If no query parameter is provided, all active zones are returned.
+        If the optional `input` parameter is provided, the API will parse it as a list of
+        zip codes and ranges (e.g. "12345, 23456, 5671-5679") and return only zones that
+        contain at least one of those zips or ranges.
       security:
         - bearerAuth: []
+      parameters:
+        - in: query
+          name: input
+          required: false
+          schema:
+            type: string
+          description: >
+            Comma-separated list of zip codes and ranges to filter zones.
+            Example: "12345,23456,5671-5679,3451-3459"
       responses:
         "200":
           description: Dropdown zone list
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/ZoneDropdownResponse"
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ZoneDropdownResponse"
+              examples:
+                allZones:
+                  summary: All active zones
+                  value:
+                    success: true
+                    data:
+                      - zoneId: 1
+                        zoneName: "East Zone"
+                        zipCodes: ["12345", "23456"]
+                        ranges: ["5671-5679"]
+                      - zoneId: 2
+                        zoneName: "North Zone"
+                        zipCodes: ["3451", "3452"]
+                        ranges: ["3451-3459"]
+                filteredZones:
+                  summary: Zones filtered by input
+                  value:
+                    success: true
+                    data:
+                      - zoneId: 1
+                        zoneName: "East Zone"
+                        zipCodes: ["12345"]
+                        ranges: []
+        "400":
+          description: Invalid input or failed to fetch zones
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              examples:
+                invalidInput:
+                  summary: Invalid input example
+                  value:
+                    success: false
+                    message: "Failed to parse input string"
 
   /api/maintenance/zone/check-zip:
     get:

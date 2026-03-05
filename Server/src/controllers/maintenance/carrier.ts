@@ -104,3 +104,24 @@ export async function toggleCarrierStatus(req: Request, res: Response, conn: Con
         res.status(400).json({ success: false, message: error.message });
     }
 }
+
+export async function getCarriersByRateId(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const rateId = parseInt(req.params.rateId, 10);
+        const customers = await carrierService.getCarriersByRateIdService(conn, rateId);
+
+        res.status(200).json({
+            success: true,
+            data: customers
+        });
+    } catch (error) {
+
+        console.log(error);
+
+
+        res.status(400).json({
+            success: false,
+            message: (error as Error).message
+        });
+    }
+}

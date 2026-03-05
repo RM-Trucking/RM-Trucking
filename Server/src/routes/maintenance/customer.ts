@@ -53,5 +53,12 @@ router.put('/:customerId/toggle', authenticateJWT, async (req: Request, res: Res
     if (conn) conn.close();
 });
 
+router.get('/by-rate/:rateId', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await customerController.getCustomersByRateId(req, res, conn);
+    conn.close();
+});
+
+
 
 export default router;

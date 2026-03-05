@@ -12,4 +12,5 @@ export * from './Station';
 export * from './Department';
 export * from './CustomerPersonnel';
 export * from './CustomerRate';
+export * from './CarrierRate';
 

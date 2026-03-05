@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
 import { Connection } from 'odbc';
-import * as rateService from '../../services/maintenance/customerRate';
+import * as rateService from '../../services/maintenance/carrierRate';
 
 // -------------------- Warehouse Rate --------------------
-export async function createCustomerWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function createCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.createCustomerWarehouseRateService(conn, req.body);
+        const rate = await rateService.createCarrierWarehouseRateService(conn, req.body);
         res.status(201).json({ success: true, data: rate });
     } catch (error) {
         console.log(error);
@@ -14,9 +14,9 @@ export async function createCustomerWarehouseRate(req: Request, res: Response, c
     }
 }
 
-export async function getCustomerWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.getCustomerWarehouseRateService(conn, Number(req.params.id));
+        const rate = await rateService.getCarrierWarehouseRateService(conn, Number(req.params.id));
         if (!rate) {
             res.status(404).json({ error: 'Warehouse rate not found' });
             return;
@@ -27,18 +27,18 @@ export async function getCustomerWarehouseRate(req: Request, res: Response, conn
     }
 }
 
-export async function updateCustomerWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function updateCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.updateCustomerWarehouseRateService(conn, Number(req.params.id), req.body);
+        const rate = await rateService.updateCarrierWarehouseRateService(conn, Number(req.params.id), req.body);
         res.json({ success: true, data: rate });
     } catch (error) {
         res.status(400).json({ error: 'Failed to update warehouse rate', message: (error as Error).message });
     }
 }
 
-export async function deleteCustomerWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function deleteCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        await rateService.deleteCustomerWarehouseRateService(conn, Number(req.params.id));
+        await rateService.deleteCarrierWarehouseRateService(conn, Number(req.params.id));
         res.json({ success: true, message: 'Warehouse rate deleted successfully' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete warehouse rate', message: (error as Error).message });
@@ -46,22 +46,20 @@ export async function deleteCustomerWarehouseRate(req: Request, res: Response, c
 }
 
 // -------------------- Transport Rate --------------------
-export async function createCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function createCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const userId = req.user?.userId || 0;
-        const rate = await rateService.createCustomerTransportRateService(conn, req.body, userId);
+        const rate = await rateService.createCarrierTransportRateService(conn, req.body, userId);
         res.status(201).json({ success: true, data: rate });
     } catch (error) {
-        console.log(error);
-
         res.status(400).json({ error: 'Failed to create transport rate', message: (error as Error).message });
     }
 }
 
 
-export async function getCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.getCustomerTransportRateService(conn, Number(req.params.id));
+        const rate = await rateService.getCarrierTransportRateService(conn, Number(req.params.id));
         if (!rate) {
             res.status(404).json({ error: 'Transport rate not found' });
             return;
@@ -72,26 +70,26 @@ export async function getCustomerTransportRate(req: Request, res: Response, conn
     }
 }
 
-export async function updateCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function updateCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.updateCustomerTransportRateService(conn, Number(req.params.id), req.body);
+        const rate = await rateService.updateCarrierTransportRateService(conn, Number(req.params.id), req.body);
         res.json({ success: true, data: rate });
     } catch (error) {
         res.status(400).json({ error: 'Failed to update transport rate', message: (error as Error).message });
     }
 }
 
-export async function deleteCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function deleteCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        await rateService.deleteCustomerTransportRateService(conn, Number(req.params.id));
+        await rateService.deleteCarrierTransportRateService(conn, Number(req.params.id));
         res.json({ success: true, message: 'Transport rate deleted successfully' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete transport rate', message: (error as Error).message });
     }
 }
 
-// -------------------- Station Rate Map --------------------
-export async function assignRateToStation(
+// -------------------- Terminal Rate Map --------------------
+export async function assignRateToTerminal(
     req: Request,
     res: Response,
     conn: Connection
@@ -99,48 +97,48 @@ export async function assignRateToStation(
     try {
         const userId = (req as any).user?.userId || 'system';
         // Expect req.body to contain an array of mappings
-        const maps = await rateService.assignRateToStationService(conn, req.body, userId);
+        const maps = await rateService.assignRateToTerminalService(conn, req.body, userId);
         res.status(201).json({ success: true, data: maps });
     } catch (error) {
         console.error(error);
         res.status(400).json({
-            error: 'Failed to assign rate(s) to station',
+            error: 'Failed to assign rate(s) to terminal',
             message: (error as Error).message
         });
     }
 }
 
 
-export async function getStationRates(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getTerminalRates(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const stationId = Number(req.query.stationId);
+        const terminalId = Number(req.query.terminalId);
         const { rateType } = req.query;
 
-        const maps = await rateService.getStationRatesService(
+        const maps = await rateService.getTerminalRatesService(
             conn,
-            stationId,
+            terminalId,
             rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined
         );
 
         res.json({ success: true, data: maps });
     } catch (error) {
-        res.status(400).json({ error: 'Failed to fetch station rates', message: (error as Error).message });
+        res.status(400).json({ error: 'Failed to fetch terminal rates', message: (error as Error).message });
     }
 }
 
-export async function deleteStationRateMap(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function deleteTerminalRateMap(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        await rateService.deleteStationRateMapService(conn, Number(req.params.id));
-        res.json({ success: true, message: 'Station rate mapping deleted successfully' });
+        await rateService.deleteTerminalRateMapService(conn, Number(req.params.id));
+        res.json({ success: true, message: 'Terminal rate mapping deleted successfully' });
     } catch (error) {
-        res.status(400).json({ error: 'Failed to delete station rate mapping', message: (error as Error).message });
+        res.status(400).json({ error: 'Failed to delete terminal rate mapping', message: (error as Error).message });
     }
 }
 
-export async function listCustomerWarehouseRates(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function listCarrierWarehouseRates(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { search, page = 1, pageSize = 10 } = req.query;
-        const result = await rateService.listCustomerWarehouseRatesService(
+        const result = await rateService.listCarrierWarehouseRatesService(
             conn,
             search as string,
             Number(page),
@@ -152,7 +150,7 @@ export async function listCustomerWarehouseRates(req: Request, res: Response, co
     }
 }
 
-export async function listCustomerTransportRates(
+export async function listCarrierTransportRates(
     req: Request,
     res: Response,
     conn: Connection
@@ -167,7 +165,7 @@ export async function listCustomerTransportRates(
             pageSize = '10'
         } = req.query;
 
-        const result = await rateService.listCustomerTransportRatesService(
+        const result = await rateService.listCarrierTransportRatesService(
             conn,
             {
                 originZoneId: originZoneId ? Number(originZoneId) : undefined,
@@ -198,7 +196,7 @@ export async function listCustomerTransportRates(
     }
 }
 
-export async function listCustomerTransportRatesByZone(
+export async function listCarrierTransportRatesByZone(
     req: Request,
     res: Response,
     conn: Connection
@@ -209,7 +207,7 @@ export async function listCustomerTransportRatesByZone(
         const page = parseInt(req.query.page as string, 10) || 1;
         const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
 
-        const result = await rateService.listCustomerTransportRatesByZoneService(conn, zoneId, page, pageSize);
+        const result = await rateService.listCarrierTransportRatesByZoneService(conn, zoneId, page, pageSize);
 
         res.status(200).json({
             success: true,
@@ -221,8 +219,6 @@ export async function listCustomerTransportRatesByZone(
             }
         });
     } catch (error: any) {
-        console.log(error);
-
         res.status(400).json({ success: false, message: error.message });
     }
 }

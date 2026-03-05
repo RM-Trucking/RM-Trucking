@@ -147,6 +147,38 @@ paths:
                     carrierId: { type: integer }
                     carrierName: { type: string }
 
+    /api/maintenance/carrier/by-rate/{rateId}:
+      get:
+        tags:
+          - Carrier
+        summary: Get carriers by Rate ID
+        description: >
+          Retrieves the list of carriers associated with a given transport or warehouse rate.
+          This is useful for understanding which carriers are linked to specific rates in the system.
+        security:
+          - bearerAuth: []
+        parameters:
+          - in: path
+            name: rateId
+            required: true
+            schema:
+              type: integer
+            description: Unique identifier of the rate
+        responses:
+          "200":
+            description: Carriers linked to the given rate
+            content:
+              application/json:
+                schema:
+                  type: object
+                  properties:
+                    success:
+                      type: boolean
+                    data:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/CarrierResponse"
+
 components:
   schemas:
     CreateCarrierRequest:

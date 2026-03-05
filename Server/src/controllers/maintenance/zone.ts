@@ -7,7 +7,8 @@ import {
     deleteZoneService,
     listZonesService,
     listZonesDropdownService,
-    checkZipZoneService
+    checkZipZoneService,
+    searchZonesByZipsAndRanges
 } from "../../services/maintenance/zone";
 import { CreateZoneRequest, UpdateZoneRequest } from "../../entities/maintenance/Zone";
 
@@ -61,15 +62,25 @@ export async function createZone(req: Request, res: Response, conn: Connection) 
 
 
 
-
 export async function listZonesDropdown(req: Request, res: Response, conn: Connection) {
     try {
-        const zones = await listZonesDropdownService(conn);
+        const input = (req.query.input as string) || null;
+
+        let zones;
+        if (input) {
+            // If input is provided, run autocomplete search
+            zones = await searchZonesByZipsAndRanges(conn, input);
+        } else {
+            // Otherwise, return all active zones
+            zones = await listZonesDropdownService(conn);
+        }
+
         res.json({ success: true, data: zones });
     } catch (error: any) {
         res.status(400).json({ success: false, message: error.message });
     }
 }
+
 
 
 export async function listZones(req: Request, res: Response, conn: Connection) {

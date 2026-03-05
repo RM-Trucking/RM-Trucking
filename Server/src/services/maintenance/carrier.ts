@@ -202,3 +202,22 @@ export async function toggleCarrierStatusService(
         updatedBy: adminId
     });
 }
+
+export async function getCarriersByRateIdService(
+    conn: Connection,
+    rateId: number
+): Promise<CarrierResponse[]> {
+    const carriers = await carrierDB.getCarriersByRateId(conn, rateId);
+
+    const enriched = await Promise.all(
+        carriers.map(async (carrier) => {
+            const addresses = await addressDB.getAddressesForEntity(conn, carrier.entityId);
+            const notes = carrier.noteThreadId
+                ? await noteDB.getMessagesByThread(conn, carrier.noteThreadId)
+                : [];
+            return { ...carrier, addresses, notes };
+        })
+    );
+
+    return enriched;
+}

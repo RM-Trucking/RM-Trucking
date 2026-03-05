@@ -2,13 +2,13 @@ openapi: 3.0.0
 info:
   title: Rate Module API
   version: 1.0.0
-  description: CRUD APIs for Warehouse and Transport rates, plus Station Rate mapping.
+  description: CRUD APIs for Warehouse and Transport rates, plus Terminal Rate mapping.
 
 paths:
-  /api/maintenance/customer-rate/warehouse-rate:
+  /api/maintenance/carrier-rate/warehouse-rate:
     post:
       summary: Create a warehouse rate
-      tags: [Customer Warehouse Rate]
+      tags: [Carrier Warehouse Rate]
       requestBody:
         required: true
         content:
@@ -24,7 +24,7 @@ paths:
                 $ref: "#/components/schemas/WarehouseRateResponse"
     get:
       summary: List warehouse rates with search and pagination
-      tags: [Customer Warehouse Rate]
+      tags: [Carrier Warehouse Rate]
       parameters:
         - in: query
           name: search
@@ -44,10 +44,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/WarehouseRateListResponse"
 
-  /api/maintenance/customer-rate/warehouse-rate/{id}:
+  /api/maintenance/carrier-rate/warehouse-rate/{id}:
     get:
       summary: Get warehouse rate by ID
-      tags: [Customer Warehouse Rate]
+      tags: [Carrier Warehouse Rate]
       parameters:
         - in: path
           name: id
@@ -64,7 +64,7 @@ paths:
           description: Not found
     put:
       summary: Update warehouse rate
-      tags: [Customer Warehouse Rate]
+      tags: [Carrier Warehouse Rate]
       parameters:
         - in: path
           name: id
@@ -85,7 +85,7 @@ paths:
                 $ref: "#/components/schemas/WarehouseRateResponse"
     delete:
       summary: Delete warehouse rate
-      tags: [Customer Warehouse Rate]
+      tags: [Carrier Warehouse Rate]
       parameters:
         - in: path
           name: id
@@ -95,10 +95,10 @@ paths:
         "200":
           description: Deleted successfully
 
-  /api/maintenance/customer-rate/transport-rate:
+  /api/maintenance/carrier-rate/transport-rate:
     post:
       summary: Create a transport rate
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       requestBody:
         required: true
         content:
@@ -115,7 +115,7 @@ paths:
 
     get:
       summary: List transport rates with search and pagination
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       parameters:
         - in: query
           name: originZoneId
@@ -149,10 +149,10 @@ paths:
               schema:
                 $ref: "#/components/schemas/TransportRateListResponse"
 
-  /api/maintenance/customer-rate/transport-rate/by-zone:
+  /api/maintenance/carrier-rate/transport-rate/by-zone:
     get:
       summary: List transport rates by zone
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       parameters:
         - in: query
           name: zoneId
@@ -188,10 +188,10 @@ paths:
                       page: { type: integer }
                       pageSize: { type: integer }
 
-  /api/maintenance/customer-rate/transport-rate/{id}:
+  /api/maintenance/carrier-rate/transport-rate/{id}:
     get:
       summary: Get transport rate by ID
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       parameters:
         - in: path
           name: id
@@ -208,7 +208,7 @@ paths:
           description: Not found
     put:
       summary: Update transport rate
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       parameters:
         - in: path
           name: id
@@ -229,7 +229,7 @@ paths:
                 $ref: "#/components/schemas/TransportRateResponse"
     delete:
       summary: Delete transport rate
-      tags: [Customer Transport Rate]
+      tags: [Carrier Transport Rate]
       parameters:
         - in: path
           name: id
@@ -239,10 +239,10 @@ paths:
         "200":
           description: Deleted successfully
 
-  /api/maintenance/customer-rate/station-rate-map:
+  /api/maintenance/carrier-rate/terminal-rate-map:
     post:
-      summary: Assign one or more rates to a station
-      tags: [Station Rate Map]
+      summary: Assign one or more rates to a terminal
+      tags: [Terminal Rate Map]
       requestBody:
         required: true
         content:
@@ -250,10 +250,10 @@ paths:
             schema:
               type: array
               items:
-                $ref: "#/components/schemas/AssignRateToStationRequest"
+                $ref: "#/components/schemas/AssignRateToTerminalRequest"
       responses:
         "201":
-          description: Rates assigned to station
+          description: Rates assigned to terminal
           content:
             application/json:
               schema:
@@ -264,15 +264,15 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/StationRateMapResponse"
+                      $ref: "#/components/schemas/TerminalRateMapResponse"
 
-    /api/maintenance/customer-rate/station-rate-map/{stationId}:
+    /api/maintenance/carrier-rate/terminal-rate-map/{terminalId}:
     get:
-      summary: Get rates assigned to a station (optionally filtered by type)
-      tags: [Station Rate Map]
+      summary: Get rates assigned to a terminal (optionally filtered by type)
+      tags: [Terminal Rate Map]
       parameters:
         - in: query
-          name: stationId
+          name: terminalId
           required: true
           schema: { type: integer }
         - in: query
@@ -284,7 +284,7 @@ paths:
           description: Filter rates by type. If omitted, returns all rates.
       responses:
         "200":
-          description: List of station rates (filtered if rateType provided)
+          description: List of terminal rates (filtered if rateType provided)
           content:
             application/json:
               schema:
@@ -295,12 +295,12 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/StationRateMapResponse"
+                      $ref: "#/components/schemas/TerminalRateMapResponse"
 
-  /api/maintenance/customer-rate/station-rate-map/{id}:
+  /api/maintenance/carrier-rate/terminal-rate-map/{id}:
     delete:
-      summary: Delete station rate mapping
-      tags: [Station Rate Map]
+      summary: Delete terminal rate mapping
+      tags: [Terminal Rate Map]
       parameters:
         - in: path
           name: id
@@ -407,23 +407,23 @@ components:
         chargeValue: { type: number, format: decimal }
         perUnitFlag: { type: string, enum: [Y, N] }
 
-    AssignRateToStationRequest:
+    AssignRateToTerminalRequest:
       type: object
       properties:
-        stationId:
+        terminalId:
           type: integer
         rateId:
           type: integer
         rateType:
           type: string
           enum: [WAREHOUSE, TRANSPORT]
-      required: [stationId, rateId, rateType]
+      required: [terminalId, rateId, rateType]
 
-    StationRateMapResponse:
+    TerminalRateMapResponse:
       type: object
       properties:
-        stationRateId: { type: integer }
-        stationId: { type: integer }
+        terminalRateId: { type: integer }
+        terminalId: { type: integer }
         rateId: { type: integer }
         rateType: { type: string }
         assignedBy: { type: integer }

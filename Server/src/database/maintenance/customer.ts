@@ -175,20 +175,25 @@ export async function updateCustomerNoteThread(
 }
 
 
-export async function getCustomersByRateId(conn: Connection, rateId: number): Promise<Customer[]> {
+export async function getCustomersByRateId(
+    conn: Connection,
+    rateId: number
+): Promise<(Customer & { stationId: number; stationName: string })[]> {
     const query = `
-    SELECT c."customerId", c."customerName", c."rmAccountNumber", c."phoneNumber", c."website",
-           c."activeStatus", c."activeStatusReason", c."corporateBillingSame",
-           c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
-           c."noteThreadId", c."entityId"
-    FROM ${SCHEMA}."Station_Rate_Map" srm
-    JOIN ${SCHEMA}."Station" st ON srm."stationId" = st."stationId"
-    JOIN ${SCHEMA}."Customer" c ON st."customerId" = c."customerId"
-    WHERE srm."rateId" = ?
-  `;
+        SELECT c."customerId", c."customerName", c."rmAccountNumber", c."phoneNumber", c."website",
+               c."activeStatus", c."activeStatusReason", c."corporateBillingSame",
+               c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
+               c."noteThreadId", c."entityId",
+               st."stationId", st."stationName"
+        FROM ${SCHEMA}."Station_Rate_Map" srm
+        JOIN ${SCHEMA}."Station" st ON srm."stationId" = st."stationId"
+        JOIN ${SCHEMA}."Customer" c ON st."customerId" = c."customerId"
+        WHERE srm."rateId" = ?
+    `;
     const result = await conn.query(query, [rateId]) as any[];
-    return result as Customer[];
+    return result;
 }
+
 
 export async function countCustomersByRateId(conn: Connection, rateId: number): Promise<number> {
     const query = `

@@ -118,8 +118,8 @@ export async function getCarriersByRateId(conn: Connection, rateId: number): Pro
            c."totalShipments", c."rmOnTimePercent", c."lateShipments", c."salesRepName", c."salesRepPhone", c."salesRepEmail",
            c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
            c."noteThreadId", c."entityId"
-    FROM ${SCHEMA}."Station_Rate_Map" srm
-    JOIN ${SCHEMA}."Station" st ON srm."stationId" = st."stationId"
+    FROM ${SCHEMA}."Terminal_Rate_Map" srm
+    JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
     WHERE srm."rateId" = ?
   `;
@@ -130,8 +130,8 @@ export async function getCarriersByRateId(conn: Connection, rateId: number): Pro
 export async function countCarriersByRateId(conn: Connection, rateId: number): Promise<number> {
     const query = `
     SELECT COUNT(DISTINCT c."carrierId") AS total
-    FROM ${SCHEMA}."Station_Rate_Map" srm
-    JOIN ${SCHEMA}."Station" st ON srm."stationId" = st."stationId"
+    FROM ${SCHEMA}."Terminal_Rate_Map" srm
+    JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
     WHERE srm."rateId" = ?
   `;

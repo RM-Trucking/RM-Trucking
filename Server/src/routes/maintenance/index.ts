@@ -14,6 +14,7 @@ import customerPersonnelRouter from './customerPersonnel';
 import entityAccessorialMapRouter from './entityAccessorialMap';
 import customerRateRouter from './customerRate';
 import carrierRateRouter from './carrierRate';
+import terminalRouter from './terminal';
 
 const router = Router();
 
@@ -36,6 +37,8 @@ router.use('/customer', customerRouter)
 router.use('/carrier', carrierRouter);
 
 router.use('/station', stationRouter);
+
+router.use('/terminal', terminalRouter);
 
 router.use('/department', departmentRouter);
 

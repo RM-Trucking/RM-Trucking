@@ -237,7 +237,7 @@ export async function toggleCustomerStatus(
 export async function getCustomersByRateIdService(
     conn: Connection,
     rateId: number
-): Promise<CustomerResponse[]> {
+): Promise<(CustomerResponse & { stationId: number; stationName: string })[]> {
     const customers = await customerDB.getCustomersByRateId(conn, rateId);
 
     const enriched = await Promise.all(
@@ -246,7 +246,13 @@ export async function getCustomersByRateIdService(
             const notes = cust.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, cust.noteThreadId)
                 : [];
-            return { ...cust, addresses, notes };
+            return {
+                ...cust,
+                addresses,
+                notes,
+                stationId: cust.stationId,
+                stationName: cust.stationName
+            };
         })
     );
 

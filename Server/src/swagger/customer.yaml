@@ -160,6 +160,86 @@ paths:
         "400":
           description: Failed to update customer status
 
+  /api/maintenance/customer/by-rate/{rateId}:
+    get:
+      tags:
+        - Customer
+      summary: Get customers by Rate ID
+      description: >
+        Retrieves the list of customers associated with a given transport or warehouse rate.
+        The relationship is resolved through StationRateMap → Station → Customer.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: rateId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the rate
+      responses:
+        "200":
+          description: Customers linked to the given rate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomerResponse"
+              examples:
+                success:
+                  summary: Example customers by rate
+                  value:
+                    success: true
+                    data:
+                      - customerId: 101
+                        customerName: "Acme Logistics"
+                        rmAccountNumber: "RM12345"
+                        phoneNumber: "+1-555-123-4567"
+                        website: "https://acmelogistics.com"
+                        activeStatus: "Y"
+                        activeStatusReason: "Active customer"
+                        corporateBillingSame: "Y"
+                        createdAt: "2026-02-15T09:30:00Z"
+                        createdBy: 1
+                        updatedAt: "2026-03-01T14:20:00Z"
+                        updatedBy: 2
+                        noteThreadId: 45
+                        entityId: 2001
+                        addresses:
+                          - addressId: 301
+                            street: "123 Main St"
+                            city: "New York"
+                            state: "NY"
+                            zipCode: "10001"
+                        notes:
+                          - noteId: 501
+                            messageText: "Customer prefers weekend deliveries"
+                            createdAt: "2026-02-20T10:00:00Z"
+                            createdBy: 2
+        "404":
+          description: No customers found for the given rate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+              examples:
+                notFound:
+                  summary: No customers found
+                  value:
+                    success: false
+                    message: "No customers found for rateId 999"
+
 components:
   securitySchemes:
     bearerAuth:

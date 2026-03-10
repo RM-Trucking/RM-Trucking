@@ -6,12 +6,15 @@ import zoneRouter from './zone';
 import accessorialRouter from './accessorial';
 import permissionsRouter from './permissions';
 import customerRouter from './customer';
+import carrierRouter from './carrier';
 import stationRouter from './station';
 import departmentRouter from './department';
 import noteRouter from './note';
 import customerPersonnelRouter from './customerPersonnel';
 import entityAccessorialMapRouter from './entityAccessorialMap';
 import customerRateRouter from './customerRate';
+import carrierRateRouter from './carrierRate';
+import terminalRouter from './terminal';
 
 const router = Router();
 
@@ -31,7 +34,11 @@ router.use('/permissions', permissionsRouter)
 
 router.use('/customer', customerRouter)
 
+router.use('/carrier', carrierRouter);
+
 router.use('/station', stationRouter);
+
+router.use('/terminal', terminalRouter);
 
 router.use('/department', departmentRouter);
 
@@ -40,6 +47,8 @@ router.use('/note', noteRouter);
 router.use('/customer-personnel', customerPersonnelRouter);
 
 router.use('/customer-rate', customerRateRouter);
+
+router.use('/carrier-rate', carrierRateRouter);
 
 
 export default router;

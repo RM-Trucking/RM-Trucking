@@ -2,8 +2,9 @@ import { NoteMessageRequest, NoteMessageResponse } from "./Note";
 import { ZoneInfo } from "./Zone";
 
 // -------------------- Warehouse Rate --------------------
-export interface CustomerRateWarehouse {
+export interface CarrierRateWarehouse {
     rateId: number;
+    carrierRateId: number;
     minRate: number;
     ratePerPound: number;
     maxRate?: number | null;
@@ -12,7 +13,7 @@ export interface CustomerRateWarehouse {
 }
 
 // Request object for creating a warehouse rate
-export interface CreateCustomerWarehouseRateRequest {
+export interface CreateCarrierWarehouseRateRequest {
     minRate: number;
     ratePerPound: number;
     maxRate?: number | null;
@@ -21,7 +22,7 @@ export interface CreateCustomerWarehouseRateRequest {
 }
 
 // Request object for updating a warehouse rate
-export interface UpdateCustomerWarehouseRateRequest {
+export interface UpdateCarrierWarehouseRateRequest {
     minRate?: number;
     ratePerPound?: number;
     maxRate?: number | null;
@@ -30,14 +31,14 @@ export interface UpdateCustomerWarehouseRateRequest {
 }
 
 // Response object
-export interface CustomerWarehouseRateResponse extends CustomerRateWarehouse { }
+export interface CarrierWarehouseRateResponse extends CarrierRateWarehouse { }
 // --------------------------------------------------------
 
 
 // -------------------- Transport Rate --------------------
-export interface CustomerRate {
+export interface CarrierRate {
     rateId: number;
-    customerRateId: number;
+    carrierRateId: number;
     originZoneId: number;
     destinationZoneId: number;
     createdAt: string;        // TIMESTAMP
@@ -50,7 +51,7 @@ export interface CustomerRate {
     noteThreadId: number | null;
 }
 
-export interface CustomerRateDetail {
+export interface CarrierRateDetail {
     rateDetailId: number;
     rateId: number;
     rateField: string;
@@ -58,10 +59,8 @@ export interface CustomerRateDetail {
     perUnitFlag: 'Y' | 'N';
 }
 
-
-
 // Request object for creating a transport rate
-export interface CreateCustomerTransportRateRequest {
+export interface CreateCarrierTransportRateRequest {
     originZoneId: number;
     destinationZoneId: number;
     details?: {
@@ -73,7 +72,7 @@ export interface CreateCustomerTransportRateRequest {
 }
 
 // Request object for updating a transport rate
-export interface UpdateCustomerTransportRateRequest {
+export interface UpdateCarrierTransportRateRequest {
     originZoneId?: number;
     destinationZoneId?: number;
     details?: {
@@ -84,19 +83,19 @@ export interface UpdateCustomerTransportRateRequest {
 }
 
 // Response object
-export interface CustomerTransportRateResponse {
+export interface CarrierTransportRateResponse {
     rateId: number;
-    customerRateId: number;
+    carrierRateId: number;
     originZone: ZoneInfo | null;
     destinationZone: ZoneInfo | null;
-    details: CustomerRateDetail[];
+    details: CarrierRateDetail[];
     activeStatus?: 'Y' | 'N';
     expiryDate?: string | null;
     createdAt: string;
     createdByName: string;
     updatedAt?: string;
     updatedByName?: string;
-    customerCount?: number;
+    carrierCount?: number;
     entityId?: number;
     noteThreadId?: number | null;
     notes?: NoteMessageResponse[];
@@ -106,28 +105,28 @@ export interface CustomerTransportRateResponse {
 
 
 // -------------------- Station Rate Map --------------------
-export interface StationRateMap {
-    stationRateId: number;
-    stationId: number;
+export interface TerminalRateMap {
+    terminalRateId: number;
+    terminalId: number;
     rateId: number;
     rateType: 'WAREHOUSE' | 'TRANSPORT';
     assignedBy: number;
     assignedAt: Date;
 }
 
-// Request object for assigning a rate to a station
-export interface AssignRateToStationRequest {
-    stationId: number;
+// Request object for assigning a rate to a terminal
+export interface AssignRateToTerminalRequest {
+    terminalId: number;
     rateId: number;
     rateType: 'WAREHOUSE' | 'TRANSPORT';
 }
 
 // Response object
-export interface StationRateMapResponse extends StationRateMap { }
+export interface TerminalRateMapResponse extends TerminalRateMap { }
 // ----------------------------------------------------------
 
 
-export interface CustomerTransportRateSearch {
+export interface CarrierTransportRateSearch {
     originZoneId?: number;
     originZipOrRange?: string;       // either a zip or "start-end"
     destinationZoneId?: number;

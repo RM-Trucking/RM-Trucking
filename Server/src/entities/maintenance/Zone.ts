@@ -48,7 +48,8 @@ export interface ZoneResponse {
     createdBy: string;   // userName instead of userId
     updatedAt?: Date;
     updatedBy?: string;  // userName instead of userId
-    rateCount?: number; // number of transport rates associated with this zone
+    customerRateCount: number;
+    carrierRateCount: number;
 }
 
 export interface ZoneInfo {

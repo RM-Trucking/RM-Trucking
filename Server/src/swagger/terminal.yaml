@@ -1,0 +1,301 @@
+openapi: 3.0.3
+info:
+  title: Terminal Maintenance API
+  version: 1.0.0
+  description: API endpoints for managing terminals
+
+servers:
+  - url: /api
+
+paths:
+  /api/maintenance/terminal:
+    post:
+      tags: [Terminal]
+      summary: Create a new terminal
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTerminalRequest"
+      responses:
+        "201":
+          description: Terminal created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TerminalResponse"
+        "400":
+          description: Failed to create terminal
+
+  /api/maintenance/terminal/{terminalId}:
+    get:
+      tags: [Terminal]
+      summary: Get terminal by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: terminalId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Terminal details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TerminalResponse"
+        "404":
+          description: Terminal not found
+
+    put:
+      tags: [Terminal]
+      summary: Update a terminal
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: terminalId
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTerminalRequest"
+      responses:
+        "200":
+          description: Terminal updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TerminalResponse"
+        "400":
+          description: Failed to update terminal
+
+    delete:
+      tags: [Terminal]
+      summary: Soft delete a terminal
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: terminalId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Terminal deleted successfully
+        "400":
+          description: Failed to delete terminal
+
+  /api/maintenance/terminal/carrier/{carrierId}:
+    get:
+      tags: [Terminal]
+      summary: Get all terminals for a carrier
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: carrierId
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: List of terminals for carrier
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TerminalResponse"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    CreateTerminalRequest:
+      type: object
+      required:
+        [carrierId, terminalName, rmAccountNumber, airportCode, addresses]
+      properties:
+        carrierId:
+          type: integer
+        terminalName:
+          type: string
+        rmAccountNumber:
+          type: string
+        airportCode:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        faxNumber:
+          type: string
+          nullable: true
+        openTime:
+          type: string
+          format: time
+          nullable: true
+        closeTime:
+          type: string
+          format: time
+          nullable: true
+        hours:
+          type: string
+          nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRequest"
+        note:
+          type: object
+          properties:
+            messageText:
+              type: string
+
+    UpdateTerminalRequest:
+      type: object
+      properties:
+        terminalName:
+          type: string
+        rmAccountNumber:
+          type: string
+        airportCode:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        faxNumber:
+          type: string
+          nullable: true
+        openTime:
+          type: string
+          format: time
+          nullable: true
+        closeTime:
+          type: string
+          format: time
+          nullable: true
+        hours:
+          type: string
+          nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressUpdateRequest"
+
+    TerminalResponse:
+      type: object
+      properties:
+        terminalId:
+          type: integer
+        carrierId:
+          type: integer
+        carrierName:
+          type: string
+        entityId:
+          type: integer
+        terminalName:
+          type: string
+        rmAccountNumber:
+          type: string
+        airportCode:
+          type: string
+        email:
+          type: string
+          nullable: true
+        phoneNumber:
+          type: string
+          nullable: true
+        faxNumber:
+          type: string
+          nullable: true
+        openTime:
+          type: string
+          format: time
+          nullable: true
+        closeTime:
+          type: string
+          format: time
+          nullable: true
+        hours:
+          type: string
+          nullable: true
+        activeStatus:
+          type: string
+          enum: [Y, N]
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedBy:
+          type: integer
+          nullable: true
+        addresses:
+          type: array
+          items:
+            $ref: "#/components/schemas/AddressRequest"
+        notes:
+          type: array
+          items:
+            type: object
+            properties:
+              noteMessageId:
+                type: integer
+              noteThreadId:
+                type: integer
+              messageText:
+                type: string
+              createdAt:
+                type: string
+                format: date-time
+              createdBy:
+                type: integer
+
+    AddressRequest:
+      type: object
+      required: [line1, city, state, zipCode, addressRole]
+      properties:
+        addressId:
+          type: integer
+        line1:
+          type: string
+        line2:
+          type: string
+          nullable: true
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        addressRole:
+          type: string
+
+    AddressUpdateRequest:
+      allOf:
+        - $ref: "#/components/schemas/AddressRequest"

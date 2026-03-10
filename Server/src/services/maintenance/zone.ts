@@ -4,7 +4,8 @@ import * as zoneDB from "../../database/maintenance/zone";
 import * as noteDB from "../../database/maintenance/note";
 import * as entityDB from "../../database/maintenance/entity";
 import * as userDB from "../../database/maintenance/user";
-import * as rateDB from "../../database/maintenance/customerRate";
+import * as customerRateDB from "../../database/maintenance/customerRate";
+import * as carrierRateDB from "../../database/maintenance/carrierRate";
 
 export async function createZoneService(
     conn: Connection,
@@ -60,7 +61,8 @@ export async function createZoneService(
                     if (fullZone) {
                         const zips = await zoneDB.getZoneZips(conn, fullZone.zoneId);
                         const notes = await noteDB.getMessagesByThread(conn, fullZone.noteThreadId);
-                        const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
+                        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+                        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
 
                         zoneList.push({
                             zoneId: fullZone.zoneId,
@@ -75,7 +77,8 @@ export async function createZoneService(
                             createdBy: await userDB.getUserName(conn, fullZone.createdBy),
                             updatedAt: fullZone.updatedAt,
                             updatedBy: fullZone.updatedBy ? await userDB.getUserName(conn, fullZone.updatedBy) : undefined,
-                            rateCount
+                            customerRateCount,
+                            carrierRateCount
                         });
                     }
                 }
@@ -115,7 +118,8 @@ export async function createZoneService(
 
         const zips = await zoneDB.getZoneZips(conn, zoneId);
         const notes = await noteDB.getMessagesByThread(conn, noteThreadId);
-        const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
+        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
 
         await conn.commit();
 
@@ -133,7 +137,8 @@ export async function createZoneService(
                 createdBy: await userDB.getUserName(conn, zone.createdBy),
                 updatedAt: zone.updatedAt,
                 updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
-                rateCount
+                customerRateCount,
+                carrierRateCount
             }
         };
     } catch (error) {
@@ -162,6 +167,48 @@ export async function listZonesDropdownService(conn: Connection): Promise<ZoneDr
 }
 
 
+export async function searchZonesByZipsAndRanges(
+    conn: Connection,
+    input: string
+): Promise<ZoneDropdownResponse[]> {
+    const tokens = input.split(",").map(t => t.trim()).filter(t => t.length > 0);
+    const matchedZoneIds = new Set<number>();
+
+    for (const token of tokens) {
+        if (token.includes("-")) {
+            const [start, end] = token.split("-").map(r => r.trim());
+            const startNum = parseInt(start, 10);
+            const endNum = parseInt(end, 10);
+
+            for (let current = startNum; current <= endNum; current++) {
+                const zones = await zoneDB.findZonesByZip(conn, current.toString());
+                zones.forEach(z => matchedZoneIds.add(z.zoneId));
+            }
+        } else {
+            const zones = await zoneDB.findZonesByZip(conn, token);
+            zones.forEach(z => matchedZoneIds.add(z.zoneId));
+        }
+    }
+
+    const responses: ZoneDropdownResponse[] = [];
+    for (const zoneId of matchedZoneIds) {
+        const zone = await zoneDB.getZoneById(conn, zoneId);
+        if (zone) {
+            const zips = await zoneDB.getZoneZips(conn, zone.zoneId);
+            responses.push({
+                zoneId: zone.zoneId,
+                zoneName: zone.zoneName,
+                zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
+                ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
+            });
+        }
+    }
+
+    return responses;
+}
+
+
+
 export async function listZonesService(
     conn: Connection,
     page: number,
@@ -179,7 +226,8 @@ export async function listZonesService(
         const notes = await noteDB.getMessagesByThread(conn, zone.noteThreadId);
 
         // NEW: count how many rates reference this zone
-        const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
+        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
 
         responses.push({
             zoneId: zone.zoneId,
@@ -194,7 +242,8 @@ export async function listZonesService(
             createdBy: await userDB.getUserName(conn, zone.createdBy),
             updatedAt: zone.updatedAt,
             updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
-            rateCount // include in response
+            customerRateCount,
+            carrierRateCount
         });
     }
 
@@ -210,8 +259,9 @@ export async function getZoneService(conn: Connection, zoneId: number): Promise<
 
     const zips = await zoneDB.getZoneZips(conn, zoneId);
     const notes = await noteDB.getMessagesByThread(conn, zone.noteThreadId);
-    const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
-    
+    const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+    const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
+
 
     return {
         zoneId: zone.zoneId,
@@ -226,7 +276,8 @@ export async function getZoneService(conn: Connection, zoneId: number): Promise<
         createdBy: await userDB.getUserName(conn, zone.createdBy),
         updatedAt: zone.updatedAt,
         updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
-        rateCount
+        customerRateCount,
+        carrierRateCount
     };
 }
 
@@ -282,7 +333,8 @@ export async function updateZoneService(
             for (const conflict of conflicts) {
                 for (const zone of conflict.zones) {
                     const fullZone = await zoneDB.getZoneById(conn, zone.zoneId);
-                    const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
+                    const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+                    const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
                     if (fullZone) {
                         const zips = await zoneDB.getZoneZips(conn, fullZone.zoneId);
                         const notes = await noteDB.getMessagesByThread(conn, fullZone.noteThreadId);
@@ -300,7 +352,8 @@ export async function updateZoneService(
                             createdBy: await userDB.getUserName(conn, fullZone.createdBy),
                             updatedAt: fullZone.updatedAt,
                             updatedBy: fullZone.updatedBy ? await userDB.getUserName(conn, fullZone.updatedBy) : undefined,
-                            rateCount
+                            customerRateCount,
+                            carrierRateCount
                         });
                     }
                 }
@@ -343,7 +396,8 @@ export async function updateZoneService(
 
         const zips = await zoneDB.getZoneZips(conn, zoneId);
         const notes = await noteDB.getMessagesByThread(conn, zone.noteThreadId);
-        const rateCount = await rateDB.countRatesForZone(conn, zone.zoneId);
+        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
+        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
 
         await conn.commit();
 
@@ -360,7 +414,8 @@ export async function updateZoneService(
             createdBy: await userDB.getUserName(conn, zone.createdBy),
             updatedAt: zone.updatedAt,
             updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
-            rateCount
+            customerRateCount,
+            carrierRateCount
         };
     } catch (error) {
         await conn.rollback();

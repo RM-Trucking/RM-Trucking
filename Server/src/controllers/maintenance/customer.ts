@@ -153,3 +153,24 @@ export async function toggleCustomerStatus(req: Request, res: Response, conn: Co
         });
     }
 }
+
+export async function getCustomersByRateId(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const rateId = parseInt(req.params.rateId, 10);
+        const customers = await customerService.getCustomersByRateIdService(conn, rateId);
+
+        res.status(200).json({
+            success: true,
+            data: customers
+        });
+    } catch (error) {
+
+        console.log(error);
+
+
+        res.status(400).json({
+            success: false,
+            message: (error as Error).message
+        });
+    }
+}

@@ -12,7 +12,7 @@ tags:
     description: Carrier management endpoints
 
 paths:
-  /carrier:
+  /api/maintenance/carrier:
     post:
       summary: Create a new carrier
       tags: [Carrier]
@@ -37,15 +37,12 @@ paths:
         - in: query
           name: page
           schema: { type: integer, default: 1 }
-          description: Page number
         - in: query
           name: pageSize
           schema: { type: integer, default: 10 }
-          description: Number of records per page
         - in: query
           name: search
           schema: { type: string }
-          description: Search term for carrier name
       responses:
         "200":
           description: List of carriers
@@ -66,7 +63,7 @@ paths:
                       page: { type: integer }
                       pageSize: { type: integer }
 
-  /carrier/{id}:
+  /api/maintenance/carrier/{id}:
     get:
       summary: Get carrier by ID
       tags: [Carrier]
@@ -107,7 +104,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CarrierResponse"
 
-  /carrier/{id}/status:
+  /api/maintenance/carrier/{id}/status:
     patch:
       summary: Toggle carrier status (Active/Inactive/Incomplete)
       tags: [Carrier]
@@ -130,7 +127,7 @@ paths:
         "200":
           description: Carrier status updated
 
-  /carrier/dropdown:
+  /api/maintenance/carrier/dropdown:
     get:
       summary: List carriers for dropdown (id + name only)
       tags: [Carrier]
@@ -146,6 +143,35 @@ paths:
                   properties:
                     carrierId: { type: integer }
                     carrierName: { type: string }
+
+  /api/maintenance/carrier/by-rate/{rateId}:
+    get:
+      tags: [Carrier]
+      summary: Get carriers by Rate ID
+      description: >
+        Retrieves the list of carriers associated with a given transport or warehouse rate.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: rateId
+          required: true
+          schema:
+            type: integer
+          description: Unique identifier of the rate
+      responses:
+        "200":
+          description: Carriers linked to the given rate
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CarrierResponse"
 
 components:
   schemas:

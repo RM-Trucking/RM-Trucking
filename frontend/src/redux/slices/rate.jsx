@@ -14,7 +14,7 @@ const initialState = {
     rateTableData: [],
     rateSearchObj: {},
     selectedCurrentRateRow: {},
-    currentRateTab: 'warehouse',
+    currentRateTab: 'transportation',
     rateFieldChargeData: [],
     rateFieldChargeDataWarehouse: [],
     pagination: { page: 1, pageSize: 10, totalRecords: 0 },
@@ -41,7 +41,8 @@ const slice = createSlice({
             state.error = null;
             state.operationalMessage = '';
         },
-        getRateDashboarddataSuccess(state, action) {
+        // customer warehouse data success slices
+        getWarehouseRateDashboardDataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
             state.rateTableData = action.payload.rates;
@@ -72,28 +73,28 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.operationalMessage = "Rate deleted successfully";
         },
-        getRateChargeDataSuccess(state, action) {
-            state.isLoading = false;
-            state.rateFieldChargeData = [];
+        setWarehouseRatesFieldChargeData(state, action) {
+            state.rateFieldChargeDataWarehouse = action.payload;
         },
+        // rate search object
         setRateSearchObj(state, action) {
             state.rateSearchObj = action.payload;
         },
+        // current rate tab
         setCurrentRateTab(state, action) {
             state.currentRateTab = action.payload;
         },
+        // selected current rate row object
         setSelectedCurrentRateRow(state, action) {
             state.selectedCurrentRateRow = action.payload;
         },
         setOperationalMessage(state) {
             state.operationalMessage = '';
         },
-        setWarehouseRatesFieldChargeData(state, action) {
-            state.rateFieldChargeDataWarehouse = action.payload;
-        },
         setIsLoading(state, action) {
             state.isLoading = action.payload;
         },
+        // current rate routed from state
         setCurrentRateRoutedFrom(state, action) {
             state.currentRateRoutedFrom = action.payload;
         },
@@ -119,6 +120,68 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.carrierList = action.payload.data;
         },
+        // customer transportation success slices
+        getCustomerTransportationRateDashboardDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.pagination.page = action.payload.pagination.page;
+            state.pagination.pageSize = action.payload.pagination.pageSize;
+            state.pagination.totalRecords = action.payload.pagination.total;
+        },
+        postCustomerTransportationRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate added successfully";
+            // update table data by adding new record at the start
+            state.rateTableData.unshift(action.payload.data);
+            state.pagination.totalRecords = action.payload.total + 1 || state.pagination.totalRecords + 1;
+        },
+        putCustomerTransportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate updated successfully";
+            // update table data by updating record
+            const index = state.rateTableData.findIndex((row) => row.rateId === action.payload?.data?.rateId);
+            if (index === 0 || index > 0) {
+                state.rateTableData.splice(index, 1, action.payload.data);
+            }
+        },
+        deleteCustomerTransportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate deleted successfully";
+        },
+        // carrier transportation success slices
+        getCarrierTransportationRateDashboardDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.pagination.page = action.payload.pagination.page;
+            state.pagination.pageSize = action.payload.pagination.pageSize;
+            state.pagination.totalRecords = action.payload.pagination.total;
+        },
+        postCarrierTransportationRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate added successfully";
+            // update table data by adding new record at the start
+            state.rateTableData.unshift(action.payload.data);
+            state.pagination.totalRecords = action.payload.total + 1 || state.pagination.totalRecords + 1;
+        },
+        putCarrierTransportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate updated successfully";
+            // update table data by updating record
+            const index = state.rateTableData.findIndex((row) => row.rateId === action.payload?.data?.rateId);
+            if (index === 0 || index > 0) {
+                state.rateTableData.splice(index, 1, action.payload.data);
+            }
+        },
+        deleteCarrierTransportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate deleted successfully";
+        },
     },
 });
 
@@ -137,12 +200,14 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
-export function getRateDashboardData({ pageNo, pageSize, searchStr }) {
+
+// customer warehouse rate data
+export function getWarehouseRateDashboardData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
             const response = await axios.get(`maintenance/customer-rate/warehouse-rate?${searchStr ? `search=${searchStr}&` : ''}&page=${pageNo}&pageSize=${pageSize}`);
-            dispatch(slice.actions.getRateDashboarddataSuccess(response.data));
+            dispatch(slice.actions.getWarehouseRateDashboardDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
@@ -183,18 +248,114 @@ export function deleteWarehouseRate(id) {
         }
     };
 }
-export function getRateChargeData() {
+
+// customer transport rate data
+export function getCustomerTransportationRateDashboardData({ originZoneId, originZipOrRange, destinationZoneId, destinationZipOrRange, pageNo, pageSize }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            //   const response = await axios.get('/ratechargedata');
-            dispatch(slice.actions.getRateChargeDataSuccess([]));
+            const response = await axios.get(`maintenance/customer-rate/transport-rate?
+                ${originZoneId ? `originZoneId=${originZoneId}&` : ''}
+                ${originZipOrRange ? `originZipOrRange=${originZipOrRange}&` : ''}
+                ${destinationZoneId ? `destinationZoneId=${destinationZoneId}&` : ''}
+                ${destinationZipOrRange ? `destinationZoneId=${destinationZipOrRange}&` : ''}
+                &page=${pageNo}&pageSize=${pageSize}`);
+            dispatch(slice.actions.getCustomerTransportationRateDashboardDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
-// get zone by zipcode
+export function postCustomerTransportationRate(obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/customer-rate/transport-rate`, obj);
+            dispatch(slice.actions.postCustomerTransportationRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function putCustomerTransportationRate(id, obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/customer-rate/transport-rate/${id}`, obj);
+            dispatch(slice.actions.putCustomerTransportRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function deleteCustomerTransportationRate(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/customer-rate/transport-rate/${id}`);
+            dispatch(slice.actions.deleteCustomerTransportRateSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+
+// carrier transportation rate data
+export function getCarrierTransportationRateDashboardData({ originZoneId, originZipOrRange, destinationZoneId, destinationZipOrRange, pageNo, pageSize }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/carrier-rate/transport-rate?
+                ${originZoneId ? `originZoneId=${originZoneId}&` : ''}
+                ${originZipOrRange ? `originZipOrRange=${originZipOrRange}&` : ''}
+                ${destinationZoneId ? `destinationZoneId=${destinationZoneId}&` : ''}
+                ${destinationZipOrRange ? `destinationZoneId=${destinationZipOrRange}&` : ''}
+                &page=${pageNo}&pageSize=${pageSize}`);
+            dispatch(slice.actions.getCarrierTransportationRateDashboardDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function postCarrierTransportationRate(obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/carrier-rate/transport-rate`, obj);
+            dispatch(slice.actions.postCarrierTransportationRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function putCarrierTransportationRate(id, obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/carrier-rate/transport-rate/${id}`, obj);
+            dispatch(slice.actions.putCarrierTransportRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function deleteCarrierTransportationRate(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/carrier-rate/transport-rate/${id}`);
+            dispatch(slice.actions.deleteCarrierTransportRateSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+
+// get OrizinZone DestinationZone by zipcode
 export function getOriginZoneByZipCode(zipcode) {
     return async () => {
         dispatch(slice.actions.startLoading());
@@ -217,6 +378,7 @@ export function getDestinationZoneByZipCode(zipcode) {
         }
     };
 }
+
 // customer and carrier object
 export function getCustomerObjectByRateID(id) {
     return async () => {
@@ -239,6 +401,7 @@ export function getCarrierObjectByRateID(id) {
         }
     };
 }
+
 // customer and carrier list
 export function getCustomerListByRateID(id) {
     return async () => {

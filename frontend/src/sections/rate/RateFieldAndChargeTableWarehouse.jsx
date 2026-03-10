@@ -11,7 +11,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setWarehouseRatesFieldChargeData, getRateChargeData } from '../../redux/slices/rate';
+import { setWarehouseRatesFieldChargeData } from '../../redux/slices/rate';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------
@@ -139,7 +139,6 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('warehouse charge'));
-        dispatch(getRateChargeData());
     }, []);
 
     useEffect(() => {

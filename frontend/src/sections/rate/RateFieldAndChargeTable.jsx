@@ -11,7 +11,6 @@ import { ErrorBoundary } from 'react-error-boundary';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { getRateChargeData } from '../../redux/slices/rate';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------
@@ -326,7 +325,6 @@ export default function RateFieldAndChargeTable({ type }) {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('charge'));
-        dispatch(getRateChargeData());
     }, []);
     useEffect(() => {
         // if type is view table should not be editable

@@ -14,8 +14,9 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
-    setRateSearchObj, getRateDashboardData, postWarehouseRate,
-    putWarehouseRate, setSelectedCurrentRateRow,
+    setRateSearchObj, getWarehouseRateDashboardData, postWarehouseRate,
+    putWarehouseRate, setSelectedCurrentRateRow, getOriginZoneByZipCode,
+    getDestinationZoneByZipCode,
 } from '../../redux/slices/rate';
 import {
     getZoneById, setSelectedZoneRowDetails
@@ -103,7 +104,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         console.log(data);
         dispatch(setRateSearchObj(data));
         if (type === 'Search' && currentTab === 'warehouse') {
-            dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
+            dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
             const obj = {
@@ -135,7 +136,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         setValue('warehouse', '');
         dispatch(setRateSearchObj({}));
         if (type === 'Search' && currentTab === 'warehouse') {
-            dispatch(getRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
+            dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
         }
     };
     const onClickofCustomerList = () => {
@@ -153,9 +154,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     };
     const handleZoneView = (type) => {
         setActionType('View');
-        getValues(type === 'origin' ? 'origin' : 'destination');
+        const valueToSend = getValues(type === 'origin' ? 'origin' : 'destination');
         // Get current values of origin and destination
-        dispatch(getZoneById(7)); // Pass the ID of the zone you want to view
+        dispatch(getZoneById(valueToSend)); // Pass the ID of the zone you want to view
     }
     const handleCloseOfZoneView = () => {
         setOpenZoneView(false);
@@ -222,7 +223,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             let lastIdx = segments.length - 1;
                                             let lastSegment = segments[lastIdx];
 
-                                            // --- AUTO-FILL PREFIX LOGIC ---
+                                            // --- YOUR EXISTING AUTO-FILL PREFIX LOGIC ---
                                             if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                                 const prefix = lastSegment.substring(0, 3);
                                                 segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
@@ -238,17 +239,29 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             const isFullZip = /^\d{5}$/.test(currentLast);
                                             const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
 
-                                            if ((isFullZip || isFullRange) && !input.endsWith(',')) {
+                                            let isComplete = false;
+                                            if (isFullZip || isFullRange) {
                                                 if (isFullRange) {
                                                     const [start, end] = currentLast.split('-');
                                                     if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
-                                                        val = val + ',';
+                                                        isComplete = true;
                                                     }
                                                 } else {
-                                                    val = val + ',';
+                                                    isComplete = true;
                                                 }
                                             }
 
+                                            if (isComplete && !input.endsWith(',')) {
+                                                val = val + ',';
+                                            }
+
+                                            // --- CALL API FOR TOTAL INPUT ---
+                                            // We check if the last action resulted in a "complete" state to avoid 
+                                            // spamming the API on every single keystroke.
+                                            if (isComplete || input.endsWith(',')) {
+                                                console.log("Calling API with total value:", val);
+                                                dispatch(getOriginZoneByZipCode(val));
+                                            }
                                             onChange(val);
                                         }}
                                         disabled={type === 'View'}
@@ -261,24 +274,38 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 <Controller
                                     name="origin"
                                     control={control}
-                                    // rules={{ required: 'Origin is required' }}
                                     render={({ field }) => (
                                         <StyledTextField
                                             {...field}
                                             select
                                             label="Origin"
-                                            variant="standard" fullWidth
-                                            error={!!errors.origin} helperText={errors.origin?.message}
+                                            variant="standard"
+                                            fullWidth
+                                            error={!!errors.origin}
+                                            helperText={errors.origin?.message}
                                             disabled={type === 'View'}
+                                            // Ensure select always has at least one child to prevent the error
+                                            SelectProps={{
+                                                displayEmpty: true,
+                                            }}
+                                            InputLabelProps={{ shrink: true }}
                                         >
-                                            {originZoneListByZipCode && originZoneListByZipCode?.length > 0 && originZoneListByZipCode?.map((data) => (
-                                                <MenuItem key={data.zoneId} value={data.zoneName}>
-                                                    {data.zoneName || ''}
+                                            {originZoneListByZipCode && originZoneListByZipCode.length > 0 ? (
+                                                originZoneListByZipCode.map((data) => (
+                                                    <MenuItem key={data.zoneId} value={data.zoneId}>
+                                                        {data.zoneName || ''}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                // --- FIX: Fallback item to satisfy the 'children' requirement ---
+                                                <MenuItem disabled value="">
+                                                    <em>No zones available.</em>
                                                 </MenuItem>
-                                            ))}
+                                            )}
                                         </StyledTextField>
                                     )}
                                 />
+
                                 <Iconify icon="famicons:open" onClick={() => {
                                     handleZoneView('origin');
                                 }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
@@ -332,34 +359,45 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         let lastIdx = segments.length - 1;
                                         let lastSegment = segments[lastIdx];
 
-                                        // --- AUTO-FILL PREFIX LOGIC ---
+                                        // --- YOUR EXISTING AUTO-FILL PREFIX LOGIC ---
                                         if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
-                                        }
-                                        else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
+                                        } else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment + prefix;
                                         }
 
                                         let val = segments.join(',');
 
-                                        // --- SMART AUTO-COMMA LOGIC ---
+                                        // --- AUTO-COMMA LOGIC ---
                                         const currentLast = segments[segments.length - 1];
                                         const isFullZip = /^\d{5}$/.test(currentLast);
                                         const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
 
-                                        if (!input.endsWith(',')) {
-                                            if (isFullZip) {
-                                                val = val + ',';
-                                            } else if (isFullRange) {
+                                        let isComplete = false;
+                                        if (isFullZip || isFullRange) {
+                                            if (isFullRange) {
                                                 const [start, end] = currentLast.split('-');
                                                 if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
-                                                    val = val + ',';
+                                                    isComplete = true;
                                                 }
+                                            } else {
+                                                isComplete = true;
                                             }
                                         }
 
+                                        if (isComplete && !input.endsWith(',')) {
+                                            val = val + ',';
+                                        }
+
+                                        // --- CALL API FOR TOTAL INPUT ---
+                                        // We check if the last action resulted in a "complete" state to avoid 
+                                        // spamming the API on every single keystroke.
+                                        if (isComplete || input.endsWith(',')) {
+                                            console.log("Calling API with total value:", val);
+                                            dispatch(getDestinationZoneByZipCode(val));
+                                        }
                                         onChange(val);
                                     }}
                                     disabled={type === 'View'}
@@ -372,25 +410,38 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 <Controller
                                     name="destination"
                                     control={control}
-                                    // rules={{ required: 'Destination is required' }}
                                     render={({ field }) => (
                                         <StyledTextField
                                             {...field}
                                             select
                                             label="Destination"
-                                            variant="standard" fullWidth
-                                            // required
+                                            variant="standard"
+                                            fullWidth
                                             disabled={type === 'View'}
-                                            error={!!errors.destination} helperText={errors.destination?.message}
+                                            error={!!errors.destination}
+                                            helperText={errors.destination?.message}
+                                            // Helps MUI handle empty states gracefully
+                                            SelectProps={{
+                                                displayEmpty: true,
+                                            }}
+                                            InputLabelProps={{ shrink: true }}
                                         >
-                                            {destinationZoneListByZipCode && destinationZoneListByZipCode?.length > 0 && destinationZoneListByZipCode?.map((data) => (
-                                                <MenuItem key={data.zoneId} value={data.zoneName}>
-                                                    {data.zoneName || ''}
+                                            {destinationZoneListByZipCode && destinationZoneListByZipCode.length > 0 ? (
+                                                destinationZoneListByZipCode.map((data) => (
+                                                    <MenuItem key={data.zoneId} value={data.zoneId}>
+                                                        {data.zoneName || ''}
+                                                    </MenuItem>
+                                                ))
+                                            ) : (
+                                                // --- Fallback child to prevent the MUI error ---
+                                                <MenuItem disabled value="">
+                                                    <em>No zones available</em>
                                                 </MenuItem>
-                                            ))}
+                                            )}
                                         </StyledTextField>
                                     )}
                                 />
+
                                 <Iconify icon="famicons:open" onClick={() => {
                                     handleZoneView('destination');
                                 }} sx={{ marginTop: '30px', cursor: 'pointer' }} />

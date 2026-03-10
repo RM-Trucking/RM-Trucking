@@ -251,21 +251,30 @@ export function deleteWarehouseRate(id) {
 
 // customer transport rate data
 export function getCustomerTransportationRateDashboardData({ originZoneId, originZipOrRange, destinationZoneId, destinationZipOrRange, pageNo, pageSize }) {
-    return async () => {
+    return async (dispatch) => {
         dispatch(slice.actions.startLoading());
         try {
-            const response = await axios.get(`maintenance/customer-rate/transport-rate?
-                ${originZoneId ? `originZoneId=${originZoneId}&` : ''}
-                ${originZipOrRange ? `originZipOrRange=${originZipOrRange}&` : ''}
-                ${destinationZoneId ? `destinationZoneId=${destinationZoneId}&` : ''}
-                ${destinationZipOrRange ? `destinationZoneId=${destinationZipOrRange}&` : ''}
-                &page=${pageNo}&pageSize=${pageSize}`);
+            // Use URLSearchParams to build a clean string without spaces
+            const params = new URLSearchParams();
+
+            if (originZoneId) params.append("originZoneId", originZoneId);
+            if (originZipOrRange) params.append("originZipOrRange", originZipOrRange);
+            if (destinationZoneId) params.append("destinationZoneId", destinationZoneId);
+            if (destinationZipOrRange) params.append("destinationZipOrRange", destinationZipOrRange);
+
+            params.append("page", pageNo || 1);
+            params.append("pageSize", pageSize || 10);
+
+            const url = `maintenance/customer-rate/transport-rate?${params.toString()}`;
+            const response = await axios.get(url);
+
             dispatch(slice.actions.getCustomerTransportationRateDashboardDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
+
 export function postCustomerTransportationRate(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());

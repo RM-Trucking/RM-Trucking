@@ -16,7 +16,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import {
     setRateSearchObj, getWarehouseRateDashboardData, postWarehouseRate,
     putWarehouseRate, setSelectedCurrentRateRow, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode,
+    getDestinationZoneByZipCode, getCustomerTransportationRateDashboardData,
 } from '../../redux/slices/rate';
 import {
     getZoneById, setSelectedZoneRowDetails
@@ -46,6 +46,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const originZoneListByZipCode = useSelector((state) => state?.ratedata?.originZoneListByZipCode);
     const destinationZoneListByZipCode = useSelector((state) => state?.ratedata?.destinationZoneListByZipCode);
+    const pagination = useSelector((state) => state?.ratedata?.pagination);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -106,6 +107,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
+        if (type === 'Search' && currentTab === 'transportation') {
+            dispatch(getCustomerTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
+        }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
             const obj = {
                 "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
@@ -137,6 +146,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         dispatch(setRateSearchObj({}));
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
+        }
+        if (type === 'Search' && currentTab === 'transportation') {
+            dispatch(getCustomerTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
         }
     };
     const onClickofCustomerList = () => {

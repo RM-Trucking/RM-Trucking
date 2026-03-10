@@ -12,7 +12,12 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCurrentRateRow, getWarehouseRateDashboardData, deleteWarehouseRate, setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
+import {
+    setSelectedCurrentRateRow, getWarehouseRateDashboardData, deleteWarehouseRate,
+    setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
+    getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
+
+} from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -407,13 +412,45 @@ export default function RateTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('rate'));
-        if (currentRateTab === 'warehouse') {
+        if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
             dispatch(getWarehouseRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        }
+        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            dispatch(getCustomerTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
+        }
+        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            dispatch(getCarrierTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
         }
     }, []);
     useEffect(() => {
-        if (currentRateTab === 'warehouse') {
+        if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
             dispatch(getWarehouseRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+        }
+        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            dispatch(getCustomerTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
+        }
+        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            dispatch(getCarrierTransportationRateDashboardData({
+                originZoneId: null,
+                originZipOrRange: null,
+                destinationZoneId: null,
+                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
         }
     }, [currentRateTab]);
     useEffect(() => {
@@ -437,8 +474,24 @@ export default function RateTable() {
             setSnackbarOpen(true);
         }
         if (operationalMessage === 'Rate deleted successfully') {
-            if (currentRateTab === 'warehouse') {
+            if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
                 dispatch(getWarehouseRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
+            }
+            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+                dispatch(getCustomerTransportationRateDashboardData({
+                    originZoneId: null,
+                    originZipOrRange: null,
+                    destinationZoneId: null,
+                    destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
+            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+                dispatch(getCarrierTransportationRateDashboardData({
+                    originZoneId: null,
+                    originZipOrRange: null,
+                    destinationZoneId: null,
+                    destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
             }
         }
     }, [operationalMessage])
@@ -484,22 +537,76 @@ export default function RateTable() {
                         paginationModel={paginationModel}
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
-                            if (currentRateTab === 'warehouse') {
+                            if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
                                 dispatch(getWarehouseRateDashboardData({
                                     pageNo: newModel.page + 1,
                                     pageSize: newModel.pageSize,
                                     searchStr: rateSearchObj?.warehouse
                                 }));
                             }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+                                dispatch(getCustomerTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
+                            }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+                                dispatch(getCarrierTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
+                            }
                         }}
                         onPageChange={(newPage) => {
-                            if (currentRateTab === 'warehouse') {
+                            if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
                                 dispatch(getWarehouseRateDashboardData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: rateSearchObj?.warehouse }));
+                            }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+                                dispatch(getCustomerTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
+                            }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+                                dispatch(getCarrierTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
                             }
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            if (currentRateTab === 'warehouse') {
+                            if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
                                 dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: newPageSize, searchStr: rateSearchObj?.warehouse }));
+                            }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+                                dispatch(getCustomerTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
+                            }
+                            if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+                                dispatch(getCarrierTransportationRateDashboardData({
+                                    originZoneId: rateSearchObj.origin,
+                                    originZipOrRange: rateSearchObj.originZipCode,
+                                    destinationZoneId: rateSearchObj.destination,
+                                    destinationZipOrRange: rateSearchObj.destinationZipCode,
+                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                }));
                             }
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}

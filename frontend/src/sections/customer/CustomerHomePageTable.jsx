@@ -1,15 +1,14 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { DataGrid } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
 import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
-import { getCustomerData } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { setSelectedCustomerRowDetails, customerStatusChange, setOperationalMessage, setStationTabTableData } from '../../redux/slices/customer';
+import { getCustomerData, setSelectedCustomerRowDetails, customerStatusChange, setOperationalMessage, setStationTabTableData, setCustomerSearchStr } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
 import StyledTextField from '../shared/StyledTextField';
@@ -43,12 +42,15 @@ export default function CustomerHomePageTable() {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
-        page: 0,
-        pageSize: 10,
+        page: pagination.page,
+        pageSize: pagination.pageSize,
     });
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    // filter text
+    const [filterFieldText, setFilterFieldText] = useState('');
+
     const {
         control,
         handleSubmit,
@@ -247,6 +249,17 @@ export default function CustomerHomePageTable() {
         handleCloseDelete();
     };
 
+    const onServerFilterChange = useCallback((filterModel) => {
+        if (filterModel?.items[0]?.value === '' || filterModel?.items[0]?.value === undefined) {
+            dispatch(setCustomerSearchStr(''));
+            dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '' }));
+        }
+        if (filterModel?.items[0]?.value && filterModel?.items[0]?.field === 'customerName') {
+            dispatch(setCustomerSearchStr(filterModel?.items[0]?.value));
+            dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: filterModel?.items[0]?.value }));
+        }
+    }, []);
+
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
             <DataGrid
@@ -260,6 +273,7 @@ export default function CustomerHomePageTable() {
                         searchStr: customerSearchStr
                     }));
                 }}
+                onFilterModelChange={onServerFilterChange}
 
                 rows={customerRows}
                 columns={columns}

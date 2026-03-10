@@ -115,9 +115,16 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                         inputProps: { maxLength: 255 }
                                     }}
                                 >
-                                    {accessorialData.map((data) => (
-                                        <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>
-                                    ))}
+                                    {accessorialData && accessorialData.length > 0 ? (
+                                        accessorialData.map((data) => (
+                                            <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>
+                                        ))
+                                    ) : (
+                                        // --- FIX: Fallback item to satisfy the 'children' requirement ---
+                                        <MenuItem disabled value="">
+                                            <em>No accessorials available.</em>
+                                        </MenuItem>
+                                    )}
                                 </StyledTextField>
                             )}
                         />

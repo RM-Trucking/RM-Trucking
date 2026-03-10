@@ -156,11 +156,18 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                                         inputProps: { maxLength: 100 }
                                     }}
                                 >
-                                    {departmentData.map((data) => (
-                                        <MenuItem key={data.departmentId} value={data.departmentId}>
-                                            {data.departmentName}
+                                    {departmentData && departmentData.length > 0 ? (
+                                        departmentData.map((data) => (
+                                            <MenuItem key={data.departmentId} value={data.departmentId}>
+                                                {data.departmentName || ''}
+                                            </MenuItem>
+                                        ))
+                                    ) : (
+                                        // --- FIX: Fallback item to satisfy the 'children' requirement ---
+                                        <MenuItem disabled value="">
+                                            <em>No departments available.</em>
                                         </MenuItem>
-                                    ))}
+                                    )}
                                 </StyledTextField>
                             )}
                         />

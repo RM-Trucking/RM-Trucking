@@ -17,7 +17,9 @@ CustomerListTable.PropTypes = {
 export default function CustomerListTable({ handleCloseConfirm }) {
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
-    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.carrierList);
+    const customerList = useSelector((state) => state?.ratedata?.customerList);
+    const carrierList = useSelector((state) => state?.ratedata?.carrierList);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const customerColumns = [
         {
             field: 'customerName',
@@ -58,18 +60,6 @@ export default function CustomerListTable({ handleCloseConfirm }) {
                 </Box>
             )
         },
-        {
-            field: 'terminal',
-            headerName: 'Terminal',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => (
-                <Box sx={{ p: 1 }}>
-                    {params?.row?.terminal}
-                </Box>
-            )
-        },
     ];
 
     // get call for customers for a particular rate
@@ -88,14 +78,11 @@ export default function CustomerListTable({ handleCloseConfirm }) {
             </>
             <Box sx={{ width: "100%", flex: 1, mt: 3 }}>
                 <DataGrid
-                    rows={[]}
+                    rows={currentRateRoutedFrom === 'customer' ? customerList || [] : carrierList || []}
                     columns={currentRateRoutedFrom === 'customer' ? customerColumns : carrierColumns}
                     loading={isLoading}
                     getRowId={(row) => row?.customerId || row?.carrierid}
                     pagination
-                    slots={{
-                        noRowsOverlay: CustomNoRowsOverlay,
-                    }}
                     hideFooterSelectedRowCount
                     getRowHeight={() => 'auto'}
                 />

@@ -15,7 +15,7 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setRateSearchObj, getRateDashboardData, postWarehouseRate,
-    putWarehouseRate, setSelectedCurrentRateRow
+    putWarehouseRate, setSelectedCurrentRateRow,
 } from '../../redux/slices/rate';
 import {
     getZoneById, setSelectedZoneRowDetails
@@ -83,7 +83,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneName || '');
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
             setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
-            setValue('notes', selectedCurrentRateRow?.notes || '');
+            setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
         }
     }, [selectedCurrentRateRow])
     useEffect(() => {
@@ -139,7 +139,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
     };
     const onClickofCustomerList = () => {
-        setOpenCustomersList(true);
+        if (currentRateRoutedFrom === 'customer' && selectedCurrentRateRow?.customerCount > 0) {
+            setOpenCustomersList(true);
+        }
+
+        if (currentRateRoutedFrom === 'customer' && selectedCurrentRateRow?.carrierCount > 0) {
+            setOpenCustomersList(true);
+        }
+
     }
     const handleCloseOfCustomersList = () => {
         setOpenCustomersList(false);
@@ -264,12 +271,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             error={!!errors.origin} helperText={errors.origin?.message}
                                             disabled={type === 'View'}
                                         >
-                                            {originZoneListByZipCode?.length > 0 && originZoneListByZipCode?.map((data) => (
+                                            {originZoneListByZipCode && originZoneListByZipCode?.length > 0 && originZoneListByZipCode?.map((data) => (
                                                 <MenuItem key={data.zoneId} value={data.zoneName}>
-                                                    {data.zoneName}
+                                                    {data.zoneName || ''}
                                                 </MenuItem>
                                             ))}
-                                            <MenuItem value="MKE - Zone1">MKE - Zone1</MenuItem>
                                         </StyledTextField>
                                     )}
                                 />
@@ -377,9 +383,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             disabled={type === 'View'}
                                             error={!!errors.destination} helperText={errors.destination?.message}
                                         >
-                                            {destinationZoneListByZipCode?.length > 0 && destinationZoneListByZipCode?.map((data) => (
+                                            {destinationZoneListByZipCode && destinationZoneListByZipCode?.length > 0 && destinationZoneListByZipCode?.map((data) => (
                                                 <MenuItem key={data.zoneId} value={data.zoneName}>
-                                                    {data.zoneName}
+                                                    {data.zoneName || ''}
                                                 </MenuItem>
                                             ))}
                                         </StyledTextField>
@@ -550,7 +556,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         },
                                     }}
                                 >
-                                    {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({selectedCurrentRateRow?.customers ?? 0})
+                                    {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({(currentRateRoutedFrom === 'customer') ? selectedCurrentRateRow?.customerCount || 0 : selectedCurrentRateRow?.carrierCount || 0})
                                 </Button>}
                                 <Controller
                                     name="notes"

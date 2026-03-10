@@ -108,7 +108,7 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.destinationZoneListByZipCode = action.payload.data;
         },
-        // customer list and carrier list array according to rate id
+        // customer list and carrier list according to rate id
         getCustomerListByRateIDSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
@@ -217,26 +217,48 @@ export function getDestinationZoneByZipCode(zipcode) {
         }
     };
 }
+// customer and carrier object
+export function getCustomerObjectByRateID(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/customer-rate/transport-rate/${id}`);
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function getCarrierObjectByRateID(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/carrier-rate/transport-rate/${id}`);
+            //   dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
 // customer and carrier list
 export function getCustomerListByRateID(id) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.get(`maintenance/customer-rate/transport-rate/${id}`);
-      dispatch(slice.actions.getCustomerListByRateIDSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`/maintenance/customer/by-rate/${id}`);
+            dispatch(slice.actions.getCustomerListByRateIDSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
 }
 export function getCarrierListByRateID(id) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.get(`maintenance/carrier-rate/transport-rate/${id}`);
-      dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`/maintenance/carrier/by-rate/${id}`);
+            dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
 }

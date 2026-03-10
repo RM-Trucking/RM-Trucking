@@ -9,14 +9,21 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import { useDispatch, useSelector } from '../../redux/store';
 import RateSearchFields from '../customer/RateSearchFields';
 import RateLogs from './RateLogs';
+import {
+  getZoneCustomerRate,
+  getZoneCarrierRate
+} from '../../redux/slices/zone';
 // ----------------------------------------------------------------------
 
 export default function CustomerViewDetails() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const location = useLocation();
   const selectedCurrentRateRow = useSelector((state) => state?.ratedata?.selectedCurrentRateRow);
   const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
   const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+  const zoneRateData = useSelector((state) => state?.zonedata?.zoneRateData);
+  const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
   const handleBack = () => {
     if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'customer') {
       navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
@@ -25,6 +32,16 @@ export default function CustomerViewDetails() {
       navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
     }
     if (!location.pathname.includes(currentRateRoutedFrom)) {
+      if (currentRateRoutedFrom === 'customer' && zoneRateData.length > 0) {
+        setTimeout(() => {
+          dispatch(getZoneCustomerRate(1, 10, selectedZoneRowDetails?.zoneId));
+        }, 10000);
+      }
+      if (currentRateRoutedFrom === 'carrier' && zoneRateData.length > 0) {
+        setTimeout(() => {
+          dispatch(getZoneCarrierRate(1, 10, selectedZoneRowDetails?.zoneId));
+        }, 10000);
+      }
       navigate(PATH_DASHBOARD?.maintenance?.zoneMaintenance?.root);
     }
   }

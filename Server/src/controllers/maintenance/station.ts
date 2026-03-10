@@ -67,7 +67,7 @@ export async function getStationsForCustomer(req: Request, res: Response, conn: 
             success: true,
             data: result.stations,
             pagination: {
-                total: result.total,
+                total: result.total || 0,
                 page: result.page,
                 pageSize: result.pageSize
             }

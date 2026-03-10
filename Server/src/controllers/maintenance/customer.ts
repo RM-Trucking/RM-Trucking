@@ -77,7 +77,7 @@ export async function getAllCustomers(req: Request, res: Response, conn: Connect
             success: true,
             data: result.customers,
             pagination: {
-                total: result.total,
+                total: result.total || 0,
                 page: result.page,
                 pageSize: result.pageSize
             }

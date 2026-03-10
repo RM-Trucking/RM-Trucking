@@ -95,7 +95,7 @@ export async function listZones(req: Request, res: Response, conn: Connection) {
             success: true,
             data: result.data,
             pagination: {
-                total: result.total,
+                total: result.total || 0,
                 page: result.page,
                 pageSize: result.pageSize
             }

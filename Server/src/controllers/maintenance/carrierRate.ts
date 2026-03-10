@@ -181,7 +181,7 @@ export async function listCarrierTransportRates(
             success: true,
             data: result.rates,
             pagination: {
-                total: result.total,
+                total: result.total || 0,
                 page: result.page,
                 pageSize: result.pageSize
             }
@@ -213,7 +213,7 @@ export async function listCarrierTransportRatesByZone(
             success: true,
             data: result.rates,
             pagination: {
-                total: result.total,
+                total: result.total || 0,
                 page: result.page,
                 pageSize: result.pageSize
             }

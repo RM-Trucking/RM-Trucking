@@ -40,6 +40,7 @@ export async function getAccessorialsForEntity(
            eam."chargeType",
            eam."chargeValue",
            eam."noteThreadId",
+           eam."serviceNotOffered",
            a."accessorialName"
     FROM ${SCHEMA}."Entity_Accessorial_Map" eam
     JOIN ${SCHEMA}."Accessorial" a 
@@ -92,6 +93,21 @@ export async function getAccessorialById(
   const result = (await conn.query(query, [entityAccessorialId])) as any[];
   return result.length ? (result[0] as EntityAccessorialMap) : null;
 }
+
+
+export async function updateServiceNotOffered(
+  conn: Connection,
+  entityAccessorialId: number,
+  value: string
+): Promise<void> {
+  const query = `
+        UPDATE ${SCHEMA}."Entity_Accessorial_Map"
+        SET "serviceNotOffered" = ?
+        WHERE "entityAccessorialId" = ?
+    `;
+  await conn.query(query, [value, entityAccessorialId]);
+}
+
 
 
 /**

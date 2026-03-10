@@ -2,16 +2,19 @@ import { Connection } from 'odbc'; // or your DB connection type
 import { Terminal, UpdateTerminalRequest } from '../../entities/maintenance/Terminal';
 import { SCHEMA } from '../../config/db2';
 
-export async function createTerminal(conn: Connection, terminal: any): Promise<number> {
-    const query = `
-        INSERT INTO ${SCHEMA}."Terminal"
-        ("carrierId","entityId","terminalName","rmAccountNumber","airportCode",
-         "email","phoneNumber","faxNumber","openTime","closeTime","hours",
-         "noteThreadId","activeStatus","createdBy","createdAt")
-        VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,CURRENT_TIMESTAMP)
-        RETURNING "terminalId"
-    `;
-    const result = await conn.query(query, [
+export async function createTerminal(conn: Connection, terminal: Partial<Terminal>): Promise<number> {
+    const insertQuery = `
+    SELECT "terminalId"
+    FROM FINAL TABLE (
+      INSERT INTO ${SCHEMA}."Terminal"
+      ("carrierId","entityId","terminalName","rmAccountNumber","airportCode",
+       "email","phoneNumber","faxNumber","openTime","closeTime","hours",
+       "noteThreadId","activeStatus","createdBy","createdAt")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
+    )
+  `;
+
+    const params = [
         terminal.carrierId,
         terminal.entityId,
         terminal.terminalName,
@@ -24,11 +27,14 @@ export async function createTerminal(conn: Connection, terminal: any): Promise<n
         terminal.closeTime,
         terminal.hours,
         terminal.noteThreadId,
-        terminal.activeStatus,
+        terminal.activeStatus ?? 'Y', // default to 'Y' if not provided
         terminal.createdBy
-    ]) as any[];
-    return result[0].terminalId;
+    ].map(v => v === undefined || v === null ? '' : v); // normalize null/undefined
+
+    const result = (await conn.query(insertQuery, params)) as any[];
+    return result[0]?.terminalId;
 }
+
 
 export async function getTerminalById(conn: Connection, terminalId: number): Promise<any | null> {
     const query = `

@@ -144,10 +144,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setOpenCustomersList(true);
         }
 
-        if (currentRateRoutedFrom === 'customer' && selectedCurrentRateRow?.carrierCount > 0) {
+        if (currentRateRoutedFrom === 'carrier' && selectedCurrentRateRow?.carrierCount > 0) {
             setOpenCustomersList(true);
         }
-
     }
     const handleCloseOfCustomersList = () => {
         setOpenCustomersList(false);

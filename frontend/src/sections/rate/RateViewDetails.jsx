@@ -35,12 +35,12 @@ export default function CustomerViewDetails() {
       if (currentRateRoutedFrom === 'customer' && zoneRateData.length > 0) {
         setTimeout(() => {
           dispatch(getZoneCustomerRate(1, 10, selectedZoneRowDetails?.zoneId));
-        }, 10000);
+        }, 2500);
       }
       if (currentRateRoutedFrom === 'carrier' && zoneRateData.length > 0) {
         setTimeout(() => {
           dispatch(getZoneCarrierRate(1, 10, selectedZoneRowDetails?.zoneId));
-        }, 10000);
+        }, 2500);
       }
       navigate(PATH_DASHBOARD?.maintenance?.zoneMaintenance?.root);
     }

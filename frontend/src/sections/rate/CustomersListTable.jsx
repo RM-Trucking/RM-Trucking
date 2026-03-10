@@ -81,7 +81,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
                     rows={currentRateRoutedFrom === 'customer' ? customerList || [] : carrierList || []}
                     columns={currentRateRoutedFrom === 'customer' ? customerColumns : carrierColumns}
                     loading={isLoading}
-                    getRowId={(row) => row?.customerId || row?.carrierid}
+                    getRowId={(row) => row?.customerId || row?.carrierId}
                     pagination
                     hideFooterSelectedRowCount
                     getRowHeight={() => 'auto'}

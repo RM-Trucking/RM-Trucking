@@ -26,10 +26,10 @@ export default function CustomerViewDetails() {
   const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
   const handleBack = () => {
     if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'customer') {
-      navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.root);
+      navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateMaintenanceView);
     }
     if (location.pathname.includes(currentRateRoutedFrom) && currentRateRoutedFrom === 'carrier') {
-      navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.root);
+      navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView);
     }
     if (!location.pathname.includes(currentRateRoutedFrom)) {
       if (currentRateRoutedFrom === 'customer' && zoneRateData.length > 0) {

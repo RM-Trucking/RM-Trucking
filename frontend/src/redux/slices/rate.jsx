@@ -124,6 +124,7 @@ const slice = createSlice({
         getCustomerTransportationRateDashboardDataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
+            state.rateTableData = action.payload.data;
             state.pagination.page = action.payload.pagination.page;
             state.pagination.pageSize = action.payload.pagination.pageSize;
             state.pagination.totalRecords = action.payload.pagination.total;

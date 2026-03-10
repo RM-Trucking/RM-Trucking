@@ -357,6 +357,9 @@ export default function RateFieldAndChargeTable({ type }) {
                     readonly: true,
                 };
             });
+            if (type !== 'View') {
+                list.push({ id: list.length, rateField: '', charge: '', readonly: false });
+            }
             setTableData(list);
         }
     }, [selectedCurrentRateRow]);

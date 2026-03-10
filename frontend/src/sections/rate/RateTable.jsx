@@ -16,7 +16,7 @@ import {
     setSelectedCurrentRateRow, getWarehouseRateDashboardData, deleteWarehouseRate,
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
-
+    getCustomerListByRateID, getCarrierListByRateID
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -50,37 +50,57 @@ export default function RateTable() {
     };
     const rateTransportationColumns = [
         {
-            field: 'rateId',
+            field: 'customerRateId',
             headerName: 'Rate ID',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.customerRateId}
                 </Box>
             )
         },
         {
-            field: 'origin',
+            field: 'originZoneId',
             headerName: 'Origin',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.originZone?.zoneName}
+                </Box>
+            )
         },
         {
-            field: 'originZipCode',
+            field: 'originZone',
             headerName: 'Origin Zip Code',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.originZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.originZone?.zipCodes?.join(", ")}
+                    </Typography>
+                </Stack>
+            )
         },
         {
-            field: 'destination',
+            field: 'destinationZoneId',
             headerName: 'Destination',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.destinationZone?.zoneName}
+                </Box>
+            )
         },
         {
             field: 'destinationZipCode',
@@ -88,26 +108,60 @@ export default function RateTable() {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'customers',
-            headerName: 'Customers',
-            width: 150,
-            align: 'center',
-            cellClassName: 'center-status-cell',
             renderCell: (params) => (
-                // have to add customer list 
-                <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
-                    setOpenCustomersList(true);
-                    dispatch(setSelectedCurrentRateRow(params.row));
-                }}>
-                    <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
-                    <Typography variant='normal'>{params?.row?.customers}</Typography>
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.destinationZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.destinationZone?.zipCodes?.join(", ")}
+                    </Typography>
                 </Stack>
             )
         },
         {
-            field: 'status',
+            field: `${currentRateRoutedFrom === 'customer' ? 'customerCount' : 'carrierCount'}`,
+            headerName: `${currentRateRoutedFrom === 'customer' ? 'Customers' : 'Carriers'}`,
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                // have to add customer list 
+                const element = (<>
+                    {
+                        (currentRateRoutedFrom === 'customer' && params?.row?.customerCount && params?.row?.customerCount > 0)
+                            ?
+                            <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
+                                setOpenCustomersList(true);
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                                dispatch(getCustomerListByRateID(params.row.rateId));
+                            }}>
+                                <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                                <Typography variant='normal'>{params?.row?.customerCount}</Typography>
+                            </Stack>
+                            :
+                            <Typography variant='normal'>{params?.row?.customerCount}</Typography>
+                    }
+                    {
+                        (currentRateRoutedFrom === 'carrier' && params?.row?.carrierCount && params?.row?.carrierCount > 0)
+                            ?
+                            <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
+                                setOpenCustomersList(true);
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                                dispatch(getCarrierListByRateID(params.row.rateId));
+                            }}>
+                                <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                                <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                            </Stack>
+                            :
+                            <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                    }
+                </>);
+                return element;
+            }
+        },
+        {
+            field: 'activeStatus',
             headerName: 'Status',
             width: 100,
             headerAlign: 'center',
@@ -120,14 +174,14 @@ export default function RateTable() {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.activeStatus === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                     </Box>
                 );
                 return element;
             },
         },
         {
-            field: "rates",
+            field: "details",
             headerName: "Rates",
             minWidth: 200,
             minHeight: 200,
@@ -135,34 +189,14 @@ export default function RateTable() {
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>100:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>1000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>3000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>5000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>10000:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                        </Stack>
+                        {
+                            params?.row?.details?.map((detail) => (
+                                <Stack key={detail.rateDetailId} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>{detail?.rateField}</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{detail.chargeValue}</Typography>
+                                </Stack>
+                            ))
+                        }
                     </Stack>
                 );
                 return element;
@@ -209,8 +243,10 @@ export default function RateTable() {
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
                                 if (currentRateRoutedFrom === 'customer') {
+                                    dispatch(getCustomerListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
                                 } else if (currentRateRoutedFrom === 'carrier') {
+                                    dispatch(getCarrierListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
                                 }
                             }} />
@@ -336,71 +372,6 @@ export default function RateTable() {
             },
         }
     ];
-    const rateData = [
-        {
-            rateId: 1,
-            origin: 'ORD',
-            originZipCode: '60501',
-            destination: 'Ankeny',
-            destinationZipCode: '50007',
-            customers: 26,
-            status: 'Y',
-            min: '100',
-            rate100: '100',
-            rate1000: '1000',
-            rate3000: '3000',
-            rate5000: '5000',
-            rate10000: '10000',
-            max: '10000',
-            expiryDate: '12-30-2026',
-        },
-        {
-            rateId: 2,
-            origin: 'ORD',
-            originZipCode: '60501',
-            destination: 'Ankeny',
-            destinationZipCode: '50007',
-            customers: 26,
-            status: 'Y',
-            min: '100',
-            rate100: '100',
-            rate1000: '1000',
-            rate3000: '3000',
-            rate5000: '5000',
-            rate10000: '10000',
-            max: '10000',
-            expiryDate: '12-30-2026',
-        },
-        {
-            rateId: 3,
-            origin: 'ORD',
-            originZipCode: '60501',
-            destination: 'Ankeny',
-            destinationZipCode: '50007',
-            customers: 26,
-            status: 'Y',
-            min: '100',
-            rate100: '100',
-            rate1000: '1000',
-            rate3000: '3000',
-            rate5000: '5000',
-            rate10000: '10000',
-            max: '10000',
-            expiryDate: '12-30-2026',
-        },
-    ]
-    const customerData = [
-        {
-            customerId: 1,
-            customerName: 'Liam Johnson',
-            stationName: 'Station 1'
-        },
-        {
-            customerId: 2,
-            customerName: 'Emma Thompson',
-            stationName: 'Station 2'
-        }
-    ]
     useEffect(() => {
         if (location?.pathname?.includes('customer-maintenance')) {
             dispatch(setCurrentRateRoutedFrom('customer'));
@@ -415,7 +386,7 @@ export default function RateTable() {
         if (currentRateTab === 'warehouse' && currentRateRoutedFrom === 'customer') {
             dispatch(getWarehouseRateDashboardData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: rateSearchObj?.warehouse }));
         }
-        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+        if (currentRateTab === 'transportation' && (currentRateRoutedFrom === 'customer' || location.pathname.includes('customer-maintenance'))) {
             dispatch(getCustomerTransportationRateDashboardData({
                 originZoneId: null,
                 originZipOrRange: null,
@@ -423,7 +394,7 @@ export default function RateTable() {
                 destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
             }));
         }
-        if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+        if (currentRateTab === 'transportation' && (currentRateRoutedFrom === 'carrier' || location.pathname.includes('carrier-maintenance'))) {
             dispatch(getCarrierTransportationRateDashboardData({
                 originZoneId: null,
                 originZipOrRange: null,
@@ -523,7 +494,7 @@ export default function RateTable() {
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
 
                     <DataGrid
-                        rows={currentRateTab === 'warehouse' ? rateTableData : rateData}
+                        rows={rateTableData || []}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.rateId}
@@ -648,7 +619,7 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                        <CustomerListTable customerData={customerData} handleCloseConfirm={handleCloseOfCustomersList} />
+                        <CustomerListTable handleCloseConfirm={handleCloseOfCustomersList} />
                     </DialogContent>
                 </Dialog>
                 <Snackbar

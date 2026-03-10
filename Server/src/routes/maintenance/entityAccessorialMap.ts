@@ -26,6 +26,14 @@ router.put('/:entityAccessorialId', authenticateJWT, async (req: Request, res: R
     if (conn) conn.close();
 });
 
+// ✅ Change serviceNotOffered flag for an entity-accessorial mapping
+router.patch('/:entityAccessorialId/service-not-offered', authenticateJWT, async (req: Request, res: Response) => {
+    const conn = await db();
+    await entityAccessorialMapController.updateServiceNotOffered(req, res, conn);
+    if (conn) conn.close();
+});
+
+
 
 // ✅ Delete an entity-accessorial mapping
 router.delete('/:entityAccessorialId', authenticateJWT, async (req: Request, res: Response) => {

@@ -59,6 +59,27 @@ export async function updateEntityAccessorialMap(req: Request, res: Response, co
     }
 }
 
+export async function updateServiceNotOffered(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const entityAccessorialId = parseInt(req.params.entityAccessorialId, 10);
+        const { serviceNotOffered } = req.body; // expecting boolean or 'Y'/'N'
+
+        await entityAccessorialMapService.updateServiceNotOffered(conn, entityAccessorialId, serviceNotOffered);
+
+        res.status(200).json({
+            success: true,
+            message: 'ServiceNotOffered flag updated successfully'
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            success: false,
+            message: (error as Error).message
+        });
+    }
+}
+
+
 
 /**
  * Delete an entity-accessorial mapping

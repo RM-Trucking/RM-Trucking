@@ -7,6 +7,7 @@ export interface EntityAccessorialMap {
     chargeType: ChargeType;        // Per Pound, Flat Value
     chargeValue: number;           // Decimal(12,2)
     noteThreadId?: number | null;
+    serviceNotOffered?: 'Y' | 'N' | null;
 }
 
 export interface CreateEntityAccessorialMapRequest {

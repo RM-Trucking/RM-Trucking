@@ -135,6 +135,20 @@ export async function updateEntityAccessorialMapService(
     };
 }
 
+export async function updateServiceNotOffered(
+    conn: Connection,
+    entityAccessorialId: number,
+    serviceNotOffered: string | boolean
+): Promise<void> {
+    // Normalize boolean to 'Y'/'N'
+    const value = typeof serviceNotOffered === 'boolean'
+        ? (serviceNotOffered ? 'Y' : 'N')
+        : serviceNotOffered;
+
+    await entityAccessorialMapDB.updateServiceNotOffered(conn, entityAccessorialId, value);
+}
+
+
 
 /**
  * Delete an entity-accessorial mapping

@@ -24,16 +24,16 @@ NavVertical.propTypes = {
 export default function NavVertical({ }) {
   const { pathname } = useLocation();
   const navConfig = [
-    {
-      "title": "Dashboard",
-      "path": "/app/dashboard",
-      "icon": null
-    },
-    {
-      "title": "Shipment Building",
-      "path": "/app/shipment-building",
-      "icon": null
-    },
+    // {
+    //   "title": "Dashboard",
+    //   "path": "/app/dashboard",
+    //   "icon": null
+    // },
+    // {
+    //   "title": "Shipment Building",
+    //   "path": "/app/shipment-building",
+    //   "icon": null
+    // },
     {
 
       "title": "Maintenance",
@@ -43,27 +43,27 @@ export default function NavVertical({ }) {
         {
           "title": "Customer Maintenance",
           "path": "/app/maintenance/customer-maintenance",
-          "children": [
-            {
-              "title": "Rate Maintenance",
-              "path": "/app/maintenance/customer-maintenance/rate-maintenance"
-            },
-            {
-              "title": "Fuel Surcharge",
-              "path": "/app/maintenance/customer-maintenance/fuel-surcharge-maintenance"
-            }
-          ],
+          // "children": [
+          //   {
+          //     "title": "Rate Maintenance",
+          //     "path": "/app/maintenance/customer-maintenance/rate-maintenance"
+          //   },
+          //   {
+          //     "title": "Fuel Surcharge",
+          //     "path": "/app/maintenance/customer-maintenance/fuel-surcharge-maintenance"
+          //   }
+          // ],
         },
-        {
-          "title": "Carrier Maintenance",
-          "path": "/app/maintenance/carrier-maintenance",
-          "children": [
-            {
-              "title": "Rate Maintenance",
-              "path": "/app/maintenance/carrier-maintenance/rate-maintenance"
-            }
-          ],
-        },
+        // {
+        //   "title": "Carrier Maintenance",
+        //   "path": "/app/maintenance/carrier-maintenance",
+        //   "children": [
+        //     {
+        //       "title": "Rate Maintenance",
+        //       "path": "/app/maintenance/carrier-maintenance/rate-maintenance"
+        //     }
+        //   ],
+        // },
         // {
         //   "title": "Rate Maintenance",
         //   "path": "/app/maintenance/rate-maintenance"

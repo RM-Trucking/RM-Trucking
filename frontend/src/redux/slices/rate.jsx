@@ -9,6 +9,8 @@ import { dispatch } from '../store';
 
 const initialState = {
     isLoading: false,
+    originLoading : false,
+    destinationLoading : false,
     error: null,
     rateSuccess: false,
     rateTableData: [],
@@ -32,6 +34,8 @@ const slice = createSlice({
     reducers: {
         hasError(state, action) {
             state.isLoading = false;
+            state.originLoading = false;
+            state.destinationLoading = false;
             state.error = action.payload || action.payload.error;
         },
         // START LOADING
@@ -40,6 +44,11 @@ const slice = createSlice({
             state.rateSuccess = false;
             state.error = null;
             state.operationalMessage = '';
+        },
+        // load origin and destination zone load
+        startZoneLaoding(state){
+            state.originLoading = true;
+            state.destinationLoading = true;
         },
         // customer warehouse data success slices
         getWarehouseRateDashboardDataSuccess(state, action) {
@@ -76,6 +85,10 @@ const slice = createSlice({
         setWarehouseRatesFieldChargeData(state, action) {
             state.rateFieldChargeDataWarehouse = action.payload;
         },
+        // setting transportation min max details array
+        setRateFieldChargeData(state,action){
+            state.rateFieldChargeData = action.payload;
+        },
         // rate search object
         setRateSearchObj(state, action) {
             state.rateSearchObj = action.payload;
@@ -101,11 +114,13 @@ const slice = createSlice({
         // zone by zipcode success
         getOriginZoneByZipCodeSuccess(state, action) {
             state.isLoading = false;
+            state.originLoading = false;
             state.rateSuccess = true;
             state.originZoneListByZipCode = action.payload.data;
         },
         getDestinationZoneByZipCodeSuccess(state, action) {
             state.isLoading = false;
+            state.destinationLoading = false;
             state.rateSuccess = true;
             state.destinationZoneListByZipCode = action.payload.data;
         },
@@ -156,6 +171,7 @@ const slice = createSlice({
         getCarrierTransportationRateDashboardDataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
+            state.rateTableData = action.payload.data;
             state.pagination.page = action.payload.pagination.page;
             state.pagination.pageSize = action.payload.pagination.pageSize;
             state.pagination.totalRecords = action.payload.pagination.total;
@@ -194,6 +210,8 @@ export const {
     setSelectedCurrentRateRow,
     setIsLoading,
     setCurrentRateRoutedFrom,
+    setRateFieldChargeData,
+
 } = slice.actions;
 export default slice.reducer;
 
@@ -275,7 +293,6 @@ export function getCustomerTransportationRateDashboardData({ originZoneId, origi
         }
     };
 }
-
 export function postCustomerTransportationRate(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());
@@ -317,12 +334,20 @@ export function getCarrierTransportationRateDashboardData({ originZoneId, origin
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            const response = await axios.get(`maintenance/carrier-rate/transport-rate?
-                ${originZoneId ? `originZoneId=${originZoneId}&` : ''}
-                ${originZipOrRange ? `originZipOrRange=${originZipOrRange}&` : ''}
-                ${destinationZoneId ? `destinationZoneId=${destinationZoneId}&` : ''}
-                ${destinationZipOrRange ? `destinationZoneId=${destinationZipOrRange}&` : ''}
-                &page=${pageNo}&pageSize=${pageSize}`);
+            // Use URLSearchParams to build a clean string without spaces
+            const params = new URLSearchParams();
+
+            if (originZoneId) params.append("originZoneId", originZoneId);
+            if (originZipOrRange && originZipOrRange?.length > 0) params.append("originZipOrRange", originZipOrRange);
+            if (destinationZoneId) params.append("destinationZoneId", destinationZoneId);
+            if (destinationZipOrRange && destinationZipOrRange?.length > 0) params.append("destinationZipOrRange", destinationZipOrRange);
+
+            params.append("page", pageNo || 1);
+            params.append("pageSize", pageSize || 10);
+
+            const url = `maintenance/carrier-rate/transport-rate?${params.toString()}`;
+            const response = await axios.get(url);
+
             dispatch(slice.actions.getCarrierTransportationRateDashboardDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
@@ -369,6 +394,7 @@ export function deleteCarrierTransportationRate(id) {
 export function getOriginZoneByZipCode(zipcode) {
     return async () => {
         dispatch(slice.actions.startLoading());
+        dispatch(slice.actions.startZoneLaoding());
         try {
             const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
             dispatch(slice.actions.getOriginZoneByZipCodeSuccess(response.data));
@@ -380,6 +406,7 @@ export function getOriginZoneByZipCode(zipcode) {
 export function getDestinationZoneByZipCode(zipcode) {
     return async () => {
         dispatch(slice.actions.startLoading());
+         dispatch(slice.actions.startZoneLaoding());
         try {
             const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
             dispatch(slice.actions.getDestinationZoneByZipCodeSuccess(response.data));

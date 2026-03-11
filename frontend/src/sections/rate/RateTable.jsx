@@ -16,7 +16,8 @@ import {
     setSelectedCurrentRateRow, getWarehouseRateDashboardData, deleteWarehouseRate,
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
-    getCustomerListByRateID, getCarrierListByRateID
+    getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
+    getDestinationZoneByZipCode
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -51,13 +52,14 @@ export default function RateTable() {
     const rateTransportationColumns = [
         {
             field: 'customerRateId',
+            field: `${currentRateRoutedFrom === 'customer' ? 'customerRateId' : 'carrierRateId'}`,
             headerName: 'Rate ID',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.customerRateId}
+                    {currentRateRoutedFrom === 'customer' ? params?.row?.customerRateId : params?.row?.carrierRateId}
                 </Box>
             )
         },
@@ -254,13 +256,15 @@ export default function RateTable() {
                         <Tooltip title={'Edit'} arrow>
                             <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params?.row));
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("Edit");
                                 setOpenConfirmDialog(true);
                             }} />
                         </Tooltip>
 
-                        <StyledCheckbox
+                        {currentRateRoutedFrom === 'customer' && <StyledCheckbox
                             sx={{ mt: -1.5 }}
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
@@ -271,7 +275,7 @@ export default function RateTable() {
                                     setSnackbarOpen(true);
                                 }, 1000);
                                 // here need to call api to post data
-                            }} />
+                            }} />}
                     </Box>
                 );
                 return element;

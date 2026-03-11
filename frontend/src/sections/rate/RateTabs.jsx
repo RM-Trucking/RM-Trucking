@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentRateTab } from '../../redux/slices/rate';
+import { setCurrentRateTab, setSelectedCurrentRateRow } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import RateSearchFields from '../customer/RateSearchFields';
 import AddRate from './AddRate';
@@ -58,6 +58,7 @@ export default function RateTabs({ }) {
 
     const onClickOfAddRate = () => {
         // Implement the logic for adding a new item based on the current tab
+        dispatch(setSelectedCurrentRateRow({}));
         setOpenConfirmDialog(true);
     }
     

@@ -13,6 +13,7 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
+import { setRateFieldChargeData } from '../../redux/slices/rate';
 // ----------------------------------------------------------------
 
 RateFieldAndChargeTable.propTypes = {
@@ -56,6 +57,7 @@ export default function RateFieldAndChargeTable({ type }) {
                     // Clone the specific object to make it writable
                     updatedData[index] = { ...updatedData[index], rateField: value };
                     setTableData(updatedData);
+                    dispatch(setRateFieldChargeData(updatedData));
                 }
                 const element = <Autocomplete
                     freeSolo
@@ -143,6 +145,7 @@ export default function RateFieldAndChargeTable({ type }) {
                     // Clone the specific object to make it writable
                     updatedData[index] = { ...updatedData[index], charge: value };
                     setTableData(updatedData);
+                    dispatch(setRateFieldChargeData(updatedData));
                 }
                 const element = <StyledTextField
                     variant="standard"
@@ -247,12 +250,14 @@ export default function RateFieldAndChargeTable({ type }) {
                     const sortedData = stableSort(combinedData);
                     // 5. Update the state with the locked rows + the new editable row
                     setTableData(sortedData);
+                    dispatch(setRateFieldChargeData(sortedData));
                 }
                 const toggleReadonly = (id, status) => {
                     const updatedData = tableData.map((row) =>
                         row.id === id ? { ...row, readonly: status } : row
                     );
                     setTableData(updatedData);
+                    dispatch(setRateFieldChargeData(updatedData));
                 };
                 const element = (
                     <Box
@@ -292,8 +297,8 @@ export default function RateFieldAndChargeTable({ type }) {
                                 ) : (
                                     <Tooltip title="Save" arrow>
                                         <Iconify
-                                            icon="fluent:save-24-filled"
-                                            sx={{ color: '#2E7D32', cursor: 'pointer', fontSize: '24px' }}
+                                            icon="ant-design:save-filled"
+                                            sx={{ color: '#000', cursor: 'pointer', fontSize: '24px' }}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 toggleReadonly(params.row.id, true);
@@ -310,6 +315,7 @@ export default function RateFieldAndChargeTable({ type }) {
                                             e.stopPropagation();
                                             const updatedData = tableData.filter(row => row.id !== params.row.id);
                                             setTableData(updatedData);
+                                            dispatch(setRateFieldChargeData(updatedData));
                                         }}
                                     />
                                 </Tooltip>
@@ -330,23 +336,7 @@ export default function RateFieldAndChargeTable({ type }) {
         // if type is view table should not be editable
         console.log(type, 'in transportation sub table')
     }, [type]);
-    useEffect(() => {
-        console.log(rateFieldChargeData);
-        let list = [];
-        if (rateFieldChargeData.length > 0) {
-            list = rateFieldChargeData.map((item, index) => {
-                return {
-                    id: index,
-                    rateField: item.rateField,
-                    charge: item.charge,
-                    readonly: true,
-                };
-            });
-            list.push({ id: list.length, rateField: '', charge: '', readonly: false });
-            console.log("Rate Field and Charge Data updated:", list);
-            setTableData(list);
-        }
-    }, [rateFieldChargeData]);
+    
     useEffect(() => {
         if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length > 0 && selectedCurrentRateRow?.details) {
             const list = selectedCurrentRateRow?.details?.map((item, index) => {
@@ -361,6 +351,7 @@ export default function RateFieldAndChargeTable({ type }) {
                 list.push({ id: list.length, rateField: '', charge: '', readonly: false });
             }
             setTableData(list);
+            dispatch(setRateFieldChargeData(list));
         }
     }, [selectedCurrentRateRow]);
 

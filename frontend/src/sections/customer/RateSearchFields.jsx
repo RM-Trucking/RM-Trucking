@@ -17,6 +17,9 @@ import {
     setRateSearchObj, getWarehouseRateDashboardData, postWarehouseRate,
     putWarehouseRate, setSelectedCurrentRateRow, getOriginZoneByZipCode,
     getDestinationZoneByZipCode, getCustomerTransportationRateDashboardData,
+    getCarrierTransportationRateDashboardData, postCustomerTransportationRate,
+    putCustomerTransportationRate, putCarrierTransportationRate,
+    postCarrierTransportationRate,
 } from '../../redux/slices/rate';
 import {
     getZoneById, setSelectedZoneRowDetails
@@ -38,15 +41,19 @@ RateSearchFields.propTypes = {
 export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
+    const originLoading = useSelector((state) => state?.ratedata?.originLoading);
+    const destinationLoading = useSelector((state) => state?.ratedata?.destinationLoading);
     const operationalMessage = useSelector((state) => state?.ratedata?.operationalMessage);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const zoneSuccess = useSelector((state) => state?.zonedata?.zoneSuccess);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const rateFieldChargeDataWarehouse = useSelector((state) => state?.ratedata?.rateFieldChargeDataWarehouse);
+    const rateFieldChargeData = useSelector((state) => state?.ratedata?.rateFieldChargeData);
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const originZoneListByZipCode = useSelector((state) => state?.ratedata?.originZoneListByZipCode);
     const destinationZoneListByZipCode = useSelector((state) => state?.ratedata?.destinationZoneListByZipCode);
     const pagination = useSelector((state) => state?.ratedata?.pagination);
+    const rateSearchObj = useSelector((state) => state?.ratedata?.rateSearchObj);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -74,11 +81,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('department', selectedCurrentRateRow.department || '');
         }
         if (type === 'Edit' && selectedCurrentRateRow && currentTab === 'transportation') {
-            setValue('origin', selectedCurrentRateRow.origin || '');
-            setValue('originZipCode', selectedCurrentRateRow.originZipCode || '');
-            setValue('destination', selectedCurrentRateRow.destination || '');
-            setValue('destinationZipCode', selectedCurrentRateRow.destinationZipCode || '');
-            setValue('notes', selectedCurrentRateRow.notes || '');
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || '');
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
+            setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
+            setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
         }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
             setValue('origin', selectedCurrentRateRow?.originZone?.zoneName || '');
@@ -107,12 +114,32 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
-        if (type === 'Search' && currentTab === 'transportation') {
+        if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: null,
-                originZipOrRange: null,
-                destinationZoneId: null,
-                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+                originZoneId: rateSearchObj.origin,
+                originZipOrRange: rateSearchObj.originZipCode
+                    ?.split(',')            // Split by comma
+                    ?.map(s => s.trim())    // Remove any extra whitespace
+                    ?.filter(Boolean),
+                destinationZoneId: rateSearchObj.destination,
+                destinationZipOrRange: rateSearchObj.destinationZipCode
+                    ?.split(',')            // Split by comma
+                    ?.map(s => s.trim())    // Remove any extra whitespace
+                    ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
+        }
+        if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            dispatch(getCarrierTransportationRateDashboardData({
+                originZoneId: rateSearchObj.origin,
+                originZipOrRange: rateSearchObj.originZipCode
+                    ?.split(',')            // Split by comma
+                    ?.map(s => s.trim())    // Remove any extra whitespace
+                    ?.filter(Boolean),
+                destinationZoneId: rateSearchObj.destination,
+                destinationZipOrRange: rateSearchObj.destinationZipCode
+                    ?.split(',')            // Split by comma
+                    ?.map(s => s.trim())    // Remove any extra whitespace
+                    ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
             }));
         }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
@@ -135,6 +162,90 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             };
             dispatch(putWarehouseRate(selectedCurrentRateRow?.rateId, obj));
         }
+        if (type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": rateFieldChargeData
+                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                    .map(item => {
+                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+
+                        return {
+                            rateField: item.rateField.toString(),
+                            chargeValue: Number(item.charge),
+                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
+                        };
+                    }),
+                "note": {
+                    "messageText": data.notes
+                }
+            }
+            dispatch(postCustomerTransportationRate(obj));
+        }
+        if (type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": rateFieldChargeData
+                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                    .map(item => {
+                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+
+                        return {
+                            rateField: item.rateField.toString(),
+                            chargeValue: Number(item.charge),
+                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
+                        };
+                    }),
+                "note": {
+                    "messageText": data.notes
+                }
+            }
+            dispatch(postCarrierTransportationRate(obj));
+        }
+        if (type === 'Edit' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": rateFieldChargeData
+                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                    .map(item => {
+                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+
+                        return {
+                            rateField: item.rateField.toString(),
+                            chargeValue: Number(item.charge),
+                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
+                        };
+                    }),
+                "note": {
+                    "messageText": data.notes
+                }
+            }
+            dispatch(putCustomerTransportationRate(selectedCurrentRateRow?.rateId, obj));
+        }
+        if (type === 'Edit' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": rateFieldChargeData
+                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                    .map(item => {
+                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+
+                        return {
+                            rateField: item.rateField.toString(),
+                            chargeValue: Number(item.charge),
+                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
+                        };
+                    }),
+                "note": {
+                    "messageText": data.notes
+                }
+            }
+            dispatch(putCarrierTransportationRate(selectedCurrentRateRow?.rateId, obj))
+        }
     };
     const handleCLear = () => {
         // reset form fields    
@@ -147,12 +258,20 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
         }
-        if (type === 'Search' && currentTab === 'transportation') {
+        if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: null,
-                originZipOrRange: null,
-                destinationZoneId: null,
-                destinationZipOrRange: null, pageNo: pagination.page, pageSize: pagination.pageSize
+                originZoneId: rateSearchObj.origin,
+                originZipOrRange: rateSearchObj.originZipCode,
+                destinationZoneId: rateSearchObj.destination,
+                destinationZipOrRange: rateSearchObj.destinationZipCode, pageNo: pagination.page, pageSize: pagination.pageSize
+            }));
+        }
+        if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            dispatch(getCarrierTransportationRateDashboardData({
+                originZoneId: rateSearchObj.origin,
+                originZipOrRange: rateSearchObj.originZipCode,
+                destinationZoneId: rateSearchObj.destination,
+                destinationZipOrRange: rateSearchObj.destinationZipCode, pageNo: pagination.page, pageSize: pagination.pageSize
             }));
         }
     };
@@ -321,10 +440,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         </StyledTextField>
                                     )}
                                 />
+                                {
+                                    originLoading ? <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} /> :
 
-                                <Iconify icon="famicons:open" onClick={() => {
-                                    handleZoneView('origin');
-                                }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                                         <Iconify icon="famicons:open" onClick={() => {
+                                            handleZoneView('origin');
+                                        }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                                }
+
                             </Stack>
                         }
 
@@ -458,9 +581,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     )}
                                 />
 
-                                <Iconify icon="famicons:open" onClick={() => {
-                                    handleZoneView('destination');
-                                }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                                {
+                                    destinationLoading ? <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} /> :
+                                         <Iconify icon="famicons:open" onClick={() => {
+                                            handleZoneView('destination');
+                                        }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
+                                }
                             </Stack>
                         }
 

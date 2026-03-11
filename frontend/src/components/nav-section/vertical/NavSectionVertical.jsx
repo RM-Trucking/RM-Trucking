@@ -3,12 +3,17 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { List, Stack, Button, Collapse } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
+import {
+  setCurrentRateRoutedFrom
+} from '../../../redux/slices/rate';
+import { useDispatch } from '../../../redux/store';
 
 // 1. Recursive Item Component
 function NavItem({ item, depth = 0 }) {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  
+  const dispatch = useDispatch();
+
   const hasActiveChild = (node) => {
     if (node.path && pathname.startsWith(node.path)) return true;
     // if (node.path === pathname) return true;
@@ -24,9 +29,15 @@ function NavItem({ item, depth = 0 }) {
   const handleClick = (e) => {
     // 1. If it has a path, go there immediately
     if (item.path) {
+      if (item.path.includes('/customer-maintenance/rate-maintenance')) {
+        dispatch(setCurrentRateRoutedFrom('customer'));
+      }
+      if (item.path.includes('/carrier-maintenance/rate-maintenance')) {
+        dispatch(setCurrentRateRoutedFrom('carrier'));
+      }
       navigate(item.path);
     }
-    
+
     // 2. If it has children, toggle the sub-menu open/closed
     if (hasChildren) {
       setOpen(!open);

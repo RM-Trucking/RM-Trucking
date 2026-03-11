@@ -344,7 +344,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         renderInput={(params) => (
                                             <StyledTextField
                                                 {...params}
-                                                multiline={false}
+                                                multiline
                                                 fullWidth
                                                 rows={4}
                                                 label="Range Zipcode"

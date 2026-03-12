@@ -1,0 +1,140 @@
+openapi: 3.0.0
+info:
+  title: General Fuel Surcharge API
+  version: 1.1.0
+  description: API for managing general fuel surcharge records
+
+tags:
+  - name: GeneralFuelSurcharge
+    description: Operations related to general fuel surcharge
+
+paths:
+  /api/maintenance/general-fuel-surcharge:
+    post:
+      tags: [GeneralFuelSurcharge]
+      summary: Create General Fuel Surcharge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateGeneralFuelSurchargeRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralFuelSurchargeResponse"
+    get:
+      tags: [GeneralFuelSurcharge]
+      summary: Get All General Fuel Surcharges
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of surcharges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/GeneralFuelSurchargeResponse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/maintenance/general-fuel-surcharge/{fuelSurchargeId}:
+    get:
+      tags: [GeneralFuelSurcharge]
+      summary: Get General Fuel Surcharge by ID
+      parameters:
+        - in: path
+          name: fuelSurchargeId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Surcharge details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeneralFuelSurchargeResponse"
+    put:
+      tags: [GeneralFuelSurcharge]
+      summary: Update General Fuel Surcharge
+      parameters:
+        - in: path
+          name: fuelSurchargeId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateGeneralFuelSurchargeRequest"
+      responses:
+        "200":
+          description: Updated
+    delete:
+      tags: [GeneralFuelSurcharge]
+      summary: Delete General Fuel Surcharge
+      parameters:
+        - in: path
+          name: fuelSurchargeId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted
+
+components:
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+
+    CreateGeneralFuelSurchargeRequest:
+      type: object
+      required: [fuelPercentage, effectiveDate, effectiveTime]
+      properties:
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }
+
+    UpdateGeneralFuelSurchargeRequest:
+      type: object
+      properties:
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }
+
+    GeneralFuelSurchargeResponse:
+      type: object
+      properties:
+        fuelSurchargeId: { type: integer }
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }
+        createdBy: { type: string }
+        createdAt: { type: string, format: date-time }
+        updatedBy: { type: string, nullable: true }
+        updatedAt: { type: string, format: date-time, nullable: true }

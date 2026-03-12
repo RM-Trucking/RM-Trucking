@@ -15,6 +15,8 @@ import entityAccessorialMapRouter from './entityAccessorialMap';
 import customerRateRouter from './customerRate';
 import carrierRateRouter from './carrierRate';
 import terminalRouter from './terminal';
+import generalFuelSurchargeRouter from './generalFuelSurcharge';
+import customerFuelSurchargeRouter from './customerFuelSurcharge';
 
 const router = Router();
 
@@ -49,6 +51,10 @@ router.use('/customer-personnel', customerPersonnelRouter);
 router.use('/customer-rate', customerRateRouter);
 
 router.use('/carrier-rate', carrierRateRouter);
+
+router.use('/general-fuel-surcharge', generalFuelSurchargeRouter);
+
+router.use('/customer-fuel-surcharge', customerFuelSurchargeRouter);
 
 
 export default router;

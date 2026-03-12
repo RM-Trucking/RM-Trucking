@@ -80,19 +80,19 @@ router.get('/transport-rate', authenticateJWT, async (req, res) => {
 
 
 // -------------------- Terminal Rate Map --------------------
-router.post('/station-rate-map', authenticateJWT, async (req, res) => {
+router.post('/terminal-rate-map', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.assignRateToTerminal(req, res, conn);
     conn.close();
 });
 
-router.get('/station-rate-map/', authenticateJWT, async (req, res) => {
+router.get('/terminal-rate-map/', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.getTerminalRates(req, res, conn);
     conn.close();
 });
 
-router.delete('/station-rate-map/:id', authenticateJWT, async (req, res) => {
+router.delete('/terminal-rate-map/:id', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.deleteTerminalRateMap(req, res, conn);
     conn.close();

@@ -5,13 +5,13 @@ info:
   description: API for mapping accessorials to entities (e.g., Station, Carrier, Terminal) with charge type, value, notes, and service availability
 
 tags:
-  - name: EntityAccessorialMap
+  - name: Entity Accessorial Map
     description: Operations related to entity-accessorial mappings
 
 paths:
   /api/maintenance/entity-accessorial:
     post:
-      tags: [EntityAccessorialMap]
+      tags: [Entity Accessorial Map]
       summary: Create a new entity-accessorial mapping
       security:
         - bearerAuth: []
@@ -33,7 +33,7 @@ paths:
 
   /api/maintenance/entity-accessorial/{entityId}:
     get:
-      tags: [EntityAccessorialMap]
+      tags: [Entity Accessorial Map]
       summary: Get all accessorial mappings for a given entity
       security:
         - bearerAuth: []
@@ -57,7 +57,7 @@ paths:
 
   /api/maintenance/entity-accessorial/{entityAccessorialId}:
     put:
-      tags: [EntityAccessorialMap]
+      tags: [Entity Accessorial Map]
       summary: Update an entity-accessorial mapping
       security:
         - bearerAuth: []
@@ -83,7 +83,7 @@ paths:
         "400":
           description: Failed to update mapping
     delete:
-      tags: [EntityAccessorialMap]
+      tags: [Entity Accessorial Map]
       summary: Delete an entity-accessorial mapping
       security:
         - bearerAuth: []
@@ -101,7 +101,7 @@ paths:
 
   /api/maintenance/entity-accessorial/{entityAccessorialId}/service-not-offered:
     patch:
-      tags: [EntityAccessorialMap]
+      tags: [Entity Accessorial Map]
       summary: Change serviceNotOffered flag for a mapping
       description: Toggle or update the serviceNotOffered flag for a specific entity-accessorial mapping.
       security:

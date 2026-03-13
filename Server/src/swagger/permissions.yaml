@@ -3,6 +3,11 @@ info:
   title: Permissions API
   version: 1.0.0
   description: API documentation for Permissions endpoints
+
+tags:
+  - name: Permissions
+    description: Operations related to permissions
+
 paths:
   /api/maintenance/permissions:
     get:

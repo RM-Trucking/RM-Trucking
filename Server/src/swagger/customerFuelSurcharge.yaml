@@ -5,13 +5,13 @@ info:
   description: API for managing customer fuel surcharge records and linked stations
 
 tags:
-  - name: CustomerFuelSurcharge
+  - name: Customer Fuel Surcharge
     description: Operations related to customer fuel surcharge
 
 paths:
   /api/maintenance/customer-fuel-surcharge:
     post:
-      tags: [CustomerFuelSurcharge]
+      tags: [Customer Fuel Surcharge]
       summary: Create Customer Fuel Surcharge
       requestBody:
         required: true
@@ -27,7 +27,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CustomerFuelSurchargeResponse"
     get:
-      tags: [CustomerFuelSurcharge]
+      tags: [Customer Fuel Surcharge]
       summary: Get All Customer Fuel Surcharges
       parameters:
         - in: query
@@ -54,7 +54,7 @@ paths:
 
   /api/maintenance/customer-fuel-surcharge/{customerFuelSurchargeId}:
     get:
-      tags: [CustomerFuelSurcharge]
+      tags: [Customer Fuel Surcharge]
       summary: Get Customer Fuel Surcharge by ID
       parameters:
         - in: path
@@ -69,7 +69,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/CustomerFuelSurchargeResponse"
     put:
-      tags: [CustomerFuelSurcharge]
+      tags: [Customer Fuel Surcharge]
       summary: Update Customer Fuel Surcharge
       parameters:
         - in: path
@@ -86,7 +86,7 @@ paths:
         "200":
           description: Updated
     delete:
-      tags: [CustomerFuelSurcharge]
+      tags: [Customer Fuel Surcharge]
       summary: Delete Customer Fuel Surcharge
       parameters:
         - in: path

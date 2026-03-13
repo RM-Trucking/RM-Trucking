@@ -5,13 +5,13 @@ info:
   description: API for managing general fuel surcharge records
 
 tags:
-  - name: GeneralFuelSurcharge
+  - name: General Fuel Surcharge
     description: Operations related to general fuel surcharge
 
 paths:
   /api/maintenance/general-fuel-surcharge:
     post:
-      tags: [GeneralFuelSurcharge]
+      tags: [General Fuel Surcharge]
       summary: Create General Fuel Surcharge
       requestBody:
         required: true
@@ -27,7 +27,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GeneralFuelSurchargeResponse"
     get:
-      tags: [GeneralFuelSurcharge]
+      tags: [General Fuel Surcharge]
       summary: Get All General Fuel Surcharges
       parameters:
         - in: query
@@ -54,7 +54,7 @@ paths:
 
   /api/maintenance/general-fuel-surcharge/{fuelSurchargeId}:
     get:
-      tags: [GeneralFuelSurcharge]
+      tags: [General Fuel Surcharge]
       summary: Get General Fuel Surcharge by ID
       parameters:
         - in: path
@@ -69,7 +69,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/GeneralFuelSurchargeResponse"
     put:
-      tags: [GeneralFuelSurcharge]
+      tags: [General Fuel Surcharge]
       summary: Update General Fuel Surcharge
       parameters:
         - in: path
@@ -86,7 +86,7 @@ paths:
         "200":
           description: Updated
     delete:
-      tags: [GeneralFuelSurcharge]
+      tags: [General Fuel Surcharge]
       summary: Delete General Fuel Surcharge
       parameters:
         - in: path

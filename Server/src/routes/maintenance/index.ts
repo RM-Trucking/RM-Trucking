@@ -11,6 +11,7 @@ import stationRouter from './station';
 import departmentRouter from './department';
 import noteRouter from './note';
 import customerPersonnelRouter from './customerPersonnel';
+import carrierPersonnelRouter from './carrierPersonnel';
 import entityAccessorialMapRouter from './entityAccessorialMap';
 import customerRateRouter from './customerRate';
 import carrierRateRouter from './carrierRate';
@@ -47,6 +48,8 @@ router.use('/department', departmentRouter);
 router.use('/note', noteRouter);
 
 router.use('/customer-personnel', customerPersonnelRouter);
+
+router.use('/carrier-personnel', carrierPersonnelRouter);
 
 router.use('/customer-rate', customerRateRouter);
 

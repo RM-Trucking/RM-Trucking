@@ -1,17 +1,17 @@
 openapi: 3.0.0
 info:
-  title: Customer Personnel API
+  title: Carrier Personnel API
   version: 1.1.0
-  description: API for managing personnel records linked to stations and departments
+  description: API for managing personnel records linked to terminals
 
 tags:
-  - name: Customer Personnel
-    description: Operations related to customer personnel
+  - name: Carrier Personnel
+    description: Operations related to carrier personnel
 
 paths:
-  /api/maintenance/customer-personnel:
+  /api/maintenance/carrier-personnel:
     post:
-      tags: [Customer Personnel]
+      tags: [Carrier Personnel]
       summary: Create a new personnel record
       security:
         - bearerAuth: []
@@ -20,20 +20,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/CreateCustomerPersonnelRequest"
+              $ref: "#/components/schemas/CreateCarrierPersonnelRequest"
       responses:
         "201":
           description: Personnel created successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CustomerPersonnelResponse"
+                $ref: "#/components/schemas/CarrierPersonnelResponse"
         "400":
           description: Failed to create personnel
 
-  /api/maintenance/customer-personnel/{personnelId}:
+  /api/maintenance/carrier-personnel/{personnelId}:
     get:
-      tags: [Customer Personnel]
+      tags: [Carrier Personnel]
       summary: Get personnel by ID
       security:
         - bearerAuth: []
@@ -49,11 +49,11 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CustomerPersonnelResponse"
+                $ref: "#/components/schemas/CarrierPersonnelResponse"
         "404":
           description: Personnel not found
     put:
-      tags: [Customer Personnel]
+      tags: [Carrier Personnel]
       summary: Update personnel record
       security:
         - bearerAuth: []
@@ -68,18 +68,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UpdateCustomerPersonnelRequest"
+              $ref: "#/components/schemas/UpdateCarrierPersonnelRequest"
       responses:
         "200":
           description: Personnel updated successfully
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CustomerPersonnelResponse"
+                $ref: "#/components/schemas/CarrierPersonnelResponse"
         "400":
           description: Failed to update personnel
     delete:
-      tags: [Customer Personnel]
+      tags: [Carrier Personnel]
       summary: Soft delete personnel record
       security:
         - bearerAuth: []
@@ -95,14 +95,14 @@ paths:
         "400":
           description: Failed to delete personnel
 
-  /api/maintenance/customer-personnel/station/{stationId}:
+  /api/maintenance/carrier-personnel/terminal/{terminalId}:
     get:
-      tags: [Customer Personnel]
-      summary: Get all personnel for a station (with search & pagination)
+      tags: [Carrier Personnel]
+      summary: Get all personnel for a terminal (with search & pagination)
       security:
         - bearerAuth: []
       parameters:
-        - name: stationId
+        - name: terminalId
           in: path
           required: true
           schema:
@@ -143,7 +143,7 @@ paths:
                   data:
                     type: array
                     items:
-                      $ref: "#/components/schemas/CustomerPersonnelResponse"
+                      $ref: "#/components/schemas/CarrierPersonnelResponse"
         "400":
           description: Failed to fetch personnel
 
@@ -155,13 +155,13 @@ components:
       bearerFormat: JWT
 
   schemas:
-    CustomerPersonnel:
+    CarrierPersonnel:
       type: object
       properties:
         personnelId: { type: integer }
-        stationId: { type: integer }
-        departmentId: { type: integer }
+        terminalId: { type: integer }
         name: { type: string }
+        personType: { type: string }
         email: { type: string }
         officePhoneNumber: { type: string }
         cellPhoneNumber: { type: string }
@@ -171,17 +171,17 @@ components:
         updatedBy: { type: integer }
         activeStatus: { type: string, enum: [Y, N] }
 
-    CreateCustomerPersonnelRequest:
+    CreateCarrierPersonnelRequest:
       type: object
       required:
-        - stationId
-        - departmentId
+        - terminalId
         - name
+        - personType
         - email
       properties:
-        stationId: { type: integer }
-        departmentId: { type: integer }
+        terminalId: { type: integer }
         name: { type: string }
+        personType: { type: string }
         email: { type: string }
         officePhoneNumber: { type: string }
         cellPhoneNumber: { type: string }
@@ -190,24 +190,21 @@ components:
           properties:
             messageText: { type: string }
 
-    UpdateCustomerPersonnelRequest:
+    UpdateCarrierPersonnelRequest:
       type: object
       properties:
-        stationId: { type: integer }
-        departmentId: { type: integer }
+        terminalId: { type: integer }
         name: { type: string }
+        personType: { type: string }
         email: { type: string }
         officePhoneNumber: { type: string }
         cellPhoneNumber: { type: string }
 
-    CustomerPersonnelResponse:
+    CarrierPersonnelResponse:
       allOf:
-        - $ref: "#/components/schemas/CustomerPersonnel"
+        - $ref: "#/components/schemas/CarrierPersonnel"
         - type: object
           properties:
-            stationName:
+            terminalName:
               type: string
-              description: Name of the station linked to this personnel
-            departmentName:
-              type: string
-              description: Name of the department linked to this personnel
+              description: Name of the terminal linked to this personnel

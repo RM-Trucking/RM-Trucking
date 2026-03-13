@@ -3,6 +3,11 @@ info:
   title: Auth API
   version: 1.0.0
   description: API documentation for Authentication endpoints
+
+tags:
+  - name: Authentication
+    description: Operations related to authentication
+
 paths:
   /api/maintenance/auth/login:
     post:

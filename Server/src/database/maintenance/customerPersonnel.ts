@@ -2,9 +2,6 @@ import { Connection } from 'odbc';
 import { SCHEMA } from '../../config/db2';
 import { CustomerPersonnel } from '../../entities/maintenance';
 
-/**
- * Create a new personnel record
- */
 export async function createCustomerPersonnel(
   conn: Connection,
   personnel: Partial<CustomerPersonnel>
@@ -35,7 +32,7 @@ export async function createCustomerPersonnel(
   return result[0]?.personnelId;
 }
 
-export async function checkEmailExists(conn: Connection, email: string): Promise<boolean> {
+export async function checkCustomerPersonnelEmailExists(conn: Connection, email: string): Promise<boolean> {
   const query = `SELECT 1 FROM ${SCHEMA}."Customer_Personnel" WHERE "email" = ?`;
   const result = await conn.query(query, [email]) as any[];
   return result.length > 0;
@@ -164,7 +161,7 @@ export async function updateCustomerPersonnel(
 /**
  * Soft delete personnel
  */
-export async function softDeletePersonnel(
+export async function softDeleteCustomerPersonnel(
   conn: Connection,
   personnelId: number,
   userId: number

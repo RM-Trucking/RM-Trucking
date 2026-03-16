@@ -307,28 +307,41 @@ export async function assignRateToStationService(
         const stationRateIds: number[] = [];
 
         for (const r of req) {
-            const stationRateId = await rateDB.assignRateToStation(
-                conn,
-                r.stationId,
-                r.rateId,
-                r.rateType,
-                assignedBy
+            // First check if mapping already exists
+            const existingMaps = await rateDB.getStationRates(conn, r.stationId);
+            const alreadyMapped = existingMaps.find(
+                m => m.rateId === r.rateId && m.rateType === r.rateType
             );
-            stationRateIds.push(stationRateId);
+
+            if (alreadyMapped) {
+                // If already mapped, just reuse the existing ID
+                stationRateIds.push(alreadyMapped.stationRateId);
+            } else {
+                // Otherwise insert new mapping
+                const stationRateId = await rateDB.assignRateToStation(
+                    conn,
+                    r.stationId,
+                    r.rateId,
+                    r.rateType,
+                    assignedBy
+                );
+                stationRateIds.push(stationRateId);
+            }
         }
 
-        // Fetch all maps for the station
+        // Fetch all maps for the station (or stations if multiple)
         const maps = await rateDB.getStationRates(conn, req[0].stationId);
 
         await conn.commit();
 
-        // Return only the ones we just inserted
+        // Return only the ones we just inserted or reused
         return maps.filter(m => stationRateIds.includes(m.stationRateId));
     } catch (error) {
         await conn.rollback();
         throw error;
     }
 }
+
 
 
 export async function getStationRatesService(

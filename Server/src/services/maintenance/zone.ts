@@ -148,63 +148,123 @@ export async function createZoneService(
 }
 
 
-export async function listZonesDropdownService(conn: Connection): Promise<ZoneDropdownResponse[]> {
-    const zones = await zoneDB.getAllZonesBasic(conn);
+// export async function listZonesDropdownService(conn: Connection): Promise<ZoneDropdownResponse[]> {
+//     const zones = await zoneDB.getAllZonesBasic(conn);
 
-    const responses: ZoneDropdownResponse[] = [];
-    for (const zone of zones) {
-        const zips = await zoneDB.getZoneZips(conn, zone.zoneId);
+//     const responses: ZoneDropdownResponse[] = [];
+//     for (const zone of zones) {
+//         const zips = await zoneDB.getZoneZips(conn, zone.zoneId);
 
-        responses.push({
-            zoneId: zone.zoneId,
-            zoneName: zone.zoneName,
-            zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
-            ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
-        });
-    }
+//         responses.push({
+//             zoneId: zone.zoneId,
+//             zoneName: zone.zoneName,
+//             zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
+//             ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
+//         });
+//     }
 
-    return responses;
-}
+//     return responses;
+// }
 
 
-export async function searchZonesByZipsAndRanges(
+// export async function searchZonesByZipsAndRanges(
+//     conn: Connection,
+//     input: string
+// ): Promise<ZoneDropdownResponse[]> {
+//     const tokens = input.split(",").map(t => t.trim()).filter(t => t.length > 0);
+//     const matchedZoneIds = new Set<number>();
+
+//     for (const token of tokens) {
+//         if (token.includes("-")) {
+//             const [start, end] = token.split("-").map(r => r.trim());
+//             const startNum = parseInt(start, 10);
+//             const endNum = parseInt(end, 10);
+
+//             for (let current = startNum; current <= endNum; current++) {
+//                 const zones = await zoneDB.findZonesByZip(conn, current.toString());
+//                 zones.forEach(z => matchedZoneIds.add(z.zoneId));
+//             }
+//         } else {
+//             const zones = await zoneDB.findZonesByZip(conn, token);
+//             zones.forEach(z => matchedZoneIds.add(z.zoneId));
+//         }
+//     }
+
+//     const responses: ZoneDropdownResponse[] = [];
+//     for (const zoneId of matchedZoneIds) {
+//         const zone = await zoneDB.getZoneById(conn, zoneId);
+//         if (zone) {
+//             const zips = await zoneDB.getZoneZips(conn, zone.zoneId);
+//             responses.push({
+//                 zoneId: zone.zoneId,
+//                 zoneName: zone.zoneName,
+//                 zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
+//                 ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
+//             });
+//         }
+//     }
+
+//     return responses;
+// }
+
+
+
+export async function searchZonesByZipsAndRangesService(
     conn: Connection,
     input: string
 ): Promise<ZoneDropdownResponse[]> {
-    const tokens = input.split(",").map(t => t.trim()).filter(t => t.length > 0);
-    const matchedZoneIds = new Set<number>();
+    const tokens = input.split(",").map(t => t.trim()).filter(Boolean);
 
-    for (const token of tokens) {
-        if (token.includes("-")) {
-            const [start, end] = token.split("-").map(r => r.trim());
-            const startNum = parseInt(start, 10);
-            const endNum = parseInt(end, 10);
+    const zipTokens = tokens.filter(t => !t.includes("-"));
+    const ranges: [number, number][] = tokens
+        .filter(t => t.includes("-"))
+        .map(t => {
+            const [start, end] = t.split("-").map(Number);
+            return [start, end];
+        });
 
-            for (let current = startNum; current <= endNum; current++) {
-                const zones = await zoneDB.findZonesByZip(conn, current.toString());
-                zones.forEach(z => matchedZoneIds.add(z.zoneId));
-            }
-        } else {
-            const zones = await zoneDB.findZonesByZip(conn, token);
-            zones.forEach(z => matchedZoneIds.add(z.zoneId));
+    // Call one DB function that fetches all zones + zips in one shot
+    const rows = await zoneDB.findZonesByZipsAndRanges(conn, zipTokens, ranges);
+
+    // Group results in memory
+    const grouped: Record<number, ZoneDropdownResponse> = {};
+    for (const r of rows) {
+        if (!grouped[r.zoneId]) {
+            grouped[r.zoneId] = {
+                zoneId: r.zoneId,
+                zoneName: r.zoneName,
+                zipCodes: [],
+                ranges: []
+            };
         }
+        if (r.zipCode) grouped[r.zoneId].zipCodes.push(r.zipCode);
+        if (r.rangeStart && r.rangeEnd) grouped[r.zoneId].ranges.push(`${r.rangeStart}-${r.rangeEnd}`);
     }
 
-    const responses: ZoneDropdownResponse[] = [];
-    for (const zoneId of matchedZoneIds) {
-        const zone = await zoneDB.getZoneById(conn, zoneId);
-        if (zone) {
-            const zips = await zoneDB.getZoneZips(conn, zone.zoneId);
-            responses.push({
-                zoneId: zone.zoneId,
-                zoneName: zone.zoneName,
-                zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
-                ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
-            });
+    return Object.values(grouped);
+}
+
+export async function listZonesDropdownService(
+    conn: Connection
+): Promise<ZoneDropdownResponse[]> {
+    // Single DB call to fetch all zones + zips
+    const rows = await zoneDB.getAllZonesWithZips(conn);
+
+    const grouped: Record<number, ZoneDropdownResponse> = {};
+    for (const r of rows) {
+        if (!grouped[r.zoneId]) {
+            grouped[r.zoneId] = {
+                zoneId: r.zoneId,
+                zoneName: r.zoneName,
+                zipCodes: [],
+                ranges: []
+            };
         }
+        if (r.zipCode) grouped[r.zoneId].zipCodes.push(r.zipCode);
+        if (r.rangeStart && r.rangeEnd) grouped[r.zoneId].ranges.push(`${r.rangeStart}-${r.rangeEnd}`);
     }
 
-    return responses;
+    return Object.values(grouped);
 }
 
 

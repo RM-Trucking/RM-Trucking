@@ -100,11 +100,13 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             display: 'flex',
                             flex: 1,
                             justifyContent: 'center',
-                            mb: 0.5
+                            mb: 0.5,
+                            cursor: 'pointer'
                         }}
+                        onClick={handleDialogOpen}
                     >
 
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+                        <Iconify icon="icon-park-solid:notes" sx={{ color: '#7fbfc4', marginTop: '15px', }} />
 
                     </Box>
                 );
@@ -134,19 +136,23 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             }} />
                         </Tooltip> */}
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 setActionType('Edit');
                                 dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                            <Box onClick={() => {
 
                                 dispatch(deleteStationDepartment(params?.row?.departmentId, () => {
                                     dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
                                 }));
 
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -242,17 +248,21 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         }}
                     >
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 setActionType('Edit');
                                 dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(deleteStationPersonnel(params?.row?.personnelId, () => {
                                     dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
                                 }));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -393,17 +403,21 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(deleteStationRate(params?.row?.stationRateId, () => {
                                     dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
                                 }));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -448,7 +462,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                 </Box>
             )
         },
-
         {
             field: "warehouseRate",
             headerName: "Rates",
@@ -498,17 +511,21 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(deleteStationRate(params?.row?.stationRateId, () => {
                                     dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
                                 }));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -588,20 +605,24 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         }}
                     >
 
-                        <Tooltip title={'Edit'} arrow onClick={() => {
-                            setActionType('Edit');
-                            dispatch(setSelectedStationTabRowDetails(params.row));
-                        }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                        <Tooltip title={'Edit'} arrow >
+                            <Box onClick={() => {
+                                setActionType('Edit');
+                                dispatch(setSelectedStationTabRowDetails(params.row));
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
+                            <Box onClick={() => {
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStationAccessorial(params?.row?.accessorialId, () => {
                                     dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
                                 }));
-                            }}
-                            />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
+                                />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );

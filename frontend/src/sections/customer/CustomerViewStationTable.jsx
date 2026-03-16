@@ -247,29 +247,35 @@ export default function CustomerViewStationTable() {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 setActionType('View');
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerStationView);
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 setActionType('Edit');
                                 setOpenConfirmDialog(true);
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
+                            <Box onClick={() => {
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStation(params?.row?.stationId, () => {
                                     dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
                                 }));
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );

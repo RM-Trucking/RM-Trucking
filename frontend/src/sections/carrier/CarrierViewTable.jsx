@@ -13,7 +13,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setSelectedCarrierRowDetails, setOperationalMessage, getTerminalCarrierData, setSelectedCarrierTabRowDetails, getAccessorialCarrierData, } from '../../redux/slices/carrier';
-import { setTableBeingViewed } from '../../redux/slices/customer';
+import { setTableBeingViewed, getAccessorialData } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -394,6 +394,7 @@ export default function CarrierViewTable() {
         if (currentCarrierViewTab === 'accessorial') {
             dispatch(clearNotesState());
             setTableColumns(accessorialColumns);
+            dispatch(getAccessorialData());
             dispatch(getAccessorialCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
     }, [currentCarrierViewTab]);

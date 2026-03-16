@@ -210,8 +210,6 @@ export default function RateFieldAndChargeTable({ type }) {
                         return 0; // Maintain original order if both are same
                     });
                 };
-
-
                 const onAdd = () => {
                     const lastRow = tableData[tableData.length - 1];
                     if (tableData.length > 0 && tableData[tableData.length - 1].rateField === '' || tableData[tableData.length - 1].charge === '') {
@@ -271,53 +269,59 @@ export default function RateFieldAndChargeTable({ type }) {
                         {isLastRow ? (
                             /* ALWAYS SHOW ADD ON THE LAST ROW */
                             <Tooltip title="Add New Row" arrow>
-                                <Iconify
-                                    icon="basil:add-solid"
-                                    sx={{ color: '#A22', cursor: 'pointer', fontSize: '24px' }}
-                                    onClick={(e) => {
-                                        e.stopPropagation(); // Prevents popup close
-                                        onAdd();
-                                    }}
-                                />
+                                <Box onClick={(e) => {
+                                    e.stopPropagation(); // Prevents popup close
+                                    onAdd();
+                                }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                    <Iconify
+                                        icon="basil:add-solid"
+                                        sx={{ color: '#A22', fontSize: '24px' }}
+                                    />
+                                </Box>
                             </Tooltip>
                         ) : (
                             /* TOGGLE EDIT/SAVE FOR ALL OTHER ROWS */
                             <>
                                 {params.row.readonly ? (
                                     <Tooltip title="Edit" arrow>
-                                        <Iconify
-                                            icon="tabler:edit"
-                                            sx={{ color: '#000', cursor: 'pointer' }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleReadonly(params.row.id, false);
-                                            }}
-                                        />
+                                        <Box onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleReadonly(params.row.id, false);
+                                        }}
+                                            sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                            <Iconify
+                                                icon="tabler:edit"
+                                                sx={{ color: '#000', }}
+                                            />
+                                        </Box>
                                     </Tooltip>
                                 ) : (
                                     <Tooltip title="Save" arrow>
-                                        <Iconify
-                                            icon="ant-design:save-filled"
-                                            sx={{ color: '#000', cursor: 'pointer', fontSize: '24px' }}
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                toggleReadonly(params.row.id, true);
-                                            }}
-                                        />
+                                        <Box onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleReadonly(params.row.id, true);
+                                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                            <Iconify
+                                                icon="ant-design:save-filled"
+                                                sx={{ color: '#000', fontSize: '24px' }}
+                                            />
+                                        </Box>
                                     </Tooltip>
                                 )}
 
                                 <Tooltip title="Delete" arrow>
-                                    <Iconify
-                                        icon="material-symbols:delete-rounded"
-                                        sx={{ color: '#000', cursor: 'pointer' }}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            const updatedData = tableData.filter(row => row.id !== params.row.id);
-                                            setTableData(updatedData);
-                                            dispatch(setRateFieldChargeData(updatedData));
-                                        }}
-                                    />
+                                    <Box onClick={(e) => {
+                                        e.stopPropagation();
+                                        const updatedData = tableData.filter(row => row.id !== params.row.id);
+                                        setTableData(updatedData);
+                                        dispatch(setRateFieldChargeData(updatedData));
+                                    }}
+                                        sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                        <Iconify
+                                            icon="material-symbols:delete-rounded"
+                                            sx={{ color: '#000', }}
+                                        />
+                                    </Box>
                                 </Tooltip>
                             </>
                         )}
@@ -336,7 +340,7 @@ export default function RateFieldAndChargeTable({ type }) {
         // if type is view table should not be editable
         console.log(type, 'in transportation sub table')
     }, [type]);
-    
+
     useEffect(() => {
         if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length > 0 && selectedCurrentRateRow?.details) {
             const list = selectedCurrentRateRow?.details?.map((item, index) => {

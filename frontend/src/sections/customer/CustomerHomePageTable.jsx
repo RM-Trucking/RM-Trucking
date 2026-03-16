@@ -174,19 +174,23 @@ export default function CustomerHomePageTable() {
                     }}
                 >
                     <Tooltip title={'View'} arrow>
-                        <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                        <Box onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
                             dispatch(setStationTabTableData([]));
                             localStorage.setItem('customerId', params?.row?.customerId);
                             navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
-                        }} />
+                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                        </Box>
                     </Tooltip>
                     <Tooltip title={'Edit'} arrow>
-                        <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
+                        <Box onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
                             localStorage.setItem('customerId', params?.row?.customerId);
                             setOpenEditDialog(true);
-                        }} />
+                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                        </Box>
                     </Tooltip>
 
                     <ColoredSwitch slotProps={{ input: { 'aria-label': 'controlled' } }} checked={params?.row?.activeStatus === 'Y'} onChange={(event) => handleSwitchChange(event, params)} />

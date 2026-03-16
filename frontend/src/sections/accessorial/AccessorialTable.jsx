@@ -55,21 +55,25 @@ export default function AccessorialTable() {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'Edit'} arrow onClick={() => {
-                            setOpenEditDialog(true);
-                            dispatch(setSelectedAccessorialRowDetails(params.row));
-                        }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                        <Tooltip title={'Edit'} arrow >
+                            <Box onClick={() => {
+                                setOpenEditDialog(true);
+                                dispatch(setSelectedAccessorialRowDetails(params.row));
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
-                                
+                            <Box onClick={() => {
+
                                 // using callback to refresh table data after delete
                                 dispatch(deleteAccessorial(params?.row?.accessorialId, () => {
                                     dispatch(getAccessorialData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: accessorialSearchStr }));
                                 }));
-                            }}
-                            />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
+                                />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -162,7 +166,7 @@ export default function AccessorialTable() {
             }}
         >
             <DialogContent>
-                <AccessorialDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedAccessorialRowDetails={selectedAccessorialRowDetails}/>
+                <AccessorialDetails type={'Edit'} handleCloseConfirm={handleCloseEdit} selectedAccessorialRowDetails={selectedAccessorialRowDetails} />
             </DialogContent>
         </Dialog>
 

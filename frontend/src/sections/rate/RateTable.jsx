@@ -243,7 +243,7 @@ export default function RateTable() {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
@@ -256,17 +256,21 @@ export default function RateTable() {
                                     dispatch(getCarrierListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
                                 }
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("Edit");
                                 setOpenConfirmDialog(true);
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} />
+                            </Box>
                         </Tooltip>
 
                         {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
@@ -370,23 +374,33 @@ export default function RateTable() {
                         }}
                     >
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
-                                setActionType("Edit");
-                                dispatch(setSelectedCurrentRateRow(params?.row));
-                                setOpenConfirmDialog(true);
-                            }} />
+                            <Box
+                                onClick={() => {
+                                    setActionType("Edit");
+                                    dispatch(setSelectedCurrentRateRow(params?.row));
+                                    setOpenConfirmDialog(true);
+                                }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Copy'} arrow>
-                            <Iconify icon="bxs:copy" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => {
-                                setActionType("Copy");
-                                dispatch(setSelectedCurrentRateRow(params?.row));
-                                setOpenConfirmDialog(true);
-                            }} />
+                            <Box
+                                onClick={() => {
+                                    setActionType("Copy");
+                                    dispatch(setSelectedCurrentRateRow(params?.row));
+                                    setOpenConfirmDialog(true);
+                                }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="bxs:copy" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(deleteWarehouseRate(params?.row?.rateId));
-                            }} />
+                            }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
+                            </Box>
                         </Tooltip>
                         {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
                             sx={{ mt: -1.5 }}

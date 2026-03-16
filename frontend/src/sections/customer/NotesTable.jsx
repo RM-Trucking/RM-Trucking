@@ -53,7 +53,6 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                 return element;
             },
         },
-
         {
             field: "messageText",
             headerName: "Note",

@@ -16,7 +16,7 @@ import { setTableBeingViewed } from '../../redux/slices/customer';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------
 RateFieldAndChargeTableWarehouse.propTypes = {
-type: PropTypes.string,
+    type: PropTypes.string,
 };
 
 export default function RateFieldAndChargeTableWarehouse({ type }) {
@@ -66,7 +66,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
                 const element = <StyledTextField
                     variant="standard"
                     fullWidth
-                     value={params.row.charge ?? ''} 
+                    value={params.row.charge ?? ''}
                     label=""
                     onChange={(e) => {
                         const val = e.target.value;
@@ -121,14 +121,17 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
                         }}
                     >
 
-                        {params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => onEdit()} />
-                        </Tooltip>}
+                        {params.row.readonly && (type === 'Edit' || type === 'Copy') &&
+                            <Tooltip title={'Edit'} arrow>
+                                <Box onClick={() => onEdit()} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                    <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                                </Box>
+                            </Tooltip>}
                         {!params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Save'} arrow>
-                            <Iconify icon="ic:baseline-save" sx={{ color: '#000', marginTop: '15px', mr: 2 }} onClick={() => onSave()} />
+                            <Box onClick={() => onSave()} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="ic:baseline-save" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
+                            </Box>
                         </Tooltip>}
-
-
                     </Box>
                 );
                 return element;

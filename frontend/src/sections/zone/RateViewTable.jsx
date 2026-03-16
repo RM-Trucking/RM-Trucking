@@ -218,7 +218,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 dispatch(getCustomerListByRateID(params.row.rateId));
@@ -227,7 +227,9 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 dispatch(setCurrentRateRoutedFrom('customer'));
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );

@@ -385,19 +385,30 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         }}
                                         sx={{
                                             "& .MuiInputBase-root": {
-                                                height: '125px !important',
-                                                alignItems: 'flex-start',
-                                                overflowY: 'auto', // Allows scrolling if many chips are added
-                                                padding: '5px !important',
+                                                minHeight: "120px",
+                                                alignItems: "flex-start",
+                                                overflowY: "auto",
+                                                flexWrap: "wrap",
+                                                padding: "6px",
                                             },
-                                            // 6. Style for View/Disabled Mode (Solid Black)
+                                            "& .MuiAutocomplete-inputRoot": {
+                                                flexWrap: "wrap",
+                                                alignItems: "flex-start",
+                                            },
+                                            "& .MuiAutocomplete-tag": {
+                                                margin: "3px",
+                                            },
                                             "& .MuiChip-root.Mui-disabled": {
                                                 color: "#000",
                                                 borderColor: "#000",
                                                 opacity: 1,
-                                                "& .MuiChip-deleteIcon": { display: 'none' }
+                                                "& .MuiChip-deleteIcon": {
+                                                    display: "none",
+                                                },
                                             },
-                                            "& .MuiInputLabel-root.Mui-disabled": { color: "#000" },
+                                            "& .MuiInputLabel-root.Mui-disabled": {
+                                                color: "#000",
+                                            },
                                             "& .MuiInputBase-input.Mui-disabled": {
                                                 WebkitTextFillColor: "#000",
                                                 color: "#000",
@@ -405,7 +416,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                             "& .MuiInput-underline.Mui-disabled:before": {
                                                 borderBottomColor: "#000 !important",
                                                 borderBottomStyle: "solid",
-                                            }
+                                            },
                                         }}
                                         renderInput={(params) => (
                                             <StyledTextField

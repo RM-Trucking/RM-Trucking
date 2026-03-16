@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
-import { DataGrid } from '@mui/x-data-grid';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { DataGrid, GridToolbar, GridFilterPanel, useGridApiContext, gridFilterModelSelector, useGridSelector, gridVisibleColumnDefinitionsSelector } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
+import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, Select, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
@@ -24,6 +25,96 @@ const ColoredSwitch = styled(Switch)(({ theme }) => ({
         backgroundColor: '#A22',
     },
 }));
+let pageObjCopy;
+
+function CustomFilterPanel() {
+    const apiRef = useGridApiContext();
+    const dispatch = useDispatch();
+
+    // 1. Get column definitions dynamically from the grid
+    const columns = useGridSelector(apiRef, gridVisibleColumnDefinitionsSelector)
+        .filter(col => col.filterable !== false && col.field !== '__check__');
+
+    // 2. Local state for manual multi-filtering
+    const [filters, setFilters] = useState([{ id: Date.now(), field: '', operator: 'contains', value: '' }]);
+    const [logicOperator, setLogicOperator] = useState('and');
+
+    const addFilter = () => setFilters([...filters, { id: Date.now(), field: '', operator: 'contains', value: '' }]);
+
+    const updateFilter = (id, key, val) => {
+        setFilters(filters.map(f => f.id === id ? { ...f, [key]: val } : f));
+    };
+
+    const handleApply = () => {
+        // 3. Send the custom multi-filter model to your server-side action
+        // dispatch(getCustomerData({
+        //     filterModel: {
+        //         items: filters.filter(f => f.field && f.value), // Only send valid filters
+        //         logicOperator: logicOperator
+        //     },
+        //     pageNo: 1
+        // }));
+        console.log(filterModel, logicOperator);
+        apiRef.current.hideFilterPanel(); // Close panel after applying
+    };
+
+    return (
+        <Box sx={{ p: 2, minWidth: 450 }}>
+            <Typography variant="subtitle2" mb={1}>Logic Operator</Typography>
+            <StyledTextField
+                select
+                value={logicOperator}
+                onChange={(e) => setLogicOperator(e.target.value)}
+                size="small"
+                sx={{ mb: 2 }}
+            >
+                <MenuItem value="and">And</MenuItem>
+                <MenuItem value="or">Or</MenuItem>
+            </StyledTextField>
+
+            {filters.map((f) => (
+                <Box key={f.id} sx={{ display: 'flex', gap: 1, mb: 1, alignItems: 'center' }}>
+                    {/* Dynamic Column Dropdown */}
+                    <StyledTextField
+                        select
+                        value={f.field}
+                        onChange={(e) => updateFilter(f.id, 'field', e.target.value)}
+                        size="small"
+                        displayEmpty
+                        sx={{ width: 150 }}
+                    >
+                        <MenuItem value="" disabled>Select Column</MenuItem>
+                        {columns.map(col => (
+                            <MenuItem key={col.field} value={col.field}>
+                                {col.headerName || col.field}
+                            </MenuItem>
+                        ))}
+                    </StyledTextField>
+
+                    <StyledTextField
+                        size="small"
+                        placeholder="Filter value..."
+                        value={f.value}
+                        onChange={(e) => updateFilter(f.id, 'value', e.target.value)}
+                        sx={{ flexGrow: 1 }}
+                    />
+
+                    <IconButton onClick={() => setFilters(filters.filter(x => x.id !== f.id))} color="error">
+                        <DeleteIcon fontSize="small" />
+                    </IconButton>
+                </Box>
+            ))}
+
+            <Button size="small" onClick={addFilter} sx={{ mt: 1 }}>+ Add Filter Condition</Button>
+
+            <Box mt={3} display="flex" justifyContent="flex-end">
+                <Button variant="contained" onClick={handleApply}>
+                    Apply Filters to Server
+                </Button>
+            </Box>
+        </Box>
+    );
+}
 
 export default function CustomerHomePageTable() {
     const dispatch = useDispatch();
@@ -67,13 +158,15 @@ export default function CustomerHomePageTable() {
         field: "customerName",
         headerName: "Customer Name",
         minWidth: 100,
-        flex: 1
+        flex: 1,
+        filterable: false,
     },
     {
         field: "rmAccountNumber",
         headerName: "RM Account #",
         minWidth: 100,
         flex: 1,
+        filterable: false,
         renderCell: (params) => {
             const element = (
                 <Box
@@ -95,13 +188,15 @@ export default function CustomerHomePageTable() {
         field: "phoneNumber",
         headerName: "Customer Phone #",
         minWidth: 100,
-        flex: 1
+        flex: 1,
+        filterable: false,
     },
     {
         field: "website",
         headerName: "Customer Website",
         minWidth: 100,
-        flex: 1
+        flex: 1,
+        filterable: false,
     },
     {
         field: "activeStatus",
@@ -109,6 +204,7 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         align: 'center',
         cellClassName: 'center-status-cell',
+        filterable: false,
         renderCell: (params) => {
             const element = (
                 <Box
@@ -128,6 +224,7 @@ export default function CustomerHomePageTable() {
         headerName: "Notes",
         minWidth: 100,
         flex: 1,
+        filterable: false,
         renderCell: (params) => {
             const handleDialogOpen = () => {
                 setOpenConfirmDialog(true);
@@ -277,8 +374,6 @@ export default function CustomerHomePageTable() {
                         searchStr: customerSearchStr
                     }));
                 }}
-                onFilterModelChange={onServerFilterChange}
-
                 rows={customerRows}
                 columns={columns}
                 loading={customerLoading}
@@ -294,6 +389,30 @@ export default function CustomerHomePageTable() {
                 rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 autoHeight
                 pagination
+
+                // regarding filters
+                // showToolbar
+                slots={{
+                    filterPanel: CustomFilterPanel,
+                }}
+                filterMode="server"
+                slotProps={{
+                    toolbar: {
+                        // 1. Hide the Search (Quick Filter)
+                        showQuickFilter: false,
+
+                        // 2. Hide the Export (CSV/Print) buttons
+                        csvOptions: { disableToolbarButton: true },
+                        printOptions: { disableToolbarButton: true },
+
+                        // 3. Hide the Columns selector button
+                        disableColumnSelector: true,
+
+                        // 4. Hide the Density selector (optional, if you don't want it)
+                        // disableDensitySelector: true,
+                    },
+                }}
+            // onFilterModelChange={onServerFilterChange}
             />
         </Box>
         <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

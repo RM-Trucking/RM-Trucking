@@ -1,0 +1,162 @@
+openapi: 3.0.0
+info:
+  title: Customer Fuel Surcharge API
+  version: 1.1.0
+  description: API for managing customer fuel surcharge records and linked stations
+
+tags:
+  - name: Customer Fuel Surcharge
+    description: Operations related to customer fuel surcharge
+
+paths:
+  /api/maintenance/customer-fuel-surcharge:
+    post:
+      tags: [Customer Fuel Surcharge]
+      summary: Create Customer Fuel Surcharge
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCustomerFuelSurchargeRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerFuelSurchargeResponse"
+    get:
+      tags: [Customer Fuel Surcharge]
+      summary: Get All Customer Fuel Surcharges
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer }
+        - in: query
+          name: pageSize
+          schema: { type: integer }
+      responses:
+        "200":
+          description: List of surcharges
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CustomerFuelSurchargeResponse"
+                  pagination:
+                    $ref: "#/components/schemas/Pagination"
+
+  /api/maintenance/customer-fuel-surcharge/{customerFuelSurchargeId}:
+    get:
+      tags: [Customer Fuel Surcharge]
+      summary: Get Customer Fuel Surcharge by ID
+      parameters:
+        - in: path
+          name: customerFuelSurchargeId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Surcharge details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerFuelSurchargeResponse"
+    put:
+      tags: [Customer Fuel Surcharge]
+      summary: Update Customer Fuel Surcharge
+      parameters:
+        - in: path
+          name: customerFuelSurchargeId
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCustomerFuelSurchargeRequest"
+      responses:
+        "200":
+          description: Updated
+    delete:
+      tags: [Customer Fuel Surcharge]
+      summary: Delete Customer Fuel Surcharge
+      parameters:
+        - in: path
+          name: customerFuelSurchargeId
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Deleted
+
+components:
+  schemas:
+    Pagination:
+      type: object
+      properties:
+        total: { type: integer }
+        page: { type: integer }
+        pageSize: { type: integer }
+
+    CreateCustomerFuelSurchargeRequest:
+      type: object
+      required:
+        [
+          customerId,
+          customerName,
+          fuelPercentage,
+          effectiveDate,
+          effectiveTime,
+          stations,
+        ]
+      properties:
+        customerId: { type: integer }
+        customerName: { type: string }
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }
+        stations:
+          type: array
+          items:
+            type: object
+            properties:
+              stationId: { type: integer }
+              stationName: { type: string }
+
+    UpdateCustomerFuelSurchargeRequest:
+      type: object
+      properties:
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }
+        stations:
+          type: array
+          items:
+            type: object
+            properties:
+              stationId: { type: integer }
+              stationName: { type: string }
+
+    CustomerFuelSurchargeResponse:
+      type: object
+      properties:
+        customerFuelSurchargeId: { type: integer }
+        customerId: { type: integer }
+        customerName: { type: string }
+        fuelPercentage: { type: number }
+        effectiveDate: { type: string, format: date }
+        effectiveTime: { type: string }
+        expireDate: { type: string, format: date, nullable: true }
+        expireTime: { type: string, nullable: true }

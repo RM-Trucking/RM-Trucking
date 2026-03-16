@@ -5,10 +5,10 @@ import * as personnelService from '../../services/maintenance';
 /**
  * Create new personnel
  */
-export async function createCustomerPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function createPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const userId = (req as any).user?.userId || 1;
-        const personnel = await personnelService.createCustomerPersonnelService(conn, req.body, userId);
+        const personnel = await personnelService.createCarrierPersonnelService(conn, req.body, userId);
         res.status(201).json({ success: true, data: personnel });
     } catch (error) {
         console.error(error);
@@ -25,10 +25,10 @@ export async function createCustomerPersonnel(req: Request, res: Response, conn:
 /**
  * Get personnel by ID
  */
-export async function getCustomerPersonnelById(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getCarrierPersonnelById(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { personnelId } = req.params;
-        const personnel = await personnelService.getCustomerPersonnelByIdService(conn, parseInt(personnelId, 10));
+        const personnel = await personnelService.getCarrierPersonnelByIdService(conn, parseInt(personnelId, 10));
         if (!personnel) {
             res.status(404).json({ error: 'Personnel not found' });
             return;
@@ -40,18 +40,18 @@ export async function getCustomerPersonnelById(req: Request, res: Response, conn
 }
 
 /**
- * Get all personnel for a station
+ * Get all personnel for a terminal
  */
-export async function getCustomerPersonnelByStation(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getCarrierPersonnelByTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const { stationId } = req.params;
+        const { terminalId } = req.params;
         const page = parseInt(req.query.page as string, 10) || 1;
         const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
         const searchTerm = (req.query.searchTerm as string) || null;
 
-        const result = await personnelService.getCustomerPersonnelByStationService(
+        const result = await personnelService.getCarrierPersonnelByTerminalService(
             conn,
-            parseInt(stationId, 10),
+            parseInt(terminalId, 10),
             page,
             pageSize,
             searchTerm
@@ -78,11 +78,11 @@ export async function getCustomerPersonnelByStation(req: Request, res: Response,
 /**
  * Update personnel
  */
-export async function updateCustomerPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function updateCarrierPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const userId = (req as any).user?.userId || 1;
         const { personnelId } = req.params;
-        const updated = await personnelService.updateCustomerPersonnelService(
+        const updated = await personnelService.updateCarrierPersonnelService(
             conn,
             parseInt(personnelId, 10),
             req.body,
@@ -97,11 +97,11 @@ export async function updateCustomerPersonnel(req: Request, res: Response, conn:
 /**
  * Soft delete personnel
  */
-export async function deleteCustomerPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function deleteCarrierPersonnel(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const userId = (req as any).user?.userId || 1;
         const { personnelId } = req.params;
-        await personnelService.deleteCustomerPersonnelService(conn, parseInt(personnelId, 10), userId);
+        await personnelService.deleteCarrierPersonnelService(conn, parseInt(personnelId, 10), userId);
         res.status(200).json({ success: true, message: 'Personnel deleted (soft delete)' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete personnel', message: (error as Error).message });

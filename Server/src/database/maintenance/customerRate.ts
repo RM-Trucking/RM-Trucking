@@ -296,7 +296,7 @@ export async function listCustomerTransportRates(
     const result = await conn.query(query, params) as any[];
     const totalResult = await conn.query(`SELECT COUNT(*) as total FROM ${SCHEMA}."Customer_Rate" ${whereClause}`, params.slice(0, -2)) as any[];
 
-    return { data: result as CustomerRate[], total: totalResult[0].total };
+    return { data: result as CustomerRate[], total: totalResult[0].TOTAL };
 }
 
 

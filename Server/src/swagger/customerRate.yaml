@@ -4,6 +4,14 @@ info:
   version: 1.0.0
   description: CRUD APIs for Warehouse and Transport rates, plus Station Rate mapping.
 
+tags:
+  - name: Customer Warehouse Rate
+    description: Operations related to customer warehouse rates
+  - name: Customer Transport Rate
+    description: Operations related to customer transport rates
+  - name: Station Rate Map
+    description: Operations related to mapping rates to stations
+
 paths:
   /api/maintenance/customer-rate/warehouse-rate:
     post:

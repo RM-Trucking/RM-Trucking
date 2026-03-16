@@ -3,6 +3,11 @@ info:
   title: Role API
   version: 1.0.0
   description: API documentation for Role management endpoints
+
+tags:
+  - name: Roles
+    description: Operations related to roles
+
 paths:
   /api/maintenance/roles:
     post:

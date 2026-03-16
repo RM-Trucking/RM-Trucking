@@ -3,6 +3,11 @@ info:
   title: User API
   version: 1.0.0
   description: API documentation for User management endpoints
+
+tags:
+  - name: User
+    description: Operations related to user management
+
 paths:
   /api/maintenance/user:
     post:

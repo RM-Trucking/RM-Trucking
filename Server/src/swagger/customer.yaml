@@ -4,6 +4,10 @@ info:
   version: 1.0.0
   description: API documentation for Customer management endpoints
 
+tags:
+  - name: Customer
+    description: Operations related to customer management
+
 paths:
   /api/maintenance/customer:
     post:

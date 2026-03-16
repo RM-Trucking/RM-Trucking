@@ -158,8 +158,8 @@ export async function getStationRates(
            u."userName",
            w."minRate", w."maxRate", w."ratePerPound", w."department", w."warehouse",
            t."originZoneId", t."destinationZoneId",
-           oz."zoneName" AS originZoneName,
-           dz."zoneName" AS destinationZoneName
+           oz."zoneName" AS "originZoneName",
+           dz."zoneName" AS "destinationZoneName"
     FROM ${SCHEMA}."Station_Rate_Map" m
     LEFT JOIN ${SCHEMA}."User" u ON m."assignedBy" = u."userId"
     LEFT JOIN ${SCHEMA}."Customer_Rate_Warehouse" w 

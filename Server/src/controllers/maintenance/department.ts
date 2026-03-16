@@ -78,10 +78,7 @@ export async function updateDepartment(req: Request, res: Response, conn: Connec
             data: updated
         });
     } catch (error) {
-
         console.log(error);
-
-
         res.status(400).json({
             error: 'Failed to update department',
             message: (error as Error).message

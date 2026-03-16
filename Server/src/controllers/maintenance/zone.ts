@@ -8,7 +8,7 @@ import {
     listZonesService,
     listZonesDropdownService,
     checkZipZoneService,
-    searchZonesByZipsAndRanges
+    searchZonesByZipsAndRangesService
 } from "../../services/maintenance/zone";
 import { CreateZoneRequest, UpdateZoneRequest } from "../../entities/maintenance/Zone";
 
@@ -69,7 +69,7 @@ export async function listZonesDropdown(req: Request, res: Response, conn: Conne
         let zones;
         if (input) {
             // If input is provided, run autocomplete search
-            zones = await searchZonesByZipsAndRanges(conn, input);
+            zones = await searchZonesByZipsAndRangesService(conn, input);
         } else {
             // Otherwise, return all active zones
             zones = await listZonesDropdownService(conn);

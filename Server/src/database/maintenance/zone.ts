@@ -169,3 +169,46 @@ export async function findZonesByZip(conn: Connection, zipCode: string): Promise
   const result = await conn.query(query, [zipCode, zipCode]) as any[];
   return result.map(r => ({ zoneId: r.zoneId, zoneName: r.zoneName }));
 }
+
+
+export async function findZonesByZipsAndRanges(
+  conn: Connection,
+  zipTokens: string[],
+  ranges: [number, number][]
+): Promise<any[]> {
+  let query = `
+    SELECT z."zoneId", z."zoneName", zz."zipCode", zz."rangeStart", zz."rangeEnd"
+    FROM ${SCHEMA}."Zone" z
+    JOIN ${SCHEMA}."Zone_Zip" zz ON z."zoneId" = zz."zoneId"
+    WHERE 1=1
+  `;
+  const params: any[] = [];
+
+  if (zipTokens.length) {
+    query += ` AND zz."zipCode" IN (${zipTokens.map(() => "?").join(",")})`;
+    params.push(...zipTokens);
+  }
+
+  if (ranges.length) {
+    query += ` OR (`;
+    query += ranges
+      .map(() => `(? BETWEEN zz."rangeStart" AND zz."rangeEnd" OR ? BETWEEN zz."rangeStart" AND zz."rangeEnd")`)
+      .join(" OR ");
+    query += `)`;
+    ranges.forEach(([start, end]) => {
+      params.push(start, end);
+    });
+  }
+
+  return await conn.query(query, params) as any[];
+}
+
+export async function getAllZonesWithZips(conn: Connection): Promise<any[]> {
+  const query = `
+    SELECT z."zoneId", z."zoneName", zz."zipCode", zz."rangeStart", zz."rangeEnd"
+    FROM ${SCHEMA}."Zone" z
+    LEFT JOIN ${SCHEMA}."Zone_Zip" zz ON z."zoneId" = zz."zoneId"
+    WHERE z."activeStatus" = 'Y'
+  `;
+  return await conn.query(query) as any[];
+}

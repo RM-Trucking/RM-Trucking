@@ -141,6 +141,12 @@ export async function getAllCustomersService(
 }
 
 
+export async function getCustomerDropdownService(conn: Connection, search: string) {
+    return await customerDB.getCustomerDropdown(conn, search);
+}
+
+
+
 /**
  * Get customer by ID
  */

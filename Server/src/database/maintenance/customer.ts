@@ -206,3 +206,28 @@ export async function countCustomersByRateId(conn: Connection, rateId: number): 
     const result = await conn.query(query, [rateId]) as any[];
     return result.length ? result[0].TOTAL : 0;
 }
+
+
+export async function getCustomerDropdown(
+    conn: Connection,
+    search: string
+): Promise<{ id: number; name: string }[]> {
+    let query = `
+    SELECT "customerId", "customerName"
+    FROM ${SCHEMA}."Customer"
+    WHERE "activeStatus" = 'Y'
+  `;
+    const params: any[] = [];
+
+    if (search && search.trim().length > 0) {
+        query += ` AND LOWER("customerName") LIKE ?`;
+        params.push(`%${search.toLowerCase()}%`);
+    }
+
+    query += ` ORDER BY "customerName" ASC`;
+
+    const result = await conn.query(query, params) as any[];
+    return result;
+}
+
+

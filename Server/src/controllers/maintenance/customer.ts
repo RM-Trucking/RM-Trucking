@@ -61,6 +61,22 @@ export async function getCustomer(req: Request, res: Response, conn: Connection)
     }
 }
 
+
+export async function getCustomerDropdown(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const search = (req.query.search as string) || ""; // user types into autocomplete
+        const dropdownData = await customerService.getCustomerDropdownService(conn, search);
+        res.status(200).json({ success: true, data: dropdownData });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            error: "Failed to fetch dropdown data",
+            message: (error as Error).message
+        });
+    }
+}
+
+
 /**
  * GET /api/customers
  * Get all customers with search + pagination

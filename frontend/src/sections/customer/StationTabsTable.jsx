@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Stack, Typography, Snackbar, Dialog,
-    DialogContent, Tooltip, Divider
+    DialogContent, Tooltip, Divider, Chip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -12,7 +12,8 @@ import {
     setSelectedStationTabRowDetails, getStationDepartmentData,
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
     deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
-    deleteStationAccessorial, getAccessorialData, setOperationalMessage, setStationTabTableData
+    deleteStationAccessorial, getAccessorialData, setOperationalMessage, setStationTabTableData,
+    deleteStationRate,
 } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
@@ -259,7 +260,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             },
         },
     ];
-    const rateColumns = [
+    const rateTransportColumns = [
         {
             field: 'rateId',
             headerName: 'Rate ID',
@@ -268,30 +269,50 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.transportRate?.customerRateId}
                 </Box>
             )
         },
         {
-            field: 'origin',
+            field: 'originZoneId',
             headerName: 'Origin',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.transportRate?.originZone?.zoneName}
+                </Box>
+            )
         },
         {
-            field: 'originZipCode',
+            field: 'originZone',
             headerName: 'Origin Zip Code',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ")}
+                    </Typography>
+                </Stack>
+            )
         },
         {
-            field: 'destination',
+            field: 'destinationZoneId',
             headerName: 'Destination',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.transportRate?.destinationZone?.zoneName}
+                </Box>
+            )
         },
         {
             field: 'destinationZipCode',
@@ -299,9 +320,19 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ")}
+                    </Typography>
+                </Stack>
+            )
         },
         {
-            field: "rates",
+            field: "details",
             headerName: "Rates",
             minWidth: 300,
             minHeight: 200,
@@ -310,56 +341,17 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                 const element = (
                     <Box>
                         {
-                            currentRateTab === 'warehouse' && <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                    <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
-                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                                </Stack>
-                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                    <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
-                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
-                                </Stack>
-                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                    <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
-                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                                </Stack>
-                            </Stack>
-                        }
-                        {
                             currentRateTab === 'transportation' && <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                                <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>100:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate100}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>1000:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate1000}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>3000:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate3000}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>5000:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate5000}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>10000:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.rate10000}</Typography>
-                                    </Stack>
-                                    <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                                        <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
-                                        <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                                    </Stack>
-                                </Stack>
+                                {
+                                    params?.row?.transportRate?.details?.map((detail) => (
+                                        <Stack key={detail.rateDetailId} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                            <Typography variant="normal" sx={{ width: "130px" }}>{detail?.rateField}</Typography>
+                                            <Typography variant="normal" sx={{ width: "auto" }}>{detail.chargeValue}</Typography>
+                                        </Stack>
+                                    ))
+                                }
                             </Stack>
                         }
-
                     </Box>
                 );
                 return element;
@@ -372,7 +364,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                const formatted = new Date(params?.row?.transportRate?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric'
@@ -407,7 +399,116 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} onClick={() => {
+                                dispatch(deleteStationRate(params?.row?.stationRateId, () => {
+                                    dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
+                                }));
+                            }} />
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        },
+    ];
+    const rateWarehouseColumns = [
+        {
+            field: 'rateId',
+            headerName: 'Rate ID',
+            width: 150,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params.row?.rateId}
+                </Box>
+            )
+        },
+        {
+            field: 'warehouse',
+            headerName: 'Warehouse',
+            width: 200,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box>
+                    {params.row?.warehouseRate?.warehouse}
+                </Box>
+            )
+        },
+        {
+            field: 'department',
+            headerName: 'Department',
+            width: 200,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box>
+                    {params.row?.warehouseRate?.department}
+                </Box>
+            )
+        },
+
+        {
+            field: "warehouseRate",
+            headerName: "Rates",
+            minWidth: 300,
+            minHeight: 200,
+            flex: 1,
+            renderCell: (params) => {
+                const element = (
+                    <Box>
+                        {
+                            currentRateTab === 'warehouse' && <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.warehouseRate?.minRate}</Typography>
+                                </Stack>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.warehouseRate?.ratePerPound}</Typography>
+                                </Stack>
+                                <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                    <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
+                                    <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.warehouseRate?.maxRate}</Typography>
+                                </Stack>
+                            </Stack>
+                        }
+                    </Box>
+                );
+                return element;
+            }
+        },
+        {
+            field: "actions",
+            headerName: "Action",
+            minWidth: 110,
+            flex: 1,
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            mb: 1.2,
+                            mt: 1.2,
+                        }}
+                    >
+                        <Tooltip title={'View'} arrow>
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setSelectedStationTabRowDetails(params.row));
+                            }} />
+                        </Tooltip>
+
+                        <Tooltip title={'Delete'} arrow>
+                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} onClick={() => {
+                                dispatch(deleteStationRate(params?.row?.stationRateId, () => {
+                                    dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
+                                }));
+                            }} />
                         </Tooltip>
                     </Box>
                 );
@@ -525,8 +626,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         }
         else if (currentTab === 'rate') {
             dispatch(clearNotesState());
-            dispatch(getStationRateData());
-            setTableColumns(rateColumns);
+            dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
+            setTableColumns(currentRateTab === 'transportation' ? rateTransportColumns : rateWarehouseColumns);
         }
         else if (currentTab === 'accessorial') {
             dispatch(clearNotesState());
@@ -565,8 +666,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         if (currentTab === 'rate' && currentRateTab) {
             dispatch(clearNotesState());
-            dispatch(getStationRateData());
-            setTableColumns(rateColumns);
+            dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
+            setTableColumns(currentRateTab === 'transportation' ? rateTransportColumns : rateWarehouseColumns);
         }
     }, [currentRateTab])
 

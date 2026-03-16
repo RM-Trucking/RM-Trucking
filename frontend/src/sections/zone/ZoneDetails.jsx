@@ -144,38 +144,37 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     helperText={errors.zone?.message}
                                     disabled={type === 'View'}
                                     onChange={(e) => {
-                                        let val = e.target.value.toUpperCase(); // Force uppercase
+                                        let input = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
 
-                                        // 1. Remove any characters that aren't letters or numbers
-                                        val = val.replace(/[^A-Z0-9]/g, '');
+                                        // Extract all letters and all numbers separately
+                                        const letters = input.replace(/[0-9]/g, '');
+                                        const numbers = input.replace(/[A-Z]/g, '');
 
-                                        // 2. Enforce logic: First 3 must be letters, rest must be numbers
-                                        if (val.length <= 3) {
-                                            // While typing the first 3, remove any digits
-                                            val = val.replace(/[0-9]/g, '');
-                                        } else {
-                                            // After the first 3, the remaining string must only be digits
-                                            const prefix = val.substring(0, 3).replace(/[0-9]/g, '');
-                                            const suffix = val.substring(3).replace(/[A-Z]/g, '');
-                                            val = prefix + suffix;
-                                        }
+                                        // Limit letters to exactly 3, and append whatever numbers were typed
+                                        // This way, deleting a letter doesn't turn a number into a letter
+                                        const prefix = letters.substring(0, 3);
+                                        const suffix = numbers;
 
-                                        onChange(val);
+                                        onChange(prefix + suffix);
                                     }}
                                 />
                             )}
                         />
 
-                        <Controller
+                        {/* <Controller
                             name="individualZipCodes"
                             control={control}
                             rules={{
                                 required: 'Individual Zip Codes is required',
                                 validate: (value) => {
-                                    // Split by comma, trim spaces, and check if every segment is exactly 5 digits
+                                    if (!value) return true;
+                                    // Clean segments (remove empty ones from accidental double commas)
                                     const zips = value.split(',').map(z => z.trim()).filter(z => z.length > 0);
+
+                                    if (zips.length === 0) return "Please enter at least one 5-digit zip code";
+
                                     const allValid = zips.every(z => /^\d{5}$/.test(z));
-                                    return allValid || "Each zip code must be exactly 5 digits (numbers only)";
+                                    return allValid || "Each zip code must be exactly 5 digits";
                                 }
                             }}
                             render={({ field: { onChange, value, ...field } }) => (
@@ -211,7 +210,67 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     }}
                                 />
                             )}
+                        /> */}
+                        <Controller
+                            name="individualZipCodes"
+                            control={control}
+                            rules={{
+                                required: 'Individual Zip Codes is required',
+                                validate: (value) => {
+                                    if (!value) return true;
+                                    const zips = value.split(',').map(z => z.trim()).filter(z => z.length > 0);
+                                    if (zips.length === 0) return "Please enter at least one 5-digit zip code";
+                                    const allValid = zips.every(z => /^\d{5}$/.test(z));
+                                    return allValid || "Each zip code must be exactly 5 digits";
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    label="Individual Zip Code"
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    placeholder="e.g. 12345, 67890"
+                                    sx={{
+                                        width: '75%',
+                                        // Keep text black in View mode
+                                        "& .MuiInputBase-input.Mui-disabled": { WebkitTextFillColor: "#000" }
+                                    }}
+                                    error={!!errors.individualZipCodes}
+                                    helperText={errors.individualZipCodes?.message || "Separated by commas"}
+                                    disabled={type === 'View'}
+                                    onChange={(e) => {
+                                        let input = e.target.value;
+
+                                        // 1. Clean: Allow only digits and commas
+                                        let clean = input.replace(/[^\d,]/g, '');
+
+                                        // 2. Prevent leading commas or double commas
+                                        clean = clean.replace(/^,/, '').replace(/,+/g, ',');
+
+                                        // 3. Smart Formatting Logic
+                                        const segments = clean.split(',');
+                                        const formattedSegments = segments.map((seg, index) => {
+                                            // If it's the last segment and it's 5 digits, we'll check if we need a comma
+                                            if (index === segments.length - 1 && seg.length === 5) {
+                                                // Don't auto-add comma if the user is backspacing (input length decreased)
+                                                const isDeleting = input.length < (value?.length || 0);
+                                                if (!isDeleting && !input.endsWith(',')) {
+                                                    return seg + ',';
+                                                }
+                                            }
+                                            // Limit each segment to 5 digits max
+                                            return seg.substring(0, 5);
+                                        });
+
+                                        onChange(formattedSegments.join(',').replace(/,+/g, ','));
+                                    }}
+                                />
+                            )}
                         />
+
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
 
@@ -312,6 +371,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 return (
                                     <Autocomplete
                                         multiple
+                                        rows={4}
                                         freeSolo
                                         fullWidth
                                         options={[]}
@@ -324,6 +384,12 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                             else if (reason === 'clear') { setTypedText(""); setLocalError(""); }
                                         }}
                                         sx={{
+                                            "& .MuiInputBase-root": {
+                                                height: '125px !important',
+                                                alignItems: 'flex-start',
+                                                overflowY: 'auto', // Allows scrolling if many chips are added
+                                                padding: '5px !important',
+                                            },
                                             // 6. Style for View/Disabled Mode (Solid Black)
                                             "& .MuiChip-root.Mui-disabled": {
                                                 color: "#000",
@@ -344,9 +410,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                         renderInput={(params) => (
                                             <StyledTextField
                                                 {...params}
-                                                multiline
                                                 fullWidth
-                                                rows={4}
                                                 label="Range Zipcode"
                                                 onKeyDown={handleKeyDown}
                                                 error={!!localError || !!error}

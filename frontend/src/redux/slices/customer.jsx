@@ -198,64 +198,13 @@ const slice = createSlice({
     // rate
     getStationRateDataSuccess(state, action) {
       state.isLoading = false;
-      state.stationTabTableData = [
-        {
-          rateId: 1,
-          origin: 'ORD',
-          originZipCode: '60501',
-          destination: 'Ankeny',
-          destinationZipCode: '50007',
-          customers: 26,
-          status: 'Y',
-          min: '100',
-          rate100: '100',
-          rate1000: '1000',
-          rate3000: '3000',
-          rate5000: '5000',
-          rate10000: '10000',
-          max: '10000',
-          expiryDate: '12-30-2026',
-        },
-        {
-          rateId: 2,
-          origin: 'ORD',
-          originZipCode: '60501',
-          destination: 'Ankeny',
-          destinationZipCode: '50007',
-          customers: 26,
-          status: 'Y',
-          min: '100',
-          rate100: '100',
-          rate1000: '1000',
-          rate3000: '3000',
-          rate5000: '5000',
-          rate10000: '10000',
-          max: '10000',
-          expiryDate: '12-30-2026',
-        },
-        {
-          rateId: 3,
-          origin: 'ORD',
-          originZipCode: '60501',
-          destination: 'Ankeny',
-          destinationZipCode: '50007',
-          customers: 26,
-          status: 'Y',
-          min: '100',
-          rate100: '100',
-          rate1000: '1000',
-          rate3000: '3000',
-          rate5000: '5000',
-          rate10000: '10000',
-          max: '10000',
-          expiryDate: '12-30-2026',
-        },
-      ];
-      // if (state.checkedRates.length > 0) {
-      //   for (let i = 0; i < state.checkedRates.length; i++) {
-      //     state.stationTabTableData.push(state.checkedRates[i]);
-      //   }
-      // }
+      state.customerSuccess = true;
+      state.stationTabTableData = action.payload.data;
+    },
+    deleteStationRateSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = 'Station rate deleted successfully';
     },
 
     // accessorial
@@ -579,14 +528,28 @@ export function deleteStationPersonnel(id, callback) {
 }
 
 // get for station rate
-export function getStationRateData() {
+export function getStationRateData(id, rateType) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('/station/rate');
-      dispatch(slice.actions.getStationRateDataSuccess([]));
+      const response = await axios.get(`/maintenance/customer-rate/station-rate-map?stationId=${id}&rateType=${rateType}`);
+      dispatch(slice.actions.getStationRateDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function deleteStationRate(id, callback) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.delete(`maintenance/customer-rate/station-rate-map/${id}`);
+      dispatch(slice.actions.deleteStationRateSuccess({
+        id, message: response.data
+      }));
+      callback();
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
     }
   };
 }

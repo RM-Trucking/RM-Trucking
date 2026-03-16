@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import { Navigate, useLocation } from 'react-router-dom';
 import {
     Button,
     Box,
@@ -40,6 +41,7 @@ RateSearchFields.propTypes = {
 
 export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
+    const location = useLocation();
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const originLoading = useSelector((state) => state?.ratedata?.originLoading);
     const destinationLoading = useSelector((state) => state?.ratedata?.destinationLoading);
@@ -88,8 +90,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
         }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
-            setValue('origin', selectedCurrentRateRow?.originZone?.zoneName || '');
-            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneName || '');
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || '');
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
             setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
@@ -150,6 +152,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 "department": data.department,
                 "warehouse": data.warehouse
             };
+            // check for state view and station id
             dispatch(postWarehouseRate(obj));
         }
         if (type === 'Edit' && currentTab === 'warehouse') {
@@ -317,8 +320,14 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 control={control}
                                 rules={{
                                     validate: (value) => {
-                                        // 1. Allow empty value (Not Required)
-                                        if (!value || value.trim().length === 0) return true;
+                                        if (['Add', 'Edit'].includes(type)) {
+                                            if (!value || value.toString().trim().length === 0) {
+                                                return "Origin Zip Code is required";
+                                            }
+                                        } else {
+                                            // In View mode, if empty, it's valid
+                                            if (!value || value.toString().trim().length === 0) return true;
+                                        }
 
                                         const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
@@ -400,6 +409,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             onChange(val);
                                         }}
                                         disabled={type === 'View'}
+                                        required={['Add', 'Edit'].includes(type)}
                                     />
                                 )}
                             />
@@ -409,6 +419,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 <Controller
                                     name="origin"
                                     control={control}
+                                    rules={{
+                                        // 1. DYNAMIC REQUIRED LOGIC
+                                        validate: (value) => {
+                                            if (['Add', 'Edit'].includes(type)) {
+                                                if (!value || value.toString().trim() === "") {
+                                                    return "Origin is required";
+                                                }
+                                            }
+                                            return true;
+                                        }
+                                    }}
                                     render={({ field }) => (
                                         <StyledTextField
                                             {...field}
@@ -419,6 +440,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             error={!!errors.origin}
                                             helperText={errors.origin?.message}
                                             disabled={type === 'View'}
+                                            // 2. DYNAMIC ASTERISK
+                                            required={['Add', 'Edit'].includes(type)}
                                             // Ensure select always has at least one child to prevent the error
                                             SelectProps={{
                                                 displayEmpty: true,
@@ -443,7 +466,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 {
                                     originLoading ? <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} /> :
 
-                                         <Iconify icon="famicons:open" onClick={() => {
+                                        <Iconify icon="famicons:open" onClick={() => {
                                             handleZoneView('origin');
                                         }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
                                 }
@@ -456,8 +479,15 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             control={control}
                             rules={{
                                 validate: (value) => {
-                                    // 1. Allow empty value (Makes the field optional)
-                                    if (!value || value.trim().length === 0) return true;
+                                    // 1. Dynamic Required Logic: Required only for Add/Edit modes
+                                    if (['Add', 'Edit'].includes(type)) {
+                                        if (!value || value.toString().trim().length === 0) {
+                                            return "Destination Zip Code is required";
+                                        }
+                                    } else {
+                                        // In View mode or others, allow empty
+                                        if (!value || value.toString().trim().length === 0) return true;
+                                    }
 
                                     const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
 
@@ -540,6 +570,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         onChange(val);
                                     }}
                                     disabled={type === 'View'}
+                                    required={['Add', 'Edit'].includes(type)}
                                 />
                             )}
                         />
@@ -549,6 +580,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 <Controller
                                     name="destination"
                                     control={control}
+                                    rules={{
+                                        // 1. DYNAMIC REQUIRED LOGIC
+                                        validate: (value) => {
+                                            if (['Add', 'Edit'].includes(type)) {
+                                                if (!value || value.toString().trim() === "") {
+                                                    return "Destination is required";
+                                                }
+                                            }
+                                            return true;
+                                        }
+                                    }}
                                     render={({ field }) => (
                                         <StyledTextField
                                             {...field}
@@ -559,6 +601,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             disabled={type === 'View'}
                                             error={!!errors.destination}
                                             helperText={errors.destination?.message}
+                                            required={['Add', 'Edit'].includes(type)}
                                             // Helps MUI handle empty states gracefully
                                             SelectProps={{
                                                 displayEmpty: true,
@@ -583,7 +626,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                 {
                                     destinationLoading ? <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} /> :
-                                         <Iconify icon="famicons:open" onClick={() => {
+                                        <Iconify icon="famicons:open" onClick={() => {
                                             handleZoneView('destination');
                                         }} sx={{ marginTop: '30px', cursor: 'pointer' }} />
                                 }

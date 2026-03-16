@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -17,7 +17,7 @@ import {
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode
+    getDestinationZoneByZipCode, postStationRate,
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -31,7 +31,7 @@ export default function RateTable() {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const { currentRateRoutedFrom, rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
+    const { isSelectRateClicked, currentRateRoutedFrom, rateTableData, isLoading, currentRateTab, pagination, rateSearchObj, operationalMessage, error, selectedCurrentRateRow } = useSelector((state) => state.ratedata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -43,6 +43,9 @@ export default function RateTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    // selectedRates array
+    const [selectedRatesArr, setSelectedRatesArr] = useState([]);
 
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -244,6 +247,8 @@ export default function RateTable() {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 if (currentRateRoutedFrom === 'customer') {
                                     dispatch(getCustomerListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
@@ -264,17 +269,30 @@ export default function RateTable() {
                             }} />
                         </Tooltip>
 
-                        {currentRateRoutedFrom === 'customer' && <StyledCheckbox
+                        {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
                             sx={{ mt: -1.5 }}
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
-                                dispatch(setIsLoading(true));
-                                setTimeout(() => {
-                                    dispatch(setIsLoading(false));
-                                    setSnackbarMessage(`Rate has been ${isChecked ? 'activated' : 'deactivated'} successfully`);
-                                    setSnackbarOpen(true);
-                                }, 1000);
-                                // here need to call api to post data
+                                // if checked add the object nor else remove object
+                                if (isChecked) {
+                                    // --- PUSH LOGIC ---
+                                    setSelectedRatesArr((prev) => {
+                                        const isDuplicate = prev.some(item => item.rateId === params.row.rateId);
+                                        if (isDuplicate) return prev;
+
+                                        const obj = {
+                                            "stationId": localStorage.getItem('stationId'),
+                                            "rateId": params.row.rateId,
+                                            "rateType": "TRANSPORT"
+                                        };
+                                        return [...prev, obj];
+                                    });
+                                } else {
+                                    // --- REMOVE LOGIC ---
+                                    setSelectedRatesArr((prev) =>
+                                        prev.filter((item) => item.rateId !== params.row.rateId)
+                                    );
+                                }
                             }} />}
                     </Box>
                 );
@@ -370,6 +388,31 @@ export default function RateTable() {
                                 dispatch(deleteWarehouseRate(params?.row?.rateId));
                             }} />
                         </Tooltip>
+                        {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
+                            sx={{ mt: -1.5 }}
+                            onChange={(e, i) => {
+                                const isChecked = e.target.checked;
+                                // if checked add the object nor else remove object
+                                if (isChecked) {
+                                    // --- PUSH LOGIC ---
+                                    setSelectedRatesArr((prev) => {
+                                        const isDuplicate = prev.some(item => item.rateId === params.row.rateId);
+                                        if (isDuplicate) return prev;
+
+                                        const obj = {
+                                            "stationId": localStorage.getItem('stationId'),
+                                            "rateId": params.row.rateId,
+                                            "rateType": "WAREHOUSE"
+                                        };
+                                        return [...prev, obj];
+                                    });
+                                } else {
+                                    // --- REMOVE LOGIC ---
+                                    setSelectedRatesArr((prev) =>
+                                        prev.filter((item) => item.rateId !== params.row.rateId)
+                                    );
+                                }
+                            }} />}
                     </Box>
                 );
                 return element;
@@ -469,6 +512,9 @@ export default function RateTable() {
                 }));
             }
         }
+        if (operationalMessage === 'Station rate created successfully') {
+            navigate(PATH_DASHBOARD.maintenance.customerMaintenance.root);
+        }
     }, [operationalMessage])
     useEffect(() => {
         if (currentRateRoutedFrom) {
@@ -485,6 +531,9 @@ export default function RateTable() {
         setOpenCustomersList(false);
         dispatch(setSelectedCurrentRateRow({}));
     };
+    const onClickOfAddRate = () => {
+        dispatch(postStationRate(selectedRatesArr));
+    }
     return (
         <>
             <ErrorBoundary
@@ -496,7 +545,29 @@ export default function RateTable() {
                 }}
             >
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
-
+                    {isSelectRateClicked && <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'}>
+                        <Button
+                            variant="outlined"
+                            onClick={() => onClickOfAddRate()}
+                            sx={{
+                                height: '30px',
+                                fontWeight: 600,
+                                color: '#fff',
+                                textTransform: 'none', // Prevent uppercase styling
+                                '&.MuiButton-outlined': {
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    boxShadow: 'none',
+                                    p: '2px 16px',
+                                    bgcolor: '#a22',
+                                    borderColor: '#a22',
+                                    mb: 1
+                                },
+                            }}
+                        >
+                            Add Selected Rates
+                        </Button>
+                    </Stack>}
                     <DataGrid
                         rows={rateTableData || []}
                         columns={currentRateTab === 'warehouse' ? rateWarehouseColumns : rateTransportationColumns}

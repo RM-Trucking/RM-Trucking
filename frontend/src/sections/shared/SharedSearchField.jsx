@@ -49,7 +49,7 @@ export default function SharedSearchField({ page }) {
         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: event.target.value })); }
         if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: event.target.value })); }
         if (page === 'fuelSurcharge') { dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value })); }
-        
+
     }
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
@@ -99,6 +99,23 @@ export default function SharedSearchField({ page }) {
                         InputProps={{
                             endAdornment: (
                                 <InputAdornment position="end">
+                                    {searchValue && (
+                                        <IconButton
+                                            size="small"
+                                            onClick={() => {
+                                                setSearchValue(''); // Clear the state
+                                                // Optionally trigger a search with empty string to reset results
+                                                if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '' })); }
+                                                if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '', customerId: selectedCustomerRowDetails.customerId })); }
+                                                if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: '' })); }
+                                                if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: '' })); }
+                                                if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: '' })); }
+                                            }}
+                                            sx={{ mr: 0.5 }}
+                                        >
+                                            <Iconify icon="ic:baseline-close" />
+                                        </IconButton>
+                                    )}
                                     <IconButton edge="end" onClick={() => {
                                         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }

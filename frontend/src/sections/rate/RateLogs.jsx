@@ -6,13 +6,15 @@ import {
     Button, Stack,
     DialogContent
 } from '@mui/material';
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 // ----------------------------------------------------------------------
 
-
+dayjs.extend(utc);
 RateLogs.propTypes = {
 
 };
@@ -53,7 +55,7 @@ export default function RateLogs({ }) {
                         <Typography sx={{ width: '45%' }} variant='normal'>Last Update</Typography>
                         <Stack flexDirection={'column'} alignItems={'flex-start'}>
                             <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedBy || ""}</Typography>
-                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>14/09/2025 13:00</Typography>
+                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{dayjs.utc(selectedCurrentRateRow.updatedAt).local().format('DD/MM/YYYY HH:mm')}</Typography>
                         </Stack>
                     </Stack>
                 </Box>

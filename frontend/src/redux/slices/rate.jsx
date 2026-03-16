@@ -9,8 +9,8 @@ import { dispatch } from '../store';
 
 const initialState = {
     isLoading: false,
-    originLoading : false,
-    destinationLoading : false,
+    originLoading: false,
+    destinationLoading: false,
     error: null,
     rateSuccess: false,
     rateTableData: [],
@@ -26,6 +26,7 @@ const initialState = {
     destinationZoneListByZipCode: [],
     customerList: [],
     carrierList: [],
+    isSelectRateClicked: false,
 };
 
 const slice = createSlice({
@@ -46,8 +47,10 @@ const slice = createSlice({
             state.operationalMessage = '';
         },
         // load origin and destination zone load
-        startZoneLaoding(state){
+        startOriginZoneLaoding(state) {
             state.originLoading = true;
+        },
+        startDestinationZoneLaoding(state) {
             state.destinationLoading = true;
         },
         // customer warehouse data success slices
@@ -86,7 +89,7 @@ const slice = createSlice({
             state.rateFieldChargeDataWarehouse = action.payload;
         },
         // setting transportation min max details array
-        setRateFieldChargeData(state,action){
+        setRateFieldChargeData(state, action) {
             state.rateFieldChargeData = action.payload;
         },
         // rate search object
@@ -96,6 +99,10 @@ const slice = createSlice({
         // current rate tab
         setCurrentRateTab(state, action) {
             state.currentRateTab = action.payload;
+        },
+        // set isSelectRateClicked state
+        setIsSelectRateClicked(state, action) {
+            state.isSelectRateClicked = action.payload;
         },
         // selected current rate row object
         setSelectedCurrentRateRow(state, action) {
@@ -199,6 +206,14 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.operationalMessage = "Rate deleted successfully";
         },
+        // post of select rates from customer
+        postStationRateDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.isSelectRateClicked = false;
+            state.operationalMessage = 'Station rate created successfully';
+        },
+
     },
 });
 
@@ -211,7 +226,7 @@ export const {
     setIsLoading,
     setCurrentRateRoutedFrom,
     setRateFieldChargeData,
-
+    setIsSelectRateClicked,
 } = slice.actions;
 export default slice.reducer;
 
@@ -393,8 +408,7 @@ export function deleteCarrierTransportationRate(id) {
 // get OrizinZone DestinationZone by zipcode
 export function getOriginZoneByZipCode(zipcode) {
     return async () => {
-        dispatch(slice.actions.startLoading());
-        dispatch(slice.actions.startZoneLaoding());
+        dispatch(slice.actions.startOriginZoneLaoding());
         try {
             const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
             dispatch(slice.actions.getOriginZoneByZipCodeSuccess(response.data));
@@ -405,8 +419,7 @@ export function getOriginZoneByZipCode(zipcode) {
 }
 export function getDestinationZoneByZipCode(zipcode) {
     return async () => {
-        dispatch(slice.actions.startLoading());
-         dispatch(slice.actions.startZoneLaoding());
+        dispatch(slice.actions.startDestinationZoneLaoding());
         try {
             const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
             dispatch(slice.actions.getDestinationZoneByZipCodeSuccess(response.data));
@@ -457,6 +470,19 @@ export function getCarrierListByRateID(id) {
         try {
             const response = await axios.get(`/maintenance/carrier/by-rate/${id}`);
             dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+// station rate post api call from select rate
+export function postStationRate(arr) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/customer-rate/station-rate-map`, arr);
+            dispatch(slice.actions.postStationRateDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
         }

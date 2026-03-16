@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate,getZoneCarrierRate, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData } from '../../redux/slices/zone';
 import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 
 
@@ -139,28 +139,38 @@ export default function ZoneTable() {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
                                 setOpenEditDialog(true);
                                 setActionType('View');
                                 dispatch(setSelectedZoneRowDetails(params?.row));
-                            }} />
+                            }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow onClick={() => {
-                            setOpenEditDialog(true);
-                            setActionType('Edit');
-                            dispatch(setSelectedZoneRowDetails(params.row));
-                        }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                        <Tooltip title={'Edit'} arrow>
+                            <Box onClick={() => {
+                                setOpenEditDialog(true);
+                                setActionType('Edit');
+                                dispatch(setSelectedZoneRowDetails(params.row));
+                            }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
-                                setActionType('Delete');
-                                // using callback to refresh table data after delete
-                                dispatch(deleteZone(params?.row?.zoneId, () => {
-                                    dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
-                                }));
-                            }}
-                            />
+                            <Box
+                                onClick={() => {
+                                    setActionType('Delete');
+                                    // using callback to refresh table data after delete
+                                    dispatch(deleteZone(params?.row?.zoneId, () => {
+                                        dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
+                                    }));
+                                }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
+                                />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );

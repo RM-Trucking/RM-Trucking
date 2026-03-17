@@ -152,24 +152,27 @@ export async function listCarriersService(
     conn: Connection,
     page: number = 1,
     pageSize: number = 10,
-    searchTerm?: string
+    searchTerm?: string,
+    status?: 'Active' | 'Inactive' | 'Incomplete'
 ): Promise<{ data: CarrierResponse[]; total: number; page: number; pageSize: number }> {
     const offset = (page - 1) * pageSize;
-    const carriers = await carrierDB.listCarriers(conn, pageSize, offset, searchTerm);
-    const total = await carrierDB.countCarriers(conn, searchTerm);
+    const carriers = await carrierDB.listCarriers(conn, pageSize, offset, searchTerm, status);
+    const total = await carrierDB.countCarriers(conn, searchTerm, status);
 
     // enrich with addresses + notes
-    const responses: CarrierResponse[] = [];
-    for (const c of carriers) {
-        const addresses = await addressDB.getAddressesForEntity(conn, c.entityId);
-        const notes = c.noteThreadId != null
-            ? await noteDB.getMessagesByThread(conn, c.noteThreadId)
-            : [];
-        responses.push({ ...c, addresses, notes });
-    }
+    const responses: CarrierResponse[] = await Promise.all(
+        carriers.map(async c => {
+            const [addresses, notes] = await Promise.all([
+                addressDB.getAddressesForEntity(conn, c.entityId),
+                c.noteThreadId != null ? noteDB.getMessagesByThread(conn, c.noteThreadId) : []
+            ]);
+            return { ...c, addresses, notes };
+        })
+    );
 
     return { data: responses, total, page, pageSize };
 }
+
 
 // GET BY ID
 export async function getCarrierByIdService(conn: Connection, carrierId: number): Promise<CarrierResponse | null> {

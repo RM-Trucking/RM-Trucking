@@ -46,8 +46,9 @@ export async function listCarriers(req: Request, res: Response, conn: Connection
         const page = parseInt(req.query.page as string, 10) || 1;
         const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
         const searchTerm = req.query.search as string;
+        const status = req.query.status as 'Active' | 'Inactive' | 'Incomplete';
 
-        const result = await carrierService.listCarriersService(conn, page, pageSize, searchTerm);
+        const result = await carrierService.listCarriersService(conn, page, pageSize, searchTerm, status);
 
         res.status(200).json({
             success: true,
@@ -59,9 +60,12 @@ export async function listCarriers(req: Request, res: Response, conn: Connection
             }
         });
     } catch (error: any) {
+        console.log(error);
+        
         res.status(400).json({ success: false, message: error.message });
     }
 }
+
 
 // GET BY ID
 export async function getCarrierById(req: Request, res: Response, conn: Connection): Promise<void> {

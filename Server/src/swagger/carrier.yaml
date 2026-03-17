@@ -31,18 +31,27 @@ paths:
                 $ref: "#/components/schemas/CarrierResponse"
 
     get:
-      summary: List carriers with pagination and search
+      summary: List carriers with pagination, search, and status filter
       tags: [Carrier]
       parameters:
         - in: query
           name: page
           schema: { type: integer, default: 1 }
+          description: Current page number
         - in: query
           name: pageSize
           schema: { type: integer, default: 10 }
+          description: Number of items per page
         - in: query
           name: search
           schema: { type: string }
+          description: Search term to filter carriers by name
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [Active, Inactive, Incomplete]
+          description: Filter carriers by status tab
       responses:
         "200":
           description: List of carriers

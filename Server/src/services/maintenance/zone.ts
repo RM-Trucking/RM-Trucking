@@ -19,79 +19,95 @@ export async function createZoneService(
 }> {
     await conn.beginTransaction();
     try {
-        // 🔑 1. Check for duplicate zone name
-        // 1. Check for duplicate zone name (case-insensitive, trimmed)
+        // 1. Check for duplicate zone name
         const existingZone = await zoneDB.getZoneByName(conn, req.zoneName.trim());
         if (existingZone) {
             await conn.rollback();
             throw new Error(`Zone name "${req.zoneName.trim()}" already exists. Zone names must be unique.`);
         }
 
-
-        // 🔑 2. Check for conflicts in zip codes and ranges
+        // 2. Conflict detection (parallelized + deduplication)
         const conflicts: { zip: string; zones: { zoneId: number; zoneName: string }[] }[] = [];
 
-        if (req.zipCodes) {
-            for (const zip of req.zipCodes) {
-                const zones = await zoneDB.findZonesByZip(conn, zip);
+        if (req.zipCodes?.length) {
+            const uniqueZips = [...new Set(req.zipCodes)];
+            const results = await Promise.all(uniqueZips.map(zip => zoneDB.findZonesByZip(conn, zip)));
+            results.forEach((zones, idx) => {
                 if (zones.length) {
-                    conflicts.push({ zip, zones });
+                    // Deduplicate zones by zoneId
+                    const uniqueZones = Object.values(
+                        zones.reduce((acc, z) => {
+                            acc[z.zoneId] = z;
+                            return acc;
+                        }, {} as Record<number, { zoneId: number; zoneName: string }>)
+                    );
+                    conflicts.push({ zip: uniqueZips[idx], zones: uniqueZones });
                 }
-            }
+            });
         }
 
-        if (req.ranges) {
+        if (req.ranges?.length) {
+            const allNumbers: string[] = [];
             for (const range of req.ranges) {
-                const [start, end] = range.split("-").map(r => r.trim());
-                for (let current = parseInt(start); current <= parseInt(end); current++) {
-                    const zones = await zoneDB.findZonesByZip(conn, current.toString());
-                    if (zones.length) {
-                        conflicts.push({ zip: current.toString(), zones });
-                    }
+                const [start, end] = range.split("-").map(Number);
+                for (let current = start; current <= end; current++) {
+                    allNumbers.push(current.toString());
                 }
             }
+            const uniqueNumbers = [...new Set(allNumbers)];
+            const results = await Promise.all(uniqueNumbers.map(num => zoneDB.findZonesByZip(conn, num)));
+            results.forEach((zones, idx) => {
+                if (zones.length) {
+                    // Deduplicate zones by zoneId
+                    const uniqueZones = Object.values(
+                        zones.reduce((acc, z) => {
+                            acc[z.zoneId] = z;
+                            return acc;
+                        }, {} as Record<number, { zoneId: number; zoneName: string }>)
+                    );
+                    conflicts.push({ zip: uniqueNumbers[idx], zones: uniqueZones });
+                }
+            });
         }
 
         if (conflicts.length && !force) {
-            const zoneList: ZoneResponse[] = [];
+            const zoneIds = [...new Set(conflicts.flatMap(c => c.zones.map(z => z.zoneId)))];
 
-            for (const conflict of conflicts) {
-                for (const zone of conflict.zones) {
-                    const fullZone = await zoneDB.getZoneById(conn, zone.zoneId);
-                    if (fullZone) {
-                        const zips = await zoneDB.getZoneZips(conn, fullZone.zoneId);
-                        const notes = await noteDB.getMessagesByThread(conn, fullZone.noteThreadId);
-                        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
-                        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
+            const zoneDetails = await Promise.all(zoneIds.map(id => zoneDB.getZoneById(conn, id)));
+            const zoneZips = await Promise.all(zoneIds.map(id => zoneDB.getZoneZips(conn, id)));
+            const notes = await Promise.all(zoneDetails.map(z => noteDB.getMessagesByThread(conn, z!.noteThreadId)));
+            const customerCounts = await Promise.all(zoneIds.map(id => customerRateDB.countCustomerRatesForZone(conn, id)));
+            const carrierCounts = await Promise.all(zoneIds.map(id => carrierRateDB.countCarrierRatesForZone(conn, id)));
+            const createdByNames = await Promise.all(zoneDetails.map(z => userDB.getUserName(conn, z!.createdBy)));
+            const updatedByNames = await Promise.all(
+                zoneDetails.map(z => (z!.updatedBy ? userDB.getUserName(conn, z!.updatedBy) : Promise.resolve(undefined)))
+            );
 
-                        zoneList.push({
-                            zoneId: fullZone.zoneId,
-                            noteThreadId: fullZone.noteThreadId,
-                            entityId: fullZone.entityId,
-                            zoneName: fullZone.zoneName,
-                            zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
-                            ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`),
-                            notes,
-                            activeStatus: fullZone.activeStatus,
-                            createdAt: fullZone.createdAt,
-                            createdBy: await userDB.getUserName(conn, fullZone.createdBy),
-                            updatedAt: fullZone.updatedAt,
-                            updatedBy: fullZone.updatedBy ? await userDB.getUserName(conn, fullZone.updatedBy) : undefined,
-                            customerRateCount,
-                            carrierRateCount
-                        });
-                    }
-                }
-            }
+            const zoneList: ZoneResponse[] = zoneIds.map((id, idx) => {
+                const zone = zoneDetails[idx]!;
+                return {
+                    zoneId: zone.zoneId,
+                    noteThreadId: zone.noteThreadId,
+                    entityId: zone.entityId,
+                    zoneName: zone.zoneName,
+                    zipCodes: zoneZips[idx].filter(z => z.zipCode).map(z => z.zipCode!),
+                    ranges: zoneZips[idx].filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`),
+                    notes: notes[idx],
+                    activeStatus: zone.activeStatus,
+                    createdAt: zone.createdAt,
+                    createdBy: createdByNames[idx],
+                    updatedAt: zone.updatedAt,
+                    updatedBy: updatedByNames[idx],
+                    customerRateCount: customerCounts[idx],
+                    carrierRateCount: carrierCounts[idx]
+                };
+            });
 
             await conn.rollback();
-            return {
-                conflicts,
-                zoneList
-            };
+            return { conflicts, zoneList };
         }
 
-        // 🔑 3. Proceed with creation if no conflicts and name is unique
+        // 3. Proceed with creation
         const entityId = await entityDB.createEntity(conn, "ZONE", req.zoneName);
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
         const zoneId = await zoneDB.createZone(conn, req.zoneName, entityId, noteThreadId, userId);
@@ -101,25 +117,29 @@ export async function createZoneService(
         }
 
         if (req.zipCodes) {
-            for (const zip of req.zipCodes) {
-                await zoneDB.createZoneZip(conn, zoneId, zip, null, null);
-            }
+            await Promise.all(req.zipCodes.map(zip => zoneDB.createZoneZip(conn, zoneId, zip, null, null)));
         }
 
         if (req.ranges) {
-            for (const range of req.ranges) {
-                const [start, end] = range.split("-").map(r => r.trim());
-                await zoneDB.createZoneZip(conn, zoneId, null, start, end);
-            }
+            await Promise.all(
+                req.ranges.map(range => {
+                    const [start, end] = range.split("-").map(r => r.trim());
+                    return zoneDB.createZoneZip(conn, zoneId, null, start, end);
+                })
+            );
         }
 
         const zone = await zoneDB.getZoneById(conn, zoneId);
         if (!zone) throw new Error("Failed to create zone");
 
-        const zips = await zoneDB.getZoneZips(conn, zoneId);
-        const notes = await noteDB.getMessagesByThread(conn, noteThreadId);
-        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
-        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
+        const [zips, notes, customerRateCount, carrierRateCount, createdByName, updatedByName] = await Promise.all([
+            zoneDB.getZoneZips(conn, zoneId),
+            noteDB.getMessagesByThread(conn, noteThreadId),
+            customerRateDB.countCustomerRatesForZone(conn, zone.zoneId),
+            carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId),
+            userDB.getUserName(conn, zone.createdBy),
+            zone.updatedBy ? userDB.getUserName(conn, zone.updatedBy) : Promise.resolve(undefined)
+        ]);
 
         await conn.commit();
 
@@ -134,9 +154,9 @@ export async function createZoneService(
                 notes,
                 activeStatus: zone.activeStatus,
                 createdAt: zone.createdAt,
-                createdBy: await userDB.getUserName(conn, zone.createdBy),
+                createdBy: createdByName,
                 updatedAt: zone.updatedAt,
-                updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
+                updatedBy: updatedByName,
                 customerRateCount,
                 carrierRateCount
             }
@@ -146,6 +166,7 @@ export async function createZoneService(
         throw error;
     }
 }
+
 
 
 // export async function listZonesDropdownService(conn: Connection): Promise<ZoneDropdownResponse[]> {
@@ -344,17 +365,23 @@ export async function getZoneService(conn: Connection, zoneId: number): Promise<
 export async function updateZoneService(
     conn: Connection,
     zoneId: number,
-    req: UpdateZoneRequest & { zipCodes?: string[]; ranges?: string[]; note?: { noteId?: number; messageText: string } },
+    req: UpdateZoneRequest & {
+        zipCodes?: string[];
+        ranges?: string[];
+        note?: { noteId?: number; messageText: string };
+    },
     userId: number,
     force: boolean
-): Promise<ZoneResponse | {
-    conflicts?: { zip: string; zones: { zoneId: number; zoneName: string }[] }[],
-    zoneList?: ZoneResponse[],
-    zone?: ZoneResponse
-}> {
+): Promise<
+    ZoneResponse | {
+        conflicts?: { zip: string; zones: { zoneId: number; zoneName: string }[] }[];
+        zoneList?: ZoneResponse[];
+        zone?: ZoneResponse;
+    }
+> {
     await conn.beginTransaction();
     try {
-        // 1. Check for duplicate zone name (case-insensitive, trimmed)
+        // 1. Duplicate zone name check
         if (req.zoneName) {
             const existingZone = await zoneDB.getZoneByName(conn, req.zoneName);
             if (existingZone && existingZone.zoneId !== zoneId) {
@@ -363,67 +390,93 @@ export async function updateZoneService(
             }
         }
 
-        // 2. Check for conflicts in zip codes and ranges
+        // 2. Conflict detection (only new zips/ranges, deduplicated)
         const conflicts: { zip: string; zones: { zoneId: number; zoneName: string }[] }[] = [];
 
-        if (req.zipCodes) {
-            for (const zip of req.zipCodes) {
-                const zones = await zoneDB.findZonesByZip(conn, zip);
+        const currentZips = await zoneDB.getZoneZips(conn, zoneId);
+        const existingZipSet = new Set(currentZips.filter(z => z.zipCode).map(z => z.zipCode!));
+        const existingRangeSet = new Set(
+            currentZips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`)
+        );
+
+        // Check new zips
+        if (req.zipCodes?.length) {
+            const newZips = req.zipCodes.filter(zip => !existingZipSet.has(zip));
+            const results = await Promise.all(newZips.map(zip => zoneDB.findZonesByZip(conn, zip)));
+            results.forEach((zones, idx) => {
                 if (zones.length) {
-                    conflicts.push({ zip, zones });
+                    const uniqueZones = Object.values(
+                        zones.reduce((acc, z) => {
+                            acc[z.zoneId] = z;
+                            return acc;
+                        }, {} as Record<number, { zoneId: number; zoneName: string }>)
+                    );
+                    conflicts.push({ zip: newZips[idx], zones: uniqueZones });
                 }
-            }
+            });
         }
 
-        if (req.ranges) {
-            for (const range of req.ranges) {
-                const [start, end] = range.split("-").map(r => r.trim());
-                for (let current = parseInt(start); current <= parseInt(end); current++) {
-                    const zones = await zoneDB.findZonesByZip(conn, current.toString());
-                    if (zones.length) {
-                        conflicts.push({ zip: current.toString(), zones });
-                    }
+        // Check new ranges
+        if (req.ranges?.length) {
+            const newRanges = req.ranges.filter(r => !existingRangeSet.has(r));
+            const allNumbers: string[] = [];
+            for (const range of newRanges) {
+                const [start, end] = range.split("-").map(Number);
+                for (let current = start; current <= end; current++) {
+                    allNumbers.push(current.toString());
                 }
             }
+            const uniqueNumbers = [...new Set(allNumbers)];
+            const results = await Promise.all(uniqueNumbers.map(num => zoneDB.findZonesByZip(conn, num)));
+            results.forEach((zones, idx) => {
+                if (zones.length) {
+                    const uniqueZones = Object.values(
+                        zones.reduce((acc, z) => {
+                            acc[z.zoneId] = z;
+                            return acc;
+                        }, {} as Record<number, { zoneId: number; zoneName: string }>)
+                    );
+                    conflicts.push({ zip: uniqueNumbers[idx], zones: uniqueZones });
+                }
+            });
         }
 
         if (conflicts.length && !force) {
-            const zoneList: ZoneResponse[] = [];
+            // Build conflict zone list (parallelized)
+            const zoneIds = [...new Set(conflicts.flatMap(c => c.zones.map(z => z.zoneId)))];
 
-            for (const conflict of conflicts) {
-                for (const zone of conflict.zones) {
-                    const fullZone = await zoneDB.getZoneById(conn, zone.zoneId);
-                    const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
-                    const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
-                    if (fullZone) {
-                        const zips = await zoneDB.getZoneZips(conn, fullZone.zoneId);
-                        const notes = await noteDB.getMessagesByThread(conn, fullZone.noteThreadId);
+            const zoneDetails = await Promise.all(zoneIds.map(id => zoneDB.getZoneById(conn, id)));
+            const zoneZips = await Promise.all(zoneIds.map(id => zoneDB.getZoneZips(conn, id)));
+            const notes = await Promise.all(zoneDetails.map(z => noteDB.getMessagesByThread(conn, z!.noteThreadId)));
+            const customerCounts = await Promise.all(zoneIds.map(id => customerRateDB.countCustomerRatesForZone(conn, id)));
+            const carrierCounts = await Promise.all(zoneIds.map(id => carrierRateDB.countCarrierRatesForZone(conn, id)));
+            const createdByNames = await Promise.all(zoneDetails.map(z => userDB.getUserName(conn, z!.createdBy)));
+            const updatedByNames = await Promise.all(
+                zoneDetails.map(z => (z!.updatedBy ? userDB.getUserName(conn, z!.updatedBy) : Promise.resolve(undefined)))
+            );
 
-                        zoneList.push({
-                            zoneId: fullZone.zoneId,
-                            noteThreadId: fullZone.noteThreadId,
-                            entityId: fullZone.entityId,
-                            zoneName: fullZone.zoneName,
-                            zipCodes: zips.filter(z => z.zipCode).map(z => z.zipCode!),
-                            ranges: zips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`),
-                            notes,
-                            activeStatus: fullZone.activeStatus,
-                            createdAt: fullZone.createdAt,
-                            createdBy: await userDB.getUserName(conn, fullZone.createdBy),
-                            updatedAt: fullZone.updatedAt,
-                            updatedBy: fullZone.updatedBy ? await userDB.getUserName(conn, fullZone.updatedBy) : undefined,
-                            customerRateCount,
-                            carrierRateCount
-                        });
-                    }
-                }
-            }
+            const zoneList: ZoneResponse[] = zoneIds.map((id, idx) => {
+                const zone = zoneDetails[idx]!;
+                return {
+                    zoneId: zone.zoneId,
+                    noteThreadId: zone.noteThreadId,
+                    entityId: zone.entityId,
+                    zoneName: zone.zoneName,
+                    zipCodes: zoneZips[idx].filter(z => z.zipCode).map(z => z.zipCode!),
+                    ranges: zoneZips[idx].filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`),
+                    notes: notes[idx],
+                    activeStatus: zone.activeStatus,
+                    createdAt: zone.createdAt,
+                    createdBy: createdByNames[idx],
+                    updatedAt: zone.updatedAt,
+                    updatedBy: updatedByNames[idx],
+                    customerRateCount: customerCounts[idx],
+                    carrierRateCount: carrierCounts[idx]
+                };
+            });
 
             await conn.rollback();
-            return {
-                conflicts,
-                zoneList
-            };
+            return { conflicts, zoneList };
         }
 
         // 3. Proceed with update
@@ -431,16 +484,16 @@ export async function updateZoneService(
         await zoneDB.deleteZoneZips(conn, zoneId);
 
         if (req.zipCodes) {
-            for (const zip of req.zipCodes) {
-                await zoneDB.createZoneZip(conn, zoneId, zip, null, null);
-            }
+            await Promise.all(req.zipCodes.map(zip => zoneDB.createZoneZip(conn, zoneId, zip, null, null)));
         }
 
         if (req.ranges) {
-            for (const range of req.ranges) {
-                const [start, end] = range.split("-").map(r => r.trim());
-                await zoneDB.createZoneZip(conn, zoneId, null, start, end);
-            }
+            await Promise.all(
+                req.ranges.map(range => {
+                    const [start, end] = range.split("-").map(r => r.trim());
+                    return zoneDB.createZoneZip(conn, zoneId, null, start, end);
+                })
+            );
         }
 
         const zone = await zoneDB.getZoneById(conn, zoneId);
@@ -454,10 +507,14 @@ export async function updateZoneService(
             }
         }
 
-        const zips = await zoneDB.getZoneZips(conn, zoneId);
-        const notes = await noteDB.getMessagesByThread(conn, zone.noteThreadId);
-        const customerRateCount = await customerRateDB.countCustomerRatesForZone(conn, zone.zoneId);
-        const carrierRateCount = await carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId);
+        const [zips, notes, customerRateCount, carrierRateCount, createdByName, updatedByName] = await Promise.all([
+            zoneDB.getZoneZips(conn, zoneId),
+            noteDB.getMessagesByThread(conn, zone.noteThreadId),
+            customerRateDB.countCustomerRatesForZone(conn, zone.zoneId),
+            carrierRateDB.countCarrierRatesForZone(conn, zone.zoneId),
+            userDB.getUserName(conn, zone.createdBy),
+            zone.updatedBy ? userDB.getUserName(conn, zone.updatedBy) : Promise.resolve(undefined)
+        ]);
 
         await conn.commit();
 
@@ -471,9 +528,9 @@ export async function updateZoneService(
             notes,
             activeStatus: zone.activeStatus,
             createdAt: zone.createdAt,
-            createdBy: await userDB.getUserName(conn, zone.createdBy),
+            createdBy: createdByName,
             updatedAt: zone.updatedAt,
-            updatedBy: zone.updatedBy ? await userDB.getUserName(conn, zone.updatedBy) : undefined,
+            updatedBy: updatedByName,
             customerRateCount,
             carrierRateCount
         };
@@ -482,6 +539,7 @@ export async function updateZoneService(
         throw error;
     }
 }
+
 
 
 export async function deleteZoneService(conn: Connection, zoneId: number): Promise<void> {

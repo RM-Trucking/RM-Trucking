@@ -633,7 +633,7 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: newPage + 1, pageSize: pagination.pageSize
                                 }));
                             }
                             if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
@@ -642,7 +642,7 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: newPage + 1, pageSize: pagination.pageSize
                                 }));
                             }
                         }}
@@ -656,7 +656,7 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: 1, pageSize: newPageSize
                                 }));
                             }
                             if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
@@ -665,7 +665,7 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: 1, pageSize: newPageSize
                                 }));
                             }
                         }}

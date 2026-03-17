@@ -610,7 +610,8 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: newModel.page + 1,
+                                    pageSize: newModel.pageSize,
                                 }));
                             }
                             if (currentRateTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
@@ -619,7 +620,8 @@ export default function RateTable() {
                                     originZipOrRange: rateSearchObj.originZipCode,
                                     destinationZoneId: rateSearchObj.destination,
                                     destinationZipOrRange: rateSearchObj.destinationZipCode,
-                                    pageNo: pagination.page, pageSize: pagination.pageSize
+                                    pageNo: newModel.page + 1,
+                                    pageSize: newModel.pageSize,
                                 }));
                             }
                         }}

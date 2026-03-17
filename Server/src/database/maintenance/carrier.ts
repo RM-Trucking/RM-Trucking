@@ -47,13 +47,24 @@ export async function getCarrierById(conn: Connection, carrierId: number): Promi
     return result.length ? (result[0] as Carrier) : null;
 }
 
-export async function listCarriers(conn: Connection, limit: number, offset: number, searchTerm?: string): Promise<Carrier[]> {
+export async function listCarriers(
+    conn: Connection,
+    limit: number,
+    offset: number,
+    searchTerm?: string,
+    status?: string
+): Promise<Carrier[]> {
     let query = `SELECT * FROM ${SCHEMA}."Carrier" WHERE 1=1`;
     const params: any[] = [];
 
     if (searchTerm) {
         query += ` AND LOWER("carrierName") LIKE ?`;
         params.push(`%${searchTerm.toLowerCase()}%`);
+    }
+
+    if (status) {
+        query += ` AND "carrierStatus" = ?`;
+        params.push(status);
     }
 
     query += ` ORDER BY "carrierId" DESC LIMIT ? OFFSET ?`;
@@ -63,7 +74,11 @@ export async function listCarriers(conn: Connection, limit: number, offset: numb
     return result as Carrier[];
 }
 
-export async function countCarriers(conn: Connection, searchTerm?: string): Promise<number> {
+export async function countCarriers(
+    conn: Connection,
+    searchTerm?: string,
+    status?: string
+): Promise<number> {
     let query = `SELECT COUNT(*) AS TOTAL FROM ${SCHEMA}."Carrier" WHERE 1=1`;
     const params: any[] = [];
 
@@ -72,9 +87,15 @@ export async function countCarriers(conn: Connection, searchTerm?: string): Prom
         params.push(`%${searchTerm.toLowerCase()}%`);
     }
 
+    if (status) {
+        query += ` AND "carrierStatus" = ?`;
+        params.push(status);
+    }
+
     const result = await conn.query(query, params) as any[];
     return result[0]?.TOTAL || 0;
 }
+
 
 export async function updateCarrier(conn: Connection, carrierId: number, updates: Partial<Carrier>): Promise<void> {
     const fields: string[] = [];

@@ -90,7 +90,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
         }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
-            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId ||  "");
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || "");
             setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
             setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
@@ -324,26 +324,15 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             if (!value || value.toString().trim().length === 0) {
                                                 return "Origin Zip Code is required";
                                             }
-                                        } else {
-                                            // In View mode, if empty, it's valid
-                                            if (!value || value.toString().trim().length === 0) return true;
-                                        }
+                                        } else if (!value || value.toString().trim().length === 0) return true;
 
                                         const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
                                         for (let s of segments) {
-                                            // 2. Check general format if data exists
                                             if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Format: 12345 or 12345-67890";
-
-                                            // 3. Range specific validation
                                             if (s.includes('-')) {
                                                 const [start, end] = s.split('-');
-                                                if (start.substring(0, 3) !== end.substring(0, 3)) {
-                                                    return `Prefix mismatch in range: ${s}`;
-                                                }
-                                                if (parseInt(end.substring(3)) <= parseInt(start.substring(3))) {
-                                                    return `End range must be > start in: ${s}`;
-                                                }
+                                                if (start.substring(0, 3) !== end.substring(0, 3)) return `Prefix mismatch: ${s}`;
+                                                if (parseInt(end) <= parseInt(start)) return `End must be > start: ${s}`;
                                             }
                                         }
                                         return true;
@@ -357,62 +346,51 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                         variant="standard"
                                         fullWidth
                                         error={!!errors.originZipCode}
-                                        placeholder="12345, 67890-67895"
+                                        placeholder="e.g. 12345, 67890-67895"
                                         helperText={errors.originZipCode?.message}
                                         onChange={(e) => {
                                             let input = e.target.value.replace(/[^\d,-]/g, '');
-                                            if (input.startsWith(' ')) return;
+
+                                            // 1. Prevent double commas or starting with a comma
+                                            input = input.replace(/,+/g, ',');
+                                            if (input.startsWith(',')) input = input.slice(1);
 
                                             let segments = input.split(',');
                                             let lastIdx = segments.length - 1;
                                             let lastSegment = segments[lastIdx];
 
-                                            // --- YOUR EXISTING AUTO-FILL PREFIX LOGIC ---
-                                            if (lastSegment.length === 6 && !lastSegment.includes('-')) {
+                                            // 2. Smart Range Auto-fill (Prefix logic)
+                                            if (lastSegment.length === 11 && lastSegment.includes('-')) {
+                                                // Already full range, do nothing
+                                            } else if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                                 const prefix = lastSegment.substring(0, 3);
                                                 segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
-                                            } else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
-                                                const prefix = lastSegment.substring(0, 3);
-                                                segments[lastIdx] = lastSegment + prefix;
                                             }
 
-                                            let val = segments.join(',');
+                                            let finalValue = segments.join(',');
 
-                                            // --- AUTO-COMMA LOGIC ---
-                                            const currentLast = segments[segments.length - 1];
-                                            const isFullZip = /^\d{5}$/.test(currentLast);
-                                            const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
+                                            // 3. User-Friendly Auto-Comma: 
+                                            // Only add a comma if the user just finished a valid 5-digit ZIP 
+                                            // and is NOT backspacing (we check this by seeing if they added a character)
+                                            const isFullZip = /^\d{5}$/.test(lastSegment);
+                                            const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
 
-                                            let isComplete = false;
+                                            if ((isFullZip || isFullRange) && e.target.value.length > (value?.length || 0)) {
+                                                finalValue += ',';
+                                            }
+
+                                            onChange(finalValue);
+
+                                            // 4. API Call: Only dispatch if the last segment is actually complete
                                             if (isFullZip || isFullRange) {
-                                                if (isFullRange) {
-                                                    const [start, end] = currentLast.split('-');
-                                                    if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
-                                                        isComplete = true;
-                                                    }
-                                                } else {
-                                                    isComplete = true;
-                                                }
+                                                dispatch(getOriginZoneByZipCode(finalValue));
                                             }
-
-                                            if (isComplete && !input.endsWith(',')) {
-                                                val = val + ',';
-                                            }
-
-                                            // --- CALL API FOR TOTAL INPUT ---
-                                            // We check if the last action resulted in a "complete" state to avoid 
-                                            // spamming the API on every single keystroke.
-                                            if (isComplete || input.endsWith(',')) {
-                                                console.log("Calling API with total value:", val);
-                                                dispatch(getOriginZoneByZipCode(val));
-                                            }
-                                            onChange(val);
                                         }}
                                         disabled={type === 'View'}
-                                        required={['Add', 'Edit'].includes(type)}
                                     />
                                 )}
                             />
+
                         }
                         {currentTab === 'transportation' &&
                             <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>
@@ -479,32 +457,19 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             control={control}
                             rules={{
                                 validate: (value) => {
-                                    // 1. Dynamic Required Logic: Required only for Add/Edit modes
                                     if (['Add', 'Edit'].includes(type)) {
                                         if (!value || value.toString().trim().length === 0) {
                                             return "Destination Zip Code is required";
                                         }
-                                    } else {
-                                        // In View mode or others, allow empty
-                                        if (!value || value.toString().trim().length === 0) return true;
-                                    }
+                                    } else if (!value || value.toString().trim().length === 0) return true;
 
                                     const segments = value.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
                                     for (let s of segments) {
-                                        // 2. General Format Check (only if data exists)
                                         if (!/^(\d{5})(-\d{5})?$/.test(s)) return "Use format: 12345 or 12345-67890";
-
-                                        // 3. Range Specific Validation (Prefix & Suffix)
                                         if (s.includes('-')) {
                                             const [start, end] = s.split('-');
-                                            const pref1 = start.substring(0, 3);
-                                            const pref2 = end.substring(0, 3);
-                                            const suff1 = parseInt(start.substring(3));
-                                            const suff2 = parseInt(end.substring(3));
-
-                                            if (pref1 !== pref2) return `Prefix mismatch in ${s} (Must start with ${pref1})`;
-                                            if (suff2 <= suff1) return `End range must be > ${suff1} in ${s}`;
+                                            if (start.substring(0, 3) !== end.substring(0, 3)) return `Prefix mismatch: ${s}`;
+                                            if (parseInt(end) <= parseInt(start)) return `End range must be > start in: ${s}`;
                                         }
                                     }
                                     return true;
@@ -517,63 +482,60 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     label="Destination Zip Code"
                                     variant="standard"
                                     fullWidth
-                                    placeholder="12345, 67890-67895"
+                                    placeholder="e.g. 12345, 67890-67895"
                                     error={!!errors.destinationZipCode}
                                     helperText={errors.destinationZipCode?.message}
                                     onChange={(e) => {
+                                        // 1. Sanitize input (Allow only digits, commas, and hyphens)
                                         let input = e.target.value.replace(/[^\d,-]/g, '');
-                                        if (input.startsWith(' ')) return;
+
+                                        // Prevent starting with comma or double commas
+                                        input = input.replace(/,+/g, ',');
+                                        if (input.startsWith(',')) input = input.slice(1);
 
                                         let segments = input.split(',');
                                         let lastIdx = segments.length - 1;
                                         let lastSegment = segments[lastIdx];
 
-                                        // --- YOUR EXISTING AUTO-FILL PREFIX LOGIC ---
+                                        // 2. Smart Prefix Auto-fill
+                                        // Fires only if user types the 6th digit (auto-inserts hyphen + prefix)
                                         if (lastSegment.length === 6 && !lastSegment.includes('-')) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment.slice(0, 5) + '-' + prefix + lastSegment.slice(5);
-                                        } else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
+                                        }
+                                        // Fires if user manually types a hyphen after 5 digits
+                                        else if (lastSegment.endsWith('-') && lastSegment.length === 6) {
                                             const prefix = lastSegment.substring(0, 3);
                                             segments[lastIdx] = lastSegment + prefix;
                                         }
 
-                                        let val = segments.join(',');
+                                        let finalValue = segments.join(',');
 
-                                        // --- AUTO-COMMA LOGIC ---
-                                        const currentLast = segments[segments.length - 1];
-                                        const isFullZip = /^\d{5}$/.test(currentLast);
-                                        const isFullRange = /^\d{5}-\d{5}$/.test(currentLast);
+                                        // 3. User-Friendly Auto-Comma
+                                        // Only add comma if user is TYPING (not backspacing) and segment is complete
+                                        const isFullZip = /^\d{5}$/.test(lastSegment);
+                                        const isFullRange = /^\d{11}$/.test(lastSegment) && lastSegment.includes('-');
 
-                                        let isComplete = false;
-                                        if (isFullZip || isFullRange) {
-                                            if (isFullRange) {
-                                                const [start, end] = currentLast.split('-');
-                                                if (parseInt(end.substring(3)) > parseInt(start.substring(3))) {
-                                                    isComplete = true;
-                                                }
-                                            } else {
-                                                isComplete = true;
-                                            }
+                                        const isTyping = e.target.value.length > (value?.length || 0);
+
+                                        if ((isFullZip || isFullRange) && isTyping) {
+                                            finalValue += ',';
                                         }
 
-                                        if (isComplete && !input.endsWith(',')) {
-                                            val = val + ',';
-                                        }
+                                        // 4. Update Form State
+                                        onChange(finalValue);
 
-                                        // --- CALL API FOR TOTAL INPUT ---
-                                        // We check if the last action resulted in a "complete" state to avoid 
-                                        // spamming the API on every single keystroke.
-                                        if (isComplete || input.endsWith(',')) {
-                                            console.log("Calling API with total value:", val);
-                                            dispatch(getDestinationZoneByZipCode(val));
+                                        // 5. API Call (Only on complete segments to prevent spam)
+                                        if (isFullZip || isFullRange || input.endsWith(',')) {
+                                            dispatch(getDestinationZoneByZipCode(finalValue));
                                         }
-                                        onChange(val);
                                     }}
                                     disabled={type === 'View'}
                                     required={['Add', 'Edit'].includes(type)}
                                 />
                             )}
                         />
+
                         }
                         {currentTab === 'transportation' &&
                             <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>

@@ -284,18 +284,32 @@ export function deleteWarehouseRate(id) {
 }
 
 // customer transport rate data
-export function getCustomerTransportationRateDashboardData({ originZoneId, originZipOrRange, destinationZoneId, destinationZipOrRange, pageNo, pageSize }) {
+export function getCustomerTransportationRateDashboardData({
+    originZoneId,
+    originZipOrRange,
+    destinationZoneId,
+    destinationZipOrRange,
+    pageNo,
+    pageSize
+}) {
     return async (dispatch) => {
         dispatch(slice.actions.startLoading());
         try {
-            // Use URLSearchParams to build a clean string without spaces
             const params = new URLSearchParams();
 
-            if (originZoneId) params.append("originZoneId", originZoneId);
-            if (originZipOrRange) params.append("originZipOrRange", originZipOrRange);
-            if (destinationZoneId) params.append("destinationZoneId", destinationZoneId);
-            if (destinationZipOrRange) params.append("destinationZipOrRange", destinationZipOrRange);
+            // Helper to only append if value exists and isn't just whitespace
+            const appendIfValid = (key, value) => {
+                if (value !== undefined && value !== null && value.toString().trim() !== '') {
+                    params.append(key, value.toString().trim());
+                }
+            };
 
+            appendIfValid("originZoneId", originZoneId);
+            appendIfValid("originZipOrRange", originZipOrRange);
+            appendIfValid("destinationZoneId", destinationZoneId);
+            appendIfValid("destinationZipOrRange", destinationZipOrRange);
+
+            // Pagination usually defaults to 1 and 10 if missing
             params.append("page", pageNo || 1);
             params.append("pageSize", pageSize || 10);
 
@@ -308,6 +322,7 @@ export function getCustomerTransportationRateDashboardData({ originZoneId, origi
         }
     };
 }
+
 export function postCustomerTransportationRate(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());

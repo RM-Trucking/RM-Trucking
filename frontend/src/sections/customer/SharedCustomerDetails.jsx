@@ -104,7 +104,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
             obj.activeStatusReason = data.reasonForStatus || '';
             // obj.activeStatus = data.customerStatus || '';
             obj.addresses[0].addressId = (selectedCustomerRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCustomerRowDetails.addresses[0].addressId : selectedCustomerRowDetails.addresses[1].addressId;
-            obj.addresses[1].addressId = (selectedCustomerRowDetails.addresses[1].addressRole === 'Billing') ? selectedCustomerRowDetails.addresses[1].addressId : selectedCustomerRowDetails.addresses[0].addressId;;
+            obj.addresses[1].addressId = (selectedCustomerRowDetails.addresses[1].addressRole === 'Billing') ? selectedCustomerRowDetails.addresses[1].addressId : selectedCustomerRowDetails.addresses[0].addressId;
             delete obj.note;
             dispatch(putCustomerData(obj, selectedCustomerRowDetails?.customerId));
         }

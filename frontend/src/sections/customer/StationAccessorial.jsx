@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
+import {  useLocation } from 'react-router-dom';
 import {
     Button,
     Box,
@@ -22,11 +23,13 @@ StationAccessorial.propTypes = {
 
 export default function StationAccessorial({ type, handleCloseConfirm, selectedStationTabRowDetails }) {
     const dispatch = useDispatch();
+    const { pathname } = useLocation();
     const [chargeValue, setChargeValue] = useState(null);
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const isLoading = useSelector((state) => state?.customerdata?.isLoading);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const accessorialData = useSelector((state) => state?.customerdata?.accessorialData);
+    const { selectedCarrierRowDetails, selectedCarrierTabRowDetails } = useSelector((state) => state.carrierdata);
     const {
         control,
         handleSubmit,
@@ -45,7 +48,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         let obj = {
-            "entityId": selectedCustomerStationDetails?.entityId,
+            "entityId": (pathname.includes('customer-maintenance')) ? selectedCustomerStationDetails?.entityId : (pathname.includes('/carrier-maintenance/carrier-view')) ? selectedCarrierRowDetails?.entityId : selectedCarrierTabRowDetails?.entityId,
             "accessorialId": data.accessorial,
             "chargeType": data.chargesType,
             "chargeValue": parseFloat(data.charges),

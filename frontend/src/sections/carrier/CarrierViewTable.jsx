@@ -12,8 +12,11 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCarrierRowDetails, setOperationalMessage, getTerminalCarrierData, setSelectedCarrierTabRowDetails, getAccessorialCarrierData, } from '../../redux/slices/carrier';
-import { setTableBeingViewed, getAccessorialData } from '../../redux/slices/customer';
+import {
+    setSelectedCarrierTabRowDetails, setOperationalMessage, getTerminalCarrierData,
+    setCarrierViewTabData, deleteTerminal, setTerminalViewTabData
+} from '../../redux/slices/carrier';
+import { setTableBeingViewed, getAccessorialData, getStationAccessorialData, deleteStationAccessorial } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -25,10 +28,13 @@ export default function CarrierViewTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { carrierViewTabData, isLoading, currentCarrierViewTab, pagination, operationalMessage, error, selectedCarrierTabRowDetails } = useSelector((state) => state.carrierdata);
+    const { carrierViewTabData, isLoading, currentCarrierViewTab, pagination,
+        operationalMessage, error, selectedCarrierTabRowDetails, selectedCarrierRowDetails, carrierSearchStr } = useSelector((state) => state.carrierdata);
+    const operationalAccessorialMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
+    const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -99,20 +105,20 @@ export default function CarrierViewTable() {
             },
         },
         {
-            field: 'address',
+            field: 'addresses',
             headerName: 'Address',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
-            // renderCell: (params) => {
-            //     const element = (
-            //         <Typography
-            //         >
-            //             {params?.row?.tsa === 'Y' ? 'Yes' : 'No'}
-            //         </Typography>
-            //     );
-            //     return element;
-            // },
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                    >
+                        {params?.row?.addresses?.[0]?.line1} {params?.row?.addresses?.[0]?.line2}
+                    </Typography>
+                );
+                return element;
+            },
         },
         {
             field: 'city',
@@ -120,6 +126,15 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                    >
+                        {params?.row?.addresses?.[0]?.city}
+                    </Typography>
+                );
+                return element;
+            },
         },
         {
             field: 'state',
@@ -127,6 +142,15 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                    >
+                        {params?.row?.addresses?.[0]?.state}
+                    </Typography>
+                );
+                return element;
+            },
         },
         {
             field: 'zipCodes',
@@ -137,12 +161,9 @@ export default function CarrierViewTable() {
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
-                        {params.row.ranges?.map((range, index) => (
+                        {params.row.addresses?.[0]?.zipCode?.split(",")?.map((range, index) => (
                             <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                         ))}
-                        <Typography variant="normal">
-                            {params.row.zipCodes?.join(", ")}
-                        </Typography>
                     </Stack>
                 );
                 return element;
@@ -213,7 +234,7 @@ export default function CarrierViewTable() {
             },
         },
         {
-            field: "status",
+            field: "activeStatus",
             headerName: "Status",
             minWidth: 150,
             cellClassName: 'center-status-cell',
@@ -226,7 +247,7 @@ export default function CarrierViewTable() {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status?.toLowerCase() === 'y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.activeStatus?.toLowerCase() === 'y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -259,7 +280,10 @@ export default function CarrierViewTable() {
                     >
                         <Tooltip title={'View'} arrow>
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                                dispatch(setTerminalViewTabData([]));
                                 dispatch(setSelectedCarrierTabRowDetails(params.row));
+                                localStorage.setItem('terminalId',params.row.terminalId);
+                                localStorage.setItem('terminalEntityId', params.row.entityId);
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.terminalView);
                             }} />
                         </Tooltip>
@@ -274,9 +298,7 @@ export default function CarrierViewTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
                                 setActionType('Delete');
-                                // dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                //     dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-                                // }));
+                                dispatch(deleteTerminal(params?.row?.terminalId));
                             }} />
                         </Tooltip>
                     </Box>
@@ -367,9 +389,7 @@ export default function CarrierViewTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
                                 // using callback to refresh table data after delete
-                                // dispatch(deleteStationAccessorial(params?.row?.accessorialId, () => {
-                                //     dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
-                                // }));
+                                dispatch(deleteStationAccessorial(params?.row?.accessorialId));
                             }}
                             />
                         </Tooltip>
@@ -382,20 +402,24 @@ export default function CarrierViewTable() {
 
 
     useEffect(() => {
+        dispatch(setCarrierViewTabData([]));
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('terminal'));
     }, []);
     useEffect(() => {
+        console.log(stationTabTableData);
+    }, [stationTabTableData]);
+    useEffect(() => {
         if (currentCarrierViewTab === 'terminal') {
             dispatch(clearNotesState());
             setTableColumns(terminalColumns);
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            dispatch(getTerminalCarrierData({ carrierId: selectedCarrierRowDetails.carrierId || localStorage.getItem('carrierId'), pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
         if (currentCarrierViewTab === 'accessorial') {
             dispatch(clearNotesState());
             setTableColumns(accessorialColumns);
             dispatch(getAccessorialData());
-            dispatch(getAccessorialCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            dispatch(getStationAccessorialData(selectedCarrierRowDetails.entityId));
         }
     }, [currentCarrierViewTab]);
     useEffect(() => {
@@ -418,20 +442,30 @@ export default function CarrierViewTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Terminal deleted successfully') {
-            dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+        if (operationalMessage === 'Terminal deleted successfully.') {
+            dispatch(getTerminalCarrierData({ carrierId: selectedCarrierRowDetails.carrierId || localStorage.getItem('carrierId'), pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
         }
     }, [operationalMessage])
+    useEffect(() => {
+        if (operationalAccessorialMessage) {
+            setSnackbarMessage(operationalAccessorialMessage);
+            setSnackbarOpen(true);
+        }
+        if (operationalMessage === 'Accessorial deleted successfully') {
+            dispatch(getStationAccessorialData(selectedCarrierRowDetails.entityId));
+        }
+    }, [operationalAccessorialMessage])
+
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         notesRef.current = {};
-        dispatch(setSelectedCarrierRowDetails({}));
+        dispatch(setSelectedCarrierTabRowDetails({}));
     };
     const handleCloseEdit = () => {
         setOpenEditDialog(false);
         setActionType("");
-        dispatch(setSelectedCarrierRowDetails({}));
+        dispatch(setSelectedCarrierTabRowDetails({}));
     };
 
     return (
@@ -446,11 +480,11 @@ export default function CarrierViewTable() {
             >
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
 
-                    <DataGrid
+                    {currentCarrierViewTab === 'terminal' && <DataGrid
                         rows={carrierViewTabData}
                         columns={tableColumns}
                         loading={isLoading}
-                        getRowId={(row) => row?.terminalId || row?.accessorialId}
+                        getRowId={(row) => row?.terminalId}
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
@@ -459,21 +493,32 @@ export default function CarrierViewTable() {
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
                             dispatch(getTerminalCarrierData({
+                                carrierId: selectedCarrierRowDetails.carrierId || localStorage.getItem('carrierId'),
                                 pageNo: newModel.page + 1,
                                 pageSize: newModel.pageSize,
                                 searchStr: carrierSearchStr
                             }));
                         }}
                         onPageChange={(newPage) => {
-                            dispatch(getTerminalCarrierData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: carrierSearchStr }));
+                            dispatch(getTerminalCarrierData({ carrierId: selectedCarrierRowDetails.carrierId || localStorage.getItem('carrierId'), pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: carrierSearchStr }));
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            dispatch(getTerminalCarrierData({ pageNo: 1, pageSize: newPageSize, searchStr: carrierSearchStr }));
+                            dispatch(getTerminalCarrierData({ carrierId: selectedCarrierRowDetails.carrierId || localStorage.getItem('carrierId'), pageNo: 1, pageSize: newPageSize, searchStr: carrierSearchStr }));
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                         autoHeight
-                    />
+                    />}
+                    {currentCarrierViewTab === 'accessorial' && <DataGrid
+                        rows={stationTabTableData}
+                        columns={tableColumns}
+                        loading={isLoading}
+                        getRowId={(row) => row?.accessorialId}
+                        pagination
+                        getRowHeight={() => 'auto'}
+                        hideFooterSelectedRowCount
+                        autoHeight
+                    />}
                 </Box>
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {
@@ -518,8 +563,8 @@ export default function CarrierViewTable() {
                 >
                     <DialogContent>
                         {
-                            currentCarrierViewTab === 'accessorial' ? <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedCarrierTabRowDetails} /> : 
-                            <TerminalDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
+                            currentCarrierViewTab === 'accessorial' ? <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedCarrierTabRowDetails} /> :
+                                <TerminalDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
                         }
                     </DialogContent>
                 </Dialog>

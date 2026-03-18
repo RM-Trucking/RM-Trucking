@@ -26,6 +26,7 @@ import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import CarrierViewTabs from './CarrierViewTabs';
 import CarrierViewTable from './CarrierViewTable';
 import { setTableBeingViewed } from '../../redux/slices/customer';
+import { postCarrierData, putCarrierData } from '../../redux/slices/carrier';
 // ----------------------------------------------------------------------
 
 
@@ -44,7 +45,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     const defaultValues = {
         carrierName: '',
         carrierType: [],
-        carrierStatus: '',
+        carrierStatus: type === 'Add' ? 'active' : '',
         corpAddressLine1: '',
         corpAddressLine2: '',
         corpCity: '',
@@ -72,7 +73,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     const [warning, setWarning] = useState(false);
 
     const { control, handleSubmit, watch, getValues, setValue } = useForm({ defaultValues });
-   
+
     // Watch the checkbox value to conditionally render billing address
     const sameAsCorporate = watch('sameAsCorporate');
 
@@ -84,12 +85,95 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             setOpenConfirmDialog(true);
             return;
         }
+        const rawValueIED = data.insuranceExpiryDate;
+        const rawValueTRD = data.tariffRenewalDate;
+
+        // 3. Convert to Date object and format
+        const dateObjIED = new Date(rawValueIED);
+        const formattedIED = dateObjIED.toLocaleDateString('en-CA'); // Result: "2026-03-10"
+
+        const dateObjTRD = new Date(rawValueTRD);
+        const formattedTRD = dateObjTRD.toLocaleDateString('en-CA'); // Result: "2026-03-10"
 
         if (type === 'Add') {
+            const obj = {
+                "carrierName": data.carrierName,
+                "carrierType": data.carrierType.join(", "),
+                "carrierStatus": "Active",
+                "tsaCertified": data.tsa ? 'Y' : 'N',
+                "ustDotNo": data.ustDotNo,
+                "mcnNo": data.mcNo,
+                "insuranceExpiry": formattedIED || '',
+                "tariffRenewalDate": formattedTRD || '',
+                "salesRepName": data.salesRepName,
+                "salesRepPhone": data.salesRepPhoneNumber,
+                "salesRepEmail": data.salesRepEmailId,
+                "corporateBillingSame": data.sameAsCorporate ? 'Y' : 'N',
+                "addresses": [
+                    {
+                        "line1": data.corpAddressLine1,
+                        "line2": data.corpAddressLine2,
+                        "city": data.corpCity,
+                        "state": data.corpState,
+                        "zipCode": data.corpZipCode,
+                        "addressRole": "Corporate"
+                    },
+                    {
+                        "line1": data.billAddressLine1,
+                        "line2": data.billAddressLine2,
+                        "city": data.billCity,
+                        "state": data.billState,
+                        "zipCode": data.billZipCode,
+                        "addressRole": "Billing"
+                    },
+                ],
+                "note": {
+                    "messageText": data.carrierNotes
+                }
+            }
+            dispatch(postCarrierData(obj));
             console.log('data')
         }
         if (type === 'Edit') {
-            console.log('data')
+            const obj = {
+                "carrierName": data.carrierName,
+                "carrierType": data.carrierType.join(", "),
+                "carrierStatus": "Active",
+                "tsaCertified": data.tsa ? 'Y' : 'N',
+                "totalShipments": selectedCarrierRowDetails?.totalShipments,
+                "rmOnTimePercent": selectedCarrierRowDetails?.rmOnTimePercent,
+                "lateShipments": selectedCarrierRowDetails?.lateShipments,
+                "ustDotNo": data.ustDotNo,
+                "mcnNo": data.mcNo,
+                "insuranceExpiry": formattedIED || '',
+                "tariffRenewalDate": formattedTRD || '',
+                "salesRepName": data.salesRepName,
+                "salesRepPhone": data.salesRepPhoneNumber,
+                "salesRepEmail": data.salesRepEmailId,
+                "corporateBillingSame": data.sameAsCorporate ? 'Y' : 'N',
+                "addresses": [
+                    {
+                        "line1": data.corpAddressLine1,
+                        "line2": data.corpAddressLine2,
+                        "city": data.corpCity,
+                        "state": data.corpState,
+                        "zipCode": data.corpZipCode,
+                        "addressRole": "Corporate"
+                    },
+                    {
+                        "line1": data.billAddressLine1,
+                        "line2": data.billAddressLine2,
+                        "city": data.billCity,
+                        "state": data.billState,
+                        "zipCode": data.billZipCode,
+                        "addressRole": "Billing"
+                    },
+                ]
+            }
+            obj.addresses[0].addressId = (selectedCarrierRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCarrierRowDetails.addresses[0].addressId : selectedCarrierRowDetails.addresses[1].addressId;
+            obj.addresses[1].addressId = (selectedCarrierRowDetails.addresses[1].addressRole === 'Billing') ? selectedCarrierRowDetails.addresses[1].addressId : selectedCarrierRowDetails.addresses[0].addressId;;
+            console.log('data');
+            dispatch(putCarrierData(obj, selectedCarrierRowDetails?.carrierId))
         }
     };
     useEffect(() => {
@@ -105,6 +189,32 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     }, [operationalMessage]);
     useEffect(() => {
         console.log('Selected Customer Details:', selectedCarrierRowDetails);
+
+        if ((type === 'Edit' || type === 'View') && selectedCarrierRowDetails) {
+            setValue('carrierName', selectedCarrierRowDetails?.carrierName || '');
+            setValue('carrierType', selectedCarrierRowDetails?.carrierType?.split(",") || []);
+            setValue('carrierStatus', selectedCarrierRowDetails?.carrierStatus?.charAt(0).toLowerCase() + selectedCarrierRowDetails?.carrierStatus?.slice(1) || '');
+            setValue('corpAddressLine1', selectedCarrierRowDetails?.addresses?.[0]?.line1 || '');
+            setValue('corpAddressLine2', selectedCarrierRowDetails?.addresses?.[0]?.line2 || '');
+            setValue('corpCity', selectedCarrierRowDetails?.addresses?.[0]?.city || '');
+            setValue('corpState', selectedCarrierRowDetails?.addresses?.[0]?.state || '');
+            setValue('corpZipCode', selectedCarrierRowDetails?.addresses?.[0]?.zipCode || '');
+            setValue('sameAsCorporate', selectedCarrierRowDetails?.corporateBillingSame === 'Y' ? true : false);
+            setReadOnly(selectedCarrierRowDetails?.corporateBillingSame === 'Y' ? true : false);
+            setValue('billAddressLine1', selectedCarrierRowDetails?.addresses?.[1]?.line1 || '');
+            setValue('billAddressLine2', selectedCarrierRowDetails?.addresses?.[1]?.line2 || '');
+            setValue('billCity', selectedCarrierRowDetails?.addresses?.[1]?.city || '');
+            setValue('billState', selectedCarrierRowDetails?.addresses?.[1]?.state || '');
+            setValue('billZipCode', selectedCarrierRowDetails?.addresses?.[1]?.zipCode || '');
+            setValue('tsa', selectedCarrierRowDetails?.tsaCertified === 'Y' ? true : false|| '');
+            setValue('ustDotNo', selectedCarrierRowDetails?.ustDotNo || '');
+            setValue('mcNo', selectedCarrierRowDetails?.mcnNo || '');
+            setValue('insuranceExpiryDate', selectedCarrierRowDetails?.insuranceExpiry || '');
+            setValue('tariffRenewalDate', selectedCarrierRowDetails?.tariffRenewalDate || '');
+            setValue('salesRepName', selectedCarrierRowDetails?.salesRepName || '');
+            setValue('salesRepPhoneNumber', selectedCarrierRowDetails?.salesRepPhone || '');
+            setValue('salesRepEmailId', selectedCarrierRowDetails?.salesRepEmail || '');
+        }
 
     }, [selectedCarrierRowDetails]);
     useEffect(() => {
@@ -178,7 +288,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             control={control}
                             rules={{ required: "Carrier type is required" }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => {
-
                                 const groups = {
                                     ltl: ["LTL Carrier", "Truck Load Carriers", "Dedicated Carriers"],
                                     airport: ["Airport Carrier", "Airport Agent"]
@@ -197,16 +306,20 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     const isLTL = groups.ltl.includes(lastSelected);
                                     const isAirport = groups.airport.includes(lastSelected);
 
-                                    const previouslyHadLTL = value?.some(v => groups.ltl.includes(v));
-                                    const previouslyHadAirport = value?.some(v => groups.airport.includes(v));
+                                    // Accessing current value safely
+                                    const currentArray = Array.isArray(value) ? value : [];
+                                    const previouslyHadLTL = currentArray.some(v => groups.ltl.includes(v));
+                                    const previouslyHadAirport = currentArray.some(v => groups.airport.includes(v));
 
                                     if (isLTL) {
                                         if (previouslyHadAirport) setWarning(true);
                                         else setWarning(false);
+                                        // Filter to only keep items from the LTL group
                                         onChange(newValue.filter(val => groups.ltl.includes(val)));
                                     } else if (isAirport) {
                                         if (previouslyHadLTL) setWarning(true);
                                         else setWarning(false);
+                                        // Filter to only keep items from the Airport group
                                         onChange(newValue.filter(val => groups.airport.includes(val)));
                                     }
                                 };
@@ -214,11 +327,12 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 return (
                                     <StyledTextField
                                         select
-                                        value={value || []}
+                                        value={Array.isArray(value) ? value : []} // Force value to be an array
                                         onChange={handleGroupChange}
                                         SelectProps={{
                                             multiple: true,
-                                            renderValue: (selected) => selected.join(", "),
+                                            // Fix: Check if selected is an array before calling .join
+                                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(", ") : ""),
                                             MenuProps: { PaperProps: { sx: { maxHeight: 320 } } }
                                         }}
                                         variant="standard"
@@ -239,7 +353,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         <Divider />
                                         {groups.ltl.map((option) => (
                                             <MenuItem key={option} value={option}>
-                                                <Checkbox checked={(value || []).indexOf(option) > -1} />
+                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} />
                                                 <ListItemText primary={option} />
                                             </MenuItem>
                                         ))}
@@ -251,7 +365,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         <Divider />
                                         {groups.airport.map((option) => (
                                             <MenuItem key={option} value={option}>
-                                                <Checkbox checked={(value || []).indexOf(option) > -1} />
+                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} />
                                                 <ListItemText primary={option} />
                                             </MenuItem>
                                         ))}
@@ -267,25 +381,27 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    select // This turns the TextField into a Select
+                                    select
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '30%' }}
                                     label="Carrier Status*"
                                     error={!!error}
                                     helperText={error ? 'Carrier status is required' : ''}
-                                    disabled={(type === 'View')}
+                                    // Disable if type is 'View' OR 'Add'
+                                    disabled={type === 'View' || type === 'Add'}
                                 >
-                                    <MenuItem value="inactive">Inactive</MenuItem>
                                     <MenuItem value="active">Active</MenuItem>
-                                    <MenuItem value="active">Incomplete</MenuItem>
+                                    <MenuItem value="inactive">Inactive</MenuItem>
+                                    <MenuItem value="incomplete">Incomplete</MenuItem>
                                 </StyledTextField>
                             )}
                         />
+
                     </Stack>
 
                     {/* Corporate Address Section */}
-                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
+                    <fieldset style={{ borderColor: '#000', borderRadius: '8px' }}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Corporate Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                             <Controller
@@ -483,7 +599,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </Box>
 
                     {/* Billing Address Section - Conditionally rendered */}
-                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
+                    <fieldset style={{ borderColor: '#000', borderRadius: '8px' }}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Billing Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 2 }}>
                             <Controller
@@ -635,7 +751,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     </fieldset>
 
                     <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
-                        <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
+                        <fieldset style={{ borderColor: '#000', borderRadius: '8px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Complaince &nbsp;</Typography></legend>
                             <Box sx={{ pt: 4, pb: 4, pr: 15 }}>
                                 <Controller
@@ -677,7 +793,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 />
                             </Box>
                         </fieldset>
-                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '15px', borderColor:'#000', borderRadius:'8px' }}>
+                        <fieldset style={{ width: '100%', height: '120px', marginLeft: '15px', borderColor: '#000', borderRadius: '8px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Government Info &nbsp;</Typography></legend>
                             <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                                 <Controller
@@ -870,7 +986,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
                     <Stack flexDirection={{ xs: 'column', sm: 'row' }} alignItems={'center'}>
                         {
-                            type === 'View' && <fieldset style={{ marginRight: '15px', borderColor:'#000', borderRadius:'8px' }}>
+                            type === 'View' && <fieldset style={{ marginRight: '15px', borderColor: '#000', borderRadius: '8px' }}>
                                 <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Quality &nbsp;</Typography></legend>
                                 <Stack flexDirection={'column'}>
                                     <Stack flexDirection={'row'} alignItems={'center'}>
@@ -888,7 +1004,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 </Stack>
                             </fieldset>
                         }
-                        <fieldset style={{ width: '100%', padding: '12px', borderColor:'#000', borderRadius:'8px' }}>
+                        <fieldset style={{ width: '100%', padding: '12px', borderColor: '#000', borderRadius: '8px' }}>
                             <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Sales Rep Info &nbsp;</Typography></legend>
                             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ pb: 2 }}>
                                 <Controller
@@ -1084,7 +1200,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             </Box>
             {/* Carrier table */}
             {
-                type === 'View' && <CarrierViewTabs selectedRowCarrierType={selectedRowCarrierType}/>
+                type === 'View' && <CarrierViewTabs selectedRowCarrierType={selectedRowCarrierType} />
             }
             {
                 type === 'View' && <CarrierViewTable />

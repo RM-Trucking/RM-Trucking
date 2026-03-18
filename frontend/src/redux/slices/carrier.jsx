@@ -63,80 +63,33 @@ const slice = createSlice({
         setCurrentCarrierViewTab(state, action) {
             state.currentCarrierViewTab = action.payload;
         },
+        // get carrier success
         getCarrierDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            // state.carrierData = action.payload.data;
+            state.carrierData = action.payload.data;
             state.pagination = {
                 page: action.payload?.pagination?.page || state.pagination?.page,
                 pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
                 totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.carrierData.length,
             };
-            if (state.currentCarrierTab === 'active') {
-                state.carrierData = [
-                    {
-                        carrierId: 'CID10001',
-                        carrierName: 'FedEx',
-                        website: 'example1.com',
-                        tsa: 'Y',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'Y',
-                        notes: 'notes'
-                    },
-                    {
-                        carrierId: 'CID10002',
-                        carrierName: 'UPS',
-                        website: 'example2.com',
-                        tsa: 'N',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'Y',
-                        notes: 'notes'
-                    }
-                ];
-            }
-            if (state.currentCarrierTab === 'inactive') {
-                state.carrierData = [
-                    {
-                        carrierId: 'CID10001',
-                        carrierName: 'FedEx',
-                        website: 'example1.com',
-                        tsa: 'Y',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'N',
-                        notes: 'notes'
-                    },
-                    {
-                        carrierId: 'CID10002',
-                        carrierName: 'UPS',
-                        website: 'example2.com',
-                        tsa: 'N',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'N',
-                        notes: 'notes'
-                    }
-                ];
-            }
-            if (state.currentCarrierTab === 'incomplete') {
-                state.carrierData = [
-                    {
-                        carrierId: 'CID10001',
-                        carrierName: 'FedEx',
-                        website: 'example1.com',
-                        tsa: 'Y',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'N',
-                        notes: 'notes'
-                    },
-                    {
-                        carrierId: 'CID10002',
-                        carrierName: 'UPS',
-                        website: 'example2.com',
-                        tsa: 'N',
-                        insuranceExpiryDate: '05/25/2025',
-                        status: 'N',
-                        notes: 'notes'
-                    }
-                ];
+        },
+        postCarrierDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = action.payload.message || 'Carrier created successfully';
+            console.log("Carrier post payload", action.payload.data.customer);
+            state.carrierData.unshift(action.payload.data.carrier);
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.carrierData.length;
+        },
+        putCarrierdataSuccess(state, action) {
+            state.isLoading = false;
+            console.log("customer put payload", action.payload.data);
+            state.carrierSuccess = true;
+            state.operationalMessage = action.payload.message || 'Carrier updated successfully';
+            const index = state.carrierData.findIndex((row) => row.carrierId === action.payload?.data?.carrier?.carrierId);
+            if (index === 0 || index > 0) {
+                state.carrierData.splice(index, 1, action.payload.data.carrier);
             }
         },
         deleteCarrierDataSuccess(state, action) {
@@ -145,74 +98,40 @@ const slice = createSlice({
             state.operationalMessage = `Carrier deleted successfully.`;
         },
         // on view tab table details
+        // terminal success calls
         getTerminalCarrierDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            if (state.currentCarrierViewTab === 'terminal') {
-                state.carrierViewTabData = [
-                    {
-                        terminalId: 1,
-                        terminalName: 'Terminal 1',
-                        rmAccountNumber: 'RM5675765',
-                        airportCode: 'JFK',
-                        totalShipments: 100,
-                        onTimePercentage: '95%',
-                        lateShipments: 5,
-                        address: '123 Main Street',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCodes: ['10001', '10002'],
-                        phoneNumber: '123-456-7890',
-                        faxNumber: '123-456-7891',
-                        openTime: '08:00',
-                        closeTime: '17:00',
-                        status: 'Y',
-                        hours: '8'
-                    },
-                    {
-                        terminalId: 2,
-                        terminalName: 'Terminal 2',
-                        rmAccountNumber: 'RM5675766',
-                        airportCode: 'LAX',
-                        totalShipments: 150,
-                        onTimePercentage: '90%',
-                        lateShipments: 5,
-                        address: '123 Main Street',
-                        city: 'New York',
-                        state: 'NY',
-                        zipCodes: ['10001', '10002'],
-                        phoneNumber: '123-456-7890',
-                        faxNumber: '123-456-7891',
-                        openTime: '08:00',
-                        closeTime: '17:00',
-                        status: 'N',
-                        hours: '5'
-                    },
-                ];
-            }
+            state.carrierViewTabData = action.payload.data;
+            state.pagination = {
+                page: action.payload?.pagination?.page || state.pagination?.page,
+                pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
+                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.carrierViewTabData.length,
+            };
         },
-        getAccessorialCarrierDataSuccess(state, action) {
+        postTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            if (state.currentCarrierViewTab === 'accessorial') {
-                state.carrierViewTabData = [
-                    {
-                        accessorialId: 1,
-                        accessorialName: 'Accessorial 1',
-                        chargeType: 'Flat Fee',
-                        chargeValue: '1100',
-                        notes: 'This is a sample accessorial note.'
-                    },
-                    {
-                        accessorialId: 2,
-                        accessorialName: 'Accessorial 2',
-                        chargeType: 'Flat Fee',
-                        chargeValue: '1100',
-                        notes: 'This is a sample accessorial note.'
-                    }
-                ];
+            state.operationalMessage = action.payload.message || 'Terminal created successfully';
+            state.carrierViewTabData.unshift(action.payload.data);
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.carrierViewTabData.length;
+        },
+        putTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            console.log("Terminal put payload", action.payload.data);
+            state.carrierSuccess = true;
+            state.operationalMessage = action.payload.message || 'Terminal updated successfully';
+            const index = state.carrierViewTabData.findIndex((row) => row.terminalId === action.payload?.data?.terminalId);
+            if (index === 0 || index > 0) {
+                state.carrierViewTabData.splice(index, 1, action.payload.data);
             }
         },
+        deleteTerminalDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = `Terminal deleted successfully.`;
+        },
+
         setSelectedRowCarrierType(state, action) {
             state.selectedRowCarrierType = action.payload;
         },
@@ -231,49 +150,50 @@ const slice = createSlice({
         getPersonnelTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.terminalViewTabData = [
-                {
-                    personnelId: 1,
-                    personnelName: 'Bravo',
-                    personType: 'Warehouse',
-                    email: 'email1@gmail.com',
-                    officePhoneNo: '8569999954',
-                    cellPhoneNo: '8569999955',
-                    notes: 'Sample notes for personnel.'
-                },
-                {
-                    personnelId: 2,
-                    personnelName: 'Charlie',
-                    personType: 'Sales',
-                    email: 'email2@gmail.com',
-                    officePhoneNo: '8569999954',
-                    cellPhoneNo: '8569999955',
-                    notes: 'Sample notes for personnel.'
-                }
-            ]
+            state.terminalViewTabData = action.payload;
+            state.pagination = {
+                page: action.payload?.pagination?.page || state.pagination?.page,
+                pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
+                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.terminalViewTabData.length,
+            };
         },
-        getAccessorialTerminalDataSuccess(state, action) {
+        postPersonnelDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.terminalViewTabData = [
-                {
-                    accessorialId: 1,
-                    serviceNotOffered: true,
-                    accessorialName: 'Accessorial 1',
-                    chargeType: 'Flat Fee',
-                    chargeValue: '1100',
-                    notes: 'This is a sample accessorial note.'
-                },
-                {
-                    accessorialId: 2,
-                    serviceNotOffered: false,
-                    accessorialName: 'Accessorial 2',
-                    chargeType: 'Flat Fee',
-                    chargeValue: '1100',
-                    notes: 'This is a sample accessorial note.'
-                }
-            ];
+            state.operationalMessage = action.payload.message || 'Personnel created successfully';
+            console.log("Personnel post payload", action.payload.data.personnel);
+            state.terminalViewTabData.unshift(action.payload.data.personnel);
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.terminalViewTabData.length;
         },
+        putPersonnelDataSuccess(state, action) {
+            state.isLoading = false;
+            console.log("Personnel put payload", action.payload.data);
+            state.carrierSuccess = true;
+            state.operationalMessage = action.payload.message || 'Personnel updated successfully';
+            const index = state.terminalViewTabData.findIndex((row) => row.personnelId === action.payload?.data?.personnelId);
+            if (index === 0 || index > 0) {
+                state.terminalViewTabData.splice(index, 1, action.payload.data);
+            }
+        },
+        deletePersonnelDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = `Personnel deleted successfully.`;
+        },
+
+        // rate data success slices
+        getTerminalRateDataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.terminalViewTabData = action.payload.data;
+        },
+        deleteTerminalRateSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = 'Terminal rate deleted successfully';
+        },
+
+        // quality tab success slices
         getQualityTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
@@ -292,63 +212,15 @@ const slice = createSlice({
                 },
             ]
         },
-        getRateTerminalDataSuccess(state, action) {
-            state.isLoading = false;
-            state.carrierSuccess = true;
-            state.terminalViewTabData = [
-                {
-                    rateId: 1,
-                    origin: 'ORD',
-                    originZipCode: '60501',
-                    destination: 'Ankeny',
-                    destinationZipCode: '50007',
-                    customers: 26,
-                    status: 'Y',
-                    min: '100',
-                    rate100: '100',
-                    rate1000: '1000',
-                    rate3000: '3000',
-                    rate5000: '5000',
-                    rate10000: '10000',
-                    max: '10000',
-                    expiryDate: '12-30-2026',
-                },
-                {
-                    rateId: 2,
-                    origin: 'ORD',
-                    originZipCode: '60501',
-                    destination: 'Ankeny',
-                    destinationZipCode: '50007',
-                    customers: 26,
-                    status: 'Y',
-                    min: '100',
-                    rate100: '100',
-                    rate1000: '1000',
-                    rate3000: '3000',
-                    rate5000: '5000',
-                    rate10000: '10000',
-                    max: '10000',
-                    expiryDate: '12-30-2026',
-                },
-                {
-                    rateId: 3,
-                    origin: 'ORD',
-                    originZipCode: '60501',
-                    destination: 'Ankeny',
-                    destinationZipCode: '50007',
-                    customers: 26,
-                    status: 'Y',
-                    min: '100',
-                    rate100: '100',
-                    rate1000: '1000',
-                    rate3000: '3000',
-                    rate5000: '5000',
-                    rate10000: '10000',
-                    max: '10000',
-                    expiryDate: '12-30-2026',
-                },
-            ];
+
+        // set carrier tab table data 
+        setCarrierViewTabData(state, action) {
+            state.carrierViewTabData = action.payload;
         },
+        setTerminalViewTabData(state,action){
+            state.terminalViewTabData = action.payload;
+        },
+
     },
 });
 
@@ -362,7 +234,9 @@ export const {
     setSelectedRowCarrierType,
     setSelectedCarrierTabRowDetails,
     setSelectedTeminalTabRowDetails,
-    setCurrentTerminalTab, setCarrierViewTabData,
+    setCurrentTerminalTab,
+    setCarrierViewTabData,
+    setTerminalViewTabData,
 } = slice.actions;
 export default slice.reducer;
 
@@ -370,15 +244,37 @@ export default slice.reducer;
 // Actions
 
 // ----------------------------------------------------------------------
-export function getCarrierData({ pageNo, pageSize, searchStr }) {
+// carrier api calls
+export function getCarrierData({ pageNo, pageSize, searchStr, status }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            // dispatch(slice.actions.getCarrierDataSuccess(response.data));
-            dispatch(slice.actions.getCarrierDataSuccess([]));
+            const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}&status=${status}`);
+            dispatch(slice.actions.getCarrierDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function postCarrierData(obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/carrier`, obj);
+            dispatch(slice.actions.postCarrierDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function putCarrierData(obj, id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/carrier/${id}`, obj);
+            dispatch(slice.actions.putCarrierdataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
         }
     };
 }
@@ -396,68 +292,136 @@ export function deleteCarrier(id, callback) {
         }
     };
 }
-export function getTerminalCarrierData({ pageNo, pageSize, searchStr }) {
+
+// terminal api calls
+export function getTerminalCarrierData({ carrierId, pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getTerminalCarrierDataSuccess([]));
+            const response = await axios.get(`maintenance/terminal/carrier/${carrierId}?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getTerminalCarrierDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
-export function getAccessorialCarrierData({ pageNo, pageSize, searchStr }) {
+export function postTerminalData(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getAccessorialCarrierDataSuccess([]));
+            const response = await axios.post(`maintenance/terminal`, obj);
+            dispatch(slice.actions.postTerminalDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
-// Terminal tab calls
-export function getPersonnelTerminalData({ pageNo, pageSize, searchStr }) {
+export function putTerminalData(obj, id) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getPersonnelTerminalDataSuccess([]));
+            const response = await axios.put(`maintenance/terminal/${id}`, obj);
+            dispatch(slice.actions.putTerminalDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function deleteTerminal(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/terminal/${id}`);
+            dispatch(slice.actions.deleteTerminalDataSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+// Terminal tab - personnel calls
+export function getPersonnelTerminalData({ terminalId, pageNo, pageSize, searchStr }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/carrier-personnel/terminal/${terminalId}?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getPersonnelTerminalDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     }
 };
-export function getAccessorialTerminalData({ pageNo, pageSize, searchStr }) {
+export function postPersonnelData(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getAccessorialTerminalDataSuccess([]));
+            const response = await axios.post(`maintenance/carrier-personnel`, obj);
+            dispatch(slice.actions.postPersonnelDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
-    }
-};
+    };
+}
+export function putPersonnelData(obj, id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/carrier-personnel/${id}`, obj);
+            dispatch(slice.actions.putPersonnelDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function deletePersonnel(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/carrier-personnel/${id}`);
+            dispatch(slice.actions.deletePersonnelDataSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+// get for terminal rate
+export function getTerminalRateData(id, rateType) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`/maintenance/carrier-rate/terminal-rate-map?terminalId=${id}&rateType=${rateType}`);
+            dispatch(slice.actions.getTerminalRateDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function deleteTerminalRate(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/carrier-rate/terminal-rate-map/${id}`);
+            dispatch(slice.actions.deleteTerminalRateSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+// quality tab api calls
 export function getQualityTerminalData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
             // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
             dispatch(slice.actions.getQualityTerminalDataSuccess([]));
-        } catch (error) {
-            dispatch(slice.actions.hasError(error));
-        }
-    }
-};
-export function getRateTerminalData({ pageNo, pageSize, searchStr }) {
-    return async () => {
-        dispatch(slice.actions.startLoading());
-        try {
-            // const response = await axios.get(`maintenance/carrier?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getRateTerminalDataSuccess([]));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

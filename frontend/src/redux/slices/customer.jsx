@@ -243,6 +243,11 @@ const slice = createSlice({
         state.stationTabTableData.splice(index, 1);
       }
     },
+    patchStationAccessorialDataSuccess(state,action){
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.operationalMessage = action.payload.message.message || 'Accessorial Service updated successfully';
+    },
 
     // set values
     setStationRateData(state, action) {
@@ -608,6 +613,17 @@ export function deleteStationAccessorial(id, callback) {
         id, message: response.data
       }));
       callback();
+    } catch (error) {
+      dispatch(slice.actions.hasError(error))
+    }
+  };
+}
+export function patchStationAccessorialData(obj, id) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.put(`maintenance/entity-accessorial/${id}/service-not-offered`, obj);
+      dispatch(slice.actions.patchStationAccessorialDataSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

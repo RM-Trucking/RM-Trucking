@@ -488,3 +488,14 @@ export function postStationRate(arr) {
         }
     };
 }
+export function postTerminalRate(arr) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/carrier-rate/terminal-rate-map`, arr);
+            dispatch(slice.actions.postStationRateDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}

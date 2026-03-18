@@ -391,7 +391,7 @@ export default function CustomerHomePageTable() {
                 pagination
 
                 // regarding filters
-                // showToolbar
+                showToolbar
                 slots={{
                     filterPanel: CustomFilterPanel,
                 }}

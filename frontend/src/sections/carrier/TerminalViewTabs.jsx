@@ -8,8 +8,8 @@ import {
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, } from '../../redux/slices/carrier';
-import { setCurrentRateRoutedFrom, } from '../../redux/slices/rate';
+import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData } from '../../redux/slices/carrier';
+import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
@@ -57,6 +57,9 @@ export default function TerminalViewTabs({ }) {
         console.log(error);
     };
     const OnTabChange = (newValue) => {
+        dispatch(setTerminalViewTabData([]));
+        dispatch(setCurrentRateRoutedFrom('carrier'));
+        dispatch(setSelectedTeminalTabRowDetails({}));
         console.log('new tab value', newValue);
         dispatch(setCurrentTerminalTab(newValue));
     }
@@ -144,6 +147,8 @@ export default function TerminalViewTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
+                                    dispatch(setCurrentRateTab('transportation'));
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
                                     setOpenConfirmDialog(true);
                                 }}
                                 sx={{
@@ -166,7 +171,9 @@ export default function TerminalViewTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
+                                    dispatch(setCurrentRateTab('transportation'));
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    dispatch(setIsSelectRateClicked(true));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView);
                                 }}
                                 sx={{

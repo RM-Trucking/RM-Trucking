@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import { setTableBeingViewed } from '../../redux/slices/customer';
+import { postTerminalData, putTerminalData } from '../../redux/slices/carrier';
 
 
 TerminalDetails.propTypes = {
@@ -36,6 +37,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.carrierdata?.operationalMessage);
     const isLoading = useSelector((state) => state?.carrierdata?.isLoading);
+    const selectedCarrierRowDetails = useSelector((state) => state?.carrierdata?.selectedCarrierRowDetails);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     // Define default values for the form
@@ -61,10 +63,59 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
         console.log('Form Submitted (RHF Data):', data);
 
         if (type === 'Add') {
+            const obj = {
+                "carrierId": selectedCarrierRowDetails?.carrierId,
+                "terminalName": data.terminalName,
+                "rmAccountNumber": data.rmAccountNumber,
+                "airportCode": data.airportCode,
+                "email": data.email,
+                "phoneNumber": data.phoneNumber,
+                "faxNumber": data.faxNumber,
+                "openTime": data.openTime,
+                "closeTime": data.closeTime,
+                "hours": data.hours,
+                "addresses": [
+                    {
+                        "line1": data.addressLine1,
+                        "line2": data.addressLine2,
+                        "city": data.city,
+                        "state": data.state,
+                        "zipCode": data.zipCode,
+                        "addressRole": "Primary"
+                    }
+                ],
+                "note": {
+                    "messageText": data.terminalNotes,
+                }
+            }
+            dispatch(postTerminalData(obj));
             console.log('data')
         }
         if (type === 'Edit') {
+            const obj = {
+                "terminalName": data.terminalName,
+                "rmAccountNumber": data.rmAccountNumber,
+                "airportCode": data.airportCode,
+                "email": data.email,
+                "phoneNumber": data.phoneNumber,
+                "faxNumber": data.faxNumber,
+                "openTime": data.openTime,
+                "closeTime": data.closeTime,
+                "hours": data.hours,
+                "addresses": [
+                    {
+                        "line1": data.addressLine1,
+                        "line2": data.addressLine2,
+                        "city": data.city,
+                        "state": data.state,
+                        "zipCode": data.zipCode,
+                        "addressRole": "Primary"
+                    }
+                ],
+            }
+            obj.addresses[0].addressId = (selectedCarrierTabRowDetails.addresses[0].addressRole === 'Primary') ? selectedCarrierTabRowDetails.addresses[0].addressId : '';
             console.log('data', data)
+            dispatch(putTerminalData(obj, selectedCarrierTabRowDetails.terminalId));
         }
     };
     useEffect(() => {
@@ -77,7 +128,23 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
     }, [operationalMessage]);
     useEffect(() => {
         console.log('Selected Carrier tab row Details:', selectedCarrierTabRowDetails);
-
+        if ((type === 'Edit' || type === 'View') && selectedCarrierTabRowDetails) {
+            setValue('terminalName', selectedCarrierTabRowDetails?.terminalName || '');
+            setValue('rmAccountNumber', selectedCarrierTabRowDetails?.rmAccountNumber || '');
+            setValue('airportCode', selectedCarrierTabRowDetails?.airportCode || '');
+            setValue('email', selectedCarrierTabRowDetails?.email || '');
+            setValue('addressLine1', selectedCarrierTabRowDetails?.addresses?.[0]?.line1 || '');
+            setValue('addressLine2', selectedCarrierTabRowDetails?.addresses?.[0]?.line2 || '');
+            setValue('city', selectedCarrierTabRowDetails?.addresses?.[0]?.city || '');
+            setValue('state', selectedCarrierTabRowDetails?.addresses?.[0]?.state || '');
+            setValue('zipCode', selectedCarrierTabRowDetails?.addresses?.[0]?.zipCode || '');
+            setValue('phoneNumber', selectedCarrierTabRowDetails?.phoneNumber || '');
+            setValue('faxNumber', selectedCarrierTabRowDetails?.faxNumber || '');
+            setValue('openTime', selectedCarrierTabRowDetails?.openTime || '');
+            setValue('closeTime', selectedCarrierTabRowDetails?.closeTime || '');
+            setValue('hours', selectedCarrierTabRowDetails?.hours || '');
+            setValue('terminalNotes', selectedCarrierTabRowDetails?.notes?.[0]?.messageText || '');
+        }
     }, [selectedCarrierTabRowDetails]);
     const handleCloseConfirmDialog = () => {
         setOpenConfirmDialog(false);
@@ -262,7 +329,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                     </Stack>
 
                     {/* Terminal Address Section */}
-                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
+                    <fieldset style={{ borderColor: '#000', borderRadius: '8px' }}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Terminal Address &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                             <Controller
@@ -407,7 +474,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                     </fieldset>
 
                     {/* Terminal Info Section */}
-                    <fieldset style={{borderColor:'#000', borderRadius:'8px'}}>
+                    <fieldset style={{ borderColor: '#000', borderRadius: '8px' }}>
                         <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Terminal Info &nbsp;</Typography></legend>
                         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} sx={{ mb: 2 }}>
                             <Controller
@@ -650,7 +717,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                                 }}
                                 disabled={(type === 'View')}
                                 inputProps={{ maxLength: 2000 }}
-                                />
+                            />
                         )}
                     />
 

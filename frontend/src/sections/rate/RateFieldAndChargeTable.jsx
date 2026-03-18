@@ -342,7 +342,7 @@ export default function RateFieldAndChargeTable({ type }) {
     }, [type]);
 
     useEffect(() => {
-        if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length > 0 && selectedCurrentRateRow?.details) {
+        if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length > 0 && (selectedCurrentRateRow?.details)) {
             const list = selectedCurrentRateRow?.details?.map((item, index) => {
                 return {
                     id: index,

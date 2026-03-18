@@ -13,7 +13,7 @@ import {
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
-import { postStationPersonnelData, putStationPersonnelData } from '../../redux/slices/customer';
+import { postPersonnelData, putPersonnelData } from '../../redux/slices/carrier';
 
 TerminalPersonnelDetails.propTypes = {
     type: PropTypes.string,
@@ -25,6 +25,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
     const dispatch = useDispatch();
     const operationalMessage = useSelector((state) => state?.carrierdata?.operationalMessage);
     const isLoading = useSelector((state) => state?.carrierdata?.isLoading);
+    const selectedCarrierTabRowDetails = useSelector((state) => state?.carrierdata?.selectedCarrierTabRowDetails);
     const {
         control,
         handleSubmit,
@@ -38,7 +39,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
             emailID: '',
             officePhoneNumber: '',
             cellPhoneNumber: '',
-            notes : '',
+            notes: '',
         }
     });
 
@@ -46,10 +47,29 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
         console.log('Form Submitted:', data);
 
         if (type === 'Add') {
-            
+            const obj = {
+                "terminalId": selectedCarrierTabRowDetails.terminalId,
+                "name": data.personName,
+                "personType": data.personType,
+                "email": data.emailID,
+                "officePhoneNumber": data.officePhoneNumber,
+                "cellPhoneNumber": data.cellPhoneNumber,
+                "note": {
+                    "messageText": data.notes
+                }
+            }
+            dispatch(postPersonnelData(obj));
         }
         if (type === 'Edit') {
-           
+            const obj = {
+                "terminalId": selectedCarrierTabRowDetails.terminalId,
+                "name": data.personName,
+                "personType": data.personType,
+                "email": data.emailID,
+                "officePhoneNumber": data.officePhoneNumber,
+                "cellPhoneNumber": data.cellPhoneNumber,
+            }
+            dispatch(putPersonnelData(obj,selectedTerminalTabRowDetails?.personnelId))
         }
     };
     useEffect(() => {
@@ -58,14 +78,14 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
         }
     }, [operationalMessage]);
     useEffect(() => {
-       if(selectedTerminalTabRowDetails && Object.keys(selectedTerminalTabRowDetails).length > 0) {
-           setValue('personName', selectedTerminalTabRowDetails.name || '');
-           setValue('personType', selectedTerminalTabRowDetails.personType || '');
-           setValue('emailID', selectedTerminalTabRowDetails.email || '');
-           setValue('officePhoneNumber', selectedTerminalTabRowDetails.officePhoneNumber || '');
-           setValue('cellPhoneNumber', selectedTerminalTabRowDetails.cellPhoneNumber || '');
-           setValue('notes', selectedTerminalTabRowDetails.notes || '');
-       }
+        if (selectedTerminalTabRowDetails && Object.keys(selectedTerminalTabRowDetails).length > 0) {
+            setValue('personName', selectedTerminalTabRowDetails.name || '');
+            setValue('personType', selectedTerminalTabRowDetails.personType || '');
+            setValue('emailID', selectedTerminalTabRowDetails.email || '');
+            setValue('officePhoneNumber', selectedTerminalTabRowDetails.officePhoneNumber || '');
+            setValue('cellPhoneNumber', selectedTerminalTabRowDetails.cellPhoneNumber || '');
+            setValue('notes', selectedTerminalTabRowDetails.notes || '');
+        }
     }, [selectedTerminalTabRowDetails]);
 
     return (
@@ -149,7 +169,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                                 />
                             )}
                         />
-                       
+
 
                         <Controller
                             name="emailID"
@@ -282,7 +302,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                                 />
                             )}
                         />
-                        <Controller
+                        {type === 'Add' && <Controller
                             name="notes"
                             control={control}
                             rules={{
@@ -315,7 +335,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                                     disabled={type === 'View'}
                                 />
                             )}
-                        />
+                        />}
                     </Stack>
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

@@ -13,15 +13,23 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
-    setSelectedCarrierRowDetails,
+    setSelectedCarrierTabRowDetails,
     setOperationalMessage,
     setSelectedTeminalTabRowDetails,
     getPersonnelTerminalData,
-    getAccessorialTerminalData,
-    getQualityTerminalData,
-    getRateTerminalData,
+    getQualityTerminalData, deletePersonnel, getTerminalRateData, 
+    deleteTerminalRate, setTerminalViewTabData, 
 } from '../../redux/slices/carrier';
-import { setTableBeingViewed } from '../../redux/slices/customer';
+import {
+    setTableBeingViewed, getStationAccessorialData,
+    deleteStationAccessorial, patchStationAccessorialData,
+    getAccessorialData
+} from '../../redux/slices/customer';
+import {
+    setSelectedCurrentRateRow,
+    setCurrentRateRoutedFrom, getCarrierListByRateID, getOriginZoneByZipCode,
+    getDestinationZoneByZipCode,
+} from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -35,8 +43,11 @@ import TerminalPersonnelDetails from './TerminalPersonnelDetails';
 export default function TerminalViewPageTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-
-    const { terminalViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage, error, selectedTerminalTabRowDetails, } = useSelector((state) => state.carrierdata);
+    const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
+    const { terminalViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage,
+        error, selectedTerminalTabRowDetails, selectedCarrierTabRowDetails } = useSelector((state) => state.carrierdata);
+    const operationalAccessorialMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -156,9 +167,7 @@ export default function TerminalViewPageTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
                                 setActionType('Delete');
-                                // dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                //     dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-                                // }));
+                                dispatch(deletePersonnel(params?.row?.personnelId));
                             }} />
                         </Tooltip>
                     </Box>
@@ -265,10 +274,11 @@ export default function TerminalViewPageTable() {
 
                         <StyledCheckbox
                             sx={{ mt: -1.5 }}
-                            checked={params?.row?.serviceNotOffered}
+                            checked={params?.row?.serviceNotOffered === 'Y'}
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
                                 // here need to call api to post data
+                                dispatch(patchStationAccessorialData({ serviceNotOffered: isChecked ? 'Y' : 'N' }, selectedCarrierTabRowDetails.entityId || localStorage.getItem('terminalEntityId')))
                             }} />
 
                     </Box>
@@ -349,9 +359,7 @@ export default function TerminalViewPageTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
                                 // using callback to refresh table data after delete
-                                // dispatch(deleteStationAccessorial(params?.row?.accessorialId, () => {
-                                //     dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
-                                // }));
+                                dispatch(deleteStationAccessorial(params?.row?.accessorialId));
                             }}
                             />
                         </Tooltip>
@@ -370,30 +378,50 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.rateId}
+                    {params?.row?.transportRate?.carrierRateId}
                 </Box>
             )
         },
         {
-            field: 'origin',
+            field: 'originZoneId',
             headerName: 'Origin',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.transportRate?.originZone?.zoneName}
+                </Box>
+            )
         },
         {
-            field: 'originZipCode',
+            field: 'originZone',
             headerName: 'Origin Zip Code',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ")}
+                    </Typography>
+                </Stack>
+            )
         },
         {
-            field: 'destination',
+            field: 'destinationZoneId',
             headerName: 'Destination',
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.transportRate?.destinationZone?.zoneName}
+                </Box>
+            )
         },
         {
             field: 'destinationZipCode',
@@ -401,29 +429,37 @@ export default function TerminalViewPageTable() {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            renderCell: (params) => (
+                <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                    {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
+                    <Typography variant="normal">
+                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ")}
+                    </Typography>
+                </Stack>
+            )
         },
         {
-            field: "rates",
+            field: "details",
             headerName: "Rates",
             minWidth: 300,
             minHeight: 200,
             flex: 1,
             renderCell: (params) => {
                 const element = (
-                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Min:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.min}</Typography>
+                    <Box>
+                        <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                            {
+                                params?.row?.transportRate?.details?.map((detail) => (
+                                    <Stack key={detail.rateDetailId} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>{detail?.rateField}</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{detail.chargeValue}</Typography>
+                                    </Stack>
+                                ))
+                            }
                         </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Rate Per 100 LB</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.ratePerPound}</Typography>
-                        </Stack>
-                        <Stack flexDirection={'row'} spacing={1} alignItems="flex-end">
-                            <Typography variant="normal" sx={{ width: "130px" }}>Max:</Typography>
-                            <Typography variant="normal" sx={{ width: "auto" }}>{params?.row?.max}</Typography>
-                        </Stack>
-                    </Stack>
+                    </Box>
                 );
                 return element;
             }
@@ -435,7 +471,7 @@ export default function TerminalViewPageTable() {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                const formatted = new Date(params?.row?.transportRate?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric'
@@ -464,13 +500,30 @@ export default function TerminalViewPageTable() {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
+                                dispatch(setCurrentRateRoutedFrom('carrier'));
                                 dispatch(setSelectedTeminalTabRowDetails(params.row));
-                            }} />
+                                // rate view  process
+                                dispatch(setSelectedCurrentRateRow(params.row.transportRate));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                setActionType("View");
+                                dispatch(getOriginZoneByZipCode(params?.row?.transportRate?.originZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.transportRate?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.destinationZone?.ranges?.join(',')) || ''));
+
+                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
+
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                            <Box onClick={() => {
+                                dispatch(deleteTerminalRate(params?.row?.rateId));
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
+                            </Box>
                         </Tooltip>
                     </Box>
                 );
@@ -481,6 +534,8 @@ export default function TerminalViewPageTable() {
 
 
     useEffect(() => {
+        dispatch(setTerminalViewTabData([]));
+        dispatch(setSelectedTeminalTabRowDetails({}));
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('personnel'));
     }, []);
@@ -488,7 +543,7 @@ export default function TerminalViewPageTable() {
         if (currentTerminalTab === 'personnel') {
             dispatch(clearNotesState());
             setTableColumns(personnelColumns);
-            dispatch(getPersonnelTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            dispatch(getPersonnelTerminalData({ terminalId: selectedCarrierTabRowDetails.terminalId, pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
         if (currentTerminalTab === 'quality') {
             dispatch(clearNotesState());
@@ -496,14 +551,16 @@ export default function TerminalViewPageTable() {
             dispatch(getQualityTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
         }
         if (currentTerminalTab === 'accessorial') {
+            dispatch(getAccessorialData());
             dispatch(clearNotesState());
             setTableColumns(accessorialColumns);
-            dispatch(getAccessorialTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            dispatch(getStationAccessorialData(selectedCarrierTabRowDetails.entityId || localStorage.getItem('terminalEntityId')));
         }
         if (currentTerminalTab === 'rate') {
             dispatch(clearNotesState());
             setTableColumns(rateColumns);
-            dispatch(getRateTerminalData({ pageNo: pagination.page, pageSize: pagination.pageSize }));
+            // call rate.jsx carrier transport rate
+            dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId, 'TRANSPORT'));
         }
     }, [currentTerminalTab]);
     useEffect(() => {
@@ -526,20 +583,35 @@ export default function TerminalViewPageTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        // if (operationalMessage === 'Terminal deleted successfully') {
-        //     dispatch(getTerminalCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-        // }
+        if (operationalMessage === 'Personnel deleted successfully.') {
+            dispatch(getPersonnelTerminalData({ terminalId: selectedCarrierTabRowDetails.terminalId, pageNo: pagination.page, pageSize: pagination.pageSize }));
+        }
+        if (operationalMessage === 'Terminal rate deleted successfully') {
+            dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId, 'TRANSPORT'));
+        }
     }, [operationalMessage])
+    useEffect(() => {
+        if (operationalAccessorialMessage) {
+            setSnackbarMessage(operationalAccessorialMessage);
+            setSnackbarOpen(true);
+        }
+        if (operationalAccessorialMessage === 'Accessorial Service updated successfully' || operationalAccessorialMessage === 'Accessorial deleted successfully') {
+            dispatch(getStationAccessorialData(selectedTerminalTabRowDetails.entityId || localStorage.getItem('terminalEntityId')));
+        }
+    }, [operationalAccessorialMessage])
+    useEffect(() => {
+        console.log(stationTabTableData);
+    }, [stationTabTableData]);
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         notesRef.current = {};
-        dispatch(setSelectedCarrierRowDetails({}));
+        dispatch(setSelectedCarrierTabRowDetails({}));
     };
     const handleCloseEdit = () => {
         setOpenEditDialog(false);
         setActionType("");
-        dispatch(setSelectedCarrierRowDetails({}));
+        dispatch(setSelectedCarrierTabRowDetails({}));
     };
 
     return (
@@ -554,11 +626,11 @@ export default function TerminalViewPageTable() {
             >
                 <Box sx={{ width: "100%", flex: 1, mt: 2 }}>
 
-                    <DataGrid
+                    {currentTerminalTab === 'personnel' && <DataGrid
                         rows={terminalViewTabData}
                         columns={tableColumns}
                         loading={isLoading}
-                        getRowId={(row) => row?.personnelId || row?.accessorialId || row?.rateId || row.qualityId}
+                        getRowId={(row) => row?.personnelId }
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
@@ -567,20 +639,55 @@ export default function TerminalViewPageTable() {
                         onPaginationModelChange={(newModel) => {
                             setPaginationModel(newModel);
                             dispatch(getPersonnelTerminalData({
+                                terminalId: selectedCarrierTabRowDetails.terminalId,
                                 pageNo: newModel.page + 1,
                                 pageSize: newModel.pageSize,
                             }));
                         }}
                         onPageChange={(newPage) => {
-                            dispatch(getPersonnelTerminalData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, }));
+                            dispatch(getPersonnelTerminalData({ terminalId: selectedCarrierTabRowDetails.terminalId, pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, }));
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            dispatch(getPersonnelTerminalData({ pageNo: 1, pageSize: newPageSize, }));
+                            dispatch(getPersonnelTerminalData({ terminalId: selectedCarrierTabRowDetails.terminalId, pageNo: 1, pageSize: newPageSize, }));
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                         autoHeight
-                    />
+                    />}
+                    {
+                        currentTerminalTab === 'quality' && <DataGrid
+                            rows={terminalViewTabData}
+                            columns={tableColumns}
+                            loading={isLoading}
+                            getRowId={(row) => row.qualityId}
+                            pagination
+                            getRowHeight={() => 'auto'}
+                            hideFooterSelectedRowCount
+                            autoHeight
+                        />
+                    }
+                    {
+                        currentTerminalTab === 'rate' && <DataGrid
+                            rows={terminalViewTabData}
+                            columns={tableColumns}
+                            loading={isLoading}
+                            getRowId={(row) => row.rateId}
+                            pagination
+                            getRowHeight={() => 'auto'}
+                            hideFooterSelectedRowCount
+                            autoHeight
+                        />
+                    }
+                    {currentTerminalTab === 'accessorial' && <DataGrid
+                        rows={stationTabTableData}
+                        columns={tableColumns}
+                        loading={isLoading}
+                        getRowId={(row) => row?.accessorialId}
+                        pagination
+                        getRowHeight={() => 'auto'}
+                        hideFooterSelectedRowCount
+                        autoHeight
+                    />}
                 </Box>
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {
@@ -628,7 +735,7 @@ export default function TerminalViewPageTable() {
                             currentTerminalTab.toLowerCase() === 'personnel' && <TerminalPersonnelDetails type={actionType} handleCloseConfirm={handleCloseEdit} />
                         }
                         {
-                            currentTerminalTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} />
+                            currentTerminalTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedTerminalTabRowDetails} />
                         }
                         {
                             currentTerminalTab.toLowerCase() === 'rate' && <AddRate type={'Add'} handleCloseConfirm={handleCloseEdit} />

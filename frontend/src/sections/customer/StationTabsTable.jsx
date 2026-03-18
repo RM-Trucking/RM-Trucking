@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Stack, Typography, Snackbar, Dialog,
     DialogContent, Tooltip, Divider, Chip
@@ -15,8 +16,14 @@ import {
     deleteStationAccessorial, getAccessorialData, setOperationalMessage, setStationTabTableData,
     deleteStationRate,
 } from '../../redux/slices/customer';
+import {
+    setSelectedCurrentRateRow,  
+    getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
+    getDestinationZoneByZipCode,
+} from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
+import { PATH_DASHBOARD } from '../../routes/paths';
 // ----------------------------------------------------------------------
 
 
@@ -27,6 +34,7 @@ StationTabsTable.PropTypes = {
 
 export default function StationTabsTable({ currentTab, setActionType }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const customerLoading = useSelector((state) => state?.customerdata?.isLoading);
     const stationTabTableData = useSelector((state) => state?.customerdata?.stationTabTableData);
     const pagination = useSelector((state) => state?.customerdata?.pagination);
@@ -34,6 +42,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
+    const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const [tableColumns, setTableColumns] = useState([]);
     // dialog for notes
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -405,6 +414,19 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         <Tooltip title={'View'} arrow>
                             <Box onClick={() => {
                                 dispatch(setSelectedStationTabRowDetails(params.row));
+                                // rate view  process
+                                dispatch(setSelectedCurrentRateRow(params.row.transportRate));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                setActionType("View");
+                                dispatch(getOriginZoneByZipCode(params?.row?.transportRate?.originZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.transportRate?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.destinationZone?.ranges?.join(',')) || ''));
+                                if (currentRateRoutedFrom === 'customer') {
+                                    dispatch(getCustomerListByRateID(params.row.rateId));
+                                    navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
+                                } else if (currentRateRoutedFrom === 'carrier') {
+                                    dispatch(getCarrierListByRateID(params.row.rateId));
+                                    navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
+                                }
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
                             </Box>

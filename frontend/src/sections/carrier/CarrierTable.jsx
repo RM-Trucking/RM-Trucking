@@ -12,7 +12,10 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import ErrorFallback from '../shared/ErrorBoundary';
 import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage, deleteCarrier, setSelectedRowCarrierType } from '../../redux/slices/carrier';
+import {
+    setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage,
+    deleteCarrier, setSelectedRowCarrierType, setCarrierViewTabData
+} from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -60,14 +63,7 @@ export default function RateTable() {
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'website',
-            headerName: 'Carrier Website',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'tsa',
+            field: 'tsaCertified',
             headerName: 'TSA',
             width: 150,
             headerAlign: 'center',
@@ -76,31 +72,39 @@ export default function RateTable() {
                 const element = (
                     <Typography
                     >
-                        {params?.row?.tsa === 'Y' ? 'Yes' : 'No'}
+                        {params?.row?.tsaCertified === 'Y' ? 'Yes' : 'No'}
                     </Typography>
                 );
                 return element;
             },
         },
         {
-            field: 'insuranceExpiryDate',
+            field: 'insuranceExpiry',
             headerName: 'Insurance Expiry Date',
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                const formatted = new Date(params?.row?.insuranceExpiryDate).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-');
-                <Box>
-                    {formatted}
-                </Box>
+                // 1. Get the raw value (e.g., "2026-03-10 00:00:00.000000")
+                const rawValue = params?.value;
+
+                // 2. Return nothing if the date is missing
+                if (!rawValue) return '';
+
+                // 3. Convert to Date object and format
+                const dateObj = new Date(rawValue);
+                const formatted = dateObj.toLocaleDateString('en-CA'); // Result: "2026-03-10"
+
+                // 4. MUST use 'return' to display the formatted value
+                return (
+                    <Box>
+                        {formatted}
+                    </Box>
+                );
             }
         },
         {
-            field: 'status',
+            field: 'carrierStatus',
             headerName: 'Status',
             width: 100,
             cellClassName: 'center-status-cell',
@@ -112,7 +116,7 @@ export default function RateTable() {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'n') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                        <Chip label={params?.row?.carrierStatus} sx={{ backgroundColor: (params?.row?.carrierStatus?.toLowerCase() === 'active') ? 'rgba(92, 172, 105, 1)' : 'rgba(143, 143, 143, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -166,339 +170,42 @@ export default function RateTable() {
                         }}
                     >
                         <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                            <Box onClick={() => {
+                                dispatch(setCarrierViewTabData([]));
                                 dispatch(setSelectedCarrierRowDetails(params.row));
-                                dispatch(setSelectedRowCarrierType('LTL'));
-                                // dispatch(setSelectedRowCarrierType('Airport'));
+                                const ltlKeywords = ["LTL Carrier", "Truck Load Carriers", "Dedicated Carriers"];
+                                const result = ltlKeywords.some(keyword => params.row.carrierType.includes(keyword))
+                                    ? "LTL"
+                                    : "Airport";
+                                dispatch(setSelectedRowCarrierType(result));
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
+                            </Box>
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
+                            <Box onClick={(e) => {
+                                e.stopPropagation();
                                 dispatch(setSelectedCarrierRowDetails(params?.row));
                                 setOpenEditDialog(true);
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('Edit');
 
-                            }} />
+                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} />
+                            </Box>
                         </Tooltip>
 
-                        <Tooltip title={'Delete'} arrow>
+                        {/* <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
                                 setActionType('Delete');
                                 dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                    dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+                                    dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
                                 }));
                             }} />
-                        </Tooltip>
-                    </Box>
-                );
-                return element;
-            },
-        }
-    ];
-    const inactiveCarrireColumns = [
-        {
-            field: 'carrierId',
-            headerName: 'Carrier ID',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'carrierName',
-            headerName: 'Carrier Name',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'website',
-            headerName: 'Carrier Website',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'tsa',
-            headerName: 'TSA',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Typography
-                    >
-                        {params?.row?.tsa === 'Y' ? 'Yes' : 'No'}
-                    </Typography>
-                );
-                return element;
-            },
-        },
-        {
-            field: 'insuranceExpiryDate',
-            headerName: 'Insurance Expiry Date',
-            width: 200,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const formatted = new Date(params?.row?.insuranceExpiryDate).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-');
-                <Box>
-                    {formatted}
-                </Box>
-            }
-        },
-        {
-            field: 'status',
-            headerName: 'Status',
-            width: 100,
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'n') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: "notes",
-            headerName: "Notes",
-            minWidth: 100,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5
-                        }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 300,
-            align: 'center',
-            cellClassName: 'center-status-cell',
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedCarrierRowDetails(params.row));
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('View');
-                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
-                            }} />
-                        </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
-                                dispatch(setSelectedCarrierRowDetails(params?.row));
-                                setOpenEditDialog(true);
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('Edit');
-
-                            }} />
-                        </Tooltip>
-
-                        <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                setActionType('Delete');
-                                dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                    dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-                                }));
-                            }} />
-                        </Tooltip>
-                    </Box>
-                );
-                return element;
-            },
-        }
-    ];
-    const inCompleteCarrireColumns = [
-        {
-            field: 'carrierId',
-            headerName: 'Carrier ID',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'carrierName',
-            headerName: 'Carrier Name',
-            width: 100,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'website',
-            headerName: 'Carrier Website',
-            width: 100,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-        },
-        {
-            field: 'tsa',
-            headerName: 'TSA',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Typography
-                    >
-                        {params?.row?.tsa === 'Y' ? 'Yes' : 'No'}
-                    </Typography>
-                );
-                return element;
-            },
-        },
-        {
-            field: 'insuranceExpiryDate',
-            headerName: 'Insurance Expiry Date',
-            width: 200,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const formatted = new Date(params?.row?.insuranceExpiryDate).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-');
-                <Box>
-                    {formatted}
-                </Box>
-            }
-        },
-        {
-            field: 'status',
-            headerName: 'Status',
-            width: 100,
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-                        <Chip label={params?.row?.status === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.status?.toLowerCase() === 'n') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: "notes",
-            headerName: "Notes",
-            minWidth: 100,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5
-                        }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
-        },
-        {
-            field: 'actions',
-            headerName: 'Actions',
-            width: 300,
-            align: 'center',
-            cellClassName: 'center-status-cell',
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
-                                dispatch(setSelectedCarrierRowDetails(params.row));
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('View');
-                                navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);
-                            }} />
-                        </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
-                                dispatch(setSelectedCarrierRowDetails(params?.row));
-                                setOpenEditDialog(true);
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('Edit');
-
-                            }} />
-                        </Tooltip>
-
-                        <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                setActionType('Delete');
-                                dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                    dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
-                                }));
-                            }} />
-                        </Tooltip>
+                        </Tooltip> */}
                     </Box>
                 );
                 return element;
@@ -510,24 +217,24 @@ export default function RateTable() {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('carrier'));
         if (currentCarrierTab === 'active') {
-            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, []);
     useEffect(() => {
         if (currentCarrierTab === 'active') {
             dispatch(clearNotesState());
             setTableColumns(activeCarrireColumns);
-            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
         if (currentCarrierTab === 'inactive') {
             dispatch(clearNotesState());
-            setTableColumns(inactiveCarrireColumns);
-            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+            setTableColumns(activeCarrireColumns);
+            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
         if (currentCarrierTab === 'incomplete') {
             dispatch(clearNotesState());
-            setTableColumns(inCompleteCarrireColumns);
-            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+            setTableColumns(activeCarrireColumns);
+            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, [currentCarrierTab]);
     useEffect(() => {
@@ -540,7 +247,7 @@ export default function RateTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.error || error.message}`}`);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -551,19 +258,19 @@ export default function RateTable() {
             setSnackbarOpen(true);
         }
         if (operationalMessage === 'Carrier deleted successfully') {
-            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr }));
+            dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, [operationalMessage])
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
         notesRef.current = {};
-        dispatch(setSelectedCarrierRowDetails({}));
+        // dispatch(setSelectedCarrierRowDetails({}));
     };
     const handleCloseEdit = () => {
         setOpenEditDialog(false);
         setActionType("");
-        dispatch(setSelectedCarrierRowDetails({}));
+        // dispatch(setSelectedCarrierRowDetails({}));
     };
 
     return (
@@ -593,14 +300,15 @@ export default function RateTable() {
                             dispatch(getCarrierData({
                                 pageNo: newModel.page + 1,
                                 pageSize: newModel.pageSize,
-                                searchStr: carrierSearchStr
+                                searchStr: carrierSearchStr,
+                                status: currentCarrierTab.charAt(0).toUpperCase() + str.slice(1)
                             }));
                         }}
                         onPageChange={(newPage) => {
-                            dispatch(getCarrierData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: carrierSearchStr }));
+                            dispatch(getCarrierData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
                         }}
                         onPageSizeChange={(newPageSize) => {
-                            dispatch(getCarrierData({ pageNo: 1, pageSize: newPageSize, searchStr: carrierSearchStr }));
+                            dispatch(getCarrierData({ pageNo: 1, pageSize: newPageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || '0', 10)}
@@ -649,7 +357,7 @@ export default function RateTable() {
                     }}
                 >
                     <DialogContent>
-                        <CarrierDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierRowDetails={selectedCarrierRowDetails}/>
+                        <CarrierDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierRowDetails={selectedCarrierRowDetails} />
                     </DialogContent>
                 </Dialog>
 

@@ -90,7 +90,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
         }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
-            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || '');
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId ||  "");
             setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
             setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');

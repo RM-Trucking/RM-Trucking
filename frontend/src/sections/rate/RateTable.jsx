@@ -17,7 +17,7 @@ import {
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode, postStationRate,
+    getDestinationZoneByZipCode, postStationRate, postTerminalRate, 
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -298,6 +298,31 @@ export default function RateTable() {
                                     );
                                 }
                             }} />}
+                        {currentRateRoutedFrom === 'carrier' && isSelectRateClicked && <StyledCheckbox
+                            sx={{ mt: -1.5 }}
+                            onChange={(e, i) => {
+                                const isChecked = e.target.checked;
+                                // if checked add the object nor else remove object
+                                if (isChecked) {
+                                    // --- PUSH LOGIC ---
+                                    setSelectedRatesArr((prev) => {
+                                        const isDuplicate = prev.some(item => item.rateId === params.row.rateId);
+                                        if (isDuplicate) return prev;
+
+                                        const obj = {
+                                            "terminalId": localStorage.getItem('terminalId'),
+                                            "rateId": params.row.rateId,
+                                            "rateType": "TRANSPORT"
+                                        };
+                                        return [...prev, obj];
+                                    });
+                                } else {
+                                    // --- REMOVE LOGIC ---
+                                    setSelectedRatesArr((prev) =>
+                                        prev.filter((item) => item.rateId !== params.row.rateId)
+                                    );
+                                }
+                            }} />}
                     </Box>
                 );
                 return element;
@@ -546,7 +571,12 @@ export default function RateTable() {
         dispatch(setSelectedCurrentRateRow({}));
     };
     const onClickOfAddRate = () => {
+        if(currentRateRoutedFrom === 'customer'){
         dispatch(postStationRate(selectedRatesArr));
+        }
+        if(currentRateRoutedFrom === 'carrier'){
+        dispatch(postTerminalRate(selectedRatesArr));
+        }
     }
     return (
         <>

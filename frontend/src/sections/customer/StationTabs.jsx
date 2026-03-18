@@ -67,6 +67,7 @@ export default function StationTabs({ }) {
         dispatch(setStationCurrentTab(newValue));
         dispatch(setStationTabTableData([]));
         if (newValue === 'rate') {
+            dispatch(setCurrentRateRoutedFrom('customer'));
             dispatch(setCurrentRateTab('transportation'));
         }
     }

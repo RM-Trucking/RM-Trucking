@@ -9,7 +9,7 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import ErrorFallback from '../shared/ErrorBoundary';
-import { setSelectedCarrierTabRowDetails, setCurrentCarrierViewTab } from '../../redux/slices/carrier';
+import { setSelectedCarrierTabRowDetails, setCurrentCarrierViewTab, setCarrierViewTabData } from '../../redux/slices/carrier';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
 // ----------------------------------------------------------------------
@@ -49,6 +49,7 @@ export default function CarrierViewTabs({ selectedRowCarrierType }) {
         console.log(error);
     };
     const OnTabChange = (newValue) => {
+        dispatch(setCarrierViewTabData([]));
         console.log('new tab value', newValue);
         dispatch(setCurrentCarrierViewTab(newValue));
     }

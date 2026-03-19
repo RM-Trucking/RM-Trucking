@@ -99,19 +99,36 @@ export const isValidToken = (accessToken) => {
 
 // ----------------------------------------------------------------------
 
+// export const setSession = (accessToken, refreshToken) => {
+//   if (accessToken) {
+//     localStorage.setItem('accessToken', accessToken);
+//     // Only update refreshToken if a new one is provided
+//     if (refreshToken) {
+//       localStorage.setItem('refreshToken', refreshToken);
+//     }
+
+//     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
+
+//     // Decode to check expiration
+//     const { exp } = jwtDecode(accessToken);
+//     handleTokenRefresh(exp); 
+//   } else {
+//     localStorage.removeItem('accessToken');
+//     localStorage.removeItem('refreshToken');
+//     delete axios.defaults.headers.common.Authorization;
+//   }
+// };
 export const setSession = (accessToken, refreshToken) => {
   if (accessToken) {
     localStorage.setItem('accessToken', accessToken);
-    // Only update refreshToken if a new one is provided
-    if (refreshToken) {
-      localStorage.setItem('refreshToken', refreshToken);
-    }
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
 
+    // Set global axios header
     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
 
-    // Decode to check expiration
+    // Start proactive timer (as discussed before)
     const { exp } = jwtDecode(accessToken);
-    handleTokenRefresh(exp); 
+    handleTokenRefresh(exp);
   } else {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
@@ -137,7 +154,7 @@ export const handleTokenRefresh = (exp) => {
   expiredTimer = setTimeout(async () => {
     try {
       const refreshToken = localStorage.getItem('refreshToken');
-      
+
       if (refreshToken) {
         // Request a new token from your API
         const response = await axios.post('/maintenance/auth/refresh', { refreshToken });

@@ -118,13 +118,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: rateSearchObj.origin,
-                originZipOrRange: rateSearchObj.originZipCode
+                originZoneId: data.origin,
+                originZipOrRange: data.originZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean),
-                destinationZoneId: rateSearchObj.destination,
-                destinationZipOrRange: rateSearchObj.destinationZipCode
+                destinationZoneId: data.destination,
+                destinationZipOrRange: data.destinationZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
@@ -132,13 +132,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
             dispatch(getCarrierTransportationRateDashboardData({
-                originZoneId: rateSearchObj.origin,
-                originZipOrRange: rateSearchObj.originZipCode
+                originZoneId: data.origin,
+                originZipOrRange: data.originZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean),
-                destinationZoneId: rateSearchObj.destination,
-                destinationZipOrRange: rateSearchObj.destinationZipCode
+                destinationZoneId: data.destination,
+                destinationZipOrRange: data.destinationZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize

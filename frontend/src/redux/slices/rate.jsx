@@ -213,6 +213,12 @@ const slice = createSlice({
             state.isSelectRateClicked = false;
             state.operationalMessage = 'Station rate created successfully';
         },
+        postTerminalRateDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.isSelectRateClicked = false;
+            state.operationalMessage = 'Terminal rate created successfully';
+        },
 
     },
 });
@@ -508,7 +514,7 @@ export function postTerminalRate(arr) {
         dispatch(slice.actions.startLoading());
         try {
             const response = await axios.post(`maintenance/carrier-rate/terminal-rate-map`, arr);
-            dispatch(slice.actions.postStationRateDataSuccess(response.data));
+            dispatch(slice.actions.postTerminalRateDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
         }

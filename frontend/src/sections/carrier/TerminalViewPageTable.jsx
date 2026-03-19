@@ -69,7 +69,7 @@ export default function TerminalViewPageTable() {
     };
     const personnelColumns = [
         {
-            field: 'personnelName',
+            field: 'name',
             headerName: 'Personnel Name',
             width: 150,
             headerAlign: 'center',
@@ -90,14 +90,14 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'officePhoneNo',
+            field: 'officePhoneNumber',
             headerName: 'Office Phone #',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
         },
         {
-            field: 'cellPhoneNo',
+            field: 'cellPhoneNumber',
             headerName: 'Cell Phone #',
             width: 150,
             headerAlign: 'center',
@@ -278,7 +278,7 @@ export default function TerminalViewPageTable() {
                             onChange={(e, i) => {
                                 const isChecked = e.target.checked;
                                 // here need to call api to post data
-                                dispatch(patchStationAccessorialData({ serviceNotOffered: isChecked ? 'Y' : 'N' }, selectedCarrierTabRowDetails.entityId || localStorage.getItem('terminalEntityId')))
+                                dispatch(patchStationAccessorialData({ serviceNotOffered: isChecked ? 'Y' : 'N' }, params?.row?.entityAccessorialId))
                             }} />
 
                     </Box>
@@ -520,7 +520,7 @@ export default function TerminalViewPageTable() {
 
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
-                                dispatch(deleteTerminalRate(params?.row?.rateId));
+                                dispatch(deleteTerminalRate(params?.row?.terminalRateId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
                             </Box>
@@ -732,7 +732,7 @@ export default function TerminalViewPageTable() {
                 >
                     <DialogContent>
                         {
-                            currentTerminalTab.toLowerCase() === 'personnel' && <TerminalPersonnelDetails type={actionType} handleCloseConfirm={handleCloseEdit} />
+                            currentTerminalTab.toLowerCase() === 'personnel' && <TerminalPersonnelDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedTerminalTabRowDetails={selectedTerminalTabRowDetails} />
                         }
                         {
                             currentTerminalTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedTerminalTabRowDetails} />

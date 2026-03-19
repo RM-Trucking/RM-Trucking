@@ -84,7 +84,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
             setValue('emailID', selectedTerminalTabRowDetails.email || '');
             setValue('officePhoneNumber', selectedTerminalTabRowDetails.officePhoneNumber || '');
             setValue('cellPhoneNumber', selectedTerminalTabRowDetails.cellPhoneNumber || '');
-            setValue('notes', selectedTerminalTabRowDetails.notes || '');
+            setValue('notes', selectedTerminalTabRowDetails.notes?.[0]?.messageText || '');
         }
     }, [selectedTerminalTabRowDetails]);
 

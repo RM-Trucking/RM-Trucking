@@ -554,6 +554,9 @@ export default function RateTable() {
         if (operationalMessage === 'Station rate created successfully') {
             navigate(PATH_DASHBOARD.maintenance.customerMaintenance.root);
         }
+        if (operationalMessage === 'Terminal rate created successfully') {
+            navigate(PATH_DASHBOARD.maintenance.carrierMaintenance.root);
+        }
     }, [operationalMessage])
     useEffect(() => {
         if (currentRateRoutedFrom) {

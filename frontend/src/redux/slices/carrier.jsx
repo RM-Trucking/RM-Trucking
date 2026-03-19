@@ -150,7 +150,7 @@ const slice = createSlice({
         getPersonnelTerminalDataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
-            state.terminalViewTabData = action.payload;
+            state.terminalViewTabData = action.payload.data;
             state.pagination = {
                 page: action.payload?.pagination?.page || state.pagination?.page,
                 pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
@@ -161,8 +161,7 @@ const slice = createSlice({
             state.isLoading = false;
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Personnel created successfully';
-            console.log("Personnel post payload", action.payload.data.personnel);
-            state.terminalViewTabData.unshift(action.payload.data.personnel);
+            state.terminalViewTabData.unshift(action.payload.data);
             state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.terminalViewTabData.length;
         },
         putPersonnelDataSuccess(state, action) {

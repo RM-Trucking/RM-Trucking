@@ -189,10 +189,11 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     }, [operationalMessage]);
     useEffect(() => {
         console.log('Selected Customer Details:', selectedCarrierRowDetails);
+        console.log('Selected Customer Details:', selectedCarrierRowDetails?.carrierType?.split(","));
 
         if ((type === 'Edit' || type === 'View') && selectedCarrierRowDetails) {
             setValue('carrierName', selectedCarrierRowDetails?.carrierName || '');
-            setValue('carrierType', selectedCarrierRowDetails?.carrierType?.split(",") || []);
+            setValue('carrierType', selectedCarrierRowDetails?.carrierType?.split(",")?.map(s => s.trim()) || []);
             setValue('carrierStatus', selectedCarrierRowDetails?.carrierStatus?.charAt(0).toLowerCase() + selectedCarrierRowDetails?.carrierStatus?.slice(1) || '');
             setValue('corpAddressLine1', selectedCarrierRowDetails?.addresses?.[0]?.line1 || '');
             setValue('corpAddressLine2', selectedCarrierRowDetails?.addresses?.[0]?.line2 || '');

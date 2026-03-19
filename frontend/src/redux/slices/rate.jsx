@@ -219,7 +219,12 @@ const slice = createSlice({
             state.isSelectRateClicked = false;
             state.operationalMessage = 'Terminal rate created successfully';
         },
-
+        setOriginZoneListByZipCode(state,action){
+            state.originZoneListByZipCode = action.payload;
+        },
+        setDestinationZoneListByZipCode(state,action){
+            state.destinationZoneListByZipCode = action.payload;
+        },
     },
 });
 
@@ -233,6 +238,8 @@ export const {
     setCurrentRateRoutedFrom,
     setRateFieldChargeData,
     setIsSelectRateClicked,
+    setOriginZoneListByZipCode,
+    setDestinationZoneListByZipCode,
 } = slice.actions;
 export default slice.reducer;
 

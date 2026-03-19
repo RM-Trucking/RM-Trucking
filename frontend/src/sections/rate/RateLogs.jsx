@@ -22,7 +22,7 @@ RateLogs.propTypes = {
 export default function RateLogs({ }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const {  selectedCurrentRateRow } = useSelector((state) => state.ratedata);
+    const { selectedCurrentRateRow } = useSelector((state) => state.ratedata);
 
     // error boundary info
     const logError = (error, info) => {
@@ -30,6 +30,12 @@ export default function RateLogs({ }) {
         console.error("Error caught:", info);
         console.log(error);
     };
+    const timeConversion = (updatedAt) => {
+        alert(updatedAt);
+        const rawDate = selectedCurrentRateRow.updatedAt;
+        const utcDate = rawDate.endsWith('Z') ? rawDate : `${rawDate}Z`;
+        return dayjs.utc(utcDate).local().format('DD/MM/YYYY HH:mm');
+    }
 
 
     return (
@@ -55,7 +61,7 @@ export default function RateLogs({ }) {
                         <Typography sx={{ width: '45%' }} variant='normal'>Last Update</Typography>
                         <Stack flexDirection={'column'} alignItems={'flex-start'}>
                             <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedBy || ""}</Typography>
-                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{dayjs.utc(selectedCurrentRateRow.updatedAt).local().format('DD/MM/YYYY HH:mm')}</Typography>
+                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{timeConversion(selectedCurrentRateRow.updatedAt)}</Typography>
                         </Stack>
                     </Stack>
                 </Box>

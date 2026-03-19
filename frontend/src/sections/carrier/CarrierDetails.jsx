@@ -138,7 +138,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             const obj = {
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
-                "carrierStatus": "Active",
+                "carrierStatus": data.carrierStatus,
                 "tsaCertified": data.tsa ? 'Y' : 'N',
                 "totalShipments": selectedCarrierRowDetails?.totalShipments,
                 "rmOnTimePercent": selectedCarrierRowDetails?.rmOnTimePercent,

@@ -214,7 +214,7 @@ export default function RateFieldAndChargeTable({ type }) {
                     const lastRow = tableData[tableData.length - 1];
                     if (tableData.length > 0 && tableData[tableData.length - 1].rateField === '' || tableData[tableData.length - 1].charge === '') {
                         setSnackbarOpen(true);
-                        setSnackbarMessage('Please fill in the last row before adding a new one.');
+                        setSnackbarMessage('Please fill in the details to add one.');
                         return;
                     }
                     // 2. Validation: Prevent adding if the last row's rateField is a duplicate

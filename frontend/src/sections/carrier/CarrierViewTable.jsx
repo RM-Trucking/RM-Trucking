@@ -389,7 +389,7 @@ export default function CarrierViewTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
                                 // using callback to refresh table data after delete
-                                dispatch(deleteStationAccessorial(params?.row?.accessorialId));
+                                dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId));
                             }}
                             />
                         </Tooltip>
@@ -451,7 +451,7 @@ export default function CarrierViewTable() {
             setSnackbarMessage(operationalAccessorialMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Accessorial deleted successfully') {
+        if (operationalAccessorialMessage === 'Accessorial deleted successfully' || operationalAccessorialMessage === 'Entity-accessorial mapping deleted successfully') {
             dispatch(getStationAccessorialData(selectedCarrierRowDetails.entityId));
         }
     }, [operationalAccessorialMessage])

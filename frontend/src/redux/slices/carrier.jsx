@@ -71,7 +71,7 @@ const slice = createSlice({
             state.pagination = {
                 page: action.payload?.pagination?.page || state.pagination?.page,
                 pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
-                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.carrierData.length,
+                totalRecords: action.payload?.pagination?.total ,
             };
         },
         postCarrierDataSuccess(state, action) {

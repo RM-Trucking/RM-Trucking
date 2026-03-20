@@ -301,7 +301,7 @@ export default function RateTable() {
                                 pageNo: newModel.page + 1,
                                 pageSize: newModel.pageSize,
                                 searchStr: carrierSearchStr,
-                                status: currentCarrierTab.charAt(0).toUpperCase() + str.slice(1)
+                                status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1)
                             }));
                         }}
                         onPageChange={(newPage) => {

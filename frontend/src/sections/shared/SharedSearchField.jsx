@@ -31,6 +31,7 @@ export default function SharedSearchField({ page }) {
     const selectedCustomerRowDetails = useSelector((state) => state?.customerdata?.selectedCustomerRowDetails);
     const carrierSearchStr = useSelector((state) => state?.carrierdata?.carrierSearchStr);
     const carrierPagination = useSelector((state) => state?.carrierdata?.pagination);
+    const currentCarrierTab = useSelector((state) => state?.carrierdata?.currentCarrierTab);
     const fuelPagination = useSelector((state) => state?.fueldata?.pagination);
 
     const handleSearch = (event) => {
@@ -47,7 +48,7 @@ export default function SharedSearchField({ page }) {
         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value, customerId: selectedCustomerRowDetails.customerId })); }
         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: event.target.value })); }
-        if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: event.target.value })); }
+        if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: event.target.value, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
         if (page === 'fuelSurcharge') { dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value })); }
 
     }
@@ -60,7 +61,7 @@ export default function SharedSearchField({ page }) {
             if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
             if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
             if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
-            if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue })); }
+            if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
             if (page === 'fuelSurcharge') { dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue })); }
         }
     };
@@ -109,7 +110,7 @@ export default function SharedSearchField({ page }) {
                                                 if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '', customerId: selectedCustomerRowDetails.customerId })); }
                                                 if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: '' })); }
                                                 if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: '' })); }
-                                                if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: '' })); }
+                                                if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: '', status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
                                             }}
                                             sx={{ mr: 0.5 }}
                                         >
@@ -121,7 +122,7 @@ export default function SharedSearchField({ page }) {
                                         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
                                         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
-                                        if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue })); }
+                                        if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
                                     }}>
                                         <Iconify icon="material-symbols:search" sx={{ mr: 1 }} />
                                     </IconButton>

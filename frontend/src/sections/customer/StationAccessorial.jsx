@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
-import {  useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import {
     Button,
     Box,
@@ -103,27 +103,44 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     message: 'Accessorial cannot exceed 255 characters'
                                 },
                             }}
-                            render={({ field }) => (
+                            render={({ field: { value, onChange, onBlur, ref } }) => (
                                 <StyledTextField
-                                    {...field}
                                     select
                                     label="Accessorial"
-                                    variant="standard" fullWidth required
+                                    variant="standard"
+                                    fullWidth
+                                    required
+                                    // FIX: MUI Select cannot handle null. If value is null/undefined, use ''
+                                    value={value ?? ''}
+                                    onChange={onChange}
+                                    onBlur={onBlur}
+                                    inputRef={ref}
                                     sx={{
                                         width: '25%',
                                     }}
-                                    error={!!errors.accessorial} helperText={errors.accessorial?.message}
+                                    error={!!errors.accessorial}
+                                    helperText={errors.accessorial?.message}
                                     disabled={type === 'Edit'}
                                     SelectProps={{
+                                        // Pass props to the underlying Select component
+                                        MenuProps: {
+                                            PaperProps: {
+                                                style: {
+                                                    maxHeight: 300, // Optional: keeps long lists scrollable
+                                                },
+                                            },
+                                        },
                                         inputProps: { maxLength: 255 }
                                     }}
+                                    InputLabelProps={{ shrink: true }}
                                 >
                                     {accessorialData && accessorialData.length > 0 ? (
-                                        accessorialData.map((data) => (
-                                            <MenuItem key={data.accessorialId} value={data.accessorialId}>{data.accessorialName}</MenuItem>
+                                        accessorialData.map((data, index) => (
+                                            <MenuItem key={`${data.accessorialId}-${index}`} value={data.accessorialId}>
+                                                {data.accessorialName}
+                                            </MenuItem>
                                         ))
                                     ) : (
-                                        // --- FIX: Fallback item to satisfy the 'children' requirement ---
                                         <MenuItem disabled value="">
                                             <em>No accessorials available.</em>
                                         </MenuItem>
@@ -131,6 +148,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                 </StyledTextField>
                             )}
                         />
+
                         <Controller
                             name="chargesType"
                             control={control}

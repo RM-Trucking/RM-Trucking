@@ -31,7 +31,6 @@ export default function RateLogs({ }) {
         console.log(error);
     };
     const timeConversion = (updatedAt) => {
-        alert(updatedAt);
         const rawDate = selectedCurrentRateRow.updatedAt;
         const utcDate = rawDate.endsWith('Z') ? rawDate : `${rawDate}Z`;
         return dayjs.utc(utcDate).local().format('DD/MM/YYYY HH:mm');

@@ -161,56 +161,6 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             )}
                         />
 
-                        {/* <Controller
-                            name="individualZipCodes"
-                            control={control}
-                            rules={{
-                                required: 'Individual Zip Codes is required',
-                                validate: (value) => {
-                                    if (!value) return true;
-                                    // Clean segments (remove empty ones from accidental double commas)
-                                    const zips = value.split(',').map(z => z.trim()).filter(z => z.length > 0);
-
-                                    if (zips.length === 0) return "Please enter at least one 5-digit zip code";
-
-                                    const allValid = zips.every(z => /^\d{5}$/.test(z));
-                                    return allValid || "Each zip code must be exactly 5 digits";
-                                }
-                            }}
-                            render={({ field: { onChange, value, ...field } }) => (
-                                <StyledTextField
-                                    {...field}
-                                    value={value}
-                                    label="Individual Zip Code"
-                                    variant="standard"
-                                    fullWidth
-                                    required
-                                    placeholder="e.g. 12345, 67890"
-                                    sx={{ width: '75%' }}
-                                    error={!!errors.individualZipCodes}
-                                    helperText={errors.individualZipCodes?.message}
-                                    disabled={type === 'View'}
-                                    onChange={(e) => {
-                                        const inputValue = e.target.value;
-
-                                        // 1. Remove any characters that aren't numbers or commas
-                                        const cleanValue = inputValue.replace(/[^\d,]/g, '');
-
-                                        // 2. Logic: If user types 5 digits, automatically append a comma
-                                        // We split by existing commas and look at the last segment
-                                        const parts = cleanValue.split(',');
-                                        const lastPart = parts[parts.length - 1];
-
-                                        if (lastPart.length === 5 && !inputValue.endsWith(',')) {
-                                            onChange(cleanValue + ',');
-                                        } else if (lastPart.length <= 5) {
-                                            onChange(cleanValue);
-                                        }
-                                        // (This prevents typing a 6th digit without a comma)
-                                    }}
-                                />
-                            )}
-                        /> */}
                         <Controller
                             name="individualZipCodes"
                             control={control}
@@ -219,12 +169,27 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 validate: (value) => {
                                     if (!value) return true;
                                     const zips = value.split(',').map(z => z.trim()).filter(z => z.length > 0);
+
+                                    // 1. Check for duplicates
+                                    const seen = new Set();
+                                    const duplicates = zips.filter(z => {
+                                        const duplicate = seen.has(z);
+                                        seen.add(z);
+                                        return duplicate;
+                                    });
+
+                                    if (duplicates.length > 0) {
+                                        // Capitalized error message showing the re-entered value
+                                        return `Duplicate zip code detected: ${duplicates[0]}`;
+                                    }
+
+                                    // 2. Format and length validation
                                     if (zips.length === 0) return "Please enter at least one 5-digit zip code";
                                     const allValid = zips.every(z => /^\d{5}$/.test(z));
                                     return allValid || "Each zip code must be exactly 5 digits";
                                 }
                             }}
-                            render={({ field: { onChange, value, ...field } }) => (
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     value={value || ''}
@@ -235,41 +200,41 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     placeholder="e.g. 12345, 67890"
                                     sx={{
                                         width: '75%',
-                                        // Keep text black in View mode
                                         "& .MuiInputBase-input.Mui-disabled": { WebkitTextFillColor: "#000" }
                                     }}
-                                    error={!!errors.individualZipCodes}
-                                    helperText={errors.individualZipCodes?.message || "Separated by commas"}
+                                    error={!!error}
+                                    helperText={error?.message || "Separated by commas"}
                                     disabled={type === 'View'}
                                     onChange={(e) => {
                                         let input = e.target.value;
 
                                         // 1. Clean: Allow only digits and commas
-                                        let clean = input.replace(/[^\d,]/g, '');
+                                        let clean = input.replace(/[^\d,]/g, '').replace(/^,/, '').replace(/,+/g, ',');
 
-                                        // 2. Prevent leading commas or double commas
-                                        clean = clean.replace(/^,/, '').replace(/,+/g, ',');
-
-                                        // 3. Smart Formatting Logic
+                                        // 2. Logic to handle auto-comma and length
                                         const segments = clean.split(',');
                                         const formattedSegments = segments.map((seg, index) => {
-                                            // If it's the last segment and it's 5 digits, we'll check if we need a comma
-                                            if (index === segments.length - 1 && seg.length === 5) {
-                                                // Don't auto-add comma if the user is backspacing (input length decreased)
+                                            const isLast = index === segments.length - 1;
+                                            const val = seg.substring(0, 5);
+
+                                            if (isLast && val.length === 5) {
                                                 const isDeleting = input.length < (value?.length || 0);
+                                                // Auto-add comma if not deleting and not already there
                                                 if (!isDeleting && !input.endsWith(',')) {
-                                                    return seg + ',';
+                                                    return val + ',';
                                                 }
                                             }
-                                            // Limit each segment to 5 digits max
-                                            return seg.substring(0, 5);
+                                            return val;
                                         });
 
-                                        onChange(formattedSegments.join(',').replace(/,+/g, ','));
+                                        // 3. Final join and update
+                                        const result = formattedSegments.join(',').replace(/,+/g, ',');
+                                        onChange(result);
                                     }}
                                 />
                             )}
                         />
+
 
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
@@ -281,6 +246,13 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             rules={{
                                 validate: (value) => {
                                     if (!value || value.length === 0) return true;
+
+                                    // Check for duplicates in the array
+                                    const duplicates = value.filter((item, index) => value.indexOf(item) !== index);
+                                    if (duplicates.length > 0) {
+                                        return `Duplicate range detected: ${duplicates[0]}`;
+                                    }
+
                                     for (let range of value) {
                                         const match = range.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
                                         if (!match) return `Invalid format: ${range}`;
@@ -336,37 +308,45 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 const handleKeyDown = (event) => {
                                     const { selectionStart, selectionEnd } = event.target;
 
-                                    // 4. Hard-lock Backspace on fixed prefix (Indices after hyphen)
+                                    // 4. Hard-lock Backspace (Existing logic)
                                     if (event.key === 'Backspace' && typedText.includes('-')) {
                                         const hyphenIndex = typedText.indexOf('-');
-                                        // Block backspace if cursor is on hyphen or the 3 digits following it
                                         if (selectionStart > hyphenIndex && selectionStart <= hyphenIndex + 4 && selectionStart === selectionEnd) {
                                             event.preventDefault();
                                             return;
                                         }
                                     }
 
-                                    // 5. Add Chip Logic (Enter/Comma) + Prevent Popup Auto-Close
+                                    // 5. Add Chip Logic (Enter/Comma)
                                     if (event.key === 'Enter' || event.key === ',') {
-                                        event.preventDefault(); // STOPS POPUP FROM CLOSING
+                                        event.preventDefault();
                                         event.stopPropagation();
 
                                         const match = typedText.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
                                         if (match) {
                                             const [, p1, s1, p2, s2] = match;
+                                            const currentArray = Array.isArray(value) ? value : [];
+
+                                            // DUPLICATE CHECK
+                                            if (currentArray.includes(typedText)) {
+                                                setLocalError(`Range ${typedText} has already been entered`);
+                                                return; // Stop here
+                                            }
+
                                             if (p1 === p2 && parseInt(s2) > parseInt(s1)) {
-                                                const currentArray = Array.isArray(value) ? value : [];
-                                                if (!currentArray.includes(typedText)) {
-                                                    onChange([...currentArray, typedText]);
-                                                }
+                                                onChange([...currentArray, typedText]);
                                                 setTypedText("");
                                                 setLocalError("");
                                             } else {
-                                                setLocalError(p1 !== p2 ? "Prefix mismatch!" : "Range Error");
+                                                // Capitalized error messages
+                                                setLocalError(p1 !== p2 ? "Prefix mismatch detected!" : "End value must be greater than start!");
                                             }
+                                        } else if (typedText.length > 0) {
+                                            setLocalError("Please enter a complete 5-5 digit range");
                                         }
                                     }
                                 };
+
 
                                 return (
                                     <Autocomplete

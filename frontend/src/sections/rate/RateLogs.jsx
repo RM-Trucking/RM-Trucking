@@ -59,7 +59,7 @@ export default function RateLogs({ }) {
                     <Stack flexDirection={'row'} alignItems={'center'}>
                         <Typography sx={{ width: '45%' }} variant='normal'>Last Update</Typography>
                         <Stack flexDirection={'column'} alignItems={'flex-start'}>
-                            <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedBy || ""}</Typography>
+                            <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedByName || ""}</Typography>
                             <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{timeConversion(selectedCurrentRateRow.updatedAt)}</Typography>
                         </Stack>
                     </Stack>

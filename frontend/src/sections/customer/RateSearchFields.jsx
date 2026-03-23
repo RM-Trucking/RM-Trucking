@@ -225,7 +225,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     }),
                 "note": {
                     "messageText": data.notes
-                }
+                },
+                "noteThreadId" : selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCustomerTransportationRate(selectedCurrentRateRow?.rateId, obj));
         }
@@ -246,7 +247,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     }),
                 "note": {
                     "messageText": data.notes
-                }
+                },
+                "noteThreadId" : selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCarrierTransportationRate(selectedCurrentRateRow?.rateId, obj))
         }

@@ -88,7 +88,7 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Carrier updated successfully';
             const index = state.carrierData.findIndex((row) => row.carrierId === action.payload?.data?.carrier?.carrierId);
-            if (index === 0 || index > 0) {
+            if ((index === 0 || index > 0)) {
                 state.carrierData.splice(index, 1, action.payload.data.carrier);
             }
         },

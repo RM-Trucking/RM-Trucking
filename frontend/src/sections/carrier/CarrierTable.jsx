@@ -116,7 +116,7 @@ export default function RateTable() {
                             flex: 1,
                         }}
                     >
-                        <Chip label={params?.row?.carrierStatus} sx={{ backgroundColor: (params?.row?.carrierStatus?.toLowerCase() === 'active') ? 'rgba(92, 172, 105, 1)' : 'rgba(143, 143, 143, 1)', }} />
+                        <Chip label={params?.row?.carrierStatus.charAt(0).toUpperCase() + params?.row?.carrierStatus.slice(1)} sx={{ backgroundColor: (params?.row?.carrierStatus?.toLowerCase() === 'active') ? 'rgba(92, 172, 105, 1)' : 'rgba(143, 143, 143, 1)', }} />
                     </Box>
                 );
                 return element;
@@ -257,7 +257,7 @@ export default function RateTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Carrier deleted successfully') {
+        if (operationalMessage === 'Carrier deleted successfully' || operationalMessage === "Carrier updated successfully") {
             dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, [operationalMessage])

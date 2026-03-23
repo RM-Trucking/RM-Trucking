@@ -68,6 +68,10 @@ export async function getCarrierPersonnelByTerminal(req: Request, res: Response,
         });
 
     } catch (error) {
+
+        console.log(error);
+
+
         res.status(400).json({
             error: 'Failed to fetch personnel',
             message: (error as Error).message

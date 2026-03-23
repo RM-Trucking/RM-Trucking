@@ -219,14 +219,21 @@ export async function getCarrierTransportRateService(
 export async function updateCarrierTransportRateService(
     conn: Connection,
     rateId: number,
-    req: UpdateCarrierTransportRateRequest
+    req: UpdateCarrierTransportRateRequest,
+    userId: number
 ): Promise<CarrierTransportRateResponse> {
     await conn.beginTransaction();
     try {
         // Update base record if needed
         if (req.originZoneId || req.destinationZoneId) {
-            await rateDB.updateCarrierTransportRate(conn, rateId, req.originZoneId, req.destinationZoneId);
+            await rateDB.updateCarrierTransportRate(conn, rateId, req.originZoneId, req.destinationZoneId, userId);
         }
+
+        if (req.note && req.note.messageText?.trim()) {
+            if (!req.noteThreadId) throw new Error('Note thread not found for mapping');
+            await noteDB.createNoteMessage(conn, req.noteThreadId, req.note.messageText.trim(), userId);
+        }
+
 
         // Replace details if provided
         if (req.details && req.details.length > 0) {
@@ -334,9 +341,19 @@ export async function assignRateToTerminalService(
 export async function getTerminalRatesService(
     conn: Connection,
     terminalId: number,
-    rateType?: 'WAREHOUSE' | 'TRANSPORT'
+    rateType?: 'WAREHOUSE' | 'TRANSPORT',
+    search?: CarrierTransportRateSearch
 ): Promise<any[]> {
-    const rows = await rateDB.getTerminalRates(conn, terminalId, rateType);
+
+    console.log(terminalId);
+    console.log(search);
+
+
+
+    const rows = await rateDB.getTerminalRates(conn, terminalId, rateType, search);
+
+    console.log(rows);
+
 
     return await Promise.all(
         rows.map(async r => {

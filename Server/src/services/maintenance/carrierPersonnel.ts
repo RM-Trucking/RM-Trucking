@@ -32,12 +32,17 @@ export async function createCarrierPersonnelService(
         await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
     }
 
+    console.log(entityId, noteThreadId);
+
+
     const personnelId = await personnelDB.createCarrierPersonnel(conn, {
         ...req,
         noteThreadId,
         entityId,
         createdBy: userId
     });
+
+    console.info(`Created Carrier Personnel with ID ${personnelId} linked to Entity ${entityId} and Note Thread ${noteThreadId}`);
 
     const personnel = await personnelDB.getCarrierPersonnelById(conn, personnelId);
     if (!personnel) throw new Error('Failed to create personnel');

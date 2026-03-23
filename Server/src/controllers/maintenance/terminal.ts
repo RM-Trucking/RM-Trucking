@@ -37,8 +37,20 @@ export async function getTerminal(req: Request, res: Response, conn: Connection)
 export async function getTerminalsForCarrier(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const carrierId = parseInt(req.params.carrierId, 10);
-        const terminals = await terminalService.getTerminalsForCarrier(conn, carrierId);
-        res.status(200).json({ success: true, data: terminals });
+        const page = parseInt(req.query.page as string, 10) || 1;
+        const limit = parseInt(req.query.limit as string, 10) || 10;
+
+        const { terminals, total } = await terminalService.getTerminalsForCarrier(conn, carrierId, page, limit);
+
+        res.status(200).json({
+            success: true,
+            data: terminals,
+            pagination: {
+                total: total || 0,
+                page,
+                pageSize: limit
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(400).json({
@@ -47,6 +59,7 @@ export async function getTerminalsForCarrier(req: Request, res: Response, conn: 
         });
     }
 }
+
 
 export async function updateTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {

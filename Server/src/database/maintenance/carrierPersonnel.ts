@@ -48,7 +48,7 @@ export async function getCarrierPersonnelById(
 ): Promise<(CarrierPersonnel & { terminalName: string }) | null> {
     const query = `
     SELECT p.*, 
-           t."terminalName", 
+           t."terminalName" 
     FROM ${SCHEMA}."Carrier_Personnel" p
     LEFT JOIN ${SCHEMA}."Terminal" t 
       ON p."terminalId" = t."terminalId"
@@ -75,7 +75,7 @@ export async function getPersonnelByTerminal(
 
     let query = `
     SELECT p.*, 
-           t."terminalName", 
+           t."terminalName" 
     FROM ${SCHEMA}."Carrier_Personnel" p
     LEFT JOIN ${SCHEMA}."Terminal" t ON p."terminalId" = t."terminalId"
     WHERE p."terminalId" = ? AND p."activeStatus" = 'Y'

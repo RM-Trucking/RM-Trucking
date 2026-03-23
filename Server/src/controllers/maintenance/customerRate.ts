@@ -68,13 +68,16 @@ export async function getCustomerTransportRate(req: Request, res: Response, conn
         }
         res.json({ success: true, data: rate });
     } catch (error) {
+        console.log(error);
+
         res.status(400).json({ error: 'Failed to fetch transport rate', message: (error as Error).message });
     }
 }
 
 export async function updateCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.updateCustomerTransportRateService(conn, Number(req.params.id), req.body);
+        const userId = req.user?.userId || 0;
+        const rate = await rateService.updateCustomerTransportRateService(conn, Number(req.params.id), req.body, userId);
         res.json({ success: true, data: rate });
     } catch (error) {
         res.status(400).json({ error: 'Failed to update transport rate', message: (error as Error).message });
@@ -114,16 +117,34 @@ export async function assignRateToStation(
 export async function getStationRates(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const stationId = Number(req.query.stationId);
-        const { rateType } = req.query;
+
+        console.log(req.query.stationId);
+
+
+        const {
+            rateType,
+            originZoneId,
+            originZipOrRange,
+            destinationZoneId,
+            destinationZipOrRange,
+        } = req.query;
 
         const maps = await rateService.getStationRatesService(
             conn,
             stationId,
-            rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined
+            rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined,
+            {
+                originZoneId: originZoneId ? Number(originZoneId) : undefined,
+                originZipOrRange: originZipOrRange as string | undefined,
+                destinationZoneId: destinationZoneId ? Number(destinationZoneId) : undefined,
+                destinationZipOrRange: destinationZipOrRange as string | undefined
+            }
         );
 
         res.json({ success: true, data: maps });
     } catch (error) {
+        console.log(error);
+
         res.status(400).json({ error: 'Failed to fetch station rates', message: (error as Error).message });
     }
 }

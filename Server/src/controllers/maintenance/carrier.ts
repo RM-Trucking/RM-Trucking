@@ -36,6 +36,8 @@ export async function updateCarrier(req: Request, res: Response, conn: Connectio
             data: { carrier }
         });
     } catch (error: any) {
+        console.log(error);
+
         res.status(400).json({ success: false, message: error.message });
     }
 }
@@ -61,7 +63,7 @@ export async function listCarriers(req: Request, res: Response, conn: Connection
         });
     } catch (error: any) {
         console.log(error);
-        
+
         res.status(400).json({ success: false, message: error.message });
     }
 }

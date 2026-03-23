@@ -16,7 +16,7 @@ export async function createNewCarrier(
     const {
         carrierName, carrierType, carrierStatus,
         tsaCertified, ustDotNo, mcnNo, insuranceExpiry,
-        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail,
+        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame,
         addresses, note
     } = createCarrierReq;
 
@@ -50,7 +50,8 @@ export async function createNewCarrier(
             lateShipments: 0,
             createdBy: adminId,
             entityId,
-            noteThreadId
+            noteThreadId,
+            corporateBillingSame
         });
 
         // 4) Insert addresses

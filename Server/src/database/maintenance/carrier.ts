@@ -12,8 +12,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
       ("carrierName","carrierType","carrierStatus","tsaCertified","ustDotNo","mcnNo",
        "insuranceExpiry","tariffRenewalDate","totalShipments","rmOnTimePercent","lateShipments",
        "salesRepName","salesRepPhone","salesRepEmail",
-       "createdAt","createdBy","entityId","noteThreadId")
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?)
+       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?)
     )
   `;
 
@@ -34,7 +34,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
         carrier.salesRepEmail,
         carrier.createdBy,
         carrier.entityId,
-        carrier.noteThreadId
+        carrier.noteThreadId,
+        carrier.corporateBillingSame ?? 'N'
     ].map(v => v === undefined || v === null ? '' : v);
 
     const result = await conn.query(insertQuery, params);
@@ -63,9 +64,10 @@ export async function listCarriers(
     }
 
     if (status) {
-        query += ` AND "carrierStatus" = ?`;
+        query += ` AND UPPER("carrierStatus") = UPPER(?)`;
         params.push(status);
-    }
+    }   
+
 
     query += ` ORDER BY "carrierId" DESC LIMIT ? OFFSET ?`;
     params.push(limit, offset);
@@ -98,6 +100,10 @@ export async function countCarriers(
 
 
 export async function updateCarrier(conn: Connection, carrierId: number, updates: Partial<Carrier>): Promise<void> {
+
+    console.log(updates);
+
+
     const fields: string[] = [];
     const params: any[] = [];
 
@@ -107,14 +113,29 @@ export async function updateCarrier(conn: Connection, carrierId: number, updates
     if (updates.tsaCertified !== undefined) { fields.push(`"tsaCertified" = ?`); params.push(updates.tsaCertified); }
     if (updates.ustDotNo !== undefined) { fields.push(`"ustDotNo" = ?`); params.push(updates.ustDotNo); }
     if (updates.mcnNo !== undefined) { fields.push(`"mcnNo" = ?`); params.push(updates.mcnNo); }
-    if (updates.insuranceExpiry !== undefined) { fields.push(`"insuranceExpiry" = ?`); params.push(updates.insuranceExpiry); }
-    if (updates.tariffRenewalDate !== undefined) { fields.push(`"tariffRenewalDate" = ?`); params.push(updates.tariffRenewalDate); }
+    if (updates.insuranceExpiry !== undefined) {
+        fields.push(`"insuranceExpiry" = ?`);
+        params.push(
+            updates.insuranceExpiry instanceof Date
+                ? updates.insuranceExpiry.toISOString().slice(0, 10)
+                : updates.insuranceExpiry
+        );
+    }
+    if (updates.tariffRenewalDate !== undefined) {
+        fields.push(`"tariffRenewalDate" = ?`);
+        params.push(
+            updates.tariffRenewalDate instanceof Date
+                ? updates.tariffRenewalDate.toISOString().slice(0, 10)
+                : updates.tariffRenewalDate
+        );
+    }
     if (updates.totalShipments !== undefined) { fields.push(`"totalShipments" = ?`); params.push(updates.totalShipments); }
     if (updates.rmOnTimePercent !== undefined) { fields.push(`"rmOnTimePercent" = ?`); params.push(updates.rmOnTimePercent); }
     if (updates.lateShipments !== undefined) { fields.push(`"lateShipments" = ?`); params.push(updates.lateShipments); }
     if (updates.salesRepName !== undefined) { fields.push(`"salesRepName" = ?`); params.push(updates.salesRepName); }
     if (updates.salesRepPhone !== undefined) { fields.push(`"salesRepPhone" = ?`); params.push(updates.salesRepPhone); }
     if (updates.salesRepEmail !== undefined) { fields.push(`"salesRepEmail" = ?`); params.push(updates.salesRepEmail); }
+    if (updates.corporateBillingSame !== undefined) { fields.push(`"corporateBillingSame" = ?`); params.push(updates.corporateBillingSame); }
 
     if (!fields.length) return;
 
@@ -136,7 +157,7 @@ export async function deleteCarrier(conn: Connection, carrierId: number): Promis
 export async function getCarriersByRateId(conn: Connection, rateId: number): Promise<Carrier[]> {
     const query = `
     SELECT c."carrierId", c."carrierName", c."carrierType", c."carrierStatus", c."tsaCertified", c."ustDotNo", c."mcnNo", c."insuranceExpiry", c."tariffRenewalDate",
-           c."totalShipments", c."rmOnTimePercent", c."lateShipments", c."salesRepName", c."salesRepPhone", c."salesRepEmail",
+           c."totalShipments", c."rmOnTimePercent", c."lateShipments", c."salesRepName", c."salesRepPhone", c."salesRepEmail", c."corporateBillingSame",
            c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
            c."noteThreadId", c."entityId"
     FROM ${SCHEMA}."Terminal_Rate_Map" srm

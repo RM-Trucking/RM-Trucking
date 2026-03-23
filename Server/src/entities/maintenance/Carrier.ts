@@ -23,6 +23,7 @@ export interface Carrier {
     updatedBy: number;
     noteThreadId: number | null;
     entityId: number;
+    corporateBillingSame: 'Y' | 'N';
 }
 
 export interface CreateCarrierRequest {
@@ -37,6 +38,7 @@ export interface CreateCarrierRequest {
     salesRepName?: string;
     salesRepPhone?: string;
     salesRepEmail?: string;
+    corporateBillingSame: 'Y' | 'N';
     addresses: AddressRequest[];
     note?: NoteMessageRequest;
 }
@@ -57,6 +59,7 @@ export interface UpdateCarrierRequest {
     salesRepName?: string;
     salesRepPhone?: string;
     salesRepEmail?: string;
+    corporateBillingSame: 'Y' | 'N';
     addresses?: AddressUpdateRequest[];
 }
 
@@ -82,7 +85,7 @@ export interface CarrierResponse {
     updatedBy: number;
     noteThreadId: number | null;
     entityId: number;
-
+    corporateBillingSame: 'Y' | 'N';
     // Nested collections
     addresses: AddressResponse[];
     notes?: NoteMessageResponse[];

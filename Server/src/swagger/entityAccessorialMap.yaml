@@ -100,7 +100,7 @@ paths:
           description: Failed to delete mapping
 
   /api/maintenance/entity-accessorial/{entityAccessorialId}/service-not-offered:
-    patch:
+    put:
       tags: [Entity Accessorial Map]
       summary: Change serviceNotOffered flag for a mapping
       description: Toggle or update the serviceNotOffered flag for a specific entity-accessorial mapping.

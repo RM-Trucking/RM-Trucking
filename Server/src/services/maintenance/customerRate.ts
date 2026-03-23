@@ -219,13 +219,19 @@ export async function getCustomerTransportRateService(
 export async function updateCustomerTransportRateService(
     conn: Connection,
     rateId: number,
-    req: UpdateCustomerTransportRateRequest
+    req: UpdateCustomerTransportRateRequest,
+    userId: number
 ): Promise<CustomerTransportRateResponse> {
     await conn.beginTransaction();
     try {
         // Update base record if needed
         if (req.originZoneId || req.destinationZoneId) {
-            await rateDB.updateCustomerTransportRate(conn, rateId, req.originZoneId, req.destinationZoneId);
+            await rateDB.updateCustomerTransportRate(conn, rateId, req.originZoneId, req.destinationZoneId, userId);
+        }
+
+        if (req.note && req.note.messageText?.trim()) {
+            if (!req.noteThreadId) throw new Error('Note thread not found for mapping');
+            await noteDB.createNoteMessage(conn, req.noteThreadId, req.note.messageText.trim(), userId);
         }
 
         // Replace details if provided
@@ -347,9 +353,19 @@ export async function assignRateToStationService(
 export async function getStationRatesService(
     conn: Connection,
     stationId: number,
-    rateType?: 'WAREHOUSE' | 'TRANSPORT'
+    rateType?: 'WAREHOUSE' | 'TRANSPORT',
+    search?: CustomerTransportRateSearch
 ): Promise<any[]> {
-    const rows = await rateDB.getStationRates(conn, stationId, rateType);
+
+    console.log(stationId);
+    console.log(search);
+
+
+
+    const rows = await rateDB.getStationRates(conn, stationId, rateType, search);
+
+    console.log(rows);
+
 
     return await Promise.all(
         rows.map(async r => {

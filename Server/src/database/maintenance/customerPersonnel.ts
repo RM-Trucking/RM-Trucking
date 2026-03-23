@@ -16,7 +16,7 @@ export async function createCustomerPersonnel(
     )
   `;
 
-  const params = [
+  const params = [  
     personnel.stationId,
     personnel.departmentId,
     personnel.name,

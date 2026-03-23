@@ -72,7 +72,8 @@ export async function getCarrierTransportRate(req: Request, res: Response, conn:
 
 export async function updateCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rate = await rateService.updateCarrierTransportRateService(conn, Number(req.params.id), req.body);
+        const userId = req.user?.userId || 0;
+        const rate = await rateService.updateCarrierTransportRateService(conn, Number(req.params.id), req.body, userId);
         res.json({ success: true, data: rate });
     } catch (error) {
         res.status(400).json({ error: 'Failed to update transport rate', message: (error as Error).message });
@@ -112,20 +113,37 @@ export async function assignRateToTerminal(
 export async function getTerminalRates(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const terminalId = Number(req.query.terminalId);
-        const { rateType } = req.query;
+
+        console.log(req.query.terminalId);
+
+
+        const {
+            rateType,
+            originZoneId,
+            originZipOrRange,
+            destinationZoneId,
+            destinationZipOrRange,
+        } = req.query;
 
         const maps = await rateService.getTerminalRatesService(
             conn,
             terminalId,
-            rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined
+            rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined,
+            {
+                originZoneId: originZoneId ? Number(originZoneId) : undefined,
+                originZipOrRange: originZipOrRange as string | undefined,
+                destinationZoneId: destinationZoneId ? Number(destinationZoneId) : undefined,
+                destinationZipOrRange: destinationZipOrRange as string | undefined
+            }
         );
 
         res.json({ success: true, data: maps });
     } catch (error) {
+        console.log(error);
+
         res.status(400).json({ error: 'Failed to fetch terminal rates', message: (error as Error).message });
     }
 }
-
 export async function deleteTerminalRateMap(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         await rateService.deleteTerminalRateMapService(conn, Number(req.params.id));

@@ -47,17 +47,38 @@ export async function getTerminalById(conn: Connection, terminalId: number): Pro
     return result.length ? result[0] : null;
 }
 
-export async function getTerminalsForCarrier(conn: Connection, carrierId: number): Promise<any[]> {
+export async function getTerminalsForCarrier(
+    conn: Connection,
+    carrierId: number,
+    limit: number,
+    offset: number
+): Promise<any[]> {
     const query = `
         SELECT t.*, c."carrierName"
         FROM ${SCHEMA}."Terminal" t
         JOIN ${SCHEMA}."Carrier" c ON t."carrierId" = c."carrierId"
         WHERE t."carrierId" = ? AND t."activeStatus" = 'Y'
         ORDER BY t."terminalName" ASC
+        LIMIT ? OFFSET ?
     `;
-    const result = await conn.query(query, [carrierId]) as any[];
+    const result = await conn.query(query, [carrierId, limit, offset]) as any[];
     return result;
 }
+
+
+export async function countTerminalsForCarrier(
+    conn: Connection,
+    carrierId: number
+): Promise<number> {
+    const query = `
+        SELECT COUNT(*) AS "total"
+        FROM ${SCHEMA}."Terminal"
+        WHERE "carrierId" = ? AND "activeStatus" = 'Y'
+    `;
+    const result = await conn.query(query, [carrierId]) as { total: number }[];
+    return result.length ? Number(result[0].total) : 0;
+}
+
 
 export async function getTerminalByRmAccountNumber(conn: Connection, rmAccountNumber: string): Promise<any | null> {
     const query = `
@@ -82,11 +103,11 @@ export async function updateTerminal(
 
     const query = `
         UPDATE ${SCHEMA}."Terminal"
-        SET ${setClause}, "updatedBy" = ?, "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
+        SET ${setClause}, "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
         WHERE "terminalId" = ?
     `;
 
-    await conn.query(query, [...params, updates.updatedBy, terminalId]);
+    await conn.query(query, [...params, terminalId]);
 }
 
 
@@ -100,4 +121,40 @@ export async function softDeleteTerminal(conn: Connection, terminalId: number, u
         WHERE "terminalId" = ?
     `;
     await conn.query(query, [userId, terminalId]);
+}
+
+
+type ConflictResult = { conflictField: string };
+
+export async function checkTerminalUniqueFields(
+    conn: Connection,
+    { email, faxNumber, phoneNumber, rmAccountNumber }:
+        { email?: string; faxNumber?: string; phoneNumber?: string; rmAccountNumber?: string },
+    terminalId?: number // optional, so we can exclude current record on update
+): Promise<string | null> {
+    const queries: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (email) {
+        queries.push(`SELECT 'Email' AS conflictField FROM "${SCHEMA}"."Terminal" WHERE "email" = ? AND "terminalId" <> ?`);
+        params.push(email, terminalId ?? -1);
+    }
+    if (faxNumber) {
+        queries.push(`SELECT 'Fax number' FROM "${SCHEMA}"."Terminal" WHERE "faxNumber" = ? AND "terminalId" <> ?`);
+        params.push(faxNumber, terminalId ?? -1);
+    }
+    if (phoneNumber) {
+        queries.push(`SELECT 'Phone number' FROM "${SCHEMA}"."Terminal" WHERE "phoneNumber" = ? AND "terminalId" <> ?`);
+        params.push(phoneNumber, terminalId ?? -1);
+    }
+    if (rmAccountNumber) {
+        queries.push(`SELECT 'RM Account Number' FROM "${SCHEMA}"."Terminal" WHERE "rmAccountNumber" = ? AND "terminalId" <> ?`);
+        params.push(rmAccountNumber, terminalId ?? -1);
+    }
+
+    if (queries.length === 0) return null;
+
+    const query = queries.join(' UNION ALL ');
+    const result = await conn.query(query, params) as { conflictField: string }[];
+    return result.length ? result[0].conflictField : null;
 }

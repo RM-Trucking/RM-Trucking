@@ -198,6 +198,7 @@ components:
         salesRepName: { type: string }
         salesRepPhone: { type: string }
         salesRepEmail: { type: string }
+        corporateBillingSame: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -222,6 +223,7 @@ components:
         salesRepName: { type: string }
         salesRepPhone: { type: string }
         salesRepEmail: { type: string }
+        corporateBillingSame: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -251,6 +253,7 @@ components:
         updatedBy: { type: integer }
         noteThreadId: { type: integer }
         entityId: { type: integer }
+        corporateBillingSame: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:

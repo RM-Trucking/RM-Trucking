@@ -274,15 +274,16 @@ paths:
                     items:
                       $ref: "#/components/schemas/StationRateMapResponse"
 
-    /api/maintenance/customer-rate/station-rate-map/{stationId}:
+    /api/maintenance/customer-rate/station-rate-map:
     get:
-      summary: Get rates assigned to a station (optionally filtered by type)
+      summary: Get rates assigned to a station (optionally filtered by type or transport search criteria)
       tags: [Station Rate Map]
       parameters:
         - in: query
           name: stationId
           required: true
           schema: { type: integer }
+          description: ID of the station
         - in: query
           name: rateType
           required: false
@@ -290,9 +291,29 @@ paths:
             type: string
             enum: [WAREHOUSE, TRANSPORT]
           description: Filter rates by type. If omitted, returns all rates.
+        - in: query
+          name: originZoneId
+          required: false
+          schema: { type: integer }
+          description: Filter by origin zone ID
+        - in: query
+          name: originZipOrRange
+          required: false
+          schema: { type: string }
+          description: Comma-separated list of origin zip codes or ranges (e.g. "12345,23456,5671-5679")
+        - in: query
+          name: destinationZoneId
+          required: false
+          schema: { type: integer }
+          description: Filter by destination zone ID
+        - in: query
+          name: destinationZipOrRange
+          required: false
+          schema: { type: string }
+          description: Comma-separated list of destination zip codes or ranges (e.g. "3451-3459,67890")
       responses:
         "200":
-          description: List of station rates (filtered if rateType provided)
+          description: List of station rates (filtered if parameters provided)
           content:
             application/json:
               schema:
@@ -379,6 +400,9 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/TransportRateDetail"
+        note:
+          $ref: "#/components/schemas/NoteMessageRequest"
+        noteThreadId: { type: integer }
 
     TransportRateResponse:
       type: object

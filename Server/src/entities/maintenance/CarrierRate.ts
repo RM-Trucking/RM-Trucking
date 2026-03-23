@@ -80,6 +80,8 @@ export interface UpdateCarrierTransportRateRequest {
         chargeValue: number;
         perUnitFlag: 'Y' | 'N';
     }[];
+    noteThreadId?: number | null;
+    note?: NoteMessageRequest;
 }
 
 // Response object

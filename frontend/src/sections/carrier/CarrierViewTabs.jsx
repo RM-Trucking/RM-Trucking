@@ -10,6 +10,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import ErrorFallback from '../shared/ErrorBoundary';
 import { setSelectedCarrierTabRowDetails, setCurrentCarrierViewTab, setCarrierViewTabData } from '../../redux/slices/carrier';
+import { setOperationalMessage } from '../../redux/slices/customer';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
 // ----------------------------------------------------------------------
@@ -54,6 +55,7 @@ export default function CarrierViewTabs({ selectedRowCarrierType }) {
         dispatch(setCurrentCarrierViewTab(newValue));
     }
     const onClickOfAddCarrierTabButton = () => {
+        dispatch(setOperationalMessage(''));
         // Implement the logic for adding a new item based on the current tab
         setActionType('Add');
         dispatch(setSelectedCarrierTabRowDetails({}));
@@ -149,12 +151,12 @@ export default function CarrierViewTabs({ selectedRowCarrierType }) {
                     }}
                 >
                     <DialogContent>
-                       
+
                         {
-                            currentCarrierViewTab.toLowerCase() === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseConfirm}  />
+                            currentCarrierViewTab.toLowerCase() === 'accessorial' && <StationAccessorial type={'Add'} handleCloseConfirm={handleCloseConfirm} selectedStationTabRowDetails={{}} />
                         }
                         {
-                            currentCarrierViewTab.toLowerCase() === 'terminal' && <TerminalDetails type={actionType} handleCloseConfirm={handleCloseConfirm}  />
+                            currentCarrierViewTab.toLowerCase() === 'terminal' && <TerminalDetails type={actionType} handleCloseConfirm={handleCloseConfirm} />
                         }
 
                     </DialogContent>

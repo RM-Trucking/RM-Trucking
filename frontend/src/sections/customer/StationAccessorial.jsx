@@ -71,7 +71,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
         }
     }, [operationalMessage]);
     useEffect(() => {
-        if (selectedStationTabRowDetails) {
+        if (selectedStationTabRowDetails && Object.keys(selectedStationTabRowDetails).length > 0) {
             setValue('accessorial', selectedStationTabRowDetails.accessorialId || '');
             setValue('chargesType', selectedStationTabRowDetails.chargeType || '');
             setValue('charges', selectedStationTabRowDetails.chargeValue || '');

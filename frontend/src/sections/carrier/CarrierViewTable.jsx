@@ -16,7 +16,7 @@ import {
     setSelectedCarrierTabRowDetails, setOperationalMessage, getTerminalCarrierData,
     setCarrierViewTabData, deleteTerminal, setTerminalViewTabData
 } from '../../redux/slices/carrier';
-import { setTableBeingViewed, getAccessorialData, getStationAccessorialData, deleteStationAccessorial } from '../../redux/slices/customer';
+import { setTableBeingViewed, getAccessorialData, getStationAccessorialData, deleteStationAccessorial, setOperationalMessage as setOpertionalMessageOfCustomer } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -282,7 +282,7 @@ export default function CarrierViewTable() {
                             <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
                                 dispatch(setTerminalViewTabData([]));
                                 dispatch(setSelectedCarrierTabRowDetails(params.row));
-                                localStorage.setItem('terminalId',params.row.terminalId);
+                                localStorage.setItem('terminalId', params.row.terminalId);
                                 localStorage.setItem('terminalEntityId', params.row.entityId);
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.terminalView);
                             }} />
@@ -380,6 +380,7 @@ export default function CarrierViewTable() {
                     >
 
                         <Tooltip title={'Edit'} arrow onClick={() => {
+                            dispatch(setOpertionalMessageOfCustomer(''));
                             setActionType('Edit');
                             setOpenEditDialog(true);
                             dispatch(setSelectedCarrierTabRowDetails(params.row));
@@ -563,8 +564,10 @@ export default function CarrierViewTable() {
                 >
                     <DialogContent>
                         {
-                            currentCarrierViewTab === 'accessorial' ? <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedCarrierTabRowDetails} /> :
-                                <TerminalDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
+                            currentCarrierViewTab === 'accessorial' && <StationAccessorial type={actionType} handleCloseConfirm={handleCloseEdit} selectedStationTabRowDetails={selectedCarrierTabRowDetails} />
+                        }
+                        {
+                            currentCarrierViewTab === 'terminal' && <TerminalDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedCarrierTabRowDetails={selectedCarrierTabRowDetails} />
                         }
                     </DialogContent>
                 </Dialog>

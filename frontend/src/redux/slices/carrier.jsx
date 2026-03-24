@@ -106,7 +106,7 @@ const slice = createSlice({
             state.pagination = {
                 page: action.payload?.pagination?.page || state.pagination?.page,
                 pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
-                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.carrierViewTabData.length,
+                totalRecords: action.payload?.pagination?.total || 0,
             };
         },
         postTerminalDataSuccess(state, action) {

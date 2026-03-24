@@ -387,8 +387,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                             // 4. User-Friendly Auto-Comma
                                             // Only add comma if typing (not backspacing) and segment is a complete ZIP or Range
+                                        
                                             const isFullZip = /^\d{5}$/.test(lastSegment);
-                                            const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment);
+                                            const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment) && lastSegment.includes('-');
                                             const isTyping = e.target.value.length > (value?.length || 0);
 
                                             if ((isFullZip || isFullRange) && isTyping) {
@@ -398,8 +399,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             onChange(finalValue);
 
                                             // 5. API Call: Only dispatch if the last segment is complete
-                                            if (isFullZip || isFullRange) {
-                                                dispatch(getOriginZoneByZipCode(finalValue));
+                                            if (isFullZip || isFullRange || input.endsWith(',')) {
+                                                dispatch(getOriginZoneByZipCode(finalValue.replace(/,$/, "")));
                                             }
                                         }}
                                         disabled={type === 'View'}
@@ -536,7 +537,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                             // 3. User-Friendly Auto-Comma
                                             const isFullZip = /^\d{5}$/.test(lastSegment);
-                                            const isFullRange = /^\d{11}$/.test(lastSegment) && lastSegment.includes('-');
+                                            const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment) && lastSegment.includes('-');
                                             const isTyping = e.target.value.length > (value?.length || 0);
 
                                             if ((isFullZip || isFullRange) && isTyping) {
@@ -547,7 +548,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                             // 4. API Call
                                             if (isFullZip || isFullRange || input.endsWith(',')) {
-                                                dispatch(getDestinationZoneByZipCode(finalValue));
+                                                dispatch(getDestinationZoneByZipCode(finalValue.replace(/,$/, "")));
                                             }
                                         }}
                                         disabled={type === 'View'}

@@ -56,7 +56,7 @@ axiosInstance.interceptors.response.use(
     // }
 
     // for invalid token
-    if (error.response.data.error === 'Invalid or expired token') {
+    if (error?.response?.data?.error === 'Invalid or expired token') {
       // 2. Clear tokens from localStorage via your utility
       setSession(null);
       // have to logout

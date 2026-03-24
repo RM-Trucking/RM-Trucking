@@ -97,6 +97,11 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = `Carrier deleted successfully.`;
         },
+        patchCarrierdataSuccess(state,action){
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = `Carrier Status changed successfully.`;
+        },
         // on view tab table details
         // terminal success calls
         getTerminalCarrierDataSuccess(state, action) {
@@ -286,6 +291,17 @@ export function deleteCarrier(id, callback) {
                 id, message: response.data
             }));
             callback();
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function patchCarrierStatus(obj, id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.patch(`maintenance/carrier/${id}/status`, obj);
+            dispatch(slice.actions.patchCarrierdataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
         }

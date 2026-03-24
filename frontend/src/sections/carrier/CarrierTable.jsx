@@ -14,7 +14,7 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage,
-    deleteCarrier, setSelectedRowCarrierType, setCarrierViewTabData
+    patchCarrierStatus, setSelectedRowCarrierType, setCarrierViewTabData
 } from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
@@ -198,14 +198,16 @@ export default function RateTable() {
                             </Box>
                         </Tooltip>
 
-                        {/* <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
-                                setActionType('Delete');
-                                dispatch(deleteCarrier(params?.row?.personnelId, () => {
-                                    dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
-                                }));
-                            }} />
-                        </Tooltip> */}
+                        {currentCarrierTab === 'active' && <Tooltip title={'Delete'} arrow>
+                            <Box
+                                onClick={() => {
+                                    setActionType('Delete');
+                                    dispatch(patchCarrierStatus({ 'status': 'Inactive' }, params?.row?.carrierId));
+                                }}
+                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
+                            </Box>
+                        </Tooltip>}
                     </Box>
                 );
                 return element;
@@ -257,7 +259,7 @@ export default function RateTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Carrier deleted successfully' || operationalMessage === "Carrier updated successfully") {
+        if (operationalMessage === 'Carrier deleted successfully' || operationalMessage === "Carrier updated successfully" || operationalMessage === 'Carrier Status changed successfully.') {
             dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, [operationalMessage])

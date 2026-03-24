@@ -438,7 +438,7 @@ export function getOriginZoneByZipCode(zipcode) {
     return async () => {
         dispatch(slice.actions.startOriginZoneLaoding());
         try {
-            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
+            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}`);
             dispatch(slice.actions.getOriginZoneByZipCodeSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
@@ -449,7 +449,7 @@ export function getDestinationZoneByZipCode(zipcode) {
     return async () => {
         dispatch(slice.actions.startDestinationZoneLaoding());
         try {
-            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}'`);
+            const response = await axios.get(`maintenance/zone/dropdown?input=${zipcode}`);
             dispatch(slice.actions.getDestinationZoneByZipCodeSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));

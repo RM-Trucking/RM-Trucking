@@ -172,7 +172,7 @@ export default function AccessorialTable() {
 
         <Snackbar
             open={snackbarOpen}
-            autoHideDuration={1000} // Adjust the duration as needed
+            autoHideDuration={3000} // Adjust the duration as needed
             onClose={() => {
                 setSnackbarOpen(false);
                 dispatch(setOperationalMessage());

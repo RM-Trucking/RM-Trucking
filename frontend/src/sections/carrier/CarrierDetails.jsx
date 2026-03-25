@@ -290,7 +290,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             rules={{ required: "Carrier type is required" }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => {
                                 const groups = {
-                                    ltl: ["LTL Carrier", "Truck Load Carriers", "Dedicated Carriers"],
+                                    ltl: ["LTL Carrier", "Truck Load Carriers", "LTL Truck Load Carriers", "Dedicated Carriers"],
                                     airport: ["Airport Carrier", "Airport Agent"]
                                 };
 
@@ -394,7 +394,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 >
                                     <MenuItem value="active">Active</MenuItem>
                                     <MenuItem value="inactive">Inactive</MenuItem>
-                                    <MenuItem value="incomplete">Incomplete</MenuItem>
+                                    {/* <MenuItem value="incomplete">Incomplete</MenuItem> */}
                                 </StyledTextField>
                             )}
                         />

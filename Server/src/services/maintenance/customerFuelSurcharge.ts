@@ -5,28 +5,35 @@ import {
     CustomerFuelSurchargeResponse
 } from '../../entities/maintenance/CustomerFuelSurcharge';
 import * as customerFuelDb from '../../database/maintenance/customerFuelSurcharge';
+import { toUtcDate } from '../../utils/dateFormater';
 
 // ✅ Create Customer Fuel Surcharge with expire logic
 export async function createCustomerFuelSurcharge(
-  conn: Connection,
-  body: CreateCustomerFuelSurchargeRequest,
-  createdBy: number
+    conn: Connection,
+    body: CreateCustomerFuelSurchargeRequest,
+    createdBy: number
 ): Promise<CustomerFuelSurchargeResponse> {
-  // 1. Check if customer already has an active surcharge
-  const existing = await customerFuelDb.selectLatestCustomerFuelSurcharge(conn, body.customerId);
+    // 1. Check if customer already has an active surcharge
+    const existing = await customerFuelDb.selectLatestCustomerFuelSurcharge(conn, body.customerId);
 
-  if (existing) {
-    // 2. Expire the old surcharge with new effective date/time
-    await customerFuelDb.expireCustomerFuelSurcharge(
-      conn,
-      existing.customerFuelSurchargeId,
-      body.effectiveDate,
-      body.effectiveTime
-    );
-  }
+    if (existing) {
+        // 2. Expire the old surcharge with new effective date/time
+        await customerFuelDb.expireCustomerFuelSurcharge(
+            conn,
+            existing.customerFuelSurchargeId,
+            body.effectiveDate,
+            body.effectiveTime
+        );
+    }
 
-  // 3. Insert new surcharge (expireDate/expireTime will be NULL initially)
-  return await customerFuelDb.insertCustomerFuelSurcharge(conn, body, createdBy);
+    const data = await customerFuelDb.insertCustomerFuelSurcharge(conn, body, createdBy);
+
+    // 3. Insert new surcharge (expireDate/expireTime will be NULL initially)
+    return {
+        ...data,
+        createdAt: data.createdAt ? toUtcDate(data.createdAt) : null,
+        updatedAt: data.updatedAt ? toUtcDate(data.updatedAt) : null
+    };
 }
 
 
@@ -37,16 +44,36 @@ export async function getCustomerFuelSurcharges(
     pageSize: number
 ): Promise<{ surcharges: CustomerFuelSurchargeResponse[]; total: number; page: number; pageSize: number }> {
     const { surcharges, total } = await customerFuelDb.selectAllCustomerFuelSurcharges(conn, page, pageSize);
-    return { surcharges, total, page, pageSize };
+
+    // Format timestamps
+    const formattedSurcharges = surcharges.map(s => ({
+        ...s,
+        createdAt: s.createdAt ? toUtcDate(s.createdAt) : null,
+        updatedAt: s.updatedAt ? toUtcDate(s.updatedAt) : null
+    }));
+
+    return { surcharges: formattedSurcharges, total, page, pageSize };
 }
+
 
 // ✅ Get Customer Fuel Surcharge by ID (with stations)
 export async function getCustomerFuelSurchargeById(
     conn: Connection,
     id: number
 ): Promise<CustomerFuelSurchargeResponse | null> {
-    return await customerFuelDb.selectCustomerFuelSurchargeById(conn, id);
+    const surcharge = await customerFuelDb.selectCustomerFuelSurchargeById(conn, id);
+
+    if (!surcharge) {
+        return null;
+    }
+
+    return {
+        ...surcharge,
+        createdAt: surcharge.createdAt ? toUtcDate(surcharge.createdAt) : null,
+        updatedAt: surcharge.updatedAt ? toUtcDate(surcharge.updatedAt) : null
+    };
 }
+
 
 // ✅ Update Customer Fuel Surcharge (and stations)
 export async function updateCustomerFuelSurcharge(

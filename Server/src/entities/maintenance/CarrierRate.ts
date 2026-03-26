@@ -93,9 +93,9 @@ export interface CarrierTransportRateResponse {
     details: CarrierRateDetail[];
     activeStatus?: 'Y' | 'N';
     expiryDate?: string | null;
-    createdAt: string;
+    createdAt: Date | null;
     createdByName: string;
-    updatedAt?: string;
+    updatedAt?: Date | null;
     updatedByName?: string;
     carrierCount?: number;
     entityId?: number;

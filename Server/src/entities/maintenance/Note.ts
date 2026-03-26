@@ -10,7 +10,7 @@ export interface NoteMessage {
     noteThreadId: number;
     messageText: string;
     createdBy: number;
-    createdAt: Date;
+    createdAt: Date | null;
 }
 
 export interface NoteMessageRequest {
@@ -21,7 +21,7 @@ export interface NoteMessageResponse {
     noteMessageId: number;
     noteThreadId: number;
     messageText: string;
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
     createdByName: string;
 }

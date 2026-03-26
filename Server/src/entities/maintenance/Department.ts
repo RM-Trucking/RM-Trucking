@@ -7,9 +7,9 @@ export interface Department {
     activeStatus: string;
     noteThreadId?: number | null;
     entityId: number;
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt: Date;
+    updatedAt: Date | null;
     updatedBy: number;
 }
 
@@ -34,7 +34,7 @@ export interface DepartmentResponse extends Department {
         noteMessageId: number;
         noteThreadId: number;
         messageText: string;
-        createdAt: Date;
+        createdAt: Date | null;
         createdBy: number;
         createdByName?: string;
     }[];

@@ -159,3 +159,38 @@ export async function getStationByRmAccountNumber(conn: Connection, rmAccountNum
   const result = (await conn.query(query, [rmAccountNumber])) as any[];
   return result.length > 0 ? (result[0] as Station) : null;
 }
+
+
+export async function checkStationUniqueFields(
+    conn: Connection,
+    { email, faxNumber, phoneNumber, rmAccountNumber }:
+        { email?: string; faxNumber?: string; phoneNumber?: string; rmAccountNumber?: string },
+    stationId?: number // optional, so we can exclude current record on update
+): Promise<string | null> {
+    const queries: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (email) {
+        queries.push(`SELECT 'email' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "email" = ? AND "stationId" <> ?`);
+        params.push(email, stationId ?? -1);
+    }
+    if (faxNumber) {
+        queries.push(`SELECT 'faxNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "faxNumber" = ? AND "stationId" <> ?`);
+        params.push(faxNumber, stationId ?? -1);
+    }
+    if (phoneNumber) {
+        queries.push(`SELECT 'phoneNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "phoneNumber" = ? AND "stationId" <> ?`);
+        params.push(phoneNumber, stationId ?? -1);
+    }
+    if (rmAccountNumber) {
+        queries.push(`SELECT 'rmAccountNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "rmAccountNumber" = ? AND "stationId" <> ?`);
+        params.push(rmAccountNumber, stationId ?? -1);
+    }
+
+    if (queries.length === 0) return null;
+
+    const query = queries.join(' UNION ALL ');
+
+    const result = await conn.query(query, params) as { conflictField: string }[];
+    return result.length ? result[0].conflictField : null;
+}

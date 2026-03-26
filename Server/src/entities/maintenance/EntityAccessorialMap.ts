@@ -32,7 +32,7 @@ export interface EntityAccessorialMapResponse extends EntityAccessorialMap {
         noteMessageId: number;
         noteThreadId: number;
         messageText: string;
-        createdAt: Date;
+        createdAt: Date| null;
         createdBy: number;
         createdByName?: string;
     }[];

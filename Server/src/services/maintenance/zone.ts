@@ -230,24 +230,16 @@ export async function createZoneService(
 
 
 
+// Service: search by zips and ranges
 export async function searchZonesByZipsAndRangesService(
     conn: Connection,
     input: string
 ): Promise<ZoneDropdownResponse[]> {
-    const tokens = input.split(",").map(t => t.trim()).filter(Boolean);
 
-    const zipTokens = tokens.filter(t => !t.includes("-"));
-    const ranges: [number, number][] = tokens
-        .filter(t => t.includes("-"))
-        .map(t => {
-            const [start, end] = t.split("-").map(Number);
-            return [start, end];
-        });
+    // Query DB for zones that match either zip codes or ranges
+    const rows = await zoneDB.findZonesByZipsAndRanges(conn, input);
 
-    // Call one DB function that fetches all zones + zips in one shot
-    const rows = await zoneDB.findZonesByZipsAndRanges(conn, zipTokens, ranges);
-
-    // Group results in memory
+    // Group results by zoneId
     const grouped: Record<number, ZoneDropdownResponse> = {};
     for (const r of rows) {
         if (!grouped[r.zoneId]) {
@@ -265,12 +257,14 @@ export async function searchZonesByZipsAndRangesService(
     return Object.values(grouped);
 }
 
+// Service: list all active zones
 export async function listZonesDropdownService(
     conn: Connection
 ): Promise<ZoneDropdownResponse[]> {
     // Single DB call to fetch all zones + zips
     const rows = await zoneDB.getAllZonesWithZips(conn);
 
+    // Group results by zoneId
     const grouped: Record<number, ZoneDropdownResponse> = {};
     for (const r of rows) {
         if (!grouped[r.zoneId]) {

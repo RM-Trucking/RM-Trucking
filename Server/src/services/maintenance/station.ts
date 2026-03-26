@@ -8,6 +8,7 @@ import * as stationDB from '../../database/maintenance/station';
 import * as entityDB from '../../database/maintenance/entity';
 import * as addressDB from '../../database/maintenance/address';
 import * as noteDB from '../../database/maintenance/note';
+import { toUtcDate } from '../../utils/dateFormater';
 
 /**
  * Create a new station with addresses and optional note
@@ -98,6 +99,8 @@ export async function createStation(
         return {
             station: {
                 ...station,
+                createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
+                updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
                 addresses: addressResults,
                 notes: note && note.messageText?.trim()
                     ? [{
@@ -121,9 +124,6 @@ export async function createStation(
 export async function getStationService(conn: Connection, stationId: number): Promise<StationResponse | null> {
     const station = await stationDB.getStationById(conn, stationId);
 
-    console.log(station);
-
-
     if (!station) return null;
 
     // Fetch addresses via Entity_Address_Map
@@ -134,7 +134,13 @@ export async function getStationService(conn: Connection, stationId: number): Pr
         ? await noteDB.getMessagesByThread(conn, station.noteThreadId)
         : [];
 
-    return { ...station, addresses, notes };
+    return {
+        ...station,
+        createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
+        updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
+        addresses,
+        notes
+    };
 }
 
 /**
@@ -160,7 +166,13 @@ export async function getStationsForCustomerService(
             const notes = station.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, station.noteThreadId)
                 : [];
-            return { ...station, addresses, notes };
+            return {
+                ...station,
+                createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
+                updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
+                addresses,
+                notes
+            };
         })
     );
 
@@ -244,7 +256,13 @@ export async function updateStationService(
         ? await noteDB.getMessagesByThread(conn, updated.noteThreadId)
         : [];
 
-    return { ...updated, addresses, notes };
+    return {
+        ...updated,
+        createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
+        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null,
+        addresses,
+        notes
+    };
 }
 
 

@@ -7,6 +7,7 @@ import {
 import * as departmentDB from '../../database/maintenance/department';
 import * as noteDB from '../../database/maintenance/note';
 import * as entityDB from '../../database/maintenance/entity';
+import { toUtcDate } from '../../utils/dateFormater';
 
 /**
  * Create a new department
@@ -45,7 +46,11 @@ export async function createDepartmentService(
         if (!department) throw new Error('Failed to create department');
 
         await conn.commit();
-        return department;
+        return {
+            ...department,
+            createdAt: department.createdAt ? toUtcDate(department.createdAt) : null,
+            updatedAt: department.updatedAt ? toUtcDate(department.updatedAt) : null,
+        };
     } catch (error) {
         await conn.rollback();
         throw error;
@@ -71,6 +76,8 @@ export async function getDepartmentService(
 
     return {
         ...department,
+        createdAt: department.createdAt ? toUtcDate(department.createdAt) : null,
+        updatedAt: department.updatedAt ? toUtcDate(department.updatedAt) : null,
         notes
     };
 }
@@ -93,6 +100,8 @@ export async function getDepartmentsForStationService(
 
             return {
                 ...dept,
+                createdAt: dept.createdAt ? toUtcDate(dept.createdAt) : null,
+                updatedAt: dept.updatedAt ? toUtcDate(dept.updatedAt) : null,
                 notes
             };
         })
@@ -119,7 +128,11 @@ export async function updateDepartmentService(
     const updated = await departmentDB.getDepartmentById(conn, departmentId);
     if (!updated) throw new Error('Failed to update department');
 
-    return updated;
+    return {
+        ...updated,
+        createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
+        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null,
+    };
 }
 
 /**

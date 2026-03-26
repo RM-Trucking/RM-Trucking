@@ -14,9 +14,9 @@ export interface Terminal {
     closeTime: string | null;   // HH:mm:ss
     hours?: string | null;
     activeStatus: 'Y' | 'N';
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt?: Date;
+    updatedAt?: Date | null;
     updatedBy?: number;
     noteThreadId?: number | null;
 }
@@ -56,7 +56,7 @@ export interface TerminalResponse extends Terminal {
         noteMessageId: number;
         noteThreadId: number;
         messageText: string;
-        createdAt: Date;
+        createdAt: Date | null;
         createdBy: number;
     }[];
 }

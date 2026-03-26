@@ -5,6 +5,7 @@ import {
     AccessorialResponse,
     CreateAccessorialRequest
 } from '../../entities/maintenance/Accessorial';
+import { toUtcDate } from '../../utils/dateFormater';
 
 /**
  * Create a new accessorial
@@ -20,7 +21,11 @@ export async function createAccessorialService(
     const created = await accessorialDB.getAccessorialById(conn, accessorialId);
     if (!created) throw new Error('Failed to create accessorial');
 
-    return created;
+    return {
+        ...created,
+        createdAt: created.createdAt ? toUtcDate(created.createdAt) : null,
+        updatedAt: created.updatedAt ? toUtcDate(created.updatedAt) : null
+    };
 }
 
 /**
@@ -35,11 +40,17 @@ export async function getAllAccessorialsService(
     // Fetch paginated accessorials
     const accessorials = await accessorialDB.getAllAccessorials(conn, searchTerm, page, pageSize);
 
+    const formattedAccessorials = accessorials.map(created => ({
+        ...created,
+        createdAt: created.createdAt ? toUtcDate(created.createdAt) : null,
+        updatedAt: created.updatedAt ? toUtcDate(created.updatedAt) : null
+    }));
+
     // Count total for pagination metadata
     const total = await accessorialDB.countAccessorials(conn, searchTerm);
 
     return {
-        accessorials,
+        accessorials: formattedAccessorials,
         total,
         page,
         pageSize
@@ -66,7 +77,12 @@ export async function updateAccessorialService(
 
     const updated = await accessorialDB.getAccessorialById(conn, accessorialId);
     if (!updated) throw new Error('Failed to update accessorial');
-    return updated;
+
+    return {
+        ...updated,
+        createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
+        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null
+    };
 }
 
 /**

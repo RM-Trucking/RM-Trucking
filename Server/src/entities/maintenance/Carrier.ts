@@ -79,9 +79,9 @@ export interface CarrierResponse {
     salesRepName?: string;
     salesRepPhone?: string;
     salesRepEmail?: string;
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt: Date;
+    updatedAt: Date | null;
     updatedBy: number;
     noteThreadId: number | null;
     entityId: number;

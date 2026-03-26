@@ -6,9 +6,9 @@ export interface CarrierPersonnel {
     email: string;                // Personnel’s email address (unique)
     officePhoneNumber?: string;   // Office phone number
     cellPhoneNumber?: string;     // Mobile phone number
-    createdAt: Date;              // Record creation timestamp
+    createdAt: Date | null;              // Record creation timestamp
     createdBy: number;            // FK → User.userId
-    updatedAt?: Date;             // Record last update timestamp
+    updatedAt?: Date | null;             // Record last update timestamp
     updatedBy?: number;           // FK → User.userId
     activeStatus: 'Y' | 'N';      // Enum (Y/N) indicates if personnel is active
     noteThreadId?: number | null;
@@ -43,7 +43,7 @@ export interface CarrierPersonnelResponse extends CarrierPersonnel {
         noteMessageId: number;
         noteThreadId: number;
         messageText: string;
-        createdAt: Date;
+        createdAt: Date | null;
         createdBy: number;
     }[];
 }

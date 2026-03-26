@@ -403,38 +403,64 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="zipCode"
                             control={control}
                             rules={{
-                                required: 'Zipcode is required',
-                                pattern: {
-                                    value: /^\d{5}(-\d{4})?$/, // Validates ##### or #####-####
-                                    message: 'Invalid Zip Code format'
+                                validate: (value) => {
+                                    if (!value || value.length <= 5) return true;
+
+                                    const parts = value.split('-');
+                                    if (parts.length === 2 && parts[1].length === 5) {
+                                        const startSuffix = parseInt(parts[0].slice(-2));
+                                        const endSuffix = parseInt(parts[1].slice(-2));
+
+                                        if (endSuffix === startSuffix) return 'End range cannot be equal to start';
+                                        if (endSuffix < startSuffix) return 'End range must be greater than start';
+                                        return true;
+                                    }
+                                    return 'Complete the range (#####-#####)';
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
                                     value={value || ''}
-                                    required
                                     onChange={(e) => {
-                                        const val = e.target.value.replace(/[^\d]/g, ''); // Remove non-digits
-                                        let formatted = val;
+                                        const input = e.target.value;
+                                        const raw = input.replace(/[^\d]/g, '');
+                                        const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-                                        // Format as #####-####
-                                        if (val.length > 5) {
-                                            formatted = `${val.slice(0, 5)}-${val.slice(5, 9)}`;
+                                        // 1. CLEARING & BACKSPACE: Let the user clear the field or delete the first part
+                                        if (!input || raw.length === 0 || (isDeleting && (input.length <= 5 || !input.includes('-')))) {
+                                            onChange(raw.slice(0, 5));
+                                            return;
+                                        }
+
+                                        // 2. FORMATTING LOGIC
+                                        let formatted = '';
+                                        if (raw.length <= 5) {
+                                            formatted = raw;
                                         } else {
-                                            formatted = val.slice(0, 5);
+                                            const first5 = raw.slice(0, 5);
+                                            const prefix = first5.slice(0, 3);
+                                            let suffixPart = raw.slice(5);
+
+                                            // Auto-fill prefix if user types the 6th digit
+                                            if (!suffixPart.startsWith(prefix)) {
+                                                const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
+                                                suffixPart = prefix + userTypedDigits;
+                                            }
+
+                                            formatted = `${first5}-${suffixPart.slice(0, 5)}`;
                                         }
 
                                         onChange(formatted);
                                     }}
+                                    inputProps={{ maxLength: 11 }}
+                                    label="Zip Code"
+                                    error={!!error}
+                                    helperText={error?.message || 'Ex: 12345 or 12345-12346'}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
-                                    label="Zip Code"
-                                    error={!!error}
-                                    helperText={error?.message || ''}
                                     disabled={readOnly}
-                                    inputProps={{ maxLength: 10 }} // Account for 9 digits + 1 hyphen
                                 />
                             )}
                         />

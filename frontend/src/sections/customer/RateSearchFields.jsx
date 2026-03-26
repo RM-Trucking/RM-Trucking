@@ -226,7 +226,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 "note": {
                     "messageText": data.notes
                 },
-                "noteThreadId" : selectedCurrentRateRow.noteThreadId,
+                "noteThreadId": selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCustomerTransportationRate(selectedCurrentRateRow?.rateId, obj));
         }
@@ -248,7 +248,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 "note": {
                     "messageText": data.notes
                 },
-                "noteThreadId" : selectedCurrentRateRow.noteThreadId,
+                "noteThreadId": selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCarrierTransportationRate(selectedCurrentRateRow?.rateId, obj))
         }
@@ -387,7 +387,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
                                             // 4. User-Friendly Auto-Comma
                                             // Only add comma if typing (not backspacing) and segment is a complete ZIP or Range
-                                        
+
                                             const isFullZip = /^\d{5}$/.test(lastSegment);
                                             const isFullRange = /^\d{5}-\d{5}$/.test(lastSegment) && lastSegment.includes('-');
                                             const isTyping = e.target.value.length > (value?.length || 0);
@@ -442,6 +442,20 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             // Ensure select always has at least one child to prevent the error
                                             SelectProps={{
                                                 displayEmpty: true,
+                                                MenuProps: {
+                                                    anchorOrigin: {
+                                                        vertical: 'bottom',
+                                                        horizontal: 'left',
+                                                    },
+                                                    transformOrigin: {
+                                                        vertical: 'top',
+                                                        horizontal: 'left',
+                                                    },
+                                                    // Optional: Add a small gap between field and menu
+                                                    PaperProps: {
+                                                        sx: { marginTop: '4px' }
+                                                    }
+                                                },
                                             }}
                                             InputLabelProps={{ shrink: true }}
                                         >
@@ -589,6 +603,20 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             // Helps MUI handle empty states gracefully
                                             SelectProps={{
                                                 displayEmpty: true,
+                                                MenuProps: {
+                                                    anchorOrigin: {
+                                                        vertical: 'bottom',
+                                                        horizontal: 'left',
+                                                    },
+                                                    transformOrigin: {
+                                                        vertical: 'top',
+                                                        horizontal: 'left',
+                                                    },
+                                                    // Optional: Add a small gap between field and menu
+                                                    PaperProps: {
+                                                        sx: { marginTop: '4px' }
+                                                    }
+                                                },
                                             }}
                                             InputLabelProps={{ shrink: true }}
                                         >

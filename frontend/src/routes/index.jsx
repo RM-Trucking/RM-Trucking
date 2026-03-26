@@ -34,6 +34,8 @@ import {
   Page500,
   Page403,
   Page404,
+  DashboardHomeLayout,
+  ShipmentForm,
 } from './elements';
 
 
@@ -77,7 +79,14 @@ export default function Router() {
       ),
       children: [
         { element: <Navigate to={PATH_AFTER_LOGIN} replace />, index: true },
-        { path: 'dashboard', element: <DashboardPage /> },
+        {
+          path: 'dashboard',
+          element: <DashboardHomeLayout />,
+          children: [
+            { index: true, element: <DashboardPage /> },
+            { path: 'shipment-view', element: <ShipmentForm /> },
+          ]
+        },
         { path: 'shipment-building', element: <ShipmentBuildingPage /> },
         {
           path: 'maintenance',

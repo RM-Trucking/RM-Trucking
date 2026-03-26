@@ -38,6 +38,9 @@ export const RateMaintenancePage = Loadable(lazy(() => import('../pages/rate/Rat
 export const CarrierMaintenancePage = Loadable(lazy(() => import('../pages/carrier/CarrierMaintenance')));
 export const FuelSurchargeMaintenancePage = Loadable(lazy(() => import('../pages/fuelsurcharge/FuelChargeMaintenance')));
 export const AccesorialMaintenancePage = Loadable(lazy(() => import('../pages/accesorial/AccesorialMaintenance')));
+export const DashboardHomeLayout = Loadable(lazy(() => import('../pages/dashboard/DashboardHomeLayout')));
+export const ShipmentForm = Loadable(lazy(() => import('../pages/dashboard/ShipmentForm')));
+
 
 // Error pages
 export const Page500 = Loadable(lazy(() => import('../pages/Page500')));

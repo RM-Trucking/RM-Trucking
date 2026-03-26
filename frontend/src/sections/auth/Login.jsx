@@ -22,7 +22,7 @@ export default function Login() {
     //     async function getUserSession() {
     //         const response = await getSession();
     //         if (response?.session?.idToken?.jwtToken) {
-    //             window.location.href = PATH_DASHBOARD.general.dashboard;
+    //             window.location.href = PATH_DASHBOARD.general.dashboard.root;
     //         }
     //     }
     //     getUserSession();

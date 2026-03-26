@@ -35,7 +35,10 @@ export const PATH_PAGE = {
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
-    dashboard: path(ROOTS_DASHBOARD, '/dashboard'),
+    dashboard:{
+      root :  path(ROOTS_DASHBOARD, '/dashboard'),
+      shipmentView : path(ROOTS_DASHBOARD, '/dashboard/shipment-view'),
+    }
   },
   shipmentBuilding: path(ROOTS_DASHBOARD, '/shipment-building'),
   warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),

@@ -66,7 +66,7 @@ export async function listCarriers(
     if (status) {
         query += ` AND UPPER("carrierStatus") = UPPER(?)`;
         params.push(status);
-    }   
+    }
 
 
     query += ` ORDER BY "carrierId" DESC LIMIT ? OFFSET ?`;
@@ -90,7 +90,7 @@ export async function countCarriers(
     }
 
     if (status) {
-        query += ` AND "carrierStatus" = ?`;
+        query += ` AND UPPER("carrierStatus") = UPPER(?)`;
         params.push(status);
     }
 

@@ -7,6 +7,7 @@ import {
 } from '../../entities/maintenance';
 import * as noteDB from '../../database/maintenance/note';
 import * as entityDB from '../../database/maintenance/entity';
+import { toUtcDate } from '../../utils/dateFormater';
 
 /**
  * Create new personnel
@@ -32,9 +33,6 @@ export async function createCarrierPersonnelService(
         await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
     }
 
-    console.log(entityId, noteThreadId);
-
-
     const personnelId = await personnelDB.createCarrierPersonnel(conn, {
         ...req,
         noteThreadId,
@@ -51,7 +49,12 @@ export async function createCarrierPersonnelService(
         ? await noteDB.getMessagesByThread(conn, personnel.noteThreadId)
         : [];
 
-    return { ...personnel, notes };
+    return {
+        ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
+        notes
+    };
 }
 
 
@@ -73,6 +76,8 @@ export async function getCarrierPersonnelByIdService(
 
     return {
         ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
         notes
     };
 }
@@ -98,6 +103,8 @@ export async function getCarrierPersonnelByTerminalService(
                 : [];
             return {
                 ...person,
+                createdAt: person.createdAt ? toUtcDate(person.createdAt) : null,
+                updatedAt: person.updatedAt ? toUtcDate(person.updatedAt) : null,
                 notes
             };
         })
@@ -137,6 +144,8 @@ export async function updateCarrierPersonnelService(
 
     return {
         ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
         notes
     };
 }

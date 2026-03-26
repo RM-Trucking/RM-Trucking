@@ -2,9 +2,9 @@
 export interface Accessorial {
     accessorialId: number;
     accessorialName: string;
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt?: Date;
+    updatedAt?: Date | null;
     updatedBy?: number;
     activeStatus?: 'Y' | 'N';
 }

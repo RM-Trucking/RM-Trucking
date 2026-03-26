@@ -14,25 +14,32 @@ export async function createTerminal(conn: Connection, terminal: Partial<Termina
     )
   `;
 
-    const params = [
-        terminal.carrierId,
-        terminal.entityId,
-        terminal.terminalName,
-        terminal.rmAccountNumber,
-        terminal.airportCode,
-        terminal.email,
-        terminal.phoneNumber,
-        terminal.faxNumber,
-        terminal.openTime,
-        terminal.closeTime,
-        terminal.hours,
-        terminal.noteThreadId,
-        terminal.activeStatus ?? 'Y', // default to 'Y' if not provided
-        terminal.createdBy
-    ].map(v => v === undefined || v === null ? '' : v); // normalize null/undefined
+    const params: (string | number | null)[] = [
+        terminal.carrierId ?? null,
+        terminal.entityId ?? null,
+        terminal.terminalName ?? null,
+        terminal.rmAccountNumber ?? null,
+        terminal.airportCode ?? null,
+        terminal.email === "" ? null : terminal.email ?? null,
+        terminal.phoneNumber ?? null,
+        terminal.faxNumber === "" ? null : terminal.faxNumber ?? null,
+        terminal.openTime === "" ? null : terminal.openTime ?? null,
+        terminal.closeTime === "" ? null : terminal.closeTime ?? null,
+        terminal.hours ?? null,
+        terminal.noteThreadId ?? null,
+        terminal.activeStatus ?? "Y",
+        terminal.createdBy ?? null
+    ];
 
-    const result = (await conn.query(insertQuery, params)) as any[];
-    return result[0]?.terminalId;
+    console.log(params);
+
+
+    const result: { terminalId: number }[] | any = await conn.query<{ terminalId: number }[]>(insertQuery, params as any);
+    if (!result || result?.length === 0) {
+        throw new Error("Insert failed");
+    }
+    return result[0].terminalId;
+
 }
 
 
@@ -123,9 +130,6 @@ export async function softDeleteTerminal(conn: Connection, terminalId: number, u
     await conn.query(query, [userId, terminalId]);
 }
 
-
-type ConflictResult = { conflictField: string };
-
 export async function checkTerminalUniqueFields(
     conn: Connection,
     { email, faxNumber, phoneNumber, rmAccountNumber }:
@@ -136,25 +140,26 @@ export async function checkTerminalUniqueFields(
     const params: (string | number)[] = [];
 
     if (email) {
-        queries.push(`SELECT 'Email' AS conflictField FROM "${SCHEMA}"."Terminal" WHERE "email" = ? AND "terminalId" <> ?`);
+        queries.push(`SELECT 'email' AS "conflictField" FROM "${SCHEMA}"."Terminal" WHERE "email" = ? AND "terminalId" <> ?`);
         params.push(email, terminalId ?? -1);
     }
     if (faxNumber) {
-        queries.push(`SELECT 'Fax number' FROM "${SCHEMA}"."Terminal" WHERE "faxNumber" = ? AND "terminalId" <> ?`);
+        queries.push(`SELECT 'faxNumber' AS "conflictField" FROM "${SCHEMA}"."Terminal" WHERE "faxNumber" = ? AND "terminalId" <> ?`);
         params.push(faxNumber, terminalId ?? -1);
     }
     if (phoneNumber) {
-        queries.push(`SELECT 'Phone number' FROM "${SCHEMA}"."Terminal" WHERE "phoneNumber" = ? AND "terminalId" <> ?`);
+        queries.push(`SELECT 'phoneNumber' AS "conflictField" FROM "${SCHEMA}"."Terminal" WHERE "phoneNumber" = ? AND "terminalId" <> ?`);
         params.push(phoneNumber, terminalId ?? -1);
     }
     if (rmAccountNumber) {
-        queries.push(`SELECT 'RM Account Number' FROM "${SCHEMA}"."Terminal" WHERE "rmAccountNumber" = ? AND "terminalId" <> ?`);
+        queries.push(`SELECT 'rmAccountNumber' AS "conflictField" FROM "${SCHEMA}"."Terminal" WHERE "rmAccountNumber" = ? AND "terminalId" <> ?`);
         params.push(rmAccountNumber, terminalId ?? -1);
     }
 
     if (queries.length === 0) return null;
 
     const query = queries.join(' UNION ALL ');
+
     const result = await conn.query(query, params) as { conflictField: string }[];
     return result.length ? result[0].conflictField : null;
 }

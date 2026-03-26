@@ -171,38 +171,63 @@ export async function findZonesByZip(conn: Connection, zipCode: string): Promise
 }
 
 
+// DB function: find zones by zips and ranges
 export async function findZonesByZipsAndRanges(
   conn: Connection,
-  zipTokens: string[],
-  ranges: [number, number][]
+  input: string
 ): Promise<any[]> {
-  let query = `
-    SELECT z."zoneId", z."zoneName", zz."zipCode", zz."rangeStart", zz."rangeEnd"
-    FROM ${SCHEMA}."Zone" z
-    JOIN ${SCHEMA}."Zone_Zip" zz ON z."zoneId" = zz."zoneId"
-    WHERE 1=1
+  // Split input into parts (zips and ranges)
+  const parts = input.split(',').map(p => p.trim()).filter(Boolean);
+
+  if (!parts.length) {
+    return [];
+  }
+
+  const subConditions: string[] = [];
+  const subParams: (string | number)[] = [];
+
+  for (const part of parts) {
+    if (part.includes('-')) {
+      const [start, end] = part.split('-').map(r => Number(r.trim()));
+      // Check if any zip in the range exists in Zone_Zip
+      subConditions.push(`EXISTS (
+          SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
+          WHERE z."zoneId" = main."zoneId"
+          AND z."zipCode" BETWEEN ? AND ?
+      )`);
+      subParams.push(start, end);
+    } else {
+      // Check if the exact zip exists in Zone_Zip
+      subConditions.push(`EXISTS (
+          SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
+          WHERE z."zoneId" = main."zoneId"
+          AND z."zipCode" = ?
+      )`);
+      subParams.push(part);
+    }
+  }
+
+  // Build final query
+  const query = `
+    SELECT 
+      main."zoneId", 
+      main."zoneName", 
+      zz."zipCode", 
+      zz."rangeStart", 
+      zz."rangeEnd"
+    FROM ${SCHEMA}."Zone" main
+    JOIN ${SCHEMA}."Zone_Zip" zz ON main."zoneId" = zz."zoneId"
+    WHERE ${subConditions.join(' OR ')}
   `;
-  const params: any[] = [];
 
-  if (zipTokens.length) {
-    query += ` AND zz."zipCode" IN (${zipTokens.map(() => "?").join(",")})`;
-    params.push(...zipTokens);
-  }
-
-  if (ranges.length) {
-    query += ` OR (`;
-    query += ranges
-      .map(() => `(? BETWEEN zz."rangeStart" AND zz."rangeEnd" OR ? BETWEEN zz."rangeStart" AND zz."rangeEnd")`)
-      .join(" OR ");
-    query += `)`;
-    ranges.forEach(([start, end]) => {
-      params.push(start, end);
-    });
-  }
-
-  return await conn.query(query, params) as any[];
+  return await conn.query(query, subParams) as any[];
 }
 
+
+
+
+
+// DB function: get all active zones with zips and ranges
 export async function getAllZonesWithZips(conn: Connection): Promise<any[]> {
   const query = `
     SELECT z."zoneId", z."zoneName", zz."zipCode", zz."rangeStart", zz."rangeEnd"
@@ -212,3 +237,4 @@ export async function getAllZonesWithZips(conn: Connection): Promise<any[]> {
   `;
   return await conn.query(query) as any[];
 }
+

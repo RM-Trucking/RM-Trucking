@@ -7,7 +7,7 @@ export interface GeneralFuelSurcharge {
     expireDate?: Date | null;       // optional ISO date
     expireTime?: string | null;       // optional HH:mm:ss
     createdBy: number;                // user id/name
-    createdAt: Date;                // ISO timestamp
+    createdAt: Date | null;                // ISO timestamp
     updatedBy?: number | null;        // optional user id/name
     updatedAt?: Date | null;        // optional ISO timestamp
 }

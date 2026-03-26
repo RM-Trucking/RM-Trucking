@@ -214,7 +214,7 @@ export async function getTerminalRates(
         params.push(Number(search.destinationZoneId));
     }
 
-    const buildZipConditions = (field: string, value?: string) => {
+    const buildZipConditions = (zoneField: string, value?: string) => {
         if (!value) return null;
         const parts = value.split(',').map(p => p.trim()).filter(Boolean);
         if (!parts.length) return null;
@@ -225,19 +225,20 @@ export async function getTerminalRates(
         for (const part of parts) {
             if (part.includes('-')) {
                 const [start, end] = part.split('-').map(r => Number(r.trim()));
+                // Use BETWEEN to cover the whole range
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${field}
-                    AND z."rangeStart" = ? AND z."rangeEnd" = ?
+                    WHERE z."zoneId" = ${zoneField}
+                    AND z."zipCode" BETWEEN ? AND ?
                 )`);
                 subParams.push(start, end);
             } else {
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${field}
+                    WHERE z."zoneId" = ${zoneField}
                     AND z."zipCode" = ?
                 )`);
-                subParams.push(part); // keep as string
+                subParams.push(part);
             }
         }
         return { clause: `(${subConditions.join(' OR ')})`, params: subParams };
@@ -261,6 +262,7 @@ export async function getTerminalRates(
     const result = await conn.query(query, params) as any[];
     return result;
 }
+
 
 export async function deleteTerminalRateMap(conn: Connection, terminalRateId: number): Promise<void> {
     const query = `DELETE FROM ${SCHEMA}."Terminal_Rate_Map" WHERE "terminalRateId" = ?`;

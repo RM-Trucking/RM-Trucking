@@ -4,6 +4,7 @@ import * as terminalDB from '../../database/maintenance/terminal';
 import * as entityDB from '../../database/maintenance/entity';
 import * as noteDB from '../../database/maintenance/note';
 import * as addressDB from '../../database/maintenance/address';
+import { toUtcDate } from '../../utils/dateFormater';
 
 export async function createTerminal(
     conn: Connection,
@@ -55,9 +56,9 @@ export async function createTerminal(
             terminalName,
             rmAccountNumber,
             airportCode,
-            email,
-            phoneNumber,
-            faxNumber,
+            email: email === "" ? null : email,
+            phoneNumber: phoneNumber === "" ? null : phoneNumber,
+            faxNumber: faxNumber === "" ? null : faxNumber,
             openTime: openTime === "" ? null : openTime,
             closeTime: closeTime === "" ? null : closeTime,
             hours,
@@ -93,6 +94,8 @@ export async function createTerminal(
         return {
             terminal: {
                 ...terminal,
+                createdAt: terminal.createdAt ? toUtcDate(terminal.createdAt) : null,
+                updatedAt: terminal.updatedAt ? toUtcDate(terminal.updatedAt) : null,
                 addresses: addressResults,
                 notes: note && note.messageText?.trim()
                     ? [{
@@ -122,7 +125,13 @@ export async function getTerminalById(conn: Connection, terminalId: number): Pro
         ? await noteDB.getMessagesByThread(conn, terminal.noteThreadId)
         : [];
 
-    return { ...terminal, addresses, notes };
+    return {
+        ...terminal,
+        createdAt: terminal.createdAt ? toUtcDate(terminal.createdAt) : null,
+        updatedAt: terminal.updatedAt ? toUtcDate(terminal.updatedAt) : null,
+        addresses,
+        notes
+    };
 }
 
 export async function getTerminalsForCarrier(
@@ -146,7 +155,13 @@ export async function getTerminalsForCarrier(
             const notes = t.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, t.noteThreadId)
                 : [];
-            return { ...t, addresses, notes };
+            return {
+                ...t,
+                createdAt: t.createdAt ? toUtcDate(t.createdAt) : null,
+                updatedAt: t.updatedAt ? toUtcDate(t.updatedAt) : null,
+                addresses,
+                notes
+            };
         })
     );
 
@@ -198,9 +213,9 @@ export async function updateTerminalService(
             terminalName,
             rmAccountNumber,
             airportCode,
-            email,
-            phoneNumber,
-            faxNumber,
+            email: email === "" ? null : email,
+            phoneNumber: phoneNumber === "" ? null : phoneNumber,
+            faxNumber: faxNumber === "" ? null : faxNumber,
             openTime: openTime === "" ? null : openTime,
             closeTime: closeTime === "" ? null : closeTime,
             hours,
@@ -239,7 +254,13 @@ export async function updateTerminalService(
             ? await noteDB.getMessagesByThread(conn, updated.noteThreadId)
             : [];
 
-        return { ...updated, addresses, notes };
+        return {
+            ...updated,
+            createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
+            updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null,
+            addresses,
+            notes
+        };
     } catch (error) {
         // Rollback on any error
         await conn.rollback();

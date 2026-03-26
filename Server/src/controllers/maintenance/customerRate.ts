@@ -80,6 +80,8 @@ export async function updateCustomerTransportRate(req: Request, res: Response, c
         const rate = await rateService.updateCustomerTransportRateService(conn, Number(req.params.id), req.body, userId);
         res.json({ success: true, data: rate });
     } catch (error) {
+        console.log(error);
+
         res.status(400).json({ error: 'Failed to update transport rate', message: (error as Error).message });
     }
 }

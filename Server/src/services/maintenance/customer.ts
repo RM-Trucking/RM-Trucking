@@ -4,6 +4,7 @@ import * as customerDB from '../../database/maintenance/customer';
 import * as entityDB from '../../database/maintenance/entity';
 import * as addressDB from '../../database/maintenance/address';
 import * as noteDB from '../../database/maintenance/note';
+import { toUtcDate } from '../../utils/dateFormater';
 
 
 /**
@@ -79,10 +80,6 @@ export async function createNewCustomer(
             })
         );
 
-
-        console.log(addressResults);
-
-
         // Fetch the final customer row
         const customer = await customerDB.getCustomerById(conn, customerId);
         if (!customer) throw new Error('Failed to create customer');
@@ -92,6 +89,9 @@ export async function createNewCustomer(
         return {
             customer: {
                 ...customer,
+                createdAt: customer.createdAt ? toUtcDate(customer.createdAt) : null,
+                updatedAt: customer.updatedAt ? toUtcDate(customer.updatedAt) : null,
+
                 addresses: addressResults,
                 notes: note && note.messageText?.trim()
                     ? [{
@@ -128,7 +128,13 @@ export async function getAllCustomersService(
             const notes = cust.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, cust.noteThreadId)
                 : [];
-            return { ...cust, addresses, notes };
+            return {
+                ...cust,
+                createdAt: cust.createdAt ? toUtcDate(cust.createdAt) : null,
+                updatedAt: cust.updatedAt ? toUtcDate(cust.updatedAt) : null,
+                addresses,
+                notes
+            };
         })
     );
 
@@ -163,6 +169,8 @@ export async function getCustomerDetails(conn: Connection, customerId: number): 
 
     return {
         ...customer,
+        createdAt: customer.createdAt ? toUtcDate(customer.createdAt) : null,
+        updatedAt: customer.updatedAt ? toUtcDate(customer.updatedAt) : null,
         addresses,
         notes
     };
@@ -216,7 +224,13 @@ export async function updateCustomer(
         ? await noteDB.getMessagesByThread(conn, updatedCustomer.noteThreadId)
         : [];
 
-    return { ...updatedCustomer, addresses, notes };
+    return {
+        ...updatedCustomer,
+        createdAt: updatedCustomer.createdAt ? toUtcDate(updatedCustomer.createdAt) : null,
+        updatedAt: updatedCustomer.updatedAt ? toUtcDate(updatedCustomer.updatedAt) : null,
+        addresses,
+        notes
+    };
 }
 
 
@@ -236,7 +250,11 @@ export async function toggleCustomerStatus(
 
     const updated = await customerDB.getCustomerById(conn, customerId);
     if (!updated) throw new Error('Failed to update customer status');
-    return updated;
+    return {
+        ...updated,
+        createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
+        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null
+    };
 }
 
 
@@ -254,6 +272,8 @@ export async function getCustomersByRateIdService(
                 : [];
             return {
                 ...cust,
+                createdAt: cust.createdAt ? toUtcDate(cust.createdAt) : null,
+                updatedAt: cust.updatedAt ? toUtcDate(cust.updatedAt) : null,
                 addresses,
                 notes,
                 stationId: cust.stationId,

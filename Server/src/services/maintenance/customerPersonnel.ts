@@ -7,6 +7,7 @@ import {
 } from '../../entities/maintenance';
 import * as noteDB from '../../database/maintenance/note';
 import * as entityDB from '../../database/maintenance/entity';
+import { toUtcDate } from '../../utils/dateFormater';
 
 /**
  * Create new personnel
@@ -46,7 +47,12 @@ export async function createCustomerPersonnelService(
         ? await noteDB.getMessagesByThread(conn, personnel.noteThreadId)
         : [];
 
-    return { ...personnel, notes };
+    return {
+        ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
+        notes
+    };
 }
 
 
@@ -68,6 +74,8 @@ export async function getCustomerPersonnelByIdService(
 
     return {
         ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
         notes
     };
 }
@@ -93,6 +101,8 @@ export async function getCustomerPersonnelByStationService(
                 : [];
             return {
                 ...person,
+                createdAt: person.createdAt ? toUtcDate(person.createdAt) : null,
+                updatedAt: person.updatedAt ? toUtcDate(person.updatedAt) : null,
                 notes
             };
         })
@@ -132,6 +142,8 @@ export async function updateCustomerPersonnelService(
 
     return {
         ...personnel,
+        createdAt: personnel.createdAt ? toUtcDate(personnel.createdAt) : null,
+        updatedAt: personnel.updatedAt ? toUtcDate(personnel.updatedAt) : null,
         notes
     };
 }

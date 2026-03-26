@@ -40,7 +40,7 @@ export async function getAllAccessorials(
   params.push(offset, pageSize);
 
   console.log(query);
-  
+
 
   const result = (await conn.query(query, params)) as any[];
 
@@ -120,4 +120,25 @@ export async function softDeleteAccessorial(
     WHERE "accessorialId" = ?
   `;
   await conn.query(query, [userId, accessorialId]);
+}
+
+
+export async function checkAccessorialUniqueFields(
+  conn: Connection,
+  { accessorialName }: { accessorialName?: string },
+  accessorialId?: number // optional, so we can exclude current record on update
+): Promise<string | null> {
+  const queries: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (accessorialName) {
+    queries.push(`SELECT 'Accessorial Name' AS "conflictField" FROM "${SCHEMA}"."Accessorial" WHERE "accessorialName" = ? AND "accessorialId" <> ?`);
+    params.push(accessorialName, accessorialId ?? -1);
+  }
+
+  if (queries.length === 0) return null;
+
+  const query = queries.join(' UNION ALL ');
+  const result = await conn.query(query, params) as { conflictField: string }[];
+  return result.length ? result[0].conflictField : null;
 }

@@ -6,6 +6,7 @@ import * as entityDB from "../../database/maintenance/entity";
 import * as noteDB from "../../database/maintenance/note";
 import * as addressDB from "../../database/maintenance/address";
 import { CreateCarrierRequest, UpdateCarrierRequest, CarrierResponse } from "../../entities/maintenance/Carrier";
+import { toUtcDate } from "../../utils/dateFormater";
 
 
 export async function createNewCarrier(
@@ -80,6 +81,8 @@ export async function createNewCarrier(
         return {
             carrier: {
                 ...carrier,
+                createdAt: carrier.createdAt ? toUtcDate(carrier.createdAt) : null,
+                updatedAt: carrier.updatedAt ? toUtcDate(carrier.updatedAt) : null,
                 addresses: addressResults,
                 notes: note && note.messageText?.trim()
                     ? [{
@@ -141,7 +144,13 @@ export async function updateCarrierService(
             : [];
 
         await conn.commit();
-        return { ...carrier, addresses, notes };
+        return {
+            ...carrier,
+            createdAt: carrier.createdAt ? toUtcDate(carrier.createdAt) : null,
+            updatedAt: carrier.updatedAt ? toUtcDate(carrier.updatedAt) : null,
+            addresses,
+            notes
+        };
     } catch (err) {
         await conn.rollback();
         throw err;
@@ -167,7 +176,13 @@ export async function listCarriersService(
                 addressDB.getAddressesForEntity(conn, c.entityId),
                 c.noteThreadId != null ? noteDB.getMessagesByThread(conn, c.noteThreadId) : []
             ]);
-            return { ...c, addresses, notes };
+            return {
+                ...c,
+                createdAt: c.createdAt ? toUtcDate(c.createdAt) : null,
+                updatedAt: c.updatedAt ? toUtcDate(c.updatedAt) : null,
+                addresses,
+                notes
+            };
         })
     );
 
@@ -185,7 +200,13 @@ export async function getCarrierByIdService(conn: Connection, carrierId: number)
         ? await noteDB.getMessagesByThread(conn, carrier.noteThreadId)
         : [];
 
-    return { ...carrier, addresses, notes };
+    return {
+        ...carrier,
+        createdAt: carrier.createdAt ? toUtcDate(carrier.createdAt) : null,
+        updatedAt: carrier.updatedAt ? toUtcDate(carrier.updatedAt) : null,
+        addresses,
+        notes
+    };
 }
 
 // DROPDOWN (minimal list)
@@ -219,7 +240,13 @@ export async function getCarriersByRateIdService(
             const notes = carrier.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, carrier.noteThreadId)
                 : [];
-            return { ...carrier, addresses, notes };
+            return {
+                ...carrier,
+                createdAt: carrier.createdAt ? toUtcDate(carrier.createdAt) : null,
+                updatedAt: carrier.updatedAt ? toUtcDate(carrier.updatedAt) : null,
+                addresses,
+                notes
+            };
         })
     );
 

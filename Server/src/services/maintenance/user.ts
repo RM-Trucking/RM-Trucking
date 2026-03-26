@@ -6,7 +6,7 @@ import { createPasswordHash, verifyStoredPassword, generatePassword } from '../.
 
 const JWT_SECRET: string = process.env.TOKEN_SECRET || 'your-secret-key';
 const REFRESH_SECRET: string = process.env.REFRESH_SECRET || 'your-refresh-secret-key';
-const JWT_EXPIRY: string = process.env.JWT_EXPIRY || '1d';
+const JWT_EXPIRY: string = process.env.JWT_EXPIRY || '36000s';
 const REFRESH_EXPIRY: string = process.env.REFRESH_EXPIRY || '7d';
 
 /**
@@ -87,7 +87,15 @@ export async function loginUser(conn: Connection, loginReq: LoginRequest): Promi
         roleId: user.roleId
     };
 
+    console.log(JWT_EXPIRY);
+
+
     const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any);
+
+    console.log("System time:", new Date().toISOString());
+    console.log(jwt.decode(accessToken));
+
+
 
     // Generate refresh token (as JWT)
     const refreshTokenPayload = {

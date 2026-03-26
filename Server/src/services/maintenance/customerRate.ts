@@ -17,6 +17,7 @@ import {
     StationRateMapResponse,
     CustomerTransportRateSearch
 } from '../../entities/maintenance';
+import { toUtcDate } from '../../utils/dateFormater';
 
 // -------------------- Warehouse Rate --------------------
 export async function createCustomerWarehouseRateService(
@@ -140,7 +141,9 @@ export async function createCustomerTransportRateService(
                 : null,
             details,
             createdByName,
+            createdAt: rate?.createdAt ? toUtcDate(rate.createdAt) : null,
             updatedByName,
+            updatedAt: rate?.updatedAt ? toUtcDate(rate.updatedAt) : null,
             customerCount,
             entityId,
             noteThreadId,
@@ -203,9 +206,9 @@ export async function getCustomerTransportRateService(
         details,
         activeStatus: rate.activeStatus,
         expiryDate: rate.expiryDate,
-        createdAt: rate.createdAt,
+        createdAt: rate.createdAt ? toUtcDate(rate.createdAt) : null,
         createdByName,
-        updatedAt: rate.updatedAt,
+        updatedAt: rate.updatedAt ? toUtcDate(rate.updatedAt) : null,
         updatedByName,
         customerCount,
         entityId: rate.entityId,
@@ -283,7 +286,9 @@ export async function updateCustomerTransportRateService(
                 : null,
             details,
             createdByName,
+            createdAt: rate?.createdAt ? toUtcDate(rate.createdAt) : null,
             updatedByName,
+            updatedAt: rate?.updatedAt ? toUtcDate(rate.updatedAt) : null,
             customerCount,
             notes
         };
@@ -341,7 +346,12 @@ export async function assignRateToStationService(
         await conn.commit();
 
         // Return only the ones we just inserted or reused
-        return maps.filter(m => stationRateIds.includes(m.stationRateId));
+        return maps
+            .filter(m => stationRateIds.includes(m.terminalRateId))
+            .map(m => ({
+                ...m,
+                assignedAt: m.assignedAt ? toUtcDate(m.assignedAt) : null
+            }));
     } catch (error) {
         await conn.rollback();
         throw error;
@@ -357,15 +367,7 @@ export async function getStationRatesService(
     search?: CustomerTransportRateSearch
 ): Promise<any[]> {
 
-    console.log(stationId);
-    console.log(search);
-
-
-
     const rows = await rateDB.getStationRates(conn, stationId, rateType, search);
-
-    console.log(rows);
-
 
     return await Promise.all(
         rows.map(async r => {
@@ -376,7 +378,7 @@ export async function getStationRatesService(
                     rateId: r.rateId,
                     rateType: r.rateType,
                     assignedBy: r.userName,
-                    assignedAt: r.assignedAt,
+                    assignedAt: r.assignedAt ? toUtcDate(r.assignedAt) : null,
                     warehouseRate: {
                         minRate: r.minRate,
                         maxRate: r.maxRate,
@@ -402,7 +404,7 @@ export async function getStationRatesService(
                 const customerCount = await customerDB.countCustomersByRateId(conn, r.rateId);
 
                 const notes = rate?.noteThreadId
-                    ? await noteDB.getMessagesByThread(conn, r.noteThreadId)
+                    ? await noteDB.getMessagesByThread(conn, rate.noteThreadId)
                     : [];
 
                 return {
@@ -432,7 +434,9 @@ export async function getStationRatesService(
                             : null,
                         details,
                         createdByName,
+                        createdAt: rate?.createdAt ? toUtcDate(rate.createdAt) : null,
                         updatedByName,
+                        updatedAt: rate?.updatedAt ? toUtcDate(rate.updatedAt) : null,
                         customerCount,
                         entityId: r.entityId,
                         noteThreadId: r.noteThreadId,
@@ -514,7 +518,9 @@ export async function listCustomerTransportRatesService(
                     : null,
                 details,
                 createdByName,
+                createdAt: r.createdAt ? toUtcDate(r.createdAt) : null,
                 updatedByName,
+                updatedAt: r.updatedAt ? toUtcDate(r.updatedAt) : null,
                 customerCount,
                 notes
             };
@@ -579,7 +585,9 @@ export async function listCustomerTransportRatesByZoneService(
                     : null,
                 details,
                 createdByName,
+                createdAt: r.createdAt ? toUtcDate(r.createdAt) : null,
                 updatedByName,
+                updatedAt: r.updatedAt ? toUtcDate(r.updatedAt) : null,
                 customerCount,
                 notes
             };

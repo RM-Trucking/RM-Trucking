@@ -15,9 +15,9 @@ export interface Station {
     warehouse: 'Y' | 'N';
     warehouseDetail: string;
     activeStatus: 'Y' | 'N';
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt: Date;
+    updatedAt: Date | null;
     updatedBy: number;
     noteThreadId?: number | null;
 }
@@ -59,7 +59,7 @@ export interface StationResponse extends Station {
         noteMessageId: number;
         noteThreadId: number;
         messageText: string;
-        createdAt: Date;
+        createdAt: Date | null;
         createdBy: number;
     }[];
 }

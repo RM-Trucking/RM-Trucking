@@ -9,7 +9,7 @@ export interface CustomerFuelSurcharge {
     expireDate?: Date | null;
     expireTime?: string | null;
     createdBy: number;
-    createdAt: Date;
+    createdAt: Date | null;
     updatedBy?: number | null;
     updatedAt?: Date | null;
     stations: CustomerFuelSurchargeStation[];

@@ -8,9 +8,9 @@ export interface Customer {
     phoneNumber: string;
     website: string;
     activeStatus: 'Y' | 'N';
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt: Date;
+    updatedAt: Date | null;
     updatedBy: number;
     noteThreadId: number | null;
     entityId: number;
@@ -51,9 +51,9 @@ export interface CustomerResponse {
     phoneNumber: string;
     website: string;
     activeStatus: 'Y' | 'N';
-    createdAt: Date;
+    createdAt: Date | null;
     createdBy: number;
-    updatedAt: Date;
+    updatedAt: Date | null;
     updatedBy: number;
     noteThreadId: number | null;
     entityId: number;

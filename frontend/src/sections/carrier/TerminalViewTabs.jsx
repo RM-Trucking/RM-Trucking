@@ -8,7 +8,9 @@ import {
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData } from '../../redux/slices/carrier';
+import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData,  } from '../../redux/slices/carrier';
+import { setOperationalMessage,  } from '../../redux/slices/customer';
+import { setOperationalMessage as setOpertionalMessageOfRate,  } from '../../redux/slices/rate';
 import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -67,6 +69,7 @@ export default function TerminalViewTabs({ }) {
         // Implement the logic for adding a new item based on the current tab
         setActionType('Add');
         dispatch(setSelectedTeminalTabRowDetails({}));
+        dispatch(setOperationalMessage(''));
         console.log('Add button clicked for tab:', currentTerminalTab);
         setOpenConfirmDialog(true);
     }
@@ -147,6 +150,7 @@ export default function TerminalViewTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
+                                    dispatch(setOpertionalMessageOfRate(''));
                                     dispatch(setCurrentRateTab('transportation'));
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
                                     setOpenConfirmDialog(true);

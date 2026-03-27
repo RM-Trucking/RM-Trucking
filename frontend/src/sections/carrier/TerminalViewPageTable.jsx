@@ -23,7 +23,7 @@ import {
 import {
     setTableBeingViewed, getStationAccessorialData,
     deleteStationAccessorial, patchStationAccessorialData,
-    getAccessorialData
+    getAccessorialData, setOperationalMessage as setOpertionalMessageOfCustomer
 } from '../../redux/slices/customer';
 import {
     setSelectedCurrentRateRow,
@@ -350,6 +350,7 @@ export default function TerminalViewPageTable() {
                     >
 
                         <Tooltip title={'Edit'} arrow onClick={() => {
+                            dispatch(setOpertionalMessageOfCustomer(''));
                             setActionType('Edit');
                             setOpenEditDialog(true);
                             dispatch(setSelectedTeminalTabRowDetails(params.row));

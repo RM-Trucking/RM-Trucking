@@ -638,7 +638,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
                                 // using callback to refresh table data after delete
-                                dispatch(deleteStationAccessorial(params?.row?.accessorialId, () => {
+                                dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId, () => {
                                     dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
                                 }));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>

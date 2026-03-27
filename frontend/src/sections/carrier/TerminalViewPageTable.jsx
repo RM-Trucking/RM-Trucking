@@ -17,8 +17,8 @@ import {
     setOperationalMessage,
     setSelectedTeminalTabRowDetails,
     getPersonnelTerminalData,
-    getQualityTerminalData, deletePersonnel, getTerminalRateData, 
-    deleteTerminalRate, setTerminalViewTabData, 
+    getQualityTerminalData, deletePersonnel, getTerminalRateData,
+    deleteTerminalRate, setTerminalViewTabData,
 } from '../../redux/slices/carrier';
 import {
     setTableBeingViewed, getStationAccessorialData,
@@ -47,6 +47,8 @@ export default function TerminalViewPageTable() {
     const { terminalViewTabData, isLoading, currentTerminalTab, pagination, operationalMessage,
         error, selectedTerminalTabRowDetails, selectedCarrierTabRowDetails } = useSelector((state) => state.carrierdata);
     const operationalAccessorialMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const isLoadingAccessorialMessage = useSelector((state) => state?.customerdata?.isLoading);
+    const errorAccessorialMessage = useSelector((state) => state?.customerdata?.error);
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
@@ -360,7 +362,7 @@ export default function TerminalViewPageTable() {
                         <Tooltip title={'Delete'} arrow>
                             <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
                                 // using callback to refresh table data after delete
-                                dispatch(deleteStationAccessorial(params?.row?.accessorialId));
+                                dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId));
                             }}
                             />
                         </Tooltip>
@@ -578,6 +580,12 @@ export default function TerminalViewPageTable() {
             setSnackbarOpen(true);
         }
     }, [error])
+    useEffect(() => {
+        if (errorAccessorialMessage) {
+            setSnackbarMessage(`${(errorAccessorialMessage?.error && errorAccessorialMessage?.message) ? `${errorAccessorialMessage?.error}. ${errorAccessorialMessage?.message}` : `${errorAccessorialMessage}`}`);
+            setSnackbarOpen(true);
+        }
+    }, [errorAccessorialMessage])
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
@@ -631,7 +639,7 @@ export default function TerminalViewPageTable() {
                         rows={terminalViewTabData}
                         columns={tableColumns}
                         loading={isLoading}
-                        getRowId={(row) => row?.personnelId }
+                        getRowId={(row) => row?.personnelId}
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
@@ -682,8 +690,8 @@ export default function TerminalViewPageTable() {
                     {currentTerminalTab === 'accessorial' && <DataGrid
                         rows={stationTabTableData}
                         columns={tableColumns}
-                        loading={isLoading}
-                        getRowId={(row) => row?.accessorialId}
+                        loading={isLoadingAccessorialMessage}
+                        getRowId={(row) => row?.entityAccessorialId}
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount

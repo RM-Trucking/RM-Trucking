@@ -229,7 +229,7 @@ const slice = createSlice({
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message || 'Accessorial updated successfully';
       console.log("Accessorial put payload", action.payload.data);
-      const index = state.stationTabTableData.findIndex((row) => row.accessorialId === action.payload?.data?.accessorialId);
+      const index = state.stationTabTableData.findIndex((row) => row.entityAccessorialId === action.payload?.data?.entityAccessorialId);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1, action.payload.data);
       }
@@ -238,7 +238,7 @@ const slice = createSlice({
       state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message.message || 'Accessorial deleted successfully';
-      const index = state.stationTabTableData.findIndex((row) => row.accessorialId === action.payload.id);
+      const index = state.stationTabTableData.findIndex((row) => row.entityAccessorialId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);
       }

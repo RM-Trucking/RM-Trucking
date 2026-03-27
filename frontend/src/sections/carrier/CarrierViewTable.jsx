@@ -31,6 +31,7 @@ export default function CarrierViewTable() {
     const { carrierViewTabData, isLoading, currentCarrierViewTab, pagination,
         operationalMessage, error, selectedCarrierTabRowDetails, selectedCarrierRowDetails, carrierSearchStr } = useSelector((state) => state.carrierdata);
     const operationalAccessorialMessage = useSelector((state) => state?.customerdata?.operationalMessage);
+    const isLoadingAccessorialMessage = useSelector((state) => state?.customerdata?.isLoading);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -513,8 +514,8 @@ export default function CarrierViewTable() {
                     {currentCarrierViewTab === 'accessorial' && <DataGrid
                         rows={stationTabTableData}
                         columns={tableColumns}
-                        loading={isLoading}
-                        getRowId={(row) => row?.accessorialId}
+                        loading={isLoadingAccessorialMessage}
+                        getRowId={(row) => row?.entityAccessorialId}
                         pagination
                         getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount

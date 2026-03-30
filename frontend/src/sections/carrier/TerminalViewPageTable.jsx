@@ -23,7 +23,8 @@ import {
 import {
     setTableBeingViewed, getStationAccessorialData,
     deleteStationAccessorial, patchStationAccessorialData,
-    getAccessorialData, setOperationalMessage as setOpertionalMessageOfCustomer
+    getAccessorialData, setOperationalMessage as setOpertionalMessageOfCustomer,
+    setStationTabTableData, 
 } from '../../redux/slices/customer';
 import {
     setSelectedCurrentRateRow,
@@ -538,6 +539,7 @@ export default function TerminalViewPageTable() {
 
     useEffect(() => {
         dispatch(setTerminalViewTabData([]));
+        dispatch(setStationTabTableData([]));
         dispatch(setSelectedTeminalTabRowDetails({}));
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('personnel'));

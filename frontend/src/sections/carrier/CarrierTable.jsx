@@ -259,7 +259,7 @@ export default function RateTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if (operationalMessage === 'Carrier deleted successfully' || operationalMessage === "Carrier updated successfully" || operationalMessage === 'Carrier Status changed successfully.') {
+        if (operationalMessage === 'Carrier deleted successfully' || operationalMessage === "Carrier updated successfully" || operationalMessage === 'Carrier Status changed successfully.' || operationalMessage === 'Carrier created successfully') {
             dispatch(getCarrierData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: carrierSearchStr, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) }));
         }
     }, [operationalMessage])

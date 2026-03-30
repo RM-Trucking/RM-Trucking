@@ -10,7 +10,8 @@ import {
     FormControlLabel,
     Dialog,
     DialogContent, CircularProgress, MenuItem,
-    ListSubheader, Checkbox, ListItemText
+    ListSubheader, Checkbox, ListItemText,
+
 } from '@mui/material';
 // for date picker
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -306,8 +307,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
                                     const isLTL = groups.ltl.includes(lastSelected);
                                     const isAirport = groups.airport.includes(lastSelected);
-
-                                    // Accessing current value safely
                                     const currentArray = Array.isArray(value) ? value : [];
                                     const previouslyHadLTL = currentArray.some(v => groups.ltl.includes(v));
                                     const previouslyHadAirport = currentArray.some(v => groups.airport.includes(v));
@@ -315,12 +314,10 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     if (isLTL) {
                                         if (previouslyHadAirport) setWarning(true);
                                         else setWarning(false);
-                                        // Filter to only keep items from the LTL group
                                         onChange(newValue.filter(val => groups.ltl.includes(val)));
                                     } else if (isAirport) {
                                         if (previouslyHadLTL) setWarning(true);
                                         else setWarning(false);
-                                        // Filter to only keep items from the Airport group
                                         onChange(newValue.filter(val => groups.airport.includes(val)));
                                     }
                                 };
@@ -328,17 +325,29 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 return (
                                     <StyledTextField
                                         select
-                                        value={Array.isArray(value) ? value : []} // Force value to be an array
+                                        value={Array.isArray(value) ? value : []}
                                         onChange={handleGroupChange}
                                         SelectProps={{
                                             multiple: true,
-                                            // Fix: Check if selected is an array before calling .join
-                                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(", ") : ""),
+                                            // Key Fix: Wrap in a Box and force whiteSpace to normal to allow wrapping
+                                            renderValue: (selected) => (
+                                                <Box sx={{ display: 'flex', flexWrap: 'wrap', whiteSpace: 'normal', wordBreak: 'break-word' }}>
+                                                    {Array.isArray(selected) ? selected.join(", ") : ""}
+                                                </Box>
+                                            ),
+                                            // Ensures the internal Select div also allows height to expand
+                                            sx: {
+                                                "& .MuiSelect-select": {
+                                                    whiteSpace: "normal !important",
+                                                    minHeight: "1.5em",
+                                                    height: "auto",
+                                                }
+                                            },
                                             MenuProps: { PaperProps: { sx: { maxHeight: 320 } } }
                                         }}
                                         variant="standard"
                                         fullWidth
-                                        sx={{ width: "30%" }}
+                                        sx={{ width: "40%" }}
                                         label="Carrier Type*"
                                         error={!!error}
                                         helperText={error ? error.message : ''}
@@ -347,10 +356,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         }}
                                         disabled={(type === 'View')}
                                     >
-                                        {/* --- LTL GROUP --- */}
-                                        <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold' }}>
-                                            LTL
-                                        </ListSubheader>
+                                        <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold' }}>LTL</ListSubheader>
                                         <Divider />
                                         {groups.ltl.map((option) => (
                                             <MenuItem key={option} value={option}>
@@ -359,10 +365,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             </MenuItem>
                                         ))}
 
-                                        {/* --- AIRPORT GROUP --- */}
-                                        <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', mt: 1 }}>
-                                            Airport
-                                        </ListSubheader>
+                                        <ListSubheader sx={{ bgcolor: 'background.paper', fontWeight: 'bold', mt: 1 }}>Airport</ListSubheader>
                                         <Divider />
                                         {groups.airport.map((option) => (
                                             <MenuItem key={option} value={option}>
@@ -374,6 +377,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 );
                             }}
                         />
+
 
                         <Controller
                             name="carrierStatus"

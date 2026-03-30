@@ -61,6 +61,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
         } else if (type === 'Edit') {
             delete obj.entityId; // Remove entityId for edit
             delete obj.accessorialId; // Remove accessorialId for edit
+            delete obj.note;
             console.log(obj)
             dispatch(putStationAccessorialData(selectedStationTabRowDetails?.entityAccessorialId, obj));
         }
@@ -238,7 +239,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                 />
                             )}
                         />
-                        <Controller
+                        {type === 'Add' && <Controller
                             name="notes"
                             control={control}
                             rules={{
@@ -272,7 +273,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     inputProps={{ maxLength: 255 }}
                                 />
                             )}
-                        />
+                        />}
                     </Stack>
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

@@ -9,7 +9,7 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
 import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData,  } from '../../redux/slices/carrier';
-import { setOperationalMessage,  } from '../../redux/slices/customer';
+import { setOperationalMessage, setStationTabTableData  } from '../../redux/slices/customer';
 import { setOperationalMessage as setOpertionalMessageOfRate,  } from '../../redux/slices/rate';
 import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
@@ -60,6 +60,7 @@ export default function TerminalViewTabs({ }) {
     };
     const OnTabChange = (newValue) => {
         dispatch(setTerminalViewTabData([]));
+         dispatch(setStationTabTableData([]));
         dispatch(setCurrentRateRoutedFrom('carrier'));
         dispatch(setSelectedTeminalTabRowDetails({}));
         console.log('new tab value', newValue);

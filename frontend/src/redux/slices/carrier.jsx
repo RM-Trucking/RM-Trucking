@@ -78,8 +78,7 @@ const slice = createSlice({
             state.isLoading = false;
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Carrier created successfully';
-            console.log("Carrier post payload", action.payload.data.customer);
-            state.carrierData.unshift(action.payload.data.carrier);
+            // state.carrierData.unshift(action.payload.data.carrier);
             state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.carrierData.length;
         },
         putCarrierdataSuccess(state, action) {

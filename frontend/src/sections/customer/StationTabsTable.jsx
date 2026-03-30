@@ -654,7 +654,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     ];
 
     useEffect(() => {
-        dispatch(setStationTabTableData());
+        dispatch(setStationTabTableData([]));
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
             dispatch(clearNotesState());

@@ -16,7 +16,11 @@ import {
     setSelectedCarrierTabRowDetails, setOperationalMessage, getTerminalCarrierData,
     setCarrierViewTabData, deleteTerminal, setTerminalViewTabData
 } from '../../redux/slices/carrier';
-import { setTableBeingViewed, getAccessorialData, getStationAccessorialData, deleteStationAccessorial, setOperationalMessage as setOpertionalMessageOfCustomer } from '../../redux/slices/customer';
+import {
+    setTableBeingViewed, getAccessorialData, getStationAccessorialData,
+    deleteStationAccessorial, setOperationalMessage as setOpertionalMessageOfCustomer,
+    setStationTabTableData, 
+} from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -405,6 +409,7 @@ export default function CarrierViewTable() {
 
     useEffect(() => {
         dispatch(setCarrierViewTabData([]));
+        dispatch(setStationTabTableData([]));
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('terminal'));
     }, []);

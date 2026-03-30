@@ -268,18 +268,18 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: rateSearchObj.origin,
-                originZipOrRange: rateSearchObj.originZipCode,
-                destinationZoneId: rateSearchObj.destination,
-                destinationZipOrRange: rateSearchObj.destinationZipCode, pageNo: pagination.page, pageSize: pagination.pageSize
+                originZoneId: '',
+                originZipOrRange: '',
+                destinationZoneId: '',
+                destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
             }));
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
             dispatch(getCarrierTransportationRateDashboardData({
-                originZoneId: rateSearchObj.origin,
-                originZipOrRange: rateSearchObj.originZipCode,
-                destinationZoneId: rateSearchObj.destination,
-                destinationZipOrRange: rateSearchObj.destinationZipCode, pageNo: pagination.page, pageSize: pagination.pageSize
+                originZoneId: '',
+                originZipOrRange: '',
+                destinationZoneId: '',
+                destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
             }));
         }
     };

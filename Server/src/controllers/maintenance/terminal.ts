@@ -38,7 +38,7 @@ export async function getTerminalsForCarrier(req: Request, res: Response, conn: 
     try {
         const carrierId = parseInt(req.params.carrierId, 10);
         const page = parseInt(req.query.page as string, 10) || 1;
-        const limit = parseInt(req.query.limit as string, 10) || 10;
+        const limit = parseInt(req.query.pageSize as string, 10) || 10;
 
         const { terminals, total } = await terminalService.getTerminalsForCarrier(conn, carrierId, page, limit);
 

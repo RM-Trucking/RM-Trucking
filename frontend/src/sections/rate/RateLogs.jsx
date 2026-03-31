@@ -31,8 +31,8 @@ export default function RateLogs({ }) {
         console.log(error);
     };
     const timeConversion = (updatedAt) => {
-        const rawDate = selectedCurrentRateRow.updatedAt;
-        const utcDate = rawDate.endsWith('Z') ? rawDate : `${rawDate}Z`;
+        const rawDate = updatedAt;
+        const utcDate = rawDate?.endsWith('Z') ? rawDate : `${rawDate}Z`;
         return dayjs.utc(utcDate).local().format('DD/MM/YYYY HH:mm');
     }
 
@@ -60,7 +60,7 @@ export default function RateLogs({ }) {
                         <Typography sx={{ width: '45%' }} variant='normal'>Last Update</Typography>
                         <Stack flexDirection={'column'} alignItems={'flex-start'}>
                             <Typography variant='normal' sx={{ fontWeight: 600, fontFamily: 'Open Sans' }}>{selectedCurrentRateRow?.updatedByName || ""}</Typography>
-                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{timeConversion(selectedCurrentRateRow.updatedAt)}</Typography>
+                            <Typography variant='normal' sx={{ fontWeight: 400, fontFamily: 'Open Sans', fontStyle: 'italic' }}>{timeConversion(selectedCurrentRateRow?.updatedAt || null)}</Typography>
                         </Stack>
                     </Stack>
                 </Box>

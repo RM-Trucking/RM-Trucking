@@ -37,9 +37,9 @@ export default function RateTabs({ }) {
         }
         return true; // Show both for 'Warehouse' or others
     });
-    
-    
-    
+
+
+
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     // error boundary info
@@ -61,7 +61,11 @@ export default function RateTabs({ }) {
         dispatch(setSelectedCurrentRateRow({}));
         setOpenConfirmDialog(true);
     }
-    
+
+    useEffect(() => {
+        dispatch(setCurrentRateTab('transportation'));
+    }, []);
+
     return (
         <>
             <ErrorBoundary
@@ -130,12 +134,12 @@ export default function RateTabs({ }) {
                     >
                         Add Rate
                     </Button>
-                    
+
 
                 </Box>
-                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb:2 }} />
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)', mb: 2 }} />
                 {/* rate search details  */}
-                <RateSearchFields padding = {0} type={'Search'} currentTab = {currentRateTab}/>
+                <RateSearchFields padding={0} type={'Search'} currentTab={currentRateTab} />
 
                 {/*  dialog for add station tab item can go here */}
 
@@ -154,7 +158,7 @@ export default function RateTabs({ }) {
                     }}
                 >
                     <DialogContent>
-                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm}/>                  
+                        <AddRate type={'Add'} handleCloseConfirm={handleCloseConfirm} />
                     </DialogContent>
                 </Dialog>
 

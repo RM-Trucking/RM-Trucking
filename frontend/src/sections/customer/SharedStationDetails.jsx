@@ -688,34 +688,39 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 <FormControlLabel
                                     sx={{
                                         width: '25%',
-                                        display: 'flex', alignItems: 'flex-end',
-                                        // 1. Target the Label specifically when disabled
+                                        display: 'flex',
+                                        alignItems: 'flex-end',
+                                        // 1. Disable all clicks on the label and the container
+                                        pointerEvents: 'none',
                                         "& .MuiFormControlLabel-label.Mui-disabled": {
-                                            color: 'black', // Change to '#00194c' if you want it to match the checkbox
-                                            opacity: 1,      // Removes the "light/faded" look
-                                            WebkitTextFillColor: 'black', // Fix for Safari/Chrome
+                                            color: 'black',
+                                            opacity: 1,
+                                            WebkitTextFillColor: 'black',
                                         },
-                                        // 2. Ensure the Checkbox within the label is also red when disabled
                                         "& .MuiCheckbox-root.Mui-disabled": {
                                             color: 'black',
                                             opacity: 1,
                                         }
                                     }}
-                                    control={<StyledCheckbox checked={!!value}
-                                        onChange={(e) => {
-                                            const isChecked = e.target.checked;
-
-                                            // 1. Update React Hook Form state
-                                            onChange(isChecked);
-
-                                            // 2. Update your local state variable
-                                            setWarehouseFlag(isChecked);
-                                            console.log("New warehouse state:", isChecked);
-                                        }} disabled={readOnly} />}
+                                    control={
+                                        <StyledCheckbox
+                                            // 2. Re-enable clicks ONLY for the checkbox icon itself
+                                            sx={{ pointerEvents: 'auto' }}
+                                            checked={!!value}
+                                            disabled={readOnly}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                onChange(isChecked);
+                                                setWarehouseFlag(isChecked);
+                                                console.log("New warehouse state:", isChecked);
+                                            }}
+                                        />
+                                    }
                                     label="Warehouse"
                                 />
                             )}
                         />
+
 
                         {warehouseFlag && <Controller
                             name="warehouseDetails"

@@ -532,14 +532,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
-                                dispatch(setSelectedStationTabRowDetails(params.row));
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
-                        </Tooltip>
-
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
                                 dispatch(deleteStationRate(params?.row?.stationRateId, () => {

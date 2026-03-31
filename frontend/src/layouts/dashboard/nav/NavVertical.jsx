@@ -48,10 +48,10 @@ export default function NavVertical({ }) {
               "title": "Rate Maintenance",
               "path": "/app/maintenance/customer-maintenance/rate-maintenance"
             },
-            {
-              "title": "Fuel Surcharge",
-              "path": "/app/maintenance/customer-maintenance/fuel-surcharge-maintenance"
-            }
+            // {
+            //   "title": "Fuel Surcharge",
+            //   "path": "/app/maintenance/customer-maintenance/fuel-surcharge-maintenance"
+            // }
           ],
         },
         {

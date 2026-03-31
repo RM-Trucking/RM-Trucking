@@ -231,7 +231,7 @@ export default function StationTabs({ }) {
                 </Box>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
                 {/* rate search details  */}
-                {stationCurrentTab.toLowerCase() === 'rate' && <Box
+                {stationCurrentTab.toLowerCase() === 'rate' && currentRateTab === 'transportation' && <Box
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                             e.stopPropagation(); // Prevents the event from reaching the Dialog/Parent Form

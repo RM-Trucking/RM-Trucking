@@ -227,7 +227,7 @@ const slice = createSlice({
     putStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message || 'Accessorial updated successfully';
+      state.operationalMessage = 'Accessorial updated successfully';
       console.log("Accessorial put payload", action.payload.data);
       const index = state.stationTabTableData.findIndex((row) => row.entityAccessorialId === action.payload?.data?.entityAccessorialId);
       if (index === 0 || index > 0) {
@@ -237,7 +237,7 @@ const slice = createSlice({
     deleteStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message || 'Accessorial deleted successfully';
+      state.operationalMessage = 'Accessorial deleted successfully';
       const index = state.stationTabTableData.findIndex((row) => row.entityAccessorialId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationTabTableData.splice(index, 1);

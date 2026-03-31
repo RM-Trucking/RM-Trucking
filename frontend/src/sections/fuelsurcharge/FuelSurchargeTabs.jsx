@@ -5,10 +5,10 @@ import {
     Box, Stack, Divider, Tabs, Tab,
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useDispatch, useSelector } from '../../../redux/store';
-import { setCurrentFuelSurchargeTab, clearFuelSurchargeData, } from '../../../redux/slices/fuel';
+import { useDispatch, useSelector } from '../../redux/store';
+import { setCurrentFuelSurchargeTab, clearFuelSurchargeData, } from '../../redux/slices/fuel';
 
-import ErrorFallback from '../../shared/ErrorBoundary';
+import ErrorFallback from '../shared/ErrorBoundary';
 // ----------------------------------------------------------------------
 
 

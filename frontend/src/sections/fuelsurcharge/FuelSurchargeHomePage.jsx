@@ -8,11 +8,11 @@ import {
 import { ErrorBoundary } from 'react-error-boundary';
 
 // shared components
-import { useDispatch, useSelector } from '../../../redux/store';
-import SharedHomePageHeader from '../../shared/SharedHomepageHeader';
-import SharedSearchField from '../../shared/SharedSearchField';
-import ErrorFallback from '../../shared/ErrorBoundary';
-import { setSelectedCustomerRowDetails } from '../../../redux/slices/customer';
+import { useDispatch, useSelector } from '../../redux/store';
+import SharedHomePageHeader from '../shared/SharedHomepageHeader';
+import SharedSearchField from '../shared/SharedSearchField';
+import ErrorFallback from '../shared/ErrorBoundary';
+import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
 import FuelSurchargeTabs from './FuelSurchargeTabs';
 // ----------------------------------------------------------------------
 

@@ -17,7 +17,7 @@ import {
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode, postStationRate, postTerminalRate, 
+    getDestinationZoneByZipCode, postStationRate, postTerminalRate,
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -552,10 +552,10 @@ export default function RateTable() {
             }
         }
         if (operationalMessage === 'Station rate created successfully') {
-            navigate(PATH_DASHBOARD.maintenance.customerMaintenance.root);
+            navigate(PATH_DASHBOARD.maintenance.customerMaintenance.customerStationView);
         }
         if (operationalMessage === 'Terminal rate created successfully') {
-            navigate(PATH_DASHBOARD.maintenance.carrierMaintenance.root);
+            navigate(PATH_DASHBOARD.maintenance.carrierMaintenance.terminalView);
         }
     }, [operationalMessage])
     useEffect(() => {
@@ -574,11 +574,11 @@ export default function RateTable() {
         dispatch(setSelectedCurrentRateRow({}));
     };
     const onClickOfAddRate = () => {
-        if(currentRateRoutedFrom === 'customer'){
-        dispatch(postStationRate(selectedRatesArr));
+        if (currentRateRoutedFrom === 'customer') {
+            dispatch(postStationRate(selectedRatesArr));
         }
-        if(currentRateRoutedFrom === 'carrier'){
-        dispatch(postTerminalRate(selectedRatesArr));
+        if (currentRateRoutedFrom === 'carrier') {
+            dispatch(postTerminalRate(selectedRatesArr));
         }
     }
     return (

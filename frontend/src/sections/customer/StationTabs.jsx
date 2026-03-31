@@ -18,7 +18,7 @@ import RateSearchFields from './RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
 import AddRate from '../rate/AddRate';
-import { setCurrentRateTab, setCurrentRateRoutedFrom, setIsSelectRateClicked } from '../../redux/slices/rate';
+import { setCurrentRateTab, setCurrentRateRoutedFrom, setIsSelectRateClicked, setOperationalMessage  } from '../../redux/slices/rate';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------------
 
@@ -181,6 +181,7 @@ export default function StationTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
+                                    dispatch(setOperationalMessage(''));
                                     dispatch(setCurrentRateRoutedFrom('customer'));
                                     setOpenConfirmRateDialog(true);
                                 }}
@@ -204,6 +205,7 @@ export default function StationTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
+                                    dispatch(setOperationalMessage(''));
                                     dispatch(setCurrentRateRoutedFrom('customer'));
                                     dispatch(setIsSelectRateClicked(true));
                                     navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateMaintenanceView);

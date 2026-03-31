@@ -235,25 +235,43 @@ export async function getStationRates(
         const subConditions: string[] = [];
         const subParams: (string | number)[] = [];
 
+
+
         for (const part of parts) {
             if (part.includes('-')) {
                 const [start, end] = part.split('-').map(r => Number(r.trim()));
-                // Use BETWEEN to cover the whole range
+
+                // Case: input is a range
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${zoneField}
-                    AND z."zipCode" BETWEEN ? AND ?
+                    WHERE z."zoneId" = main."zoneId"
+                    AND (
+                    (z."zipCode" BETWEEN ? AND ?) OR
+                    (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+                    AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+                    )
                 )`);
-                subParams.push(start, end);
+                subParams.push(start, end, end, start);
+                // note: overlap check may need careful ordering depending on your DB
+
             } else {
+                const zip = Number(part);
+
+                // Case: input is a single zip
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${zoneField}
-                    AND z."zipCode" = ?
+                    WHERE z."zoneId" = main."zoneId"
+                    AND (
+                    z."zipCode" = ? OR
+                    (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+                    AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+                    )
                 )`);
-                subParams.push(part);
+                subParams.push(zip, zip, zip);
             }
         }
+
+
         return { clause: `(${subConditions.join(' OR ')})`, params: subParams };
     };
 
@@ -373,22 +391,38 @@ export async function listCustomerTransportRates(
         for (const part of parts) {
             if (part.includes('-')) {
                 const [start, end] = part.split('-').map(r => Number(r.trim()));
-                // Use BETWEEN to check if any zip in the range falls inside Zone_Zip ranges
+
+                // Case: input is a range
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${zoneField}
-                    AND z."zipCode" BETWEEN ? AND ?
+                    WHERE z."zoneId" = main."zoneId"
+                    AND (
+                    (z."zipCode" BETWEEN ? AND ?) OR
+                    (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+                    AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+                    )
                 )`);
-                subParams.push(start, end);
+                subParams.push(start, end, end, start);
+                // note: overlap check may need careful ordering depending on your DB
+
             } else {
+                const zip = Number(part);
+
+                // Case: input is a single zip
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = ${zoneField}
-                    AND z."zipCode" = ?
+                    WHERE z."zoneId" = main."zoneId"
+                    AND (
+                    z."zipCode" = ? OR
+                    (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+                    AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+                    )
                 )`);
-                subParams.push(part);
+                subParams.push(zip, zip, zip);
             }
         }
+
+
         return { clause: `(${subConditions.join(' OR ')})`, params: subParams };
     };
 

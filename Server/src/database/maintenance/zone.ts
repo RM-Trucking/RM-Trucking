@@ -189,23 +189,37 @@ export async function findZonesByZipsAndRanges(
   for (const part of parts) {
     if (part.includes('-')) {
       const [start, end] = part.split('-').map(r => Number(r.trim()));
-      // Check if any zip in the range exists in Zone_Zip
+
+      // Case: input is a range
       subConditions.push(`EXISTS (
-          SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-          WHERE z."zoneId" = main."zoneId"
-          AND z."zipCode" BETWEEN ? AND ?
-      )`);
-      subParams.push(start, end);
+        SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
+        WHERE z."zoneId" = main."zoneId"
+        AND (
+          (z."zipCode" BETWEEN ? AND ?) OR
+          (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+           AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+        )
+    )`);
+      subParams.push(start, end, end, start);
+      // note: overlap check may need careful ordering depending on your DB
+
     } else {
-      // Check if the exact zip exists in Zone_Zip
+      const zip = Number(part);
+
+      // Case: input is a single zip
       subConditions.push(`EXISTS (
-          SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-          WHERE z."zoneId" = main."zoneId"
-          AND z."zipCode" = ?
-      )`);
-      subParams.push(part);
+        SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
+        WHERE z."zoneId" = main."zoneId"
+        AND (
+          z."zipCode" = ? OR
+          (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
+           AND z."rangeStart" <= ? AND z."rangeEnd" >= ?)
+        )
+    )`);
+      subParams.push(zip, zip, zip);
     }
   }
+
 
   // Build final query
   const query = `

@@ -690,8 +690,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         width: '25%',
                                         display: 'flex',
                                         alignItems: 'flex-end',
-                                        // 1. Disable all clicks on the label and the container
-                                        pointerEvents: 'none',
+                                        pointerEvents: 'none', // Keeps the "Warehouse" text unclickable
                                         "& .MuiFormControlLabel-label.Mui-disabled": {
                                             color: 'black',
                                             opacity: 1,
@@ -704,15 +703,18 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     }}
                                     control={
                                         <StyledCheckbox
-                                            // 2. Re-enable clicks ONLY for the checkbox icon itself
-                                            sx={{ pointerEvents: 'auto' }}
+                                            sx={{
+                                                pointerEvents: 'auto',
+                                                padding: 0, // 1. Removes the invisible clickable padding
+                                                marginRight: '8px' // 2. Adds back space between box and label
+                                            }}
+                                            disableRipple // 3. Removes the circular highlight when clicked
                                             checked={!!value}
                                             disabled={readOnly}
                                             onChange={(e) => {
                                                 const isChecked = e.target.checked;
                                                 onChange(isChecked);
                                                 setWarehouseFlag(isChecked);
-                                                console.log("New warehouse state:", isChecked);
                                             }}
                                         />
                                     }
@@ -720,6 +722,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />
+
 
 
                         {warehouseFlag && <Controller

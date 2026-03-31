@@ -105,6 +105,12 @@ export default function SharedSearchField({ page }) {
                                             size="small"
                                             onClick={() => {
                                                 setSearchValue(''); // Clear the state
+                                                if (page === 'customers') dispatch(setCustomerSearchStr(''));
+                                                if (page === 'station') dispatch(setStationSearchStr(''));
+                                                if (page === 'zone') dispatch(setZoneSearchStr(''));
+                                                if (page === 'accessorial') dispatch(setAccessorialSearchStr(''));
+                                                if (page === 'carrier') dispatch(setCarrierSearchStr(''));
+                                                if (page === 'fuelSurcharge') dispatch(setFuelSurchargeSearchStr(''));
                                                 // Optionally trigger a search with empty string to reset results
                                                 if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '' })); }
                                                 if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '', customerId: selectedCustomerRowDetails.customerId })); }

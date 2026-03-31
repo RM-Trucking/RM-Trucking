@@ -97,28 +97,28 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
 
         return (
           <Box key={item.id} sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
               <Iconify icon="solar:box-bold" />
               <Typography variant="caption" sx={{ minWidth: 100, fontWeight: 'bold' }}>
                 {/* Logic: Label as "Pallet Details" if it's the only item in the first unit, else "Item X" */}
-                {huIndex === 0 && fields.length === 1 ? "Pallet Details" : `Item ${itemIndex + 1}`}
+                {fields.length === 1 ? "Pallet Details" : `Item ${itemIndex + 1}`}
               </Typography>
-              <Box sx={{ flex: '0 1 100px' }}>
+              <Box sx={{ flex: '0 1 120px' }}>
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.pieces`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Pieces *" variant="standard" fullWidth />
+                    <TextField {...field} label="Pieces *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} />
                   )}
                 />
               </Box>
 
-              <Box sx={{ flex: '1 1 120px' }}>
+              <Box sx={{ flex: '1 1 80px' }}>
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.piecesUom`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth>
+                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}>
                       {['Skid', 'Pallet', 'Box', 'Crate'].map((u) => (
                         <MenuItem key={u} value={u}>{u}</MenuItem>
                       ))}
@@ -132,7 +132,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.description`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Description *" variant="standard" fullWidth />
+                    <TextField {...field} label="Description *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} />
                   )}
                 />
               </Box>
@@ -165,7 +165,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
 
               {/* Red Delete Icon for items - disabled if only one item remains */}
               <IconButton onClick={() => remove(itemIndex)} disabled={fields.length === 1}>
-                <Iconify icon="tabler:circle-x-filled" sx={{ color: fields.length === 1 ? '#ccc' : '#ff0000' }} />
+                <Iconify icon="tabler:circle-x-filled" sx={{ color: fields.length === 1 ? '#ccc' : '#A22' }} />
               </IconButton>
             </Box>
 
@@ -410,6 +410,110 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         </Button>
       </DialogActions>
     </Dialog>
+  );
+};
+
+// commodity list table
+const CommoditiesList = ({ watchedHU }) => {
+  const calculateTotals = (huArray) => {
+    let totalHU = 0, totalPieces = 0, totalHM = 0, totalWeight = 0;
+    huArray?.forEach((hu) => {
+      totalHU += Number(hu.unitsCount || 0);
+      hu.items?.forEach((item) => {
+        totalPieces += Number(item.pieces || 0);
+        if (item.hazmatInfo) totalHM += 1;
+      });
+      totalWeight += Number(hu.weight || 0);
+    });
+    return { totalHU, totalPieces, totalHM, totalWeight };
+  };
+
+
+
+  const totals = calculateTotals(watchedHU);
+  const cellStyle = { border: '1px solid #ccc', padding: '6px', fontSize: '0.7rem' };
+  const headerBg = { backgroundColor: '#f5f5f5', fontWeight: 'bold' };
+
+
+
+  return (
+    <Box sx={{ mt: 4, overflowX: 'auto' }}>
+      <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 'bold' }}>Commodities List</Typography>
+      <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center' }}>
+        <tbody>
+          {watchedHU?.map((hu, huIdx) => (
+            <React.Fragment key={huIdx}>
+              {/* --- DYNAMIC HEADER PER HANDLING UNIT --- */}
+              <tr style={headerBg}>
+                <td style={cellStyle} colSpan={2}>Handling Unit {huIdx + 1}</td>
+                <td style={cellStyle} colSpan={2}>Piece</td>
+                <td style={cellStyle} rowSpan={2}>HM</td>
+                <td style={cellStyle} rowSpan={2}>Commodity Description</td>
+                <td style={cellStyle} rowSpan={2}>Weight lbs</td>
+                <td style={cellStyle} rowSpan={2}>Freight Class</td>
+                <td style={cellStyle} colSpan={3}>Dimensions</td>
+              </tr>
+              <tr style={headerBg}>
+                <td style={cellStyle}>Type</td><td style={cellStyle}>QTY</td>
+                <td style={cellStyle}>Type</td><td style={cellStyle}>QTY</td>
+                <td style={cellStyle}>L</td><th style={cellStyle}>W</th><th style={cellStyle}>H</th>
+              </tr>
+
+
+
+              {/* --- ITEMS DATA --- */}
+              {hu.items?.map((item, itmIdx) => (
+                <tr key={itmIdx}>
+                  {/* HU Type/QTY spans all items in this specific HU */}
+                  {itmIdx === 0 ? (
+                    <>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.uom}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.unitsCount}</td>
+                    </>
+                  ) : null}
+                  <td style={cellStyle}>{item.piecesUom}</td>
+                  <td style={cellStyle}>{item.pieces}</td>
+                  <td style={cellStyle}>{item.hazmatInfo ? 'X' : '-'}</td>
+                  <td style={{ ...cellStyle, textAlign: 'left', color: item.hazmatInfo ? '#a22' : 'inherit' }}>
+                    {item.hazmatInfo && item.hazmatData
+                      ? `${item.hazmatData.unNumber}, ${item.hazmatData.shippingName}, (${item.hazmatData.technicalName}), ${item.hazmatData.hazmatClass}, ${item.hazmatData.weight} lbs`
+                      : item.description}
+                  </td>
+                  {/* Dimensions/Weight/Class spans all items in this specific HU */}
+                  {itmIdx === 0 ? (
+                    <>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.weight}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.class}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.length}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.width}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.height}</td>
+                    </>
+                  ) : null}
+                </tr>
+              ))}
+              {/* Spacer row between units for visual clarity */}
+              <tr><td colSpan={11} style={{ border: 'none', height: '10px' }}></td></tr>
+            </React.Fragment>
+          ))}
+        </tbody>
+
+
+
+        {/* --- GRAND TOTAL FOOTER --- */}
+        <tfoot style={{ fontWeight: 'bold', backgroundColor: '#fff' }}>
+          <tr>
+            <td style={cellStyle}>Total H/U</td>
+            <td style={cellStyle}>{totals.totalHU}</td>
+            <td style={cellStyle}>Piece</td>
+            <td style={cellStyle}>{totals.totalPieces}</td>
+            <td style={cellStyle}>{totals.totalHM}</td>
+            <td style={{ ...cellStyle, textAlign: 'right' }}>Total Shipping Weight</td>
+            <td style={cellStyle}>{totals.totalWeight}</td>
+            <td style={cellStyle} colSpan={4}></td>
+          </tr>
+        </tfoot>
+      </table>
+    </Box>
   );
 };
 
@@ -1156,29 +1260,29 @@ const ShipmentForm = () => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                   <Box sx={{ flex: '1 1 120px' }}>
                     <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard">
+                      <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}>
                         {['Skid', 'Pallet', 'Box', 'Crate'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
                       </TextField>
                     )} />
                   </Box>
                   <Box sx={{ flex: '1 1 100px' }}>
                     <Controller name={`handlingUnits.${huIdx}.unitsCount`} control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Handling Units *" variant="standard" />
+                      <TextField {...field} fullWidth label="Handling Units *" variant="standard" InputLabelProps={{ shrink: true }} />
                     )} />
                   </Box>
                   <Box sx={{ flex: '1 1 80px' }}>
                     <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Unit *" variant="standard">
+                      <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
                         <MenuItem value="in">in</MenuItem>
                         <MenuItem value="cm">cm</MenuItem>
                       </TextField>
                     )} />
                   </Box>
                   {['Length', 'Width', 'Height'].map((dim) => (
-                    <Box key={dim} sx={{ flex: '1 1 110px', }}>
+                    <Box key={dim} sx={{ flex: '1 1 140px', }}>
                       <Box display={'flex'} alignItems={'flex-end'}>
                         <Controller name={`handlingUnits.${huIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
-                          <TextField {...field} fullWidth label={`Handling Units ${dim} *`} variant="standard" />
+                          <TextField {...field} fullWidth label={`Handling ${dim} *`} variant="standard" InputLabelProps={{ shrink: true }} />
                         )} />
                         <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
                           <TextField {...field} select sx={{ width: '80px' }} label="" variant="standard">
@@ -1192,10 +1296,10 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '1 1 90px' }}>
                     <Box display={'flex'} alignItems={'flex-end'}>
                       <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Weight *" variant="standard" />
+                        <TextField {...field} fullWidth label="Weight *" variant="standard" InputLabelProps={{ shrink: true }} />
                       )} />
                       <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
-                        <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard">
+                        <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
                           <MenuItem value="in">lbs</MenuItem>
                           <MenuItem value="cm">kgs</MenuItem>
                         </TextField>
@@ -1204,7 +1308,7 @@ const ShipmentForm = () => {
                   </Box>
                   <Box sx={{ flex: '1 1 80px' }}>
                     <Controller name={`handlingUnits.${huIdx}.class`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Class *" variant="standard">
+                      <TextField {...field} select fullWidth label="Class *" variant="standard" InputLabelProps={{ shrink: true }}>
                         {[40, 50, 60, 70, 85, 92.5, 100].map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                       </TextField>
                     )} />
@@ -1260,6 +1364,9 @@ const ShipmentForm = () => {
                 </Box>
               </Paper>
             )}
+
+            {/* Commodities List Table */}
+            <CommoditiesList watchedHU={watchedHU} />
           </Box>
         )}
 

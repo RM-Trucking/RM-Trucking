@@ -43,6 +43,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+    const rateTableData = useSelector((state) => state?.ratedata?.rateTableData);
     const [tableColumns, setTableColumns] = useState([]);
     // dialog for notes
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
@@ -288,7 +289,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.customerRateId}
+                    {params?.row?.transportRate?.customerRateId || params?.row?.customerRateId}
                 </Box>
             )
         },
@@ -300,7 +301,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.originZone?.zoneName}
+                    {params?.row?.transportRate?.originZone?.zoneName || params?.row?.originZone?.zoneName}
                 </Box>
             )
         },
@@ -315,8 +316,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
                         <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                     ))}
+                    {params?.row?.originZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
                     <Typography variant="normal">
-                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ")}
+                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ") || params?.row?.originZone?.zipCodes?.join(", ")}
                     </Typography>
                 </Stack>
             )
@@ -329,7 +333,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.destinationZone?.zoneName}
+                    {params?.row?.transportRate?.destinationZone?.zoneName || params?.row?.destinationZone?.zoneName}
                 </Box>
             )
         },
@@ -344,8 +348,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
                         <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                     ))}
+                    {params?.row?.destinationZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
                     <Typography variant="normal">
-                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ")}
+                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ") || params?.row?.destinationZone?.zipCodes?.join(", ")}
                     </Typography>
                 </Stack>
             )
@@ -369,6 +376,14 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                                         </Stack>
                                     ))
                                 }
+                                {
+                                    params?.row?.details?.map((detail) => (
+                                        <Stack key={detail.rateDetailId} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                            <Typography variant="normal" sx={{ width: "130px" }}>{detail?.rateField}</Typography>
+                                            <Typography variant="normal" sx={{ width: "auto" }}>{detail.chargeValue}</Typography>
+                                        </Stack>
+                                    ))
+                                }
                             </Stack>
                         }
                     </Box>
@@ -383,7 +398,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                const formatted = new Date(params?.row?.transportRate?.expiryDate).toLocaleDateString('en-US', {
+                const formatted = new Date(params?.row?.transportRate?.expiryDate || params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric'
@@ -676,6 +691,11 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         console.log(stationTabTableData);
     }, [stationTabTableData]);
+    
+    useEffect(() => {
+        console.log(rateTableData);
+        dispatch(setStationTabTableData(rateTableData));
+    }, [rateTableData]);
 
     useEffect(() => {
         if (pagination) {

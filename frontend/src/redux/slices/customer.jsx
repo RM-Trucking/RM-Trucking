@@ -299,8 +299,8 @@ const slice = createSlice({
       state.stationCurrentTab = action.payload;
       state.tableWhichBeingViewed = action.payload;
     },
-    setStationTabTableData(state) {
-      state.stationTabTableData = [];
+    setStationTabTableData(state, action) {
+      state.stationTabTableData = action.payload;
     },
     setOperationalMessage(state) {
       state.operationalMessage = '';

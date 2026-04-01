@@ -24,6 +24,12 @@ import {
     setDestinationZoneListByZipCode
 } from '../../redux/slices/rate';
 import {
+    getStationRateData
+} from '../../redux/slices/customer';
+import {
+    getTerminalRateData
+} from '../../redux/slices/carrier';
+import {
     getZoneById, setSelectedZoneRowDetails
 } from '../../redux/slices/zone';
 import RateFieldAndChargeTableWarehouse from '../rate/RateFieldAndChargeTableWarehouse';
@@ -42,7 +48,8 @@ RateSearchFields.propTypes = {
 
 export default function RateSearchFields({ padding, type, currentTab, handleCloseConfirm, selectedCurrentRateRow }) {
     const dispatch = useDispatch();
-    const location = useLocation();
+    const { pathname } = useLocation();
+    const selectedCustomerStationDetails = useSelector((state) => state?.customerdata?.selectedCustomerStationDetails);
     const isLoading = useSelector((state) => state?.ratedata?.isLoading);
     const originLoading = useSelector((state) => state?.ratedata?.originLoading);
     const destinationLoading = useSelector((state) => state?.ratedata?.destinationLoading);
@@ -55,8 +62,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
     const originZoneListByZipCode = useSelector((state) => state?.ratedata?.originZoneListByZipCode);
     const destinationZoneListByZipCode = useSelector((state) => state?.ratedata?.destinationZoneListByZipCode);
+    const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
     const pagination = useSelector((state) => state?.ratedata?.pagination);
     const rateSearchObj = useSelector((state) => state?.ratedata?.rateSearchObj);
+    const selectedCarrierTabRowDetails = useSelector((state) => state?.carrierdata?.selectedCarrierTabRowDetails);
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -267,20 +276,28 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
-            dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: '',
-                originZipOrRange: '',
-                destinationZoneId: '',
-                destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
-            }));
+            if (pathname.includes('/customer-maintenance/station-view')) {
+                dispatch(getStationRateData(selectedCustomerStationDetails?.stationId || localStorage.getItem('stationId'), currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
+            } else {
+                dispatch(getCustomerTransportationRateDashboardData({
+                    originZoneId: '',
+                    originZipOrRange: '',
+                    destinationZoneId: '',
+                    destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
-            dispatch(getCarrierTransportationRateDashboardData({
-                originZoneId: '',
-                originZipOrRange: '',
-                destinationZoneId: '',
-                destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
-            }));
+            if (pathname.includes('/carrier-maintenance/terminal-view')) {
+                dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'TRANSPORT'));
+            } else {
+                dispatch(getCarrierTransportationRateDashboardData({
+                    originZoneId: '',
+                    originZipOrRange: '',
+                    destinationZoneId: '',
+                    destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
         }
     };
     const onClickofCustomerList = () => {

@@ -51,6 +51,7 @@ export default function TerminalViewPageTable() {
     const isLoadingAccessorialMessage = useSelector((state) => state?.customerdata?.isLoading);
     const errorAccessorialMessage = useSelector((state) => state?.customerdata?.error);
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+    const rateTableData = useSelector((state) => state?.ratedata?.rateTableData);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -382,7 +383,7 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.carrierRateId}
+                    {params?.row?.transportRate?.carrierRateId || params?.row?.carrierRateId}
                 </Box>
             )
         },
@@ -394,7 +395,7 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.originZone?.zoneName}
+                    {params?.row?.transportRate?.originZone?.zoneName || params?.row?.originZone?.zoneName}
                 </Box>
             )
         },
@@ -409,8 +410,11 @@ export default function TerminalViewPageTable() {
                     {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
                         <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                     ))}
+                    {params?.row?.originZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
                     <Typography variant="normal">
-                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ")}
+                        {params?.row?.transportRate?.originZone?.zipCodes?.join(", ") || params?.row?.originZone?.zipCodes?.join(", ")}
                     </Typography>
                 </Stack>
             )
@@ -423,7 +427,7 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
-                    {params?.row?.transportRate?.destinationZone?.zoneName}
+                    {params?.row?.transportRate?.destinationZone?.zoneName || params?.row?.destinationZone?.zoneName}
                 </Box>
             )
         },
@@ -438,8 +442,11 @@ export default function TerminalViewPageTable() {
                     {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
                         <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                     ))}
+                    {params?.row?.destinationZone?.ranges?.map((range, index) => (
+                        <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                    ))}
                     <Typography variant="normal">
-                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ")}
+                        {params?.row?.transportRate?.destinationZone?.zipCodes?.join(", ") || params?.row?.destinationZone?.zipCodes?.join(", ")}
                     </Typography>
                 </Stack>
             )
@@ -462,6 +469,14 @@ export default function TerminalViewPageTable() {
                                     </Stack>
                                 ))
                             }
+                            {
+                                params?.row?.details?.map((detail) => (
+                                    <Stack key={detail.rateDetailId} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                        <Typography variant="normal" sx={{ width: "130px" }}>{detail?.rateField}</Typography>
+                                        <Typography variant="normal" sx={{ width: "auto" }}>{detail.chargeValue}</Typography>
+                                    </Stack>
+                                ))
+                            }
                         </Stack>
                     </Box>
                 );
@@ -475,7 +490,7 @@ export default function TerminalViewPageTable() {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                const formatted = new Date(params?.row?.transportRate?.expiryDate).toLocaleDateString('en-US', {
+                const formatted = new Date(params?.row?.transportRate?.expiryDate || params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
                     day: '2-digit',
                     year: 'numeric'
@@ -613,6 +628,10 @@ export default function TerminalViewPageTable() {
     useEffect(() => {
         console.log(stationTabTableData);
     }, [stationTabTableData]);
+    useEffect(() => {
+        console.log(rateTableData);
+        dispatch(setTerminalViewTabData(rateTableData));
+    }, [rateTableData]);
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);

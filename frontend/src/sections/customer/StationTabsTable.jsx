@@ -14,7 +14,7 @@ import {
     getStationPersonnelData, getStationRateData, getStationAccessorialData,
     deleteStationDepartment, deleteStationPersonnel, getDepartmentData,
     deleteStationAccessorial, getAccessorialData, setOperationalMessage, setStationTabTableData,
-    deleteStationRate,
+    deleteStationRate, setError,
 } from '../../redux/slices/customer';
 import {
     setSelectedCurrentRateRow,  
@@ -827,6 +827,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                 onClose={() => {
                     setSnackbarOpen(false);
                     dispatch(setOperationalMessage());
+                    dispatch(setError());
                 }}
                 message={snackbarMessage}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

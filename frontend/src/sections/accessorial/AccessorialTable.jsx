@@ -6,7 +6,7 @@ import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog,
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import AccessorialDetails from './AccessorialDetails';
-import { setSelectedAccessorialRowDetails, getAccessorialData, setOperationalMessage, deleteAccessorial } from '../../redux/slices/accessorial';
+import { setSelectedAccessorialRowDetails, getAccessorialData, setOperationalMessage, deleteAccessorial, setError } from '../../redux/slices/accessorial';
 
 
 export default function AccessorialTable() {
@@ -176,6 +176,7 @@ export default function AccessorialTable() {
             onClose={() => {
                 setSnackbarOpen(false);
                 dispatch(setOperationalMessage());
+                dispatch(setError());
             }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

@@ -14,7 +14,8 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage,
-    patchCarrierStatus, setSelectedRowCarrierType, setCarrierViewTabData
+    patchCarrierStatus, setSelectedRowCarrierType, setCarrierViewTabData,
+    setError, 
 } from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
@@ -369,6 +370,7 @@ export default function RateTable() {
                     onClose={() => {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
+                        dispatch(setError());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

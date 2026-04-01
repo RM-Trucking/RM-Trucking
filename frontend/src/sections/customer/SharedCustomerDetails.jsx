@@ -835,7 +835,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         Cancel
                     </Button>
                     <Box>
-                        <Button
+                        {!isLoading && <Button
                             variant="contained"
                             size="small"
                             type='submit'
@@ -856,6 +856,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                         >
                             {type === 'Add' ? 'Add' : 'Edit'}
                         </Button>
+                        }
                         {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>
                 </Stack>}

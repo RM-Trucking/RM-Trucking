@@ -7,7 +7,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData } from '../../redux/slices/zone';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData, setError } from '../../redux/slices/zone';
 import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
 
 
@@ -311,6 +311,7 @@ export default function ZoneTable() {
             onClose={() => {
                 setSnackbarOpen(false);
                 dispatch(setOperationalMessage());
+                dispatch(setError());
             }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

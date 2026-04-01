@@ -18,7 +18,7 @@ import {
     setSelectedTeminalTabRowDetails,
     getPersonnelTerminalData,
     getQualityTerminalData, deletePersonnel, getTerminalRateData,
-    deleteTerminalRate, setTerminalViewTabData,
+    deleteTerminalRate, setTerminalViewTabData, setError, 
 } from '../../redux/slices/carrier';
 import {
     setTableBeingViewed, getStationAccessorialData,
@@ -779,6 +779,7 @@ export default function TerminalViewPageTable() {
                     onClose={() => {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
+                        dispatch(setError());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

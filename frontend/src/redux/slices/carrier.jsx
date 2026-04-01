@@ -223,11 +223,15 @@ const slice = createSlice({
         setTerminalViewTabData(state,action){
             state.terminalViewTabData = action.payload;
         },
+        setError(state) {
+            state.error = '';
+        },
 
     },
 });
 
 export const {
+    setError,
     setOperationalMessage,
     setPaginationObject,
     setCarrierSearchStr,

@@ -219,16 +219,20 @@ const slice = createSlice({
             state.isSelectRateClicked = false;
             state.operationalMessage = 'Terminal rate created successfully';
         },
-        setOriginZoneListByZipCode(state,action){
+        setOriginZoneListByZipCode(state, action) {
             state.originZoneListByZipCode = action.payload;
         },
-        setDestinationZoneListByZipCode(state,action){
+        setDestinationZoneListByZipCode(state, action) {
             state.destinationZoneListByZipCode = action.payload;
+        },
+        setError(state) {
+            state.error = '';
         },
     },
 });
 
 export const {
+    setError,
     setWarehouseRatesFieldChargeData,
     setOperationalMessage,
     setRateSearchObj,

@@ -9,7 +9,10 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ConfirmDialog from '../../components/confirm-dialog';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { getCustomerStationData, setSelectedCustomerStationRowDetails, deleteStation, setOperationalMessage } from '../../redux/slices/customer';
+import {
+    getCustomerStationData, setSelectedCustomerStationRowDetails,
+    deleteStation, setOperationalMessage, setError
+} from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import SharedSearchField from "../shared/SharedSearchField";
@@ -414,6 +417,7 @@ export default function CustomerViewStationTable() {
             onClose={() => {
                 setSnackbarOpen(false);
                 dispatch(setOperationalMessage());
+                dispatch(setError());
             }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

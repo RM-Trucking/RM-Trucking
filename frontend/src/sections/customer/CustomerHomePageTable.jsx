@@ -9,7 +9,9 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { getCustomerData, setSelectedCustomerRowDetails, customerStatusChange, setOperationalMessage, setStationTabTableData, setCustomerSearchStr } from '../../redux/slices/customer';
+import { getCustomerData, setSelectedCustomerRowDetails, customerStatusChange, 
+    setOperationalMessage, setStationTabTableData, setCustomerSearchStr,
+    setError } from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
 import StyledTextField from '../shared/StyledTextField';
@@ -563,6 +565,7 @@ export default function CustomerHomePageTable() {
             onClose={() => {
                 setSnackbarOpen(false);
                 dispatch(setOperationalMessage());
+                dispatch(setError());
             }}
             message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

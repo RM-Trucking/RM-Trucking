@@ -17,7 +17,8 @@ import {
     setOperationalMessage, setIsLoading, setCurrentRateRoutedFrom,
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode, postStationRate, postTerminalRate,
+    getDestinationZoneByZipCode, postStationRate, postTerminalRate, setError,
+
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -752,6 +753,7 @@ export default function RateTable() {
                     onClose={() => {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
+                        dispatch(setError());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

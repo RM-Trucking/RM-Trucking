@@ -115,7 +115,7 @@ const slice = createSlice({
       state.pagination.pageSize = action.payload.pagination.pageSize;
       state.pagination.totalRecords = action.payload.pagination.total;
     },
-    getZoneCarrierRateSuccess(state,action){
+    getZoneCarrierRateSuccess(state, action) {
       state.isLoading = false;
       state.zoneSuccess = true;
       state.zoneRateData = action.payload.data;
@@ -126,10 +126,14 @@ const slice = createSlice({
     setZoneRateData(state, action) {
       state.zoneRateData = action.payload;
     },
+    setError(state) {
+      state.error = '';
+    },
   },
 });
 
 export const {
+  setError,
   setOperationalMessage,
   setPaginationObject,
   setZoneSearchStr,

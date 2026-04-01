@@ -93,7 +93,7 @@ export default function AccessorialDetails({ type, handleCloseConfirm, selectedA
                                     helperText={errors.accessorialName?.message}
                                     // Custom change handler to trigger alert
                                     onChange={(e) => {
-                                            field.onChange(e);
+                                        field.onChange(e);
                                     }}
                                 />
                             )}
@@ -126,7 +126,7 @@ export default function AccessorialDetails({ type, handleCloseConfirm, selectedA
                     </Button>
 
                     <Box>
-                        <Button
+                        {!isLoading && <Button
                             variant="contained"
                             size="small"
                             type='submit'
@@ -146,6 +146,7 @@ export default function AccessorialDetails({ type, handleCloseConfirm, selectedA
                         >
                             {type === 'Add' ? 'Add' : 'Edit'}
                         </Button>
+                        }
                         {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>
                 </Stack>}

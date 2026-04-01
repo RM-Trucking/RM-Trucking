@@ -69,7 +69,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                 "officePhoneNumber": data.officePhoneNumber,
                 "cellPhoneNumber": data.cellPhoneNumber,
             }
-            dispatch(putPersonnelData(obj,selectedTerminalTabRowDetails?.personnelId))
+            dispatch(putPersonnelData(obj, selectedTerminalTabRowDetails?.personnelId))
         }
     };
     useEffect(() => {
@@ -362,7 +362,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                     </Button>
 
                     <Box>
-                        <Button
+                        {!isLoading && <Button
                             variant="contained"
                             size="small"
                             type='submit'
@@ -382,6 +382,7 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                         >
                             {type === 'Add' ? 'Add' : 'Edit'}
                         </Button>
+                        }
                         {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                     </Box>
                 </Stack>}

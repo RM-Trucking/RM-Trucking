@@ -14,7 +14,7 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setSelectedCarrierTabRowDetails, setOperationalMessage, getTerminalCarrierData,
-    setCarrierViewTabData, deleteTerminal, setTerminalViewTabData
+    setCarrierViewTabData, deleteTerminal, setTerminalViewTabData, setError, 
 } from '../../redux/slices/carrier';
 import {
     setTableBeingViewed, getAccessorialData, getStationAccessorialData,
@@ -584,6 +584,7 @@ export default function CarrierViewTable() {
                     onClose={() => {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
+                        dispatch(setError());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

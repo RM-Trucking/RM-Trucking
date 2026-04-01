@@ -304,11 +304,15 @@ const slice = createSlice({
     },
     setOperationalMessage(state) {
       state.operationalMessage = '';
-    }
+    },
+    setError(state) {
+      state.error = '';
+    },
   },
 });
 
 export const {
+  setError,
   setCustomerSearchStr,
   setOperationalMessage,
   setStationSearchStr,

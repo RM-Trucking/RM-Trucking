@@ -128,12 +128,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: data.origin,
+                originZoneId: data.originZipCode ? data.origin : '',
                 originZipOrRange: data.originZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean),
-                destinationZoneId: data.destination,
+                destinationZoneId: data.destinationZipCode ? data.destination : '',
                 destinationZipOrRange: data.destinationZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
@@ -142,12 +142,12 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
             dispatch(getCarrierTransportationRateDashboardData({
-                originZoneId: data.origin,
+                originZoneId: data.originZipCode ? data.origin : '',
                 originZipOrRange: data.originZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
                     ?.filter(Boolean),
-                destinationZoneId: data.destination,
+                destinationZoneId: data.destinationZipCode ? data.destination : '',
                 destinationZipOrRange: data.destinationZipCode
                     ?.split(',')            // Split by comma
                     ?.map(s => s.trim())    // Remove any extra whitespace
@@ -891,7 +891,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         </Button>
 
                         <Box>
-                            <Button
+                            {!isLoading && <Button
                                 variant="contained"
                                 size="small"
                                 type='submit'
@@ -911,6 +911,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             >
                                 {(type === 'Add' || type === 'Copy') ? 'Add' : 'Edit'}
                             </Button>
+                            }
                             {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
                         </Box>
                     </Stack>}

@@ -43,7 +43,7 @@ export default function HomePage() {
                 }}
             >
                 {/* The components within this boundary are protected */}
-                <SharedHomePageHeader title="Dashboard" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
+                {/* <SharedHomePageHeader title="Dashboard" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} /> */}
                 
             </ErrorBoundary>
 

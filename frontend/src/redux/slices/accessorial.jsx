@@ -78,6 +78,12 @@ const slice = createSlice({
         setOperationalMessage(state) {
             state.operationalMessage = '';
         },
+        setOperationalMessage(state) {
+            state.operationalMessage = '';
+        },
+        setError(state) {
+            state.error = '';
+        },
 
     },
 });
@@ -87,6 +93,7 @@ export const {
     setPaginationObject,
     setAccessorialSearchStr,
     setSelectedAccessorialRowDetails,
+    setError,
 } = slice.actions;
 export default slice.reducer;
 

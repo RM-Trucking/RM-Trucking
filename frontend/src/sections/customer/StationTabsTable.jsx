@@ -17,9 +17,9 @@ import {
     deleteStationRate, setError,
 } from '../../redux/slices/customer';
 import {
-    setSelectedCurrentRateRow,  
+    setSelectedCurrentRateRow,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode, setRateTableData, 
+    getDestinationZoneByZipCode, setRateTableData,
 } from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
@@ -449,9 +449,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
 
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
-                                dispatch(deleteStationRate(params?.row?.stationRateId, () => {
-                                    dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
-                                }));
+                                dispatch(deleteStationRate(params?.row?.stationRateId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
                             </Box>
@@ -714,6 +712,9 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         if (operationalMessage) {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
+        }
+        if (operationalMessage === 'Station rate deleted successfully') {
+            dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
         }
     }, [operationalMessage])
     useEffect(() => {

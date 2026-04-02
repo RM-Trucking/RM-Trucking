@@ -425,7 +425,7 @@ export function putStationData(id, obj) {
     }
   };
 }
-export function deleteStation(id, callback) {
+export function deleteStation(id) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -433,7 +433,6 @@ export function deleteStation(id, callback) {
       dispatch(slice.actions.deleteStationdataSuccess({
         id, message: response.data
       }));
-      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }
@@ -562,7 +561,7 @@ export function getStationRateData(id, rateType) {
   };
 }
 
-export function deleteStationRate(id, callback) {
+export function deleteStationRate(id) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -570,7 +569,6 @@ export function deleteStationRate(id, callback) {
       dispatch(slice.actions.deleteStationRateSuccess({
         id, message: response.data
       }));
-      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

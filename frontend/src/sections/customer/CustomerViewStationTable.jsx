@@ -273,9 +273,7 @@ export default function CustomerViewStationTable() {
                             <Box onClick={() => {
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 // using callback to refresh table data after delete
-                                dispatch(deleteStation(params?.row?.stationId, () => {
-                                    dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
-                                }));
+                                dispatch(deleteStation(params?.row?.stationId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
                             </Box>
@@ -316,6 +314,9 @@ export default function CustomerViewStationTable() {
         if (operationalMessage) {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
+        }
+        if(operationalMessage === 'Station deleted successfully') {
+            dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
         }
     }, [operationalMessage])
 

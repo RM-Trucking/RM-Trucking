@@ -11,7 +11,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData,  } from '../../redux/slices/carrier';
 import { setOperationalMessage, setStationTabTableData  } from '../../redux/slices/customer';
 import { setOperationalMessage as setOpertionalMessageOfRate,  } from '../../redux/slices/rate';
-import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab } from '../../redux/slices/rate';
+import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab, setRateTableData } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
 import TerminalDetails from './TerminalDetails';
@@ -59,6 +59,7 @@ export default function TerminalViewTabs({ }) {
         console.log(error);
     };
     const OnTabChange = (newValue) => {
+        dispatch(setRateTableData([]));
         dispatch(setTerminalViewTabData([]));
          dispatch(setStationTabTableData([]));
         dispatch(setCurrentRateRoutedFrom('carrier'));

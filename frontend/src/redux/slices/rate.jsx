@@ -228,11 +228,15 @@ const slice = createSlice({
         setError(state) {
             state.error = '';
         },
+        setRateTableData(state, action) {
+            state.rateTableData = action.payload;
+        },
     },
 });
 
 export const {
     setError,
+    setRateTableData,
     setWarehouseRatesFieldChargeData,
     setOperationalMessage,
     setRateSearchObj,

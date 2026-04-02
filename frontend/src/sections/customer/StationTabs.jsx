@@ -18,7 +18,8 @@ import RateSearchFields from './RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import { setSelectedStationTabRowDetails, setStationTabTableData } from '../../redux/slices/customer';
 import AddRate from '../rate/AddRate';
-import { setCurrentRateTab, setCurrentRateRoutedFrom, setIsSelectRateClicked, setOperationalMessage  } from '../../redux/slices/rate';
+import { setCurrentRateTab, setCurrentRateRoutedFrom, 
+    setIsSelectRateClicked, setOperationalMessage, setRateTableData   } from '../../redux/slices/rate';
 import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------------
 
@@ -66,6 +67,7 @@ export default function StationTabs({ }) {
         console.log('new tab value', newValue);
         dispatch(setStationCurrentTab(newValue));
         dispatch(setStationTabTableData([]));
+        dispatch(setRateTableData([]));
         if (newValue === 'rate') {
             dispatch(setCurrentRateRoutedFrom('customer'));
             dispatch(setCurrentRateTab('transportation'));

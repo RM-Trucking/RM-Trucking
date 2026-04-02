@@ -112,8 +112,7 @@ const slice = createSlice({
     deleteStationdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message || 'Station deleted successfully';
-      console.log("station delete payload", action.payload);
+      state.operationalMessage = 'Station deleted successfully';
       const index = state.stationRows.findIndex((row) => row.stationId === action.payload.id);
       if (index === 0 || index > 0) {
         state.stationRows.splice(index, 1);

@@ -19,7 +19,7 @@ import {
 import {
     setSelectedCurrentRateRow,  
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode,
+    getDestinationZoneByZipCode, setRateTableData, 
 } from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from './NotesTable';
@@ -662,6 +662,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
 
     useEffect(() => {
         dispatch(setStationTabTableData([]));
+        dispatch(setRateTableData([]));
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
             dispatch(clearNotesState());

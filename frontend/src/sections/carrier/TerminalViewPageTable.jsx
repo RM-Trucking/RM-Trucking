@@ -29,7 +29,7 @@ import {
 import {
     setSelectedCurrentRateRow,
     setCurrentRateRoutedFrom, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode,
+    getDestinationZoneByZipCode, setRateTableData, 
 } from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -553,6 +553,7 @@ export default function TerminalViewPageTable() {
 
 
     useEffect(() => {
+        dispatch(setRateTableData([]));
         dispatch(setTerminalViewTabData([]));
         dispatch(setStationTabTableData([]));
         dispatch(setSelectedTeminalTabRowDetails({}));

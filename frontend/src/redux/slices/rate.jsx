@@ -305,6 +305,7 @@ export function deleteWarehouseRate(id) {
 }
 
 // customer transport rate data
+
 export function getCustomerTransportationRateDashboardData({
     originZoneId,
     originZipOrRange,

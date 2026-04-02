@@ -6,6 +6,24 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
   setCurrentRateRoutedFrom
 } from '../../../redux/slices/rate';
+import {
+  setAccessorialData,
+} from '../../../redux/slices/accessorial';
+import {
+  setCarrierData, setCarrierViewTabData, setTerminalViewTabData
+} from '../../../redux/slices/carrier';
+import {
+  setStationTabTableData,
+  setCustomerRows,
+  setStationRows,
+} from '../../../redux/slices/customer';
+import {
+  setZoneRateData
+} from '../../../redux/slices/zone';
+import {
+  setRateTableData
+} from '../../../redux/slices/rate';
+
 import { useDispatch } from '../../../redux/store';
 
 // 1. Recursive Item Component
@@ -28,6 +46,18 @@ function NavItem({ item, depth = 0 }) {
   // FIX: This function now handles BOTH opening the list AND routing
   const handleClick = (e) => {
     // 1. If it has a path, go there immediately
+    // emptying all the array data in all slices
+    dispatch(setAccessorialData([]));
+    dispatch(setCarrierData([]));
+    dispatch(setCarrierViewTabData([]));
+    dispatch(setTerminalViewTabData([]));
+    dispatch(setStationTabTableData([]));
+    dispatch(setCustomerRows([]));
+    dispatch(setStationRows([]));
+    dispatch(setZoneRateData([]));
+    dispatch(setRateTableData([]));
+
+
     if (item.path) {
       if (item.path.includes('/customer-maintenance/rate-maintenance')) {
         dispatch(setCurrentRateRoutedFrom('customer'));

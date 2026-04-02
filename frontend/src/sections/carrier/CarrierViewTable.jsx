@@ -19,7 +19,7 @@ import {
 import {
     setTableBeingViewed, getAccessorialData, getStationAccessorialData,
     deleteStationAccessorial, setOperationalMessage as setOpertionalMessageOfCustomer,
-    setStationTabTableData, 
+    setStationTabTableData, setError as setErrorOfCustomer,
 } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -584,7 +584,9 @@ export default function CarrierViewTable() {
                     onClose={() => {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
+                        dispatch(setOpertionalMessageOfCustomer(''));
                         dispatch(setError());
+                        dispatch(setErrorOfCustomer());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

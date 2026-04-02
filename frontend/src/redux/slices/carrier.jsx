@@ -195,7 +195,11 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = 'Terminal rate deleted successfully';
         },
-
+        getTerminalRateSearchDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.terminalViewTabData = action.payload.data;
+        },
         // quality tab success slices
         getQualityTerminalDataSuccess(state, action) {
             state.isLoading = false;
@@ -226,12 +230,16 @@ const slice = createSlice({
         setError(state) {
             state.error = '';
         },
+        setCarrierData(state, action) {
+            state.carrierData = action.payload;
+        },
 
     },
 });
 
 export const {
     setError,
+    setCarrierData,
     setOperationalMessage,
     setPaginationObject,
     setCarrierSearchStr,
@@ -429,6 +437,45 @@ export function deleteTerminalRate(id) {
             }));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function getTerminalRateSearchData({
+    terminalId,
+    rateType,
+    originZoneId,
+    originZipOrRange,
+    destinationZoneId,
+    destinationZipOrRange,
+    pageNo,
+    pageSize
+}) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const params = new URLSearchParams();
+
+            // Helper to only append if value exists and isn't just whitespace
+            const appendIfValid = (key, value) => {
+                if (value !== undefined && value !== null && value.toString().trim() !== '') {
+                    params.append(key, value.toString().trim());
+                }
+            };
+
+            appendIfValid("originZoneId", originZoneId);
+            appendIfValid("originZipOrRange", originZipOrRange);
+            appendIfValid("destinationZoneId", destinationZoneId);
+            appendIfValid("destinationZipOrRange", destinationZipOrRange);
+
+            // Pagination usually defaults to 1 and 10 if missing
+            params.append("page", pageNo || 1);
+            params.append("pageSize", pageSize || 10);
+
+            const url = `maintenance/carrier-rate/terminal-rate-map?terminalId=${terminalId}&rateType=${rateType}&${params.toString()}`;
+            const response = await axios.get(url);
+            dispatch(slice.actions.getTerminalRateSearchDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
         }
     };
 }

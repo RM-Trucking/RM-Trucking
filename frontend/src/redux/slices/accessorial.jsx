@@ -84,12 +84,16 @@ const slice = createSlice({
         setError(state) {
             state.error = '';
         },
+        setAccessorialData(state, action) {
+            state.accessorialData = action.payload;
+        },
 
     },
 });
 
 export const {
     setOperationalMessage,
+    setAccessorialData,
     setPaginationObject,
     setAccessorialSearchStr,
     setSelectedAccessorialRowDetails,

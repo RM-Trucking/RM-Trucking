@@ -21,13 +21,14 @@ import {
     getCarrierTransportationRateDashboardData, postCustomerTransportationRate,
     putCustomerTransportationRate, putCarrierTransportationRate,
     postCarrierTransportationRate, setOriginZoneListByZipCode,
-    setDestinationZoneListByZipCode
+    setDestinationZoneListByZipCode,
+
 } from '../../redux/slices/rate';
 import {
-    getStationRateData
+    getStationRateData, getStationRateSearchData, 
 } from '../../redux/slices/customer';
 import {
-    getTerminalRateData
+    getTerminalRateData, getTerminalRateSearchData,
 } from '../../redux/slices/carrier';
 import {
     getZoneById, setSelectedZoneRowDetails
@@ -127,32 +128,67 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
-            dispatch(getCustomerTransportationRateDashboardData({
-                originZoneId: data.originZipCode ? data.origin : '',
-                originZipOrRange: data.originZipCode
-                    ?.split(',')            // Split by comma
-                    ?.map(s => s.trim())    // Remove any extra whitespace
-                    ?.filter(Boolean),
-                destinationZoneId: data.destinationZipCode ? data.destination : '',
-                destinationZipOrRange: data.destinationZipCode
-                    ?.split(',')            // Split by comma
-                    ?.map(s => s.trim())    // Remove any extra whitespace
-                    ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
-            }));
+            if (pathname.includes('/customer-maintenance/station-view')) {
+                dispatch(getStationRateSearchData({
+                    stationId: selectedCustomerStationDetails?.stationId || localStorage.getItem('stationId'),
+                    rateType: currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE',
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            } else {
+                // on rate maintenance screen
+                dispatch(getCustomerTransportationRateDashboardData({
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
-            dispatch(getCarrierTransportationRateDashboardData({
-                originZoneId: data.originZipCode ? data.origin : '',
-                originZipOrRange: data.originZipCode
-                    ?.split(',')            // Split by comma
-                    ?.map(s => s.trim())    // Remove any extra whitespace
-                    ?.filter(Boolean),
-                destinationZoneId: data.destinationZipCode ? data.destination : '',
-                destinationZipOrRange: data.destinationZipCode
-                    ?.split(',')            // Split by comma
-                    ?.map(s => s.trim())    // Remove any extra whitespace
-                    ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
-            }));
+            if (pathname.includes('/carrier-maintenance/terminal-view')) {
+                dispatch(getTerminalRateSearchData({
+                    terminalId: selectedCarrierTabRowDetails?.terminalId || localStorage.getItem('terminalId'),
+                    rateType: 'TRANSPORT',
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            } else {
+                dispatch(getCarrierTransportationRateDashboardData({
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
         }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
             const obj = {

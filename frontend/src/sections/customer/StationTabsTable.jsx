@@ -661,8 +661,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     ];
 
     useEffect(() => {
-        dispatch(setStationTabTableData([]));
-        dispatch(setRateTableData([]));
         // Update table columns and data based on currentTab and call the respedctive API to get data
         if (currentTab === 'department') {
             dispatch(clearNotesState());
@@ -692,11 +690,10 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     useEffect(() => {
         console.log(stationTabTableData);
     }, [stationTabTableData]);
-    
     useEffect(() => {
-        console.log(rateTableData);
-        dispatch(setStationTabTableData(rateTableData));
-    }, [rateTableData]);
+        dispatch(setRateTableData([]));
+        dispatch(setStationTabTableData([]));
+    }, []);
 
     useEffect(() => {
         if (pagination) {

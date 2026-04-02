@@ -242,12 +242,17 @@ const slice = createSlice({
         state.stationTabTableData.splice(index, 1);
       }
     },
-    patchStationAccessorialDataSuccess(state,action){
+    patchStationAccessorialDataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
       state.operationalMessage = action.payload.message.message || 'Accessorial Service updated successfully';
     },
-
+    // search values
+    getStationRateSearchDataSuccess(state, action) {
+      state.isLoading = false;
+      state.customerSuccess = true;
+      state.stationTabTableData = action.payload.data;
+    },
     // set values
     setStationRateData(state, action) {
       console.log('Setting station rate data in customer slice:', action.payload);
@@ -307,11 +312,20 @@ const slice = createSlice({
     setError(state) {
       state.error = '';
     },
+    setCustomerRows(state, action) {
+      state.customerRows = action.payload;
+    },
+    setStationRows(state, action) {
+      state.stationRows = action.payload;
+    },
+
   },
 });
 
 export const {
   setError,
+  setCustomerRows,
+  setStationRows,
   setCustomerSearchStr,
   setOperationalMessage,
   setStationSearchStr,
@@ -547,6 +561,7 @@ export function getStationRateData(id, rateType) {
     }
   };
 }
+
 export function deleteStationRate(id, callback) {
   return async () => {
     dispatch(slice.actions.startLoading());
@@ -560,6 +575,46 @@ export function deleteStationRate(id, callback) {
       dispatch(slice.actions.hasError(error))
     }
   };
+}
+
+export function getStationRateSearchData({
+    stationId,
+    rateType,
+    originZoneId,
+    originZipOrRange,
+    destinationZoneId,
+    destinationZipOrRange,
+    pageNo,
+    pageSize
+}) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const params = new URLSearchParams();
+
+            // Helper to only append if value exists and isn't just whitespace
+            const appendIfValid = (key, value) => {
+                if (value !== undefined && value !== null && value.toString().trim() !== '') {
+                    params.append(key, value.toString().trim());
+                }
+            };
+
+            appendIfValid("originZoneId", originZoneId);
+            appendIfValid("originZipOrRange", originZipOrRange);
+            appendIfValid("destinationZoneId", destinationZoneId);
+            appendIfValid("destinationZipOrRange", destinationZipOrRange);
+
+            // Pagination usually defaults to 1 and 10 if missing
+            params.append("page", pageNo || 1);
+            params.append("pageSize", pageSize || 10);
+
+            const url = `maintenance/customer-rate/station-rate-map?stationId=${stationId}&rateType=${rateType}&${params.toString()}`;
+            const response = await axios.get(url);
+            dispatch(slice.actions.getStationRateSearchDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
 }
 
 // CRUD operations of accessorial

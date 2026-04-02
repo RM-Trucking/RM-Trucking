@@ -24,7 +24,7 @@ import {
     setTableBeingViewed, getStationAccessorialData,
     deleteStationAccessorial, patchStationAccessorialData,
     getAccessorialData, setOperationalMessage as setOpertionalMessageOfCustomer,
-    setStationTabTableData, 
+    setStationTabTableData, setError as setErrorOfCustomer, 
 } from '../../redux/slices/customer';
 import {
     setSelectedCurrentRateRow,
@@ -629,10 +629,6 @@ export default function TerminalViewPageTable() {
     useEffect(() => {
         console.log(stationTabTableData);
     }, [stationTabTableData]);
-    useEffect(() => {
-        console.log(rateTableData);
-        dispatch(setTerminalViewTabData(rateTableData));
-    }, [rateTableData]);
 
     const handleCloseConfirm = () => {
         setOpenConfirmDialog(false);
@@ -781,6 +777,8 @@ export default function TerminalViewPageTable() {
                         setSnackbarOpen(false);
                         dispatch(setOperationalMessage());
                         dispatch(setError());
+                        dispatch(setOpertionalMessageOfCustomer(''));
+                        dispatch(setErrorOfCustomer());
                     }}
                     message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}

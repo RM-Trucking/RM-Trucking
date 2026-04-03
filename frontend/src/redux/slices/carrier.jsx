@@ -79,7 +79,7 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Carrier created successfully';
             // state.carrierData.unshift(action.payload.data.carrier);
-            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.carrierData.length;
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.pagination.totalRecords + 1;
         },
         putCarrierdataSuccess(state, action) {
             state.isLoading = false;
@@ -118,7 +118,7 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Terminal created successfully';
             state.carrierViewTabData.unshift(action.payload.data);
-            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.carrierViewTabData.length;
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.pagination.totalRecords + 1;
         },
         putTerminalDataSuccess(state, action) {
             state.isLoading = false;
@@ -166,7 +166,7 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = action.payload.message || 'Personnel created successfully';
             state.terminalViewTabData.unshift(action.payload.data);
-            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.terminalViewTabData.length;
+            state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.pagination.totalRecords + 1;
         },
         putPersonnelDataSuccess(state, action) {
             state.isLoading = false;

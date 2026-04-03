@@ -98,6 +98,7 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message || 'Station created successfully';
       console.log("station post payload", action.payload.data);
       state.stationRows.unshift(action.payload.data);
+      state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.pagination.totalRecords + 1;
     },
     putStationdataSuccess(state, action) {
       state.isLoading = false;
@@ -145,7 +146,7 @@ const slice = createSlice({
     deleteStationDepartmentdataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message || 'Department deleted successfully';
+      state.operationalMessage = 'Department deleted successfully';
       console.log("department delete payload", action.payload);
       const index = state.stationTabTableData.findIndex((row) => row.departmentId === action.payload.id);
       if (index === 0 || index > 0) {
@@ -171,7 +172,7 @@ const slice = createSlice({
       state.operationalMessage = action.payload.message || 'Personnel created successfully';
       console.log("personnel post payload", action.payload.data);
       state.stationTabTableData.unshift(action.payload.data);
-      state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.stationTabTableData.length;
+      state.pagination.totalRecords = action?.payload?.pagination?.total + 1 || state.pagination.totalRecords + 1;
     },
     putStationdPersonneldataSuccess(state, action) {
       state.isLoading = false;
@@ -186,7 +187,7 @@ const slice = createSlice({
     deleteStationPersonneldataSuccess(state, action) {
       state.isLoading = false;
       state.customerSuccess = true;
-      state.operationalMessage = action.payload.message.message || 'Personnel deleted successfully';
+      state.operationalMessage = 'Personnel deleted successfully';
       console.log("personnel delete payload", action.payload);
       const index = state.stationTabTableData.findIndex((row) => row.personnelId === action.payload.id);
       if (index === 0 || index > 0) {
@@ -473,7 +474,7 @@ export function putStationDepartmentData(id, obj) {
     }
   };
 }
-export function deleteStationDepartment(id, callback) {
+export function deleteStationDepartment(id) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -481,7 +482,6 @@ export function deleteStationDepartment(id, callback) {
       dispatch(slice.actions.deleteStationDepartmentdataSuccess({
         id, message: response.data
       }));
-      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

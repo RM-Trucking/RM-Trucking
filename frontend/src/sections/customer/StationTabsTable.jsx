@@ -156,9 +156,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
 
-                                dispatch(deleteStationDepartment(params?.row?.departmentId, () => {
-                                    dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
-                                }));
+                                dispatch(deleteStationDepartment(params?.row?.departmentId));
 
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
@@ -267,9 +265,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
-                                dispatch(deleteStationPersonnel(params?.row?.personnelId, () => {
-                                    dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
-                                }));
+                                dispatch(deleteStationPersonnel(params?.row?.personnelId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} />
                             </Box>
@@ -643,9 +639,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         <Tooltip title={'Delete'} arrow>
                             <Box onClick={() => {
                                 // using callback to refresh table data after delete
-                                dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId, () => {
-                                    dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
-                                }));
+                                dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
                                 />
@@ -716,6 +710,15 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         if (operationalMessage === 'Station rate deleted successfully') {
             dispatch(getStationRateData(selectedCustomerStationDetails?.stationId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
         }
+        if (operationalMessage === 'Department deleted successfully') {
+            dispatch(getStationDepartmentData(parseInt(localStorage.getItem('stationId'), 10)));
+        }
+        if (operationalMessage === 'Personnel deleted successfully') {
+             dispatch(getStationPersonnelData({ pageNo: pagination.page, pageSize: pagination.pageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
+        }
+        if (operationalMessage === 'Accessorial deleted successfully') {
+             dispatch(getStationAccessorialData(selectedCustomerStationDetails?.entityId));
+        }
     }, [operationalMessage])
     useEffect(() => {
         if (currentTab === 'rate' && currentRateTab) {
@@ -770,7 +773,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         dispatch(getStationPersonnelData({ pageNo: 1, pageSize: newPageSize, stationId: parseInt(localStorage.getItem('stationId'), 10) }));
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
-                    rowCount={parseInt(pagination?.totalRecords || tableColumns.length, 10)}
+                    rowCount={parseInt(pagination?.totalRecords, 10)}
                     pagination
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,

@@ -10,7 +10,7 @@ import {
     CircularProgress,
     Divider,
     Typography,
-    Dialog, DialogContent,
+    Dialog, DialogContent, Snackbar,
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -25,7 +25,7 @@ import {
 
 } from '../../redux/slices/rate';
 import {
-    getStationRateData, getStationRateSearchData, 
+    getStationRateData, getStationRateSearchData,
 } from '../../redux/slices/customer';
 import {
     getTerminalRateData, getTerminalRateSearchData,
@@ -70,6 +70,11 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const [openCustomersList, setOpenCustomersList] = useState(false);
     const [openZoneView, setOpenZoneView] = useState(false);
     const [actionType, setActionType] = useState('');
+
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+
     const {
         control,
         handleSubmit,
@@ -191,6 +196,18 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             }
         }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
+            // 1. Validation: Check if at least one charge is filled and not just whitespace
+            const hasAtLeastOneCharge = rateFieldChargeDataWarehouse.some(item =>
+                item?.charge?.toString().trim() !== ""
+            );
+
+            if (!hasAtLeastOneCharge) {
+                // Replace with your preferred notification (toast, alert, etc.)
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please enter at least one rate value.");
+                return; // Stop the dispatch
+            }
+
             const obj = {
                 "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
                 "ratePerPound": parseFloat(rateFieldChargeDataWarehouse[1]?.charge),
@@ -202,6 +219,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(postWarehouseRate(obj));
         }
         if (type === 'Edit' && currentTab === 'warehouse') {
+            // 1. Validation: Check if at least one charge is filled and not just whitespace
+            const hasAtLeastOneCharge = rateFieldChargeDataWarehouse.some(item =>
+                item?.charge?.toString().trim() !== ""
+            );
+
+            if (!hasAtLeastOneCharge) {
+                // Replace with your preferred notification (toast, alert, etc.)
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please enter at least one rate value.");
+                return; // Stop the dispatch
+            }
             const obj = {
                 "minRate": parseFloat(rateFieldChargeDataWarehouse[0]?.charge),
                 "ratePerPound": parseFloat(rateFieldChargeDataWarehouse[1]?.charge),
@@ -212,62 +240,89 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(putWarehouseRate(selectedCurrentRateRow?.rateId, obj));
         }
         if (type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
+
+
+            // 3. Construct the object and dispatch
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
-                "details": rateFieldChargeData
-                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
-                    .map(item => {
-                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
-
-                        return {
-                            rateField: item.rateField.toString(),
-                            chargeValue: Number(item.charge),
-                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
-                        };
-                    }),
+                "details": details,
                 "note": {
                     "messageText": data.notes
                 }
-            }
+            };
             dispatch(postCustomerTransportationRate(obj));
         }
         if (type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
+
+
+            // 3. Construct the object and dispatch
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
-                "details": rateFieldChargeData
-                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
-                    .map(item => {
-                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
-
-                        return {
-                            rateField: item.rateField.toString(),
-                            chargeValue: Number(item.charge),
-                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
-                        };
-                    }),
+                "details": details,
                 "note": {
                     "messageText": data.notes
                 }
-            }
+            };
             dispatch(postCarrierTransportationRate(obj));
         }
         if (type === 'Edit' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
-                "details": rateFieldChargeData
-                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
-                    .map(item => {
-                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
-
-                        return {
-                            rateField: item.rateField.toString(),
-                            chargeValue: Number(item.charge),
-                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
-                        };
-                    }),
+                "details": details,
                 "note": {
                     "messageText": data.notes
                 },
@@ -276,20 +331,27 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(putCustomerTransportationRate(selectedCurrentRateRow?.rateId, obj));
         }
         if (type === 'Edit' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
-                "details": rateFieldChargeData
-                    .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
-                    .map(item => {
-                        const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
-
-                        return {
-                            rateField: item.rateField.toString(),
-                            chargeValue: Number(item.charge),
-                            perUnitFlag: isMinOrMax ? "N" : "Y" // 'N' for Min/Max, otherwise 'Y'
-                        };
-                    }),
+                "details": details,
                 "note": {
                     "messageText": data.notes
                 },
@@ -989,6 +1051,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     <ZoneDetails type={actionType} handleCloseConfirm={handleCloseOfZoneView} selectedZoneRowDetails={selectedZoneRowDetails} />
                 </DialogContent>
             </Dialog>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000} // Adjust the duration as needed
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    setSnackbarMessage("");
+                }}
+                message={snackbarMessage}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            />
         </>
     );
 };

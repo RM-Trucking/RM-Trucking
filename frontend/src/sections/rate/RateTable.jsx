@@ -18,7 +18,7 @@ import {
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
     getDestinationZoneByZipCode, postStationRate, postTerminalRate, setError,
-
+    setWarehouseRatesFieldChargeData, setRateFieldChargeData, 
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -263,6 +263,7 @@ export default function RateTable() {
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow>
                             <Box onClick={() => {
+                                dispatch(setRateFieldChargeData([]));
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
@@ -402,6 +403,7 @@ export default function RateTable() {
                         <Tooltip title={'Edit'} arrow>
                             <Box
                                 onClick={() => {
+                                    dispatch(setWarehouseRatesFieldChargeData([]));
                                     setActionType("Edit");
                                     dispatch(setSelectedCurrentRateRow(params?.row));
                                     setOpenConfirmDialog(true);

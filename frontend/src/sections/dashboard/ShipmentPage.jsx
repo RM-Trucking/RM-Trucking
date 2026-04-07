@@ -5,7 +5,7 @@ import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled,
+  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack
 
 } from '@mui/material';
 
@@ -995,6 +995,9 @@ const ShipmentForm = () => {
 
   );
 
+  const labelStyle = { fontSize: '0.75rem', color: '#555' };
+  const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
+
 
 
   return (
@@ -1029,7 +1032,7 @@ const ShipmentForm = () => {
                   sx={{
                     '& .MuiStepLabel-label': {
                       mt: 1,
-                      fontSize: '0.75rem',
+                      fontSize: '0.70rem',
                       fontWeight: activeStep === index ? 'bold' : 'normal',
                       color: '#000',
                     },
@@ -1063,6 +1066,80 @@ const ShipmentForm = () => {
           </Box>
 
         </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            p: 1.5,
+            borderRadius: '4px',
+            position: 'relative'
+          }}
+        >
+          {/* LEFT SECTION */}
+          <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p:1, borderRadius: '8px' }}>
+            <Stack spacing={0.5}>
+              <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
+                <Typography sx={valueStyle}>CPRO9289280207</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
+                <Typography sx={valueStyle}>Recovered Short</Typography>
+                <Button
+                  variant="contained"
+                  size="small"
+                  sx={{
+                    ml: 2,
+                    bgcolor: '#a22',
+                    height: 20,
+                    fontSize: '0.65rem',
+                    textTransform: 'none'
+                  }}
+                >
+                  Update
+                </Button>
+              </Box>
+              <Box sx={{ display: 'flex' }}>
+                <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
+                <Typography sx={valueStyle}>Air Import</Typography>
+              </Box>
+            </Stack>
+          </Box>
+
+          {/* RIGHT SECTION */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+            {/* Service Details Box */}
+            <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
+              <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
+                <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
+                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
+              </Box>
+              <Box sx={{ display: 'flex' }}>
+                <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
+                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
+              </Box>
+            </Box>
+
+            {/* Action Buttons Row */}
+            <Stack direction="row" spacing={1} alignItems="center">
+              {/* <Button
+                variant="contained"
+                size="small"
+                // startIcon={<Iconify icon="solar:document-bold" />}
+                sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+              >
+                DO Details
+              </Button> */}
+              <IconButton size="small" sx={{ color: '#a22' }}>
+                <Iconify icon="solar:file-text-bold" />
+              </IconButton>
+              <IconButton size="small" sx={{ color: '#a22' }}>
+                <Iconify icon="streamline-ultimate:notes-book-bold" />
+              </IconButton>
+            </Stack>
+          </Box>
+        </Box>
 
 
 
@@ -1070,7 +1147,7 @@ const ShipmentForm = () => {
 
         {activeStep === 0 && (
 
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+          <Paper variant="outlined" sx={{ p: 3, mt: 2, borderRadius: 2 }}>
 
             <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid #eee', pb: 1, mb: 3 }}>Shipment Details</Typography>
 

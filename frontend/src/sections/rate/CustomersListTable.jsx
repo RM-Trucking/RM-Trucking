@@ -71,7 +71,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
         <>
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer List</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom === 'customer' ? "Customer" : "Carrier"} List</Typography>
                     <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />

@@ -839,7 +839,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="Warehouse *"
+                                        label="Search"
                                         error={(type !== 'Search') ? !!error : shouldShowError}
                                         helperText={(type !== 'Search') ? error?.message : (shouldShowError ? error?.message : '')}
                                     />)

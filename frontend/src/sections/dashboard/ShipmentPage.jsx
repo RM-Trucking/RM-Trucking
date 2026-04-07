@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack
+  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider,
+
 
 } from '@mui/material';
 
@@ -15,6 +16,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
+import NotesTable from '../customer/NotesTable';
 
 
 
@@ -578,6 +580,9 @@ const ShipmentForm = () => {
   const [errorVisible, setErrorVisible] = useState(false);
   // This state controls the opening, closing, and index of the Hazmat modal
   const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
+  // for notes dialog
+  const notesRef = useRef({});
+  const [openNotesDialog, setOpenNotesDialog] = useState(false);
 
 
 
@@ -997,6 +1002,10 @@ const ShipmentForm = () => {
 
   const labelStyle = { fontSize: '0.75rem', color: '#555' };
   const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
+  const handleNotesCloseConfirm = () => {
+    setOpenNotesDialog(false);
+    notesRef.current = {};
+  };
 
 
 
@@ -1077,7 +1086,7 @@ const ShipmentForm = () => {
           }}
         >
           {/* LEFT SECTION */}
-          <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p:1, borderRadius: '8px' }}>
+          <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p: 1, borderRadius: '8px' }}>
             <Stack spacing={0.5}>
               <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                 <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
@@ -1123,18 +1132,21 @@ const ShipmentForm = () => {
 
             {/* Action Buttons Row */}
             <Stack direction="row" spacing={1} alignItems="center">
-              {/* <Button
+              <Button
                 variant="contained"
                 size="small"
                 // startIcon={<Iconify icon="solar:document-bold" />}
                 sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
               >
                 DO Details
-              </Button> */}
+              </Button>
               <IconButton size="small" sx={{ color: '#a22' }}>
                 <Iconify icon="solar:file-text-bold" />
               </IconButton>
-              <IconButton size="small" sx={{ color: '#a22' }}>
+              <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
+                setOpenNotesDialog(true);
+                notesRef.current = {};
+              }}>
                 <Iconify icon="streamline-ultimate:notes-book-bold" />
               </IconButton>
             </Stack>
@@ -1526,6 +1538,33 @@ const ShipmentForm = () => {
         setValue={setValue}
         getValues={getValues}
       />
+      <Dialog open={openNotesDialog} onClose={handleNotesCloseConfirm} onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          handleNotesCloseConfirm();
+        }
+      }}
+        sx={{
+          '& .MuiDialog-paper': { // Target the paper class
+            width: '1000px',
+            height: '80%',
+            maxHeight: 'none',
+            maxWidth: 'none',
+          }
+        }}
+      >
+        <DialogContent>
+          <>
+            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
+              <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirm()} sx={{ cursor: 'pointer' }} />
+            </Stack>
+            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+          </>
+          <Box sx={{ pt: 2 }}>
+            <NotesTable notes={notesRef.current} handleCloseConfirm={handleNotesCloseConfirm} />
+          </Box>
+        </DialogContent>
+      </Dialog>
 
     </LocalizationProvider >
 

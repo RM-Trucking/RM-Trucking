@@ -719,7 +719,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
 
 
                     {/* terminal notes */}
-                    <Controller
+                    {type === 'Add' && <Controller
                         name="terminalNotes"
                         control={control}
                         rules={{
@@ -747,7 +747,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                                 inputProps={{ maxLength: 2000 }}
                             />
                         )}
-                    />
+                    />}
 
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

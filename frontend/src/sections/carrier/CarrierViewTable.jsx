@@ -49,6 +49,7 @@ export default function CarrierViewTable() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [tableColumns, setTableColumns] = useState([]);
+
     const notesRef = useRef({});
 
     const logError = (error, info) => {
@@ -265,6 +266,35 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+        },
+        {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            headerAlign: 'center',
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                            justifyContent: 'center',
+                            mb: 0.5,
+                        }}
+                    >
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: 'actions',

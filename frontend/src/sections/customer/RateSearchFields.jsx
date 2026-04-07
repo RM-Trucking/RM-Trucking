@@ -896,7 +896,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         <RateFieldAndChargeTableWarehouse type={type} />
                     </Box>}
                     {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Box>
-                        <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+                        <Stack flexDirection={'row'} alignItems={(type === 'Add' || type === 'View') ? 'flex-start' : 'center'} sx={{ mt: 4 }}>
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
                                 {type !== 'Add' && <Button
@@ -921,7 +921,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 >
                                     {currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} list ({(currentRateRoutedFrom === 'customer') ? selectedCurrentRateRow?.customerCount || 0 : selectedCurrentRateRow?.carrierCount || 0})
                                 </Button>}
-                                <Controller
+                                {(type === 'Add') && <Controller
                                     name="notes"
                                     control={control}
                                     rules={{
@@ -952,7 +952,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             rows={10}
                                             error={!!errors.notes}
                                             helperText={errors.notes?.message}
-                                            disabled={type === 'View'}
                                             // Optional: Prevent typing a space as the very first character
                                             onChange={(e) => {
                                                 const val = e.target.value;
@@ -961,7 +960,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             }}
                                         />
                                     )}
-                                />
+                                />}
                             </Stack>
                         </Stack>
                     </Box>}

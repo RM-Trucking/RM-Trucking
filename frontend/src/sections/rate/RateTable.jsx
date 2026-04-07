@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button, Divider
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -18,13 +18,14 @@ import {
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
     getDestinationZoneByZipCode, postStationRate, postTerminalRate, setError,
-    setWarehouseRatesFieldChargeData, setRateFieldChargeData, 
+    setWarehouseRatesFieldChargeData, setRateFieldChargeData,
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import StyledCheckbox from '../shared/StyledCheckBox';
 import AddRate from './AddRate';
 import CustomerListTable from './CustomersListTable';
+import NotesTable from '../customer/NotesTable';
 // ----------------------------------------------------------------
 
 export default function RateTable() {
@@ -47,6 +48,10 @@ export default function RateTable() {
 
     // selectedRates array
     const [selectedRatesArr, setSelectedRatesArr] = useState([]);
+
+    const notesRef = useRef({});
+    const [openNotesDialog, setOpenNotesDialog] = useState(false);
+
 
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -224,6 +229,33 @@ export default function RateTable() {
                     {formatted}
                 </Box>
             }
+        },
+        {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            filterable: false,
+            cellClassName: 'center-status-cell',
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenNotesDialog(true);
+                    notesRef.current = params?.row;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: 'actions',
@@ -584,6 +616,10 @@ export default function RateTable() {
             dispatch(postTerminalRate(selectedRatesArr));
         }
     }
+    const handleNotesCloseConfirm = () => {
+        setOpenNotesDialog(false);
+        notesRef.current = {};
+    };
     return (
         <>
             <ErrorBoundary
@@ -747,6 +783,33 @@ export default function RateTable() {
                 >
                     <DialogContent>
                         <CustomerListTable handleCloseConfirm={handleCloseOfCustomersList} />
+                    </DialogContent>
+                </Dialog>
+                <Dialog open={openNotesDialog} onClose={handleNotesCloseConfirm} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleNotesCloseConfirm();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '1000px',
+                            height: '80%',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <>
+                            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                                <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
+                                <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                            </Stack>
+                            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                        </>
+                        <Box sx={{ pt: 2 }}>
+                            <NotesTable notes={notesRef.current} handleCloseConfirm={handleNotesCloseConfirm} />
+                        </Box>
                     </DialogContent>
                 </Dialog>
                 <Snackbar

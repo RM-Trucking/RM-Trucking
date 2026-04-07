@@ -5,7 +5,8 @@ import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions
+  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled,
+
 } from '@mui/material';
 
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
@@ -32,6 +33,14 @@ const shipmentTypes = [
 
   'Non-Forwarder Domestic',
 
+];
+
+const STEPS = [
+  'Shipment Details',
+  'Customer Details',
+  'Commodities Details',
+  'Carrier Information',
+  'Carrier Rate'
 ];
 
 
@@ -517,6 +526,52 @@ const CommoditiesList = ({ watchedHU }) => {
   );
 };
 
+const CustomStepIcon = (props) => {
+  const { active, completed, icon } = props;
+
+  return (
+    <Box
+      sx={{
+        width: 32,
+        height: 32,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: '50%',
+        border: '1px solid #000',
+        // Dark red for active/completed, white for pending
+        backgroundColor: active || completed ? '#a22' : '#fff',
+        color: active || completed ? '#fff' : '#000',
+        fontWeight: 'bold',
+        zIndex: 1,
+      }}
+    >
+      {icon}
+    </Box>
+  );
+};
+
+const CustomConnector = styled(StepConnector)(({ theme }) => ({
+  [`&.${stepConnectorClasses.alternativeLabel}`]: {
+    top: 16, // Adjust this to center the line with your 32px circles
+  },
+  [`&.${stepConnectorClasses.active}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: '#a22', // Red line for the current path
+    },
+  },
+  [`&.${stepConnectorClasses.completed}`]: {
+    [`& .${stepConnectorClasses.line}`]: {
+      borderColor: '#a22', // Red line for finished steps
+    },
+  },
+  [`& .${stepConnectorClasses.line}`]: {
+    borderColor: '#000', // Black line for upcoming steps
+    borderTopWidth: 3,    // Makes the line thick as seen in your image
+    borderRadius: 1,
+  },
+}));
+
 const ShipmentForm = () => {
 
   const [activeStep, setActiveStep] = useState(0);
@@ -963,31 +1018,27 @@ const ShipmentForm = () => {
 
 
           <Stepper
-
             activeStep={activeStep}
-
             alternativeLabel
-
-            sx={{
-
-              width: { xs: '100%', md: '45%' },
-
-              '& .MuiStepIcon-root': { color: '#000' },
-
-              '& .MuiStepIcon-text': { fill: '#fff', fontWeight: 'bold' },
-
-              '& .MuiStepConnector-line': { borderColor: '#000' },
-
-            }}
-
+            connector={<CustomConnector />} // Optional: for the thick red/black line
           >
-
-            {[1, 2, 3, 4, 5].map((_, i) => (
-
-              <Step key={i}><StepLabel /></Step>
-
+            {STEPS.map((label, index) => (
+              <Step key={label}>
+                <StepLabel
+                  StepIconComponent={CustomStepIcon}
+                  sx={{
+                    '& .MuiStepLabel-label': {
+                      mt: 1,
+                      fontSize: '0.75rem',
+                      fontWeight: activeStep === index ? 'bold' : 'normal',
+                      color: '#000',
+                    },
+                  }}
+                >
+                  {label}
+                </StepLabel>
+              </Step>
             ))}
-
           </Stepper>
 
 

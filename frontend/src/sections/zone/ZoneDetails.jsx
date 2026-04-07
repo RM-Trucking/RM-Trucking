@@ -413,12 +413,13 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             }}
                         />
 
-                        <Controller
-                            name="notes"
-                            control={control}
-                            rules={{
-                                validate: (value) => {
-                                    // 1. If it's empty, it's valid (because it's optional)
+                        {(type === 'Add' || type === 'View') && 
+                            <Controller
+                                name="notes"
+                                control={control}
+                                rules={{
+                                    validate: (value) => {
+                                        // 1. If it's empty, it's valid (because it's optional)
                                     if (!value || value.length === 0) return true;
 
                                     // 2. If it has value, ensure it's not just whitespace
@@ -454,7 +455,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     }}
                                 />
                             )}
-                        />
+                        />}
                     </Stack>
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

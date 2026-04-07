@@ -9,6 +9,7 @@ import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
 import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData, setError } from '../../redux/slices/zone';
 import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
+import NotesTable from '../customer/NotesTable';
 
 
 
@@ -27,6 +28,9 @@ export default function ZoneTable() {
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openRateDialog, setOpenRateDialog] = useState(false);
     const [actionType, setActionType] = useState('');
+
+    const notesRef = useRef({});
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
@@ -120,6 +124,32 @@ export default function ZoneTable() {
                 );
                 return element;
             }
+        },
+        {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            filterable: false,
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "actions",
@@ -231,6 +261,10 @@ export default function ZoneTable() {
         dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);
     };
+    const handleCloseConfirm = () => {
+        setOpenConfirmDialog(false);
+        notesRef.current = {};
+    };
 
     return (<>
         <Box sx={{ height: 300, width: "100%", flex: 1 }}>
@@ -302,6 +336,33 @@ export default function ZoneTable() {
         >
             <DialogContent>
                 <RateViewTable handleCloseRate={handleCloseRate} />
+            </DialogContent>
+        </Dialog>
+        <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseConfirm();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1000px',
+                    height: '80%',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
+                }
+            }}
+        >
+            <DialogContent>
+                <>
+                    <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
+                        <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                    </Stack>
+                    <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                </>
+                <Box sx={{ pt: 2 }}>
+                    <NotesTable notes={notesRef.current} handleCloseConfirm={handleCloseConfirm} />
+                </Box>
             </DialogContent>
         </Dialog>
 

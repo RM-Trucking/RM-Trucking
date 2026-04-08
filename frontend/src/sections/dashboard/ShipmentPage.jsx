@@ -576,6 +576,94 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
   },
 }));
 
+const MASTER_ACCESSORIALS = [
+  { name: 'Residential', type: 'Hourly', charges: '0.00', notes: true, selected: true },
+  { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: true, selected: true },
+  { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: true, selected: true },
+  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: true, selected: false },
+  { name: 'Pickup at airport', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
+  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
+  { name: 'Lift Gate', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
+  { name: 'Documentation Fees', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
+  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: false, selected: false },
+];
+
+const PickupAccessorialDialog = ({ open, onClose, onSave }) => {
+  const [list, setList] = useState(MASTER_ACCESSORIALS);
+
+  const handleToggle = (index) => {
+    const newList = [...list];
+    newList[index].selected = !newList[index].selected;
+    setList(newList);
+  };
+
+  const handleSave = () => {
+    const selectedItems = list.filter(item => item.selected);
+    onSave(selectedItems);
+    onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
+      <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt:2 }}>
+          <Button
+            variant="contained"
+            size="small"
+            // on click of add accessorial previous dialog have to be added for add accessorial details
+            // onClick={() => setPickupAccModal(true)} // Opens the Dialog
+            sx={{ bgcolor: '#a22', textTransform: 'none' }}
+          >
+            Add Accessorial
+          </Button>
+        </Box>
+        <TableContainer component={Paper} variant="outlined">
+          <Table size="small">
+            <TableHead sx={{ bgcolor: '#f9f9f9' }}>
+              <TableRow>
+                <TableCell padding="checkbox" />
+                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {list.map((item, index) => (
+                <TableRow key={index} selected={item.selected}>
+                  <TableCell padding="checkbox">
+                    <Checkbox
+                      size="small"
+                      checked={item.selected}
+                      onChange={() => handleToggle(index)}
+                      sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                    />
+                  </TableCell>
+                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.name}</TableCell>
+                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.type}</TableCell>
+                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.charges}</TableCell>
+                  <TableCell>
+                    {item.notes && <Iconify icon="solar:file-text-bold" sx={{ color: '#90caf9' }} />}
+                  </TableCell>
+                  <TableCell align="right">
+                    <IconButton size="small"><Iconify icon="solar:eye-bold" /></IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </DialogContent>
+      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+        <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+        <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 const ShipmentForm = () => {
 
   const [activeStep, setActiveStep] = useState(0);
@@ -585,6 +673,8 @@ const ShipmentForm = () => {
   // for notes dialog
   const notesRef = useRef({});
   const [openNotesDialog, setOpenNotesDialog] = useState(false);
+
+  const [pickupAccModal, setPickupAccModal] = useState(false);
 
 
 
@@ -678,10 +768,7 @@ const ShipmentForm = () => {
         pickupAlert: true,
         selectRouting: 'Line haul & Delivery',
         airportTransfer: false,
-        pickupAccessorials: [
-          { name: 'Residential', type: 'Per Pound', charges: '0.00', notes: '' },
-          { name: 'Lift Gate', type: 'Flat Rate', charges: '75.00', notes: '' }
-        ],
+        pickupAccessorials: [],
       },
 
     },
@@ -762,11 +849,7 @@ const ShipmentForm = () => {
   const isHazmatSelected = watchedHU?.some((hu) =>
     hu.items?.some((item) => item.hazmatInfo)
   );
-  const {
-    fields: pickupAccFields,
-    append: appendPickupAcc,
-    remove: removePickupAcc
-  } = useFieldArray({
+  const { fields: pickupAccFields, replace: replacePickupAcc } = useFieldArray({
     control,
     name: "carrierInfo.pickupAccessorials"
   });
@@ -1723,36 +1806,30 @@ const ShipmentForm = () => {
             </Paper>
 
             {/* pickup accessorials section  */}
+
             <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
               <AccordionSummary
-
                 expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-
                 sx={{ borderBottom: '1px solid #ccc', px: 0 }}
               >
-                <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
+                <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
               </AccordionSummary>
               <AccordionDetails sx={{ px: 0, pt: 2 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                   <Button
-
                     variant="contained"
-
                     size="small"
-
-                    onClick={() => appendPickupAcc({ name: '', type: '', charges: '0.00', notes: '' })}
-
+                    onClick={() => setPickupAccModal(true)} // Opens the Dialog
                     sx={{ bgcolor: '#a22', textTransform: 'none' }}
                   >
-
                     Add Pickup Accessorial
                   </Button>
                 </Box>
 
                 <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
                   <Table size="small">
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: '#eee' }}>
+                    <TableHead sx={{ bgcolor: '#eee' }}>
+                      <TableRow>
                         <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
                         <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                         <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
@@ -1761,79 +1838,34 @@ const ShipmentForm = () => {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-
                       {pickupAccFields.map((field, index) => (
                         <TableRow key={field.id}>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                           <TableCell>
-                            <Controller
-
-                              name={`carrierInfo.pickupAccessorials.${index}.name`}
-
-                              control={control}
-
-                              render={({ field }) => <Typography variant="body2">{field.value || '—'}</Typography>}
-
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Controller
-
-                              name={`carrierInfo.pickupAccessorials.${index}.type`}
-
-                              control={control}
-
-                              render={({ field }) => <Typography variant="body2">{field.value || '—'}</Typography>}
-
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <Controller
-
-                              name={`carrierInfo.pickupAccessorials.${index}.charges`}
-
-                              control={control}
-
-                              render={({ field }) => <Typography variant="body2">{field.value || '0.00'}</Typography>}
-
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <IconButton size="small">
-                              <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                            </IconButton>
+                            <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
                           </TableCell>
                           <TableCell align="right">
                             <Stack direction="row" spacing={1} justifyContent="flex-end">
                               <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
                               <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
-                              <IconButton
-                                size="small"
-                                onClick={() => removePickupAcc(index)}
-                              >
-                                <Iconify icon="material-symbols:delete-rounded" />
-                              </IconButton>
+                              <IconButton size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                             </Stack>
                           </TableCell>
                         </TableRow>
-
                       ))}
-
-                      {pickupAccFields.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} align="center" sx={{ py: 2, color: '#999' }}>
-
-                            No pickup accessorials added.
-                          </TableCell>
-                        </TableRow>
-
-                      )}
                     </TableBody>
                   </Table>
                 </TableContainer>
               </AccordionDetails>
             </Accordion>
 
-
+            <PickupAccessorialDialog
+              open={pickupAccModal}
+              onClose={() => setPickupAccModal(false)}
+              onSave={(selectedData) => replacePickupAcc(selectedData)}
+            />
 
           </Paper>
         )}

@@ -981,6 +981,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                 if (val === " ") return; // Blocks leading space in real-time
                                                 field.onChange(e);
                                             }}
+                                            sx={{mt:2}}
                                         />
                                     )}
                                 />}

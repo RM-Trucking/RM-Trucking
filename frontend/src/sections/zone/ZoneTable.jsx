@@ -355,7 +355,7 @@ export default function ZoneTable() {
             <DialogContent>
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Customer Notes</Typography>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Zone Notes</Typography>
                         <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />

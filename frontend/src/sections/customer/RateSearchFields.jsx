@@ -558,6 +558,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             SelectProps={{
                                                 displayEmpty: true,
                                                 MenuProps: {
+                                                    // Crucial: disables internal centering logic so origins work
+                                                    getContentAnchorEl: null,
+                                                    // Prevents layout shifts and menu misplacement on scroll
+                                                    disableScrollLock: true,
                                                     anchorOrigin: {
                                                         vertical: 'bottom',
                                                         horizontal: 'left',
@@ -566,12 +570,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                         vertical: 'top',
                                                         horizontal: 'left',
                                                     },
-                                                    // Optional: Add a small gap between field and menu
                                                     PaperProps: {
-                                                        sx: { marginTop: '4px' }
+                                                        sx: {
+                                                            marginTop: '4px', // Your custom gap
+                                                            maxHeight: 300,
+                                                            maxWidth : 300    // Recommended to prevent long lists from going off-screen
+                                                        }
                                                     }
                                                 },
                                             }}
+
                                             InputLabelProps={{ shrink: true }}
                                         >
                                             {originZoneListByZipCode && originZoneListByZipCode.length > 0 ? (
@@ -719,6 +727,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             SelectProps={{
                                                 displayEmpty: true,
                                                 MenuProps: {
+                                                    // Crucial: disables internal centering logic so origins work
+                                                    getContentAnchorEl: null,
+                                                    // Prevents layout shifts and menu misplacement on scroll
+                                                    disableScrollLock: true,
                                                     anchorOrigin: {
                                                         vertical: 'bottom',
                                                         horizontal: 'left',
@@ -727,12 +739,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                         vertical: 'top',
                                                         horizontal: 'left',
                                                     },
-                                                    // Optional: Add a small gap between field and menu
                                                     PaperProps: {
-                                                        sx: { marginTop: '4px' }
+                                                        sx: {
+                                                            marginTop: '4px', // Your custom gap
+                                                            maxHeight: 300,
+                                                            maxWidth : 300    // Recommended to prevent long lists from going off-screen
+                                                        }
                                                     }
                                                 },
                                             }}
+
                                             InputLabelProps={{ shrink: true }}
                                         >
                                             {destinationZoneListByZipCode && destinationZoneListByZipCode.length > 0 ? (

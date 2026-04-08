@@ -22,6 +22,7 @@ import {
     putCustomerTransportationRate, putCarrierTransportationRate,
     postCarrierTransportationRate, setOriginZoneListByZipCode,
     setDestinationZoneListByZipCode, setCustomerList, setCarrierList,
+    getCustomerListByRateID, getCarrierListByRateID
 
 } from '../../redux/slices/rate';
 import {
@@ -402,11 +403,13 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (currentRateRoutedFrom === 'customer' && selectedCurrentRateRow?.customerCount > 0) {
             setOpenCustomersList(true);
             dispatch(setCustomerList([]));
+            dispatch(getCustomerListByRateID(selectedCurrentRateRow?.rateId));
         }
 
         if (currentRateRoutedFrom === 'carrier' && selectedCurrentRateRow?.carrierCount > 0) {
             setOpenCustomersList(true);
             dispatch(setCarrierList([]));
+            dispatch(getCarrierListByRateID(selectedCurrentRateRow?.rateId));
         }
     }
     const handleCloseOfCustomersList = () => {
@@ -916,7 +919,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                         <RateFieldAndChargeTableWarehouse type={type} />
                     </Box>}
                     {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Box>
-                        <Stack flexDirection={'row'} alignItems={(type === 'Add' || type === 'View') ? 'flex-start' : 'center'} sx={{ mt: 4 }}>
+                        <Stack flexDirection={'row'} alignItems={'flex-start'} sx={{ mt: 4 }}>
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
                                 {type !== 'Add' && <Button

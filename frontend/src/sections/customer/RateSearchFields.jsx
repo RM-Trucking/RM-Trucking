@@ -21,7 +21,7 @@ import {
     getCarrierTransportationRateDashboardData, postCustomerTransportationRate,
     putCustomerTransportationRate, putCarrierTransportationRate,
     postCarrierTransportationRate, setOriginZoneListByZipCode,
-    setDestinationZoneListByZipCode,
+    setDestinationZoneListByZipCode, setCustomerList, setCarrierList,
 
 } from '../../redux/slices/rate';
 import {
@@ -401,14 +401,18 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     const onClickofCustomerList = () => {
         if (currentRateRoutedFrom === 'customer' && selectedCurrentRateRow?.customerCount > 0) {
             setOpenCustomersList(true);
+            dispatch(setCustomerList([]));
         }
 
         if (currentRateRoutedFrom === 'carrier' && selectedCurrentRateRow?.carrierCount > 0) {
             setOpenCustomersList(true);
+            dispatch(setCarrierList([]));
         }
     }
     const handleCloseOfCustomersList = () => {
         setOpenCustomersList(false);
+        dispatch(setCustomerList([]));
+        dispatch(setCarrierList([]));
     };
     const handleZoneView = (type) => {
         setActionType('View');
@@ -574,7 +578,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                         sx: {
                                                             marginTop: '4px', // Your custom gap
                                                             maxHeight: 300,
-                                                            maxWidth : 300    // Recommended to prevent long lists from going off-screen
+                                                            maxWidth: 300    // Recommended to prevent long lists from going off-screen
                                                         }
                                                     }
                                                 },
@@ -743,7 +747,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                         sx: {
                                                             marginTop: '4px', // Your custom gap
                                                             maxHeight: 300,
-                                                            maxWidth : 300    // Recommended to prevent long lists from going off-screen
+                                                            maxWidth: 300    // Recommended to prevent long lists from going off-screen
                                                         }
                                                     }
                                                 },
@@ -1038,7 +1042,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 sx={{
                     '& .MuiDialog-paper': { // Target the paper class
                         width: '800px',
-                        height: 'auto',
+                        height: '500px',
                         maxHeight: 'none',
                         maxWidth: 'none',
                     }

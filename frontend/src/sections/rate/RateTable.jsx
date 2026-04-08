@@ -18,7 +18,8 @@ import {
     getCustomerTransportationRateDashboardData, getCarrierTransportationRateDashboardData,
     getCustomerListByRateID, getCarrierListByRateID, getOriginZoneByZipCode,
     getDestinationZoneByZipCode, postStationRate, postTerminalRate, setError,
-    setWarehouseRatesFieldChargeData, setRateFieldChargeData,
+    setWarehouseRatesFieldChargeData, setRateFieldChargeData, setCustomerList,
+    setCarrierList
 } from '../../redux/slices/rate';
 import { setTableBeingViewed, setStationRateData } from '../../redux/slices/customer';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -144,6 +145,7 @@ export default function RateTable() {
                             ?
                             <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
                                 setOpenCustomersList(true);
+                                dispatch(setCustomerList([]));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 dispatch(getCustomerListByRateID(params.row.rateId));
                             }}>
@@ -158,6 +160,7 @@ export default function RateTable() {
                             ?
                             <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1 }} flexDirection={'row'} alignItems={'center'} onClick={() => {
                                 setOpenCustomersList(true);
+                                dispatch(setCarrierList([]));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 dispatch(getCarrierListByRateID(params.row.rateId));
                             }}>
@@ -606,6 +609,8 @@ export default function RateTable() {
     };
     const handleCloseOfCustomersList = () => {
         setOpenCustomersList(false);
+        dispatch(setCustomerList([]));
+        dispatch(setCarrierList([]));
         dispatch(setSelectedCurrentRateRow({}));
     };
     const onClickOfAddRate = () => {
@@ -775,7 +780,7 @@ export default function RateTable() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '800px',
-                            height: 'auto',
+                            height: '500px',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }

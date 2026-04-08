@@ -21,7 +21,7 @@ import {
   setZoneRateData
 } from '../../../redux/slices/zone';
 import {
-  setRateTableData
+  setRateTableData, setCarrierList, setCustomerList, 
 } from '../../../redux/slices/rate';
 
 import { useDispatch } from '../../../redux/store';
@@ -56,6 +56,8 @@ function NavItem({ item, depth = 0 }) {
     dispatch(setStationRows([]));
     dispatch(setZoneRateData([]));
     dispatch(setRateTableData([]));
+    dispatch(setCarrierList([]));
+    dispatch(setCustomerList([]));
 
 
     if (item.path) {

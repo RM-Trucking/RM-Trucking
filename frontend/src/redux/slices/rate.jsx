@@ -231,11 +231,19 @@ const slice = createSlice({
         setRateTableData(state, action) {
             state.rateTableData = action.payload;
         },
+        setCustomerList(state, action) {
+            state.customerList = action.payload;
+        },
+        setCarrierList(state, action) {
+            state.carrierList = action.payload;
+        },
     },
 });
 
 export const {
     setError,
+    setCustomerList,
+    setCarrierList,
     setRateTableData,
     setWarehouseRatesFieldChargeData,
     setOperationalMessage,

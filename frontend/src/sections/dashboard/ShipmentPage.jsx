@@ -607,7 +607,7 @@ const PickupAccessorialDialog = ({ open, onClose, onSave }) => {
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
       <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt:2 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 2 }}>
           <Button
             variant="contained"
             size="small"
@@ -769,6 +769,11 @@ const ShipmentForm = () => {
         selectRouting: 'Line haul & Delivery',
         airportTransfer: false,
         pickupAccessorials: [],
+        pickupAlertDetails: {
+          inboundNotesArray: [],
+          primaryEmail: 'dayton@email.com',
+          additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com'
+        }
       },
 
     },
@@ -853,7 +858,11 @@ const ShipmentForm = () => {
     control,
     name: "carrierInfo.pickupAccessorials"
   });
-
+ 
+  const inboundNotes = useWatch({
+    control,
+    name: 'carrierInfo.pickupAlertDetails.inboundNotesArray',
+  });
 
   const handleNext = async () => {
 
@@ -1866,6 +1875,163 @@ const ShipmentForm = () => {
               onClose={() => setPickupAccModal(false)}
               onSave={(selectedData) => replacePickupAcc(selectedData)}
             />
+
+            {/* pick alert details section */}
+            <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+              <AccordionSummary
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+              >
+                <Typography variant="subtitle1" fontWeight="bold">
+                  Pickup Alert Details
+                </Typography>
+              </AccordionSummary>
+
+              <AccordionDetails sx={{ px: 0, pt: 3 }}>
+                {/* --- INBOUND NOTES SECTION --- */}
+                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 4 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                  >
+                    Inbound Notes
+                  </Typography>
+
+                  {/* Chip Gallery: Renders dynamically from the form array */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {inboundNotes.map((note, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          bgcolor: '#e3f2fd',
+                          borderRadius: '16px',
+                          px: 1.5,
+                          py: 0.5,
+                          fontSize: '0.65rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid #bbdefb',
+                        }}
+                      >
+                        {note}
+                        <Box
+                          component="span"
+                          onClick={() => {
+                            const updatedNotes = inboundNotes.filter((_, i) => i !== idx);
+                            setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', updatedNotes);
+                          }}
+                          sx={{
+                            ml: 1,
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                            color: '#666',
+                            '&:hover': { color: '#a22' }
+                          }}
+                        >
+                          &times;
+                        </Box>
+                      </Box>
+                    ))}
+                    {/* Red "More" button style preserved from your UI design */}
+                    {/* {inboundNotes.length > 0 && (
+                      <Box sx={{ bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                        More...
+                      </Box>
+                    )} */}
+                  </Box>
+
+                  {/* Input field captures the "Enter" key */}
+                  <Controller
+                    name="carrierInfo.pickupAlertDetails.currentNoteInput"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Notes"
+                        variant="standard"
+                        InputLabelProps={{ shrink: true }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault(); // Stop form submission
+                            const val = e.target.value.trim();
+                            if (val) {
+                              setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', [...inboundNotes, val]);
+                              field.onChange(''); // Clear the input field
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </Box>
+
+                {/* --- EMAIL INFO SECTION --- */}
+                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative' }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                  >
+                    Email Info
+                  </Typography>
+
+                  <Box sx={{ display: 'flex', gap: 4 }}>
+                    <Box sx={{ flex: 1 }}>
+                      <Controller
+                        name="carrierInfo.pickupAlertDetails.primaryEmail"
+                        control={control}
+                        rules={{
+                          pattern: {
+                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                            message: "Invalid email address"
+                          }
+                        }}
+                        render={({ field, fieldState: { error } }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Primary Email"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            error={!!error}
+                            helperText={error?.message}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    <Box sx={{ flex: 2 }}>
+                      <Controller
+                        name="carrierInfo.pickupAlertDetails.additionalEmail"
+                        control={control}
+                        rules={{
+                          validate: (value) => {
+                            if (!value) return true;
+                            const emails = value.split(',').map(e => e.trim());
+                            const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                            const allValid = emails.every(email => emailRegex.test(email));
+                            return allValid || "One or more emails are invalid (separate by comma)";
+                          }
+                        }}
+                        render={({ field, fieldState: { error } }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Additional Email"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            placeholder="email1@test.com, email2@test.com"
+                            error={!!error}
+                            helperText={error?.message}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+                </Box>
+              </AccordionDetails>
+            </Accordion>
 
           </Paper>
         )}

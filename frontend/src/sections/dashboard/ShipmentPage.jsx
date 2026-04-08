@@ -5,7 +5,9 @@ import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
-  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider,
+  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
+  AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
+  TableBody
 
 
 } from '@mui/material';
@@ -675,7 +677,11 @@ const ShipmentForm = () => {
         addPickupAccessorial: true,
         pickupAlert: true,
         selectRouting: 'Line haul & Delivery',
-        airportTransfer: false
+        airportTransfer: false,
+        pickupAccessorials: [
+          { name: 'Residential', type: 'Per Pound', charges: '0.00', notes: '' },
+          { name: 'Lift Gate', type: 'Flat Rate', charges: '75.00', notes: '' }
+        ],
       },
 
     },
@@ -756,6 +762,14 @@ const ShipmentForm = () => {
   const isHazmatSelected = watchedHU?.some((hu) =>
     hu.items?.some((item) => item.hazmatInfo)
   );
+  const {
+    fields: pickupAccFields,
+    append: appendPickupAcc,
+    remove: removePickupAcc
+  } = useFieldArray({
+    control,
+    name: "carrierInfo.pickupAccessorials"
+  });
 
 
   const handleNext = async () => {
@@ -1707,7 +1721,120 @@ const ShipmentForm = () => {
                 )}
               </Box>
             </Paper>
-            
+
+            {/* pickup accessorials section  */}
+            <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+              <AccordionSummary
+
+                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+
+                sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+              >
+                <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                  <Button
+
+                    variant="contained"
+
+                    size="small"
+
+                    onClick={() => appendPickupAcc({ name: '', type: '', charges: '0.00', notes: '' })}
+
+                    sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                  >
+
+                    Add Pickup Accessorial
+                  </Button>
+                </Box>
+
+                <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: '#eee' }}>
+                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                        <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+
+                      {pickupAccFields.map((field, index) => (
+                        <TableRow key={field.id}>
+                          <TableCell>
+                            <Controller
+
+                              name={`carrierInfo.pickupAccessorials.${index}.name`}
+
+                              control={control}
+
+                              render={({ field }) => <Typography variant="body2">{field.value || '—'}</Typography>}
+
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Controller
+
+                              name={`carrierInfo.pickupAccessorials.${index}.type`}
+
+                              control={control}
+
+                              render={({ field }) => <Typography variant="body2">{field.value || '—'}</Typography>}
+
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Controller
+
+                              name={`carrierInfo.pickupAccessorials.${index}.charges`}
+
+                              control={control}
+
+                              render={({ field }) => <Typography variant="body2">{field.value || '0.00'}</Typography>}
+
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <IconButton size="small">
+                              <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                            </IconButton>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Stack direction="row" spacing={1} justifyContent="flex-end">
+                              <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
+                              <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                              <IconButton
+                                size="small"
+                                onClick={() => removePickupAcc(index)}
+                              >
+                                <Iconify icon="material-symbols:delete-rounded" />
+                              </IconButton>
+                            </Stack>
+                          </TableCell>
+                        </TableRow>
+
+                      ))}
+
+                      {pickupAccFields.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} align="center" sx={{ py: 2, color: '#999' }}>
+
+                            No pickup accessorials added.
+                          </TableCell>
+                        </TableRow>
+
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </AccordionDetails>
+            </Accordion>
+
+
+
           </Paper>
         )}
 

@@ -772,7 +772,9 @@ const ShipmentForm = () => {
         pickupAlertDetails: {
           inboundNotesArray: [],
           primaryEmail: 'dayton@email.com',
-          additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com'
+          additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
+          selectRouting: 'Line haul & Delivery',
+          airportTransfer: false,
         }
       },
 
@@ -849,6 +851,10 @@ const ShipmentForm = () => {
     control,
     name: 'carrierInfo.selectRouting',
   });
+  const pickupAlertSelectedRouting = useWatch({
+    control,
+    name: 'carrierInfo.pickupAlertDetails.selectRouting',
+  });
 
   // This checks if any item has hazmat checked to show the Emergency Contact
   const isHazmatSelected = watchedHU?.some((hu) =>
@@ -858,7 +864,7 @@ const ShipmentForm = () => {
     control,
     name: "carrierInfo.pickupAccessorials"
   });
- 
+
   const inboundNotes = useWatch({
     control,
     name: 'carrierInfo.pickupAlertDetails.inboundNotesArray',
@@ -2029,6 +2035,52 @@ const ShipmentForm = () => {
                       />
                     </Box>
                   </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 2 }}>
+                  <Box sx={{ flex: '0 1 250px' }}>
+                    <Controller
+                      name="carrierInfo.pickupAlertDetails.selectRouting"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          select
+                          fullWidth
+                          label="Select Routing *"
+                          variant="standard"
+                          {...field}
+                          InputLabelProps={{ shrink: true }}
+                        >
+                          <MenuItem value="None">None</MenuItem>
+                          <MenuItem value="Line haul">Line haul</MenuItem>
+                          <MenuItem value="Line haul & Delivery">Line haul & Delivery</MenuItem>
+                        </TextField>
+                      )}
+                    />
+                  </Box>
+
+                  {/* Conditional Checkbox */}
+                  {pickupAlertSelectedRouting === "Line haul & Delivery" && (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Controller
+                            name="carrierInfo.pickupAlertDetails.airportTransfer"
+                            control={control}
+                            render={({ field }) => (
+                              <Checkbox
+                                {...field}
+                                checked={field.value}
+                                size="small"
+                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                              />
+                            )}
+                          />
+                        }
+                        label={<Typography variant="body2">Airport Transfer</Typography>}
+                      />
+                    </Box>
+                  )}
                 </Box>
               </AccordionDetails>
             </Accordion>

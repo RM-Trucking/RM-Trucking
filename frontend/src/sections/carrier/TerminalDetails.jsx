@@ -10,7 +10,7 @@ import {
     FormControlLabel,
     Dialog,
     DialogContent, CircularProgress, MenuItem,
-    ListSubheader, Checkbox, ListItemText
+    ListSubheader, Checkbox, ListItemText, Switch
 } from '@mui/material';
 // for date picker
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -155,7 +155,19 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Terminal Details</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Terminal Details </Typography>
+                    {type === 'View' && <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Status
+                        <Switch slotProps={{ input: { 'aria-label': 'controlled' } }} checked={selectedCarrierTabRowDetails?.activeStatus === 'Y'}
+                            sx={{
+                                '& .MuiSwitch-switchBase.Mui-checked': {
+                                    color: (selectedCarrierTabRowDetails?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)',
+                                },
+                                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                                    backgroundColor: (selectedCarrierTabRowDetails?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)',
+                                },
+                            }} /> {selectedCarrierTabRowDetails?.activeStatus === 'Y' ? 'Active' : 'Inactive'}
+                    </Typography>}
+
                     {type === 'Add' && <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />}
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />

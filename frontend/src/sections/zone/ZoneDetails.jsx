@@ -125,7 +125,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 <StyledTextField
                                     {...field}
                                     value={value}
-                                    label="Zone Name"
+                                    label="Zone"
                                     variant="standard"
                                     fullWidth
                                     required

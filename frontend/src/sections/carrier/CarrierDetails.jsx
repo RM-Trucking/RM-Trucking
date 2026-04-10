@@ -105,7 +105,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 "ustDotNo": data.ustDotNo,
                 "mcnNo": data.mcNo,
                 "insuranceExpiry": formattedIED || '',
-                "tariffRenewalDate": formattedTRD || '',
+                "tariffRenewalDate": formattedTRD !== 'Invalid Date' ? formattedTRD : '' || '',
                 "salesRepName": data.salesRepName,
                 "salesRepPhone": data.salesRepPhoneNumber,
                 "salesRepEmail": data.salesRepEmailId,
@@ -147,7 +147,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 "ustDotNo": data.ustDotNo,
                 "mcnNo": data.mcNo,
                 "insuranceExpiry": formattedIED || '',
-                "tariffRenewalDate": formattedTRD || '',
+                "tariffRenewalDate": formattedTRD !== 'Invalid Date' ? formattedTRD : '' || '',
                 "salesRepName": data.salesRepName,
                 "salesRepPhone": data.salesRepPhoneNumber,
                 "salesRepEmail": data.salesRepEmailId,
@@ -893,7 +893,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     name="mcNo"
                                     control={control}
                                     rules={{
-                                        required: 'MC No is required',
                                         pattern: {
                                             // Added ^$| to allow empty values, otherwise check the MC format
                                             value: /^$|^(MC|FF|MX)\d{5,7}$/i,
@@ -921,7 +920,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             helperText={error ? error.message : ""}
                                             disabled={type === 'View'}
                                             sx={{ ml: 2 }}
-                                            required
                                         />
                                     )}
                                 />
@@ -989,7 +987,6 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         name="tariffRenewalDate"
                                         control={control}
                                         rules={{
-                                            required: 'Tariff Renewal Date is required',
                                             validate: (value) => {
                                                 if (!value) return true;
                                                 const selectedDate = new Date(value);
@@ -1000,7 +997,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         }}
                                         render={({ field: { onChange, value }, fieldState: { error } }) => (
                                             <DatePicker
-                                                label="Tariff Renewal Date*"
+                                                label="Tariff Renewal Date"
                                                 format="MM/DD/YYYY" // Forces the MM/DD/YYYY display
                                                 value={value ? dayjs(value) : null}
                                                 onChange={(newValue) => onChange(newValue ? newValue.format('YYYY-MM-DD') : null)}

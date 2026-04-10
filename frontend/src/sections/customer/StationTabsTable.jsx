@@ -116,7 +116,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                         onClick={handleDialogOpen}
                     >
 
-                        <Iconify icon="icon-park-solid:notes" sx={{ color: '#7fbfc4', marginTop: '15px', }} />
+                        <Iconify icon="icon-park-solid:notes" sx={{ color: '#7fbfc4', }} />
 
                     </Box>
                 );

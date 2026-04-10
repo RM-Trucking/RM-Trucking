@@ -7,7 +7,7 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody
+  TableBody, ListItemText
 
 
 } from '@mui/material';
@@ -762,7 +762,7 @@ const ShipmentForm = () => {
           state: 'CA',
           zip: '94587'
         },
-        toLocationType: 'Carrier',
+        toLocationType: ['Carrier'],
         toLocation: 'Pickup / Delivery Agent - Terminal',
         addPickupAccessorial: true,
         pickupAlert: true,
@@ -775,6 +775,33 @@ const ShipmentForm = () => {
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
           selectRouting: 'Line haul & Delivery',
           airportTransfer: false,
+        },
+        lineHaul: {
+          carrier: 'R&M Carrier name',
+          billNumber: "",
+          fromLocation: '',
+          manualFromLocation: false,
+          manualFromLocationDetails: {
+            line1: '',
+            line2: '',
+            city: '',
+            state: '',
+            zip: '',
+          },
+          toLocationType: ['Carrier'],
+          toLocation: 'Pickup / Delivery Agent - Terminal',
+          manualToLocation: false,
+          manualToLocationDetails: {
+            line1: '',
+            line2: '',
+            city: '',
+            state: '',
+            zip: '',
+          },
+          etaDate: null,
+          etaTime: null,
+          pcsWeight: '',
+
         }
       },
 
@@ -1748,9 +1775,39 @@ const ShipmentForm = () => {
               {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                 <Box sx={{ flex: '1 1 200px' }}>
-                  <Controller name="carrierInfo.toLocationType" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Select To Location Type *" variant="standard" InputLabelProps={{ shrink: true }} />
-                  )} />
+                  <Controller
+                    name="carrierInfo.toLocationType"
+                    control={control}
+                    defaultValue={[]}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        select
+                        fullWidth
+                        label="Select To Location Type *"
+                        variant="standard"
+                        InputLabelProps={{ shrink: true }}
+                        SelectProps={{
+                          multiple: true,
+                          // Shows selected items as a comma-separated list in the closed field
+                          renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                        }}
+                      >
+                        <MenuItem value="Carrier">
+                          {/* 1. Add the Checkbox */}
+                          <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                          {/* 2. Wrap text in ListItemText for better alignment */}
+                          <ListItemText primary="Carrier" />
+                        </MenuItem>
+
+                        <MenuItem value="Consignee">
+                          <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                          <ListItemText primary="Consignee" />
+                        </MenuItem>
+                      </TextField>
+                    )}
+                  />
+
                 </Box>
                 <Box sx={{ flex: '1 1 200px' }}>
                   <Controller name="carrierInfo.toLocation" control={control} render={({ field }) => (
@@ -2082,6 +2139,237 @@ const ShipmentForm = () => {
                     </Box>
                   )}
                 </Box>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* line haul details section  */}
+            <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1 }}>
+              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}>
+                <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
+              </AccordionSummary>
+
+              <AccordionDetails sx={{ pt: 2 }}>
+                {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
+                <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller
+                      name="carrierInfo.lineHaul.carrier"
+                      control={control}
+                      render={({ field }) => (
+                        <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
+                          <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
+                        </TextField>
+                      )}
+                    />
+                  </Box>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller
+                      name="carrierInfo.lineHaul.billNumber"
+                      control={control}
+                      render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                    />
+                  </Box>
+                  <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                    <Controller
+                      name="carrierInfo.lineHaul.fromLocation"
+                      control={control}
+                      render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                    />
+                    <Controller
+                      name="carrierInfo.lineHaul.manualFromLocation"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                        />
+                      )}
+                    />
+                  </Box>
+                </Box>
+
+                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                {watchedCarrierInfo?.lineHaul.manualFromLocation && (
+                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Manual From Location
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        {renderZipCodeField('carrierInfo.lineHaul.manualFromLocationDetails.zip')}
+                      </Box>
+                    </Box>
+                  </Paper>
+                )}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller
+                      name="carrierInfo.lineHaul.toLocationType"
+                      control={control}
+                      defaultValue={[]}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Select To Type *"
+                          variant="standard"
+                          InputLabelProps={{ shrink: true }}
+                          SelectProps={{
+                            multiple: true,
+                            // Shows selected items as a comma-separated list in the closed field
+                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                          }}
+                        >
+                          <MenuItem value="Carrier">
+                            {/* 1. Add the Checkbox */}
+                            <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                            {/* 2. Wrap text in ListItemText for better alignment */}
+                            <ListItemText primary="Carrier" />
+                          </MenuItem>
+
+                          <MenuItem value="Consignee">
+                            <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                            <ListItemText primary="Consignee" />
+                          </MenuItem>
+                        </TextField>
+                      )}
+                    />
+
+
+
+                  </Box>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller name="carrierInfo.lineHaul.toLocation" control={control} render={({ field }) => (
+                      <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                    )} />
+                  </Box>
+                  <Box>
+                    <Controller
+                      name="carrierInfo.lineHaul.manualToLocation"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                        />
+                      )}
+                    />
+                  </Box>
+                </Box>
+                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                {watchedCarrierInfo?.lineHaul.manualToLocation && (
+                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Manual To Location
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        {renderZipCodeField('carrierInfo.lineHaul.manualToLocationDetails.zip')}
+                      </Box>
+                    </Box>
+                  </Paper>
+                )}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+
+                </Box>
+
+                {/* ACCESSORIALS: Flexbox for header */}
+
+
+                {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                {/* <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                    Line-haul Notes
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                    {lineHaulNotes.map((note, idx) => (
+                      <Box
+                        key={idx}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          bgcolor: '#e3f2fd',
+                          borderRadius: '16px',
+                          px: 1.5,
+                          py: 0.5,
+                          fontSize: '0.65rem',
+                          border: '1px solid #bbdefb'
+                        }}
+                      >
+                        {note}
+                        <Box
+                          component="span"
+                          onClick={() => setValue('lineHaul.notesArray', lineHaulNotes.filter((_, i) => i !== idx))}
+                          sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                        >
+                          &times;
+                        </Box>
+                      </Box>
+                    ))}
+                    <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box>
+                  </Box>
+
+                  <Controller
+                    name="lineHaul.currentNoteInput"
+                    control={control}
+                    defaultValue=""
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Notes"
+                        variant="standard"
+                        placeholder="Type and press Enter"
+                        InputLabelProps={{ shrink: true }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            const val = e.target.value.trim();
+                            if (val) {
+                              setValue('lineHaul.notesArray', [...lineHaulNotes, val]);
+                              field.onChange('');
+                            }
+                          }
+                        }}
+                      />
+                    )}
+                  />
+                </Box> */}
+
+                {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+                {/* <Box sx={{ display: 'flex', gap: 4 }}>
+                  <FormControlLabel control={<Checkbox defaultChecked size="small" />} label={<Typography variant="body2">Delivery Included</Typography>} />
+                  <FormControlLabel control={<Checkbox defaultChecked size="small" />} label={<Typography variant="body2">Airport Transfer</Typography>} />
+                </Box> */}
               </AccordionDetails>
             </Accordion>
 

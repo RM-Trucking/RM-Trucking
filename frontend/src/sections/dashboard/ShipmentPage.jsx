@@ -7,7 +7,8 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText
+  TableBody, ListItemText,
+  selectClasses
 
 
 } from '@mui/material';
@@ -775,8 +776,6 @@ const ShipmentForm = () => {
           inboundNotesArray: [],
           primaryEmail: 'dayton@email.com',
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
-          selectRouting: 'Line haul & Delivery',
-          airportTransfer: false,
         },
         lineHaul: {
           carrier: 'R&M Carrier name',
@@ -1774,392 +1773,129 @@ const ShipmentForm = () => {
                 label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
               />
             </Box>
+            {isPickupPending === false && <>
 
-            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>
-              <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                Pickup Details
-              </Typography>
+              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>
+                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                  Pickup Details
+                </Typography>
 
-              {/* Row 1: Airport Pickup, Carrier, From Location, Manual Toggle */}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                <Box sx={{ flex: '0 1 150px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.airportPickup" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Airport Pickup</Typography>}
-                  />
-                </Box>
-                <Box sx={{ flex: '1 1 200px' }}>
-                  <Controller name="carrierInfo.selectCarrier" control={control} render={({ field }) => (
-                    <TextField {...field} select fullWidth label="Select Carrier *" variant="standard" InputLabelProps={{ shrink: true }}>
-                      <MenuItem value="R&M Carrier name">R&M Carrier name</MenuItem>
-                    </TextField>
-                  )} />
-                </Box>
-                <Box sx={{ flex: '1 1 200px' }}>
-                  <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="From Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                  )} />
-                </Box>
-                <Box sx={{ flex: '0 1 200px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Manual From Location</Typography>}
-                  />
-                </Box>
-              </Box>
-
-              {/* Nested Manual From Location Section */}
-              {watchedCarrierInfo?.isManualFromLocation && (
-                <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                    Manual From Location
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      {renderZipCodeField('carrierInfo.manualAddress.zip')}
-                    </Box>
-                  </Box>
-                </Paper>
-              )}
-
-              {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                <Box sx={{ flex: '1 1 200px' }}>
-                  <Controller
-                    name="carrierInfo.toLocationType"
-                    control={control}
-                    defaultValue={[]}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Select To Location Type *"
-                        variant="standard"
-                        InputLabelProps={{ shrink: true }}
-                        SelectProps={{
-                          multiple: true,
-                          // Shows selected items as a comma-separated list in the closed field
-                          renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                        }}
-                      >
-                        <MenuItem value="Carrier">
-                          {/* 1. Add the Checkbox */}
-                          <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                          {/* 2. Wrap text in ListItemText for better alignment */}
-                          <ListItemText primary="Carrier" />
-                        </MenuItem>
-
-                        <MenuItem value="Consignee">
-                          <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                          <ListItemText primary="Consignee" />
-                        </MenuItem>
-                      </TextField>
-                    )}
-                  />
-
-                </Box>
-                <Box sx={{ flex: '1 1 200px' }}>
-                  <Controller name="carrierInfo.toLocation" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                  )} />
-                </Box>
-                <Box sx={{ flex: '0 1 200px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
-                  />
-                </Box>
-                <Box sx={{ flex: '0 1 150px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Pickup Alert</Typography>}
-                  />
-                </Box>
-              </Box>
-
-
-              {/* Routing and Conditional Airport Transfer */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 2 }}>
-                <Box sx={{ flex: '0 1 250px' }}>
-                  <Controller
-                    name="carrierInfo.selectRouting"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        select
-                        fullWidth
-                        label="Select Routing *"
-                        variant="standard"
-                        {...field}
-                        InputLabelProps={{ shrink: true }}
-                      >
-                        <MenuItem value="None">None</MenuItem>
-                        <MenuItem value="Line haul">Line haul</MenuItem>
-                        <MenuItem value="Line haul & Delivery">Line haul & Delivery</MenuItem>
-                      </TextField>
-                    )}
-                  />
-                </Box>
-
-                {/* Conditional Checkbox */}
-                {selectedRouting === "Line haul & Delivery" && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                {/* Row 1: Airport Pickup, Carrier, From Location, Manual Toggle */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                  <Box sx={{ flex: '0 1 150px' }}>
                     <FormControlLabel
-                      control={
-                        <Controller
-                          name="carrierInfo.airportTransfer"
-                          control={control}
-                          render={({ field }) => (
-                            <Checkbox
-                              {...field}
-                              checked={field.value}
-                              size="small"
-                              sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                            />
-                          )}
-                        />
-                      }
-                      label={<Typography variant="body2">Airport Transfer</Typography>}
+                      control={<Controller name="carrierInfo.airportPickup" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Airport Pickup</Typography>}
                     />
                   </Box>
-                )}
-              </Box>
-            </Paper>
-
-            {/* pickup accessorials section  */}
-
-            <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-              <AccordionSummary
-                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-              >
-                <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    onClick={() => setPickupAccModal(true)} // Opens the Dialog
-                    sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                  >
-                    Add Pickup Accessorial
-                  </Button>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller name="carrierInfo.selectCarrier" control={control} render={({ field }) => (
+                      <TextField {...field} select fullWidth label="Select Carrier *" variant="standard" InputLabelProps={{ shrink: true }}>
+                        <MenuItem value="R&M Carrier name">R&M Carrier name</MenuItem>
+                      </TextField>
+                    )} />
+                  </Box>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
+                      <TextField {...field} fullWidth label="From Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                    )} />
+                  </Box>
+                  <Box sx={{ flex: '0 1 200px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Manual From Location</Typography>}
+                    />
+                  </Box>
                 </Box>
 
-                <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                  <Table size="small">
-                    <TableHead sx={{ bgcolor: '#eee' }}>
-                      <TableRow>
-                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                        <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                        <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {pickupAccFields.map((field, index) => (
-                        <TableRow key={field.id}>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                          <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                          <TableCell>
-                            <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                          </TableCell>
-                          <TableCell align="right">
-                            <Stack direction="row" spacing={1} justifyContent="flex-end">
-                              <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                              <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
-                              <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                            </Stack>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </AccordionDetails>
-            </Accordion>
+                {/* Nested Manual From Location Section */}
+                {watchedCarrierInfo?.isManualFromLocation && (
+                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Manual From Location
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        {renderZipCodeField('carrierInfo.manualAddress.zip')}
+                      </Box>
+                    </Box>
+                  </Paper>
+                )}
 
-            <PickupAccessorialDialog
-              open={pickupAccModal}
-              onClose={() => setPickupAccModal(false)}
-              onSave={(selectedData) => replacePickupAcc(selectedData)}
-            />
-
-            {/* pick alert details section */}
-            <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-              <AccordionSummary
-                expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-              >
-                <Typography variant="subtitle1" fontWeight="bold">
-                  Pickup Alert Details
-                </Typography>
-              </AccordionSummary>
-
-              <AccordionDetails sx={{ pt: 3 }}>
-                {/* --- INBOUND NOTES SECTION --- */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 4 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                  >
-                    Inbound Notes
-                  </Typography>
-
-                  {/* Chip Gallery: Renders dynamically from the form array */}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {inboundNotes.map((note, idx) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          bgcolor: '#e3f2fd',
-                          borderRadius: '16px',
-                          px: 1.5,
-                          py: 0.5,
-                          fontSize: '0.65rem',
-                          display: 'flex',
-                          alignItems: 'center',
-                          border: '1px solid #bbdefb',
-                        }}
-                      >
-                        {note}
-                        <Box
-                          component="span"
-                          onClick={() => {
-                            const updatedNotes = inboundNotes.filter((_, i) => i !== idx);
-                            setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', updatedNotes);
-                          }}
-                          sx={{
-                            ml: 1,
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                            color: '#666',
-                            '&:hover': { color: '#a22' }
+                {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller
+                      name="carrierInfo.toLocationType"
+                      control={control}
+                      defaultValue={[]}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Select To Location Type *"
+                          variant="standard"
+                          InputLabelProps={{ shrink: true }}
+                          SelectProps={{
+                            multiple: true,
+                            // Shows selected items as a comma-separated list in the closed field
+                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
                           }}
                         >
-                          &times;
-                        </Box>
-                      </Box>
-                    ))}
-                    {/* Red "More" button style preserved from your UI design */}
-                    {/* {inboundNotes.length > 0 && (
-                      <Box sx={{ bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                        More...
-                      </Box>
-                    )} */}
+                          <MenuItem value="Carrier">
+                            {/* 1. Add the Checkbox */}
+                            <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                            {/* 2. Wrap text in ListItemText for better alignment */}
+                            <ListItemText primary="Carrier" />
+                          </MenuItem>
+
+                          <MenuItem value="Consignee">
+                            <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                            <ListItemText primary="Consignee" />
+                          </MenuItem>
+                        </TextField>
+                      )}
+                    />
+
                   </Box>
-
-                  {/* Input field captures the "Enter" key */}
-                  <Controller
-                    name="carrierInfo.pickupAlertDetails.currentNoteInput"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Notes"
-                        variant="standard"
-                        InputLabelProps={{ shrink: true }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault(); // Stop form submission
-                            const val = e.target.value.trim();
-                            if (val) {
-                              setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', [...inboundNotes, val]);
-                              field.onChange(''); // Clear the input field
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-                {/* --- EMAIL INFO SECTION --- */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative' }}>
-                  <Typography
-                    variant="caption"
-                    sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                  >
-                    Email Info
-                  </Typography>
-
-                  <Box sx={{ display: 'flex', gap: 4 }}>
-                    <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name="carrierInfo.pickupAlertDetails.primaryEmail"
-                        control={control}
-                        rules={{
-                          pattern: {
-                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Invalid email address"
-                          }
-                        }}
-                        render={({ field, fieldState: { error } }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Primary Email"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                            error={!!error}
-                            helperText={error?.message}
-                          />
-                        )}
-                      />
-                    </Box>
-
-                    <Box sx={{ flex: 2 }}>
-                      <Controller
-                        name="carrierInfo.pickupAlertDetails.additionalEmail"
-                        control={control}
-                        rules={{
-                          validate: (value) => {
-                            if (!value) return true;
-                            const emails = value.split(',').map(e => e.trim());
-                            const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-                            const allValid = emails.every(email => emailRegex.test(email));
-                            return allValid || "One or more emails are invalid (separate by comma)";
-                          }
-                        }}
-                        render={({ field, fieldState: { error } }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Additional Email"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                            placeholder="email1@test.com, email2@test.com"
-                            error={!!error}
-                            helperText={error?.message}
-                          />
-                        )}
-                      />
-                    </Box>
+                  <Box sx={{ flex: '1 1 200px' }}>
+                    <Controller name="carrierInfo.toLocation" control={control} render={({ field }) => (
+                      <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                    )} />
+                  </Box>
+                  <Box sx={{ flex: '0 1 200px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
+                    />
+                  </Box>
+                  <Box sx={{ flex: '0 1 150px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Pickup Alert</Typography>}
+                    />
                   </Box>
                 </Box>
 
+
+                {/* Routing and Conditional Airport Transfer */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 2 }}>
                   <Box sx={{ flex: '0 1 250px' }}>
                     <Controller
-                      name="carrierInfo.pickupAlertDetails.selectRouting"
+                      name="carrierInfo.selectRouting"
                       control={control}
                       render={({ field }) => (
                         <TextField
@@ -2179,12 +1915,12 @@ const ShipmentForm = () => {
                   </Box>
 
                   {/* Conditional Checkbox */}
-                  {pickupAlertSelectedRouting === "Line haul & Delivery" && (
+                  {selectedRouting === "Line haul & Delivery" && (
                     <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
                       <FormControlLabel
                         control={
                           <Controller
-                            name="carrierInfo.pickupAlertDetails.airportTransfer"
+                            name="carrierInfo.airportTransfer"
                             control={control}
                             render={({ field }) => (
                               <Checkbox
@@ -2201,897 +1937,1120 @@ const ShipmentForm = () => {
                     </Box>
                   )}
                 </Box>
-              </AccordionDetails>
-            </Accordion>
+              </Paper>
 
-            {/* line haul details section  */}
-            <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
-              </AccordionSummary>
+              {/* pickup accessorials section  */}
 
-              <AccordionDetails sx={{ pt: 2 }}>
-                {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
-                <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.carrier"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
-                          <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
-                        </TextField>
-                      )}
-                    />
-                  </Box>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.billNumber"
-                      control={control}
-                      render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
-                    />
-                  </Box>
-                  <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.fromLocation"
-                      control={control}
-                      render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                    />
-                    <Controller
-                      name="carrierInfo.lineHaul.manualFromLocation"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
-
-                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                {watchedCarrierInfo?.lineHaul.manualFromLocation && (
-                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual From Location
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeField('carrierInfo.lineHaul.manualFromLocationDetails.zip')}
-                      </Box>
-                    </Box>
-                  </Paper>
-                )}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.toLocationType"
-                      control={control}
-                      defaultValue={[]}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          select
-                          fullWidth
-                          label="Select To Type *"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                          SelectProps={{
-                            multiple: true,
-                            // Shows selected items as a comma-separated list in the closed field
-                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                          }}
-                        >
-                          <MenuItem value="Carrier">
-                            {/* 1. Add the Checkbox */}
-                            <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                            {/* 2. Wrap text in ListItemText for better alignment */}
-                            <ListItemText primary="Carrier" />
-                          </MenuItem>
-
-                          <MenuItem value="Consignee">
-                            <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                            <ListItemText primary="Consignee" />
-                          </MenuItem>
-                        </TextField>
-                      )}
-                    />
-
-
-
-                  </Box>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller name="carrierInfo.lineHaul.toLocation" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                    )} />
-                  </Box>
-                  <Box>
-                    <Controller
-                      name="carrierInfo.lineHaul.manualToLocation"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
-                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                {watchedCarrierInfo?.lineHaul.manualToLocation && (
-                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual To Location
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeField('carrierInfo.lineHaul.manualToLocationDetails.zip')}
-                      </Box>
-                    </Box>
-                  </Paper>
-                )}
-                {/* ETA and Weight Section - Flexbox Layout */}
-                <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
-                  {/* ETA Date */}
-                  <Box sx={{ flex: 1 }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.etaDate"
-                      control={control}
-                      defaultValue="11/30/2025"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="ETA Date"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
+              {(selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul") && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                <AccordionSummary
+                  expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                  sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
+                </AccordionSummary>
+                <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      onClick={() => setPickupAccModal(true)} // Opens the Dialog
+                      sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                    >
+                      Add Pickup Accessorial
+                    </Button>
                   </Box>
 
-                  {/* ETA Time */}
-                  <Box sx={{ flex: 1 }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.etaTime"
-                      control={control}
-                      defaultValue="11:00 - 18:00"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="ETA Time"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-
-                  {/* Pcs / Wght */}
-                  <Box sx={{ flex: 1.5 }}>
-                    <Controller
-                      name="carrierInfo.lineHaul.pcsWeight"
-                      control={control}
-                      defaultValue="1 @ 800 lbs"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Pcs / Wght"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
-
-                <Box sx={{ flex: '0 1 200px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Add Accessorial</Typography>}
-                  />
-                </Box>
-
-                {/* ACCESSORIALS: Flexbox for header */}
-                <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 3 }}>
-                  <AccordionSummary
-                    expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                    sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                  >
-                    <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => setLineHaulAccModal(true)} // Opens the Dialog
-                        sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                      >
-                        Add Accessorial
-                      </Button>
-                    </Box>
-
-                    <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                      <Table size="small">
-                        <TableHead sx={{ bgcolor: '#eee' }}>
-                          <TableRow>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                            <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                  <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: '#eee' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                          <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {pickupAccFields.map((field, index) => (
+                          <TableRow key={field.id}>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                            <TableCell>
+                              <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                            </TableCell>
+                            <TableCell align="right">
+                              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
+                                <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                              </Stack>
+                            </TableCell>
                           </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {lineHaulAccFields.map((field, index) => (
-                            <TableRow key={field.id}>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                              <TableCell>
-                                <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                                  <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
-                                  <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </AccordionDetails>
+              </Accordion>
+              }
 
-                <PickupAccessorialDialog
-                  open={lineHaulAccModal}
-                  onClose={() => setLineHaulAccModal(false)}
-                  onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
-                />
+              <PickupAccessorialDialog
+                open={pickupAccModal}
+                onClose={() => setPickupAccModal(false)}
+                onSave={(selectedData) => replacePickupAcc(selectedData)}
+              />
 
-
-                {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                    Line-haul Notes
+              {/* pick alert details section */}
+              {(selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul") && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                <AccordionSummary
+                  expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                  sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                >
+                  <Typography variant="subtitle1" fontWeight="bold">
+                    Pickup Alert Details
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {lineHaulNotes.map((note, idx) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          bgcolor: '#e3f2fd',
-                          borderRadius: '16px',
-                          px: 1.5,
-                          py: 0.5,
-                          fontSize: '0.65rem',
-                          border: '1px solid #bbdefb'
-                        }}
-                      >
-                        {note}
-                        <Box
-                          component="span"
-                          onClick={() => {
-                            const updatedNotes = lineHaulNotes.filter((_, i) => i !== idx);
-                            setValue('carrierInfo.lineHaul.lineHaulNotes', updatedNotes);
-                          }}
-                          sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                        >
-                          &times;
-                        </Box>
-                      </Box>
-                    ))}
-                    {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
-                  </Box>
+                </AccordionSummary>
 
-                  <Controller
-                    name="carrierInfo.lineHaul.currentNoteInput"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Notes"
-                        variant="standard"
-                        placeholder="Type and press Enter"
-                        InputLabelProps={{ shrink: true }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = e.target.value.trim();
-                            if (val) {
-                              setValue('carrierInfo.lineHaul.lineHaulNotes', [...lineHaulNotes, val]);
-                              field.onChange('');
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-                {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                <Box sx={{ display: 'flex', gap: 4 }}>
-                  <Controller
-                    name="carrierInfo.lineHaul.deliveryIncluded"
-                    control={control}
-                    render={({ field }) => (
-                      <FormControlLabel
-                        sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                        control={<Checkbox {...field} checked={field.value} size="small" />}
-                        label={<Typography sx={{ fontSize: '0.8rem' }}>Delivery Included</Typography>}
-                      />
-                    )}
-                  />
-                  <Controller
-                    name="carrierInfo.lineHaul.airportTransfer"
-                    control={control}
-                    render={({ field }) => (
-                      <FormControlLabel
-                        sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                        control={<Checkbox {...field} checked={field.value} size="small" />}
-                        label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
-                      />
-                    )}
-                  />
-
-                </Box>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* delivery details section  */}
-            <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-              <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                <Typography variant="subtitle1" fontWeight="bold">Delivery Details</Typography>
-              </AccordionSummary>
-
-              <AccordionDetails sx={{ pt: 2 }}>
-                {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
-                <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.carrier"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
-                          <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
-                        </TextField>
-                      )}
-                    />
-                  </Box>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.billNumber"
-                      control={control}
-                      render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
-                    />
-                  </Box>
-                  <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.fromLocation"
-                      control={control}
-                      render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                    />
-                    <Controller
-                      name="carrierInfo.deliveryDetails.manualFromLocation"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
-
-                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                {watchedCarrierInfo?.deliveryDetails.manualFromLocation && (
-                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual From Location
+                <AccordionDetails sx={{ pt: 3 }}>
+                  {/* --- INBOUND NOTES SECTION --- */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 4 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                    >
+                      Inbound Notes
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+
+                    {/* Chip Gallery: Renders dynamically from the form array */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {inboundNotes.map((note, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            bgcolor: '#e3f2fd',
+                            borderRadius: '16px',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.65rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            border: '1px solid #bbdefb',
+                          }}
+                        >
+                          {note}
+                          <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = inboundNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', updatedNotes);
+                            }}
+                            sx={{
+                              ml: 1,
+                              cursor: 'pointer',
+                              fontWeight: 'bold',
+                              color: '#666',
+                              '&:hover': { color: '#a22' }
+                            }}
+                          >
+                            &times;
+                          </Box>
+                        </Box>
+                      ))}
+                      {/* Red "More" button style preserved from your UI design */}
+                      {/* {inboundNotes.length > 0 && (
+                      <Box sx={{ bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                        More...
                       </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeField('carrierInfo.deliveryDetails.manualFromLocationDetails.zip')}
-                      </Box>
+                    )} */}
                     </Box>
-                  </Paper>
-                )}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                  <Box sx={{ flex: '1 1 200px' }}>
+
+                    {/* Input field captures the "Enter" key */}
                     <Controller
-                      name="carrierInfo.deliveryDetails.toLocationType"
+                      name="carrierInfo.pickupAlertDetails.currentNoteInput"
                       control={control}
-                      defaultValue={[]}
+                      defaultValue=""
                       render={({ field }) => (
                         <TextField
                           {...field}
-                          select
                           fullWidth
-                          label="Select To Type *"
+                          label="Notes"
                           variant="standard"
                           InputLabelProps={{ shrink: true }}
-                          SelectProps={{
-                            multiple: true,
-                            // Shows selected items as a comma-separated list in the closed field
-                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault(); // Stop form submission
+                              const val = e.target.value.trim();
+                              if (val) {
+                                setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', [...inboundNotes, val]);
+                                field.onChange(''); // Clear the input field
+                              }
+                            }
                           }}
-                        >
-                          <MenuItem value="Carrier">
-                            {/* 1. Add the Checkbox */}
-                            <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                            {/* 2. Wrap text in ListItemText for better alignment */}
-                            <ListItemText primary="Carrier" />
-                          </MenuItem>
-
-                          <MenuItem value="Consignee">
-                            <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                            <ListItemText primary="Consignee" />
-                          </MenuItem>
-                        </TextField>
-                      )}
-                    />
-
-
-
-                  </Box>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller name="carrierInfo.deliveryDetails.toLocation" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                    )} />
-                  </Box>
-                  <Box>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.manualToLocation"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
                         />
                       )}
                     />
                   </Box>
-                </Box>
-                {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                {watchedCarrierInfo?.deliveryDetails.manualToLocation && (
-                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual To Location
+
+                  {/* --- EMAIL INFO SECTION --- */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative' }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                    >
+                      Email Info
                     </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+
+                    <Box sx={{ display: 'flex', gap: 4 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Controller
+                          name="carrierInfo.pickupAlertDetails.primaryEmail"
+                          control={control}
+                          rules={{
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                              message: "Invalid email address"
+                            }
+                          }}
+                          render={({ field, fieldState: { error } }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Primary Email"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          )}
+                        />
                       </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeField('carrierInfo.deliveryDetails.manualToLocationDetails.zip')}
+
+                      <Box sx={{ flex: 2 }}>
+                        <Controller
+                          name="carrierInfo.pickupAlertDetails.additionalEmail"
+                          control={control}
+                          rules={{
+                            validate: (value) => {
+                              if (!value) return true;
+                              const emails = value.split(',').map(e => e.trim());
+                              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                              const allValid = emails.every(email => emailRegex.test(email));
+                              return allValid || "One or more emails are invalid (separate by comma)";
+                            }
+                          }}
+                          render={({ field, fieldState: { error } }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Additional Email"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              placeholder="email1@test.com, email2@test.com"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          )}
+                        />
                       </Box>
                     </Box>
-                  </Paper>
-                )}
-                {/* ETA and Weight Section - Flexbox Layout */}
-                <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
-                  {/* ETA Date */}
-                  <Box sx={{ flex: 1 }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.etaDate"
-                      control={control}
-                      defaultValue="11/30/2025"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="ETA Date"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
                   </Box>
 
-                  {/* ETA Time */}
-                  <Box sx={{ flex: 1 }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.etaTime"
-                      control={control}
-                      defaultValue="11:00 - 18:00"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="ETA Time"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
+                </AccordionDetails>
+              </Accordion>}
 
-                  {/* Pcs / Wght */}
-                  <Box sx={{ flex: 1.5 }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.pcsWeight"
-                      control={control}
-                      defaultValue="1 @ 800 lbs"
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Pcs / Wght"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-                  <Box sx={{ flex: 1.5 }}>
-                    <Controller
-                      name="carrierInfo.deliveryDetails.agent"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Agent"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-                </Box>
+              {/* line haul details section  */}
+              {selectedRouting === "None" && <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
+                </AccordionSummary>
 
-                <Box sx={{ flex: '0 1 200px' }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Add Accessorial</Typography>}
-                  />
-                </Box>
-
-                {/* ACCESSORIALS: Flexbox for header */}
-                <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
-                  <AccordionSummary
-                    expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                    sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                  >
-                    <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
-                  </AccordionSummary>
-                  <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => setDeliveryAccModal(true)} // Opens the Dialog
-                        sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                      >
-                        Add Accessorial
-                      </Button>
+                <AccordionDetails sx={{ pt: 2 }}>
+                  {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
+                  <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.lineHaul.carrier"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
+                            <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
+                          </TextField>
+                        )}
+                      />
                     </Box>
-
-                    <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                      <Table size="small">
-                        <TableHead sx={{ bgcolor: '#eee' }}>
-                          <TableRow>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                            <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {deliveryAccFields.map((field, index) => (
-                            <TableRow key={field.id}>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                              <TableCell>
-                                <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                              </TableCell>
-                              <TableCell align="right">
-                                <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                  <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                                  <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
-                                  <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                                </Stack>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </AccordionDetails>
-                </Accordion>
-
-                <PickupAccessorialDialog
-                  open={deliveryAccModal}
-                  onClose={() => setDeliveryAccModal(false)}
-                  onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
-                />
-
-                <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
-                  <FormControlLabel
-                    control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                    label={<Typography variant="body2">Delivery Alert </Typography>}
-                  />
-                </Box>
-
-                {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                    Line-haul Notes
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {deliveryLineHaulNotes.map((note, idx) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          bgcolor: '#e3f2fd',
-                          borderRadius: '16px',
-                          px: 1.5,
-                          py: 0.5,
-                          fontSize: '0.65rem',
-                          border: '1px solid #bbdefb'
-                        }}
-                      >
-                        {note}
-                        <Box
-                          component="span"
-                          onClick={() => {
-                            const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
-                            setValue('carrierInfo.deliveryDetails.lineHaulNotes', updatedNotes);
-                          }}
-                          sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                        >
-                          &times;
-                        </Box>
-                      </Box>
-                    ))}
-                    {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.lineHaul.billNumber"
+                        control={control}
+                        render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                      <Controller
+                        name="carrierInfo.lineHaul.fromLocation"
+                        control={control}
+                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                      />
+                      <Controller
+                        name="carrierInfo.lineHaul.manualFromLocation"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                          />
+                        )}
+                      />
+                    </Box>
                   </Box>
 
-                  <Controller
-                    name="carrierInfo.deliveryDetails.currentNoteInput"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Notes"
-                        variant="standard"
-                        placeholder="Type and press Enter"
-                        InputLabelProps={{ shrink: true }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = e.target.value.trim();
-                            if (val) {
-                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', [...deliveryLineHaulNotes, val]);
-                              field.onChange('');
-                            }
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-                {/* delivery notes  */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                    Delivery Notes
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    {deliveryNotes.map((note, idx) => (
-                      <Box
-                        key={idx}
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          bgcolor: '#e3f2fd',
-                          borderRadius: '16px',
-                          px: 1.5,
-                          py: 0.5,
-                          fontSize: '0.65rem',
-                          border: '1px solid #bbdefb'
-                        }}
-                      >
-                        {note}
-                        <Box
-                          component="span"
-                          onClick={() => {
-                            const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
-                            setValue('carrierInfo.deliveryDetails.deliveryNotes', updatedNotes);
-                          }}
-                          sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                        >
-                          &times;
+                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                  {watchedCarrierInfo?.lineHaul.manualFromLocation && (
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual From Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeField('carrierInfo.lineHaul.manualFromLocationDetails.zip')}
                         </Box>
                       </Box>
-                    ))}
-                    {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
-                  </Box>
+                    </Paper>
+                  )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.lineHaul.toLocationType"
+                        control={control}
+                        defaultValue={[]}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            select
+                            fullWidth
+                            label="Select To Type *"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              multiple: true,
+                              // Shows selected items as a comma-separated list in the closed field
+                              renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                            }}
+                          >
+                            <MenuItem value="Carrier">
+                              {/* 1. Add the Checkbox */}
+                              <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                              {/* 2. Wrap text in ListItemText for better alignment */}
+                              <ListItemText primary="Carrier" />
+                            </MenuItem>
 
-                  <Controller
-                    name="carrierInfo.deliveryDetails.currentNoteInput"
-                    control={control}
-                    defaultValue=""
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Notes"
-                        variant="standard"
-                        placeholder="Type and press Enter"
-                        InputLabelProps={{ shrink: true }}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            e.preventDefault();
-                            const val = e.target.value.trim();
-                            if (val) {
-                              setValue('carrierInfo.deliveryDetails.deliveryNotes', [...deliveryNotes, val]);
-                              field.onChange('');
-                            }
-                          }
-                        }}
+                            <MenuItem value="Consignee">
+                              <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                              <ListItemText primary="Consignee" />
+                            </MenuItem>
+                          </TextField>
+                        )}
                       />
-                    )}
-                  />
-                </Box>
 
-                {/* --- EMAIL INFO SECTION --- */}
-                <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb:3 }}>
-                  <Typography
-                    variant="caption"
-                    sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                  >
-                    Email Info
-                  </Typography>
 
-                  <Box sx={{ display: 'flex', gap: 4 }}>
+
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller name="carrierInfo.lineHaul.toLocation" control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                      )} />
+                    </Box>
+                    <Box>
+                      <Controller
+                        name="carrierInfo.lineHaul.manualToLocation"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                  {watchedCarrierInfo?.lineHaul.manualToLocation && (
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual To Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeField('carrierInfo.lineHaul.manualToLocationDetails.zip')}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  )}
+                  {/* ETA and Weight Section - Flexbox Layout */}
+                  <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
+                    {/* ETA Date */}
                     <Box sx={{ flex: 1 }}>
                       <Controller
-                        name="carrierInfo.deliveryDetails.primaryEmail"
+                        name="carrierInfo.lineHaul.etaDate"
                         control={control}
-                        rules={{
-                          pattern: {
-                            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                            message: "Invalid email address"
-                          }
-                        }}
-                        render={({ field, fieldState: { error } }) => (
+                        defaultValue="11/30/2025"
+                        render={({ field }) => (
                           <TextField
                             {...field}
                             fullWidth
-                            label="Primary Email"
+                            label="ETA Date"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
-                            error={!!error}
-                            helperText={error?.message}
                           />
                         )}
                       />
                     </Box>
 
-                    <Box sx={{ flex: 2 }}>
+                    {/* ETA Time */}
+                    <Box sx={{ flex: 1 }}>
                       <Controller
-                        name="carrierInfo.deliveryDetails.additionalEmail"
+                        name="carrierInfo.lineHaul.etaTime"
                         control={control}
-                        rules={{
-                          validate: (value) => {
-                            if (!value) return true;
-                            const emails = value.split(',').map(e => e.trim());
-                            const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-                            const allValid = emails.every(email => emailRegex.test(email));
-                            return allValid || "One or more emails are invalid (separate by comma)";
-                          }
-                        }}
-                        render={({ field, fieldState: { error } }) => (
+                        defaultValue="11:00 - 18:00"
+                        render={({ field }) => (
                           <TextField
                             {...field}
                             fullWidth
-                            label="Additional Email"
+                            label="ETA Time"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
-                            placeholder="email1@test.com, email2@test.com"
-                            error={!!error}
-                            helperText={error?.message}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    {/* Pcs / Wght */}
+                    <Box sx={{ flex: 1.5 }}>
+                      <Controller
+                        name="carrierInfo.lineHaul.pcsWeight"
+                        control={control}
+                        defaultValue="1 @ 800 lbs"
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Pcs / Wght"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
                           />
                         )}
                       />
                     </Box>
                   </Box>
-                </Box>
 
+                  <Box sx={{ flex: '0 1 200px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Add Accessorial</Typography>}
+                    />
+                  </Box>
 
-                {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                <Box sx={{ display: 'flex', gap: 4 }}>
+                  {/* ACCESSORIALS: Flexbox for header */}
+                  <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 3 }}>
+                    <AccordionSummary
+                      expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                      sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                    >
+                      <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => setLineHaulAccModal(true)} // Opens the Dialog
+                          sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                        >
+                          Add Accessorial
+                        </Button>
+                      </Box>
 
-                  <Controller
-                    name="carrierInfo.lineHaul.airportTransfer"
-                    control={control}
-                    render={({ field }) => (
-                      <FormControlLabel
-                        sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                        control={<Checkbox {...field} checked={field.value} size="small" />}
-                        label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
-                      />
-                    )}
+                      <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                        <Table size="small">
+                          <TableHead sx={{ bgcolor: '#eee' }}>
+                            <TableRow>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                              <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {lineHaulAccFields.map((field, index) => (
+                              <TableRow key={field.id}>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                <TableCell>
+                                  <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
+                                    <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                    <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                  </Stack>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  <PickupAccessorialDialog
+                    open={lineHaulAccModal}
+                    onClose={() => setLineHaulAccModal(false)}
+                    onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
                   />
 
-                </Box>
-              </AccordionDetails>
-            </Accordion>
+
+                  {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Line-haul Notes
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {lineHaulNotes.map((note, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: '#e3f2fd',
+                            borderRadius: '16px',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.65rem',
+                            border: '1px solid #bbdefb'
+                          }}
+                        >
+                          {note}
+                          <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = lineHaulNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.lineHaul.lineHaulNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box>
+                        </Box>
+                      ))}
+                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                    </Box>
+
+                    <Controller
+                      name="carrierInfo.lineHaul.currentNoteInput"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Notes"
+                          variant="standard"
+                          placeholder="Type and press Enter"
+                          InputLabelProps={{ shrink: true }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = e.target.value.trim();
+                              if (val) {
+                                setValue('carrierInfo.lineHaul.lineHaulNotes', [...lineHaulNotes, val]);
+                                field.onChange('');
+                              }
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+
+                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+                  <Box sx={{ display: 'flex', gap: 4 }}>
+                    <Controller
+                      name="carrierInfo.lineHaul.deliveryIncluded"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Delivery Included</Typography>}
+                        />
+                      )}
+                    />
+                    <Controller
+                      name="carrierInfo.lineHaul.airportTransfer"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
+                        />
+                      )}
+                    />
+
+                  </Box>
+                </AccordionDetails>
+              </Accordion>}
+
+              {/* delivery details section  */}
+              {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Delivery Details</Typography>
+                </AccordionSummary>
+
+                <AccordionDetails sx={{ pt: 2 }}>
+                  {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
+                  <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.carrier"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
+                            <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
+                          </TextField>
+                        )}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.billNumber"
+                        control={control}
+                        render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.fromLocation"
+                        control={control}
+                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                      />
+                      <Controller
+                        name="carrierInfo.deliveryDetails.manualFromLocation"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+
+                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                  {watchedCarrierInfo?.deliveryDetails.manualFromLocation && (
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual From Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeField('carrierInfo.deliveryDetails.manualFromLocationDetails.zip')}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  )}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.toLocationType"
+                        control={control}
+                        defaultValue={[]}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            select
+                            fullWidth
+                            label="Select To Type *"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              multiple: true,
+                              // Shows selected items as a comma-separated list in the closed field
+                              renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                            }}
+                          >
+                            <MenuItem value="Carrier">
+                              {/* 1. Add the Checkbox */}
+                              <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                              {/* 2. Wrap text in ListItemText for better alignment */}
+                              <ListItemText primary="Carrier" />
+                            </MenuItem>
+
+                            <MenuItem value="Consignee">
+                              <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                              <ListItemText primary="Consignee" />
+                            </MenuItem>
+                          </TextField>
+                        )}
+                      />
+
+
+
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller name="carrierInfo.deliveryDetails.toLocation" control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                      )} />
+                    </Box>
+                    <Box>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.manualToLocation"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                  {watchedCarrierInfo?.deliveryDetails.manualToLocation && (
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual To Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeField('carrierInfo.deliveryDetails.manualToLocationDetails.zip')}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  )}
+                  {/* ETA and Weight Section - Flexbox Layout */}
+                  <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
+                    {/* ETA Date */}
+                    <Box sx={{ flex: 1 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.etaDate"
+                        control={control}
+                        defaultValue="11/30/2025"
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="ETA Date"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    {/* ETA Time */}
+                    <Box sx={{ flex: 1 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.etaTime"
+                        control={control}
+                        defaultValue="11:00 - 18:00"
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="ETA Time"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    {/* Pcs / Wght */}
+                    <Box sx={{ flex: 1.5 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.pcsWeight"
+                        control={control}
+                        defaultValue="1 @ 800 lbs"
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Pcs / Wght"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+                    <Box sx={{ flex: 1.5 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.agent"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Agent"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ flex: '0 1 200px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Add Accessorial</Typography>}
+                    />
+                  </Box>
+
+                  {/* ACCESSORIALS: Flexbox for header */}
+                  <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+                    <AccordionSummary
+                      expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                      sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                    >
+                      <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                    </AccordionSummary>
+                    <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                        <Button
+                          variant="contained"
+                          size="small"
+                          onClick={() => setDeliveryAccModal(true)} // Opens the Dialog
+                          sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                        >
+                          Add Accessorial
+                        </Button>
+                      </Box>
+
+                      <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                        <Table size="small">
+                          <TableHead sx={{ bgcolor: '#eee' }}>
+                            <TableRow>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                              <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {deliveryAccFields.map((field, index) => (
+                              <TableRow key={field.id}>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                <TableCell>
+                                  <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                </TableCell>
+                                <TableCell align="right">
+                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                    <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
+                                    <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                    <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                  </Stack>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    </AccordionDetails>
+                  </Accordion>
+
+                  <PickupAccessorialDialog
+                    open={deliveryAccModal}
+                    onClose={() => setDeliveryAccModal(false)}
+                    onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
+                  />
+
+                  <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Delivery Alert </Typography>}
+                    />
+                  </Box>
+
+                  {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Line-haul Notes
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {deliveryLineHaulNotes.map((note, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: '#e3f2fd',
+                            borderRadius: '16px',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.65rem',
+                            border: '1px solid #bbdefb'
+                          }}
+                        >
+                          {note}
+                          <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box>
+                        </Box>
+                      ))}
+                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                    </Box>
+
+                    <Controller
+                      name="carrierInfo.deliveryDetails.currentNoteInput"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Notes"
+                          variant="standard"
+                          placeholder="Type and press Enter"
+                          InputLabelProps={{ shrink: true }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = e.target.value.trim();
+                              if (val) {
+                                setValue('carrierInfo.deliveryDetails.lineHaulNotes', [...deliveryLineHaulNotes, val]);
+                                field.onChange('');
+                              }
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+
+                  {/* delivery notes  */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Delivery Notes
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                      {deliveryNotes.map((note, idx) => (
+                        <Box
+                          key={idx}
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            bgcolor: '#e3f2fd',
+                            borderRadius: '16px',
+                            px: 1.5,
+                            py: 0.5,
+                            fontSize: '0.65rem',
+                            border: '1px solid #bbdefb'
+                          }}
+                        >
+                          {note}
+                          <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.deliveryDetails.deliveryNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box>
+                        </Box>
+                      ))}
+                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                    </Box>
+
+                    <Controller
+                      name="carrierInfo.deliveryDetails.currentNoteInput"
+                      control={control}
+                      defaultValue=""
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          fullWidth
+                          label="Notes"
+                          variant="standard"
+                          placeholder="Type and press Enter"
+                          InputLabelProps={{ shrink: true }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const val = e.target.value.trim();
+                              if (val) {
+                                setValue('carrierInfo.deliveryDetails.deliveryNotes', [...deliveryNotes, val]);
+                                field.onChange('');
+                              }
+                            }
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+
+                  {/* --- EMAIL INFO SECTION --- */}
+                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                    >
+                      Email Info
+                    </Typography>
+
+                    <Box sx={{ display: 'flex', gap: 4 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.primaryEmail"
+                          control={control}
+                          rules={{
+                            pattern: {
+                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                              message: "Invalid email address"
+                            }
+                          }}
+                          render={({ field, fieldState: { error } }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Primary Email"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      <Box sx={{ flex: 2 }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.additionalEmail"
+                          control={control}
+                          rules={{
+                            validate: (value) => {
+                              if (!value) return true;
+                              const emails = value.split(',').map(e => e.trim());
+                              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                              const allValid = emails.every(email => emailRegex.test(email));
+                              return allValid || "One or more emails are invalid (separate by comma)";
+                            }
+                          }}
+                          render={({ field, fieldState: { error } }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Additional Email"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              placeholder="email1@test.com, email2@test.com"
+                              error={!!error}
+                              helperText={error?.message}
+                            />
+                          )}
+                        />
+                      </Box>
+                    </Box>
+                  </Box>
+
+
+                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+                  <Box sx={{ display: 'flex', gap: 4 }}>
+
+                    <Controller
+                      name="carrierInfo.lineHaul.airportTransfer"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
+                        />
+                      )}
+                    />
+
+                  </Box>
+                </AccordionDetails>
+              </Accordion>
+              }
+
+            </>}
 
           </Paper>
         )}

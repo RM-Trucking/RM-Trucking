@@ -773,7 +773,11 @@ const ShipmentForm = () => {
         airportTransfer: false,
         pickupAccessorials: [],
         pickupAlertDetails: {
-          inboundNotesArray: [],
+          inboundNotesArray: ['Please setup for pickup today ____ and drop to Forward Air',
+            'Setup for pickup today ____ ',
+            'Drop to Forward Air',
+          ],
+          pickupNotes: '',
           primaryEmail: 'dayton@email.com',
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
         },
@@ -804,7 +808,11 @@ const ShipmentForm = () => {
           pcsWeight: '',
           linehaulAddAcc: false,
           linehaulAccessorials: [],
-          lineHaulNotes: [],
+          lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
+            'Setup for pickup today ____ ',
+            'Drop to Forward Air',
+          ],
+          lineHaulNotes: '',
           deliveryIncluded: false,
           airportTransfer: false,
         },
@@ -837,8 +845,14 @@ const ShipmentForm = () => {
           deliveryAddAcc: false,
           deliveryAlert: false,
           deliveryAccessorials: [],
-          lineHaulNotes: [],
-          deliveryNotes: [],
+          lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
+            'Setup for pickup today ____ ',
+            'Drop to Forward Air',],
+          lineHaulNotes : '',
+          deliveryNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
+            'Setup for pickup today ____ ',
+            'Drop to Forward Air',],
+          deliveryNotes : '',
           primaryEmail: 'dayton@email.com',
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
           airportTransfer: false,
@@ -945,17 +959,17 @@ const ShipmentForm = () => {
     control,
     name: 'carrierInfo.pickupAlertDetails.inboundNotesArray',
   });
-  const lineHaulNotes = useWatch({
+  const lineHaulNotesArr = useWatch({
     control,
-    name: 'carrierInfo.lineHaul.lineHaulNotes',
+    name: 'carrierInfo.lineHaul.lineHaulNotesArr',
   });
-  const deliveryLineHaulNotes = useWatch({
+  const deliveryLineHaulNotesArr = useWatch({
     control,
-    name: 'carrierInfo.deliveryDetails.lineHaulNotes',
+    name: 'carrierInfo.deliveryDetails.lineHaulNotesArr',
   });
-  const deliveryNotes = useWatch({
+  const deliveryNotesArr = useWatch({
     control,
-    name: 'carrierInfo.deliveryDetails.deliveryNotes',
+    name: 'carrierInfo.deliveryDetails.deliveryNotesArr',
   });
 
   const handleNext = async () => {
@@ -2038,13 +2052,15 @@ const ShipmentForm = () => {
                             alignItems: 'center',
                             border: '1px solid #bbdefb',
                           }}
+                          onClick={() => {
+                            setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
+                          }}
                         >
                           {note}
-                          <Box
+                          {/* <Box
                             component="span"
                             onClick={() => {
-                              const updatedNotes = inboundNotes.filter((_, i) => i !== idx);
-                              setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', updatedNotes);
+                              setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
                             }}
                             sx={{
                               ml: 1,
@@ -2055,7 +2071,7 @@ const ShipmentForm = () => {
                             }}
                           >
                             &times;
-                          </Box>
+                          </Box> */}
                         </Box>
                       ))}
                       {/* Red "More" button style preserved from your UI design */}
@@ -2068,7 +2084,7 @@ const ShipmentForm = () => {
 
                     {/* Input field captures the "Enter" key */}
                     <Controller
-                      name="carrierInfo.pickupAlertDetails.currentNoteInput"
+                      name="carrierInfo.pickupAlertDetails.pickupNotes"
                       control={control}
                       defaultValue=""
                       render={({ field }) => (
@@ -2078,16 +2094,6 @@ const ShipmentForm = () => {
                           label="Notes"
                           variant="standard"
                           InputLabelProps={{ shrink: true }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault(); // Stop form submission
-                              const val = e.target.value.trim();
-                              if (val) {
-                                setValue('carrierInfo.pickupAlertDetails.inboundNotesArray', [...inboundNotes, val]);
-                                field.onChange(''); // Clear the input field
-                              }
-                            }
-                          }}
                         />
                       )}
                     />
@@ -2446,7 +2452,7 @@ const ShipmentForm = () => {
                       Line-haul Notes
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {lineHaulNotes.map((note, idx) => (
+                      {lineHaulNotesArr.map((note, idx) => (
                         <Box
                           key={idx}
                           sx={{
@@ -2459,9 +2465,12 @@ const ShipmentForm = () => {
                             fontSize: '0.65rem',
                             border: '1px solid #bbdefb'
                           }}
+                          onClick={() => {
+                            setValue('carrierInfo.lineHaul.lineHaulNotes', note);
+                          }}
                         >
                           {note}
-                          <Box
+                          {/* <Box
                             component="span"
                             onClick={() => {
                               const updatedNotes = lineHaulNotes.filter((_, i) => i !== idx);
@@ -2470,7 +2479,7 @@ const ShipmentForm = () => {
                             sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
                           >
                             &times;
-                          </Box>
+                          </Box> */}
                         </Box>
                       ))}
                       {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
@@ -2479,7 +2488,7 @@ const ShipmentForm = () => {
                     </Box>
 
                     <Controller
-                      name="carrierInfo.lineHaul.currentNoteInput"
+                      name="carrierInfo.lineHaul.lineHaulNotes"
                       control={control}
                       defaultValue=""
                       render={({ field }) => (
@@ -2490,16 +2499,6 @@ const ShipmentForm = () => {
                           variant="standard"
                           placeholder="Type and press Enter"
                           InputLabelProps={{ shrink: true }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const val = e.target.value.trim();
-                              if (val) {
-                                setValue('carrierInfo.lineHaul.lineHaulNotes', [...lineHaulNotes, val]);
-                                field.onChange('');
-                              }
-                            }
-                          }}
                         />
                       )}
                     />
@@ -2841,7 +2840,7 @@ const ShipmentForm = () => {
                       Line-haul Notes
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {deliveryLineHaulNotes.map((note, idx) => (
+                      {deliveryLineHaulNotesArr.map((note, idx) => (
                         <Box
                           key={idx}
                           sx={{
@@ -2854,9 +2853,12 @@ const ShipmentForm = () => {
                             fontSize: '0.65rem',
                             border: '1px solid #bbdefb'
                           }}
+                          onClick={() => {
+                            setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
+                          }}
                         >
                           {note}
-                          <Box
+                          {/* <Box
                             component="span"
                             onClick={() => {
                               const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
@@ -2865,7 +2867,7 @@ const ShipmentForm = () => {
                             sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
                           >
                             &times;
-                          </Box>
+                          </Box> */}
                         </Box>
                       ))}
                       {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
@@ -2874,7 +2876,7 @@ const ShipmentForm = () => {
                     </Box>
 
                     <Controller
-                      name="carrierInfo.deliveryDetails.currentNoteInput"
+                      name="carrierInfo.deliveryDetails.lineHaulNotes"
                       control={control}
                       defaultValue=""
                       render={({ field }) => (
@@ -2885,16 +2887,6 @@ const ShipmentForm = () => {
                           variant="standard"
                           placeholder="Type and press Enter"
                           InputLabelProps={{ shrink: true }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const val = e.target.value.trim();
-                              if (val) {
-                                setValue('carrierInfo.deliveryDetails.lineHaulNotes', [...deliveryLineHaulNotes, val]);
-                                field.onChange('');
-                              }
-                            }
-                          }}
                         />
                       )}
                     />
@@ -2906,7 +2898,7 @@ const ShipmentForm = () => {
                       Delivery Notes
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {deliveryNotes.map((note, idx) => (
+                      {deliveryNotesArr.map((note, idx) => (
                         <Box
                           key={idx}
                           sx={{
@@ -2919,9 +2911,12 @@ const ShipmentForm = () => {
                             fontSize: '0.65rem',
                             border: '1px solid #bbdefb'
                           }}
+                          onClick={() => {
+                            setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
+                          }}
                         >
                           {note}
-                          <Box
+                          {/* <Box
                             component="span"
                             onClick={() => {
                               const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
@@ -2930,7 +2925,7 @@ const ShipmentForm = () => {
                             sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
                           >
                             &times;
-                          </Box>
+                          </Box> */}
                         </Box>
                       ))}
                       {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
@@ -2939,7 +2934,7 @@ const ShipmentForm = () => {
                     </Box>
 
                     <Controller
-                      name="carrierInfo.deliveryDetails.currentNoteInput"
+                      name="carrierInfo.deliveryDetails.deliveryNotes"
                       control={control}
                       defaultValue=""
                       render={({ field }) => (
@@ -2950,16 +2945,6 @@ const ShipmentForm = () => {
                           variant="standard"
                           placeholder="Type and press Enter"
                           InputLabelProps={{ shrink: true }}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              const val = e.target.value.trim();
-                              if (val) {
-                                setValue('carrierInfo.deliveryDetails.deliveryNotes', [...deliveryNotes, val]);
-                                field.onChange('');
-                              }
-                            }
-                          }}
                         />
                       )}
                     />

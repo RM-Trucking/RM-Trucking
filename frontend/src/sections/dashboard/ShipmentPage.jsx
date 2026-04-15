@@ -7,7 +7,7 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText,
+  TableBody, ListItemText, CircularProgress,
   selectClasses
 
 
@@ -20,6 +20,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import NotesTable from '../customer/NotesTable';
+import StyledTextField from '../shared/StyledTextField';
+import { useDispatch, useSelector } from '../../redux/store';
 
 
 
@@ -589,7 +591,8 @@ const MASTER_ACCESSORIALS = [
   { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: false, selected: false },
 ];
 
-const PickupAccessorialDialog = ({ open, onClose, onSave }) => {
+const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
+  actionType }) => {
   const [list, setList] = useState(MASTER_ACCESSORIALS);
 
   const handleToggle = (index) => {
@@ -605,85 +608,380 @@ const PickupAccessorialDialog = ({ open, onClose, onSave }) => {
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
-      <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 2 }}>
-          <Button
-            variant="contained"
-            size="small"
-            // on click of add accessorial previous dialog have to be added for add accessorial details
-            // onClick={() => setPickupAccModal(true)} // Opens the Dialog
-            sx={{ bgcolor: '#a22', textTransform: 'none' }}
-          >
-            Add Accessorial
-          </Button>
-        </Box>
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
-            <TableHead sx={{ bgcolor: '#f9f9f9' }}>
-              <TableRow>
-                <TableCell padding="checkbox" />
-                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {list.map((item, index) => (
-                <TableRow key={index} selected={item.selected}>
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      size="small"
-                      checked={item.selected}
-                      onChange={() => handleToggle(index)}
-                      sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                    />
-                  </TableCell>
-                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.name}</TableCell>
-                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.type}</TableCell>
-                  <TableCell sx={{ fontSize: '0.8rem' }}>{item.charges}</TableCell>
-                  <TableCell>
-                    {item.notes && <Iconify icon="solar:file-text-bold" sx={{ color: '#90caf9' }} />}
-                  </TableCell>
-                  <TableCell align="right">
-                    <IconButton size="small"><Iconify icon="solar:eye-bold" /></IconButton>
-                  </TableCell>
+    <>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 2 }}>
+            <Button
+              variant="contained"
+              size="small"
+              // on click of add accessorial previous dialog have to be added for add accessorial details
+              onClick={() => {
+                setActionType('Add');
+                // open the add accessorial dialog here
+                setAddAccModal(true);
+              }} // Opens the Dialog
+              sx={{ bgcolor: '#a22', textTransform: 'none' }}
+            >
+              Add Accessorial
+            </Button>
+          </Box>
+          <TableContainer component={Paper} variant="outlined">
+            <Table size="small">
+              <TableHead sx={{ bgcolor: '#f9f9f9' }}>
+                <TableRow>
+                  <TableCell padding="checkbox" />
+                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                  <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </DialogContent>
-      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
-      </DialogActions>
-    </Dialog>
+              </TableHead>
+              <TableBody>
+                {list.map((item, index) => (
+                  <TableRow key={index} selected={item.selected}>
+                    <TableCell padding="checkbox">
+                      <Checkbox
+                        size="small"
+                        checked={item.selected}
+                        onChange={() => handleToggle(index)}
+                        sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                      />
+                    </TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.name}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.type}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.charges}</TableCell>
+                    <TableCell>
+                      {item.notes && <Iconify icon="solar:file-text-bold" sx={{ color: '#90caf9' }} />}
+                    </TableCell>
+                    <TableCell align="right">
+                      <IconButton size="small" onClick={() => {
+                        setActionType('View');
+                        setAddAccModal(true);
+                      }}><Iconify icon="solar:eye-bold" /></IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+          <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+          <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
+        </DialogActions>
+      </Dialog>
+
+      <AddAccessorialDialog
+        open={addAccModal}
+        onClose={() => {
+          setAddAccModal(false);
+          setActionType('');
+        }}
+        // onSave={(selectedData) => replacePickupAcc(selectedData)}
+        setActionType={setActionType}
+        setAddAccModal={setAddAccModal}
+        addAccModal={addAccModal}
+        actionType={actionType}
+      />
+    </>
   );
 };
-const AddAccessorialDialog = ({ open, onClose, onSave }) => {
+const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType, setAddAccModal, addAccModal }) => {
+  const isLoading = useSelector((state) => state?.dashboarddata?.isLoading);
+  const [chargeValue, setChargeValue] = useState(null);
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    setValue,
+    getValues
+  } = useForm({
+    defaultValues: {
+      accessorial: null,
+      chargesType: '',
+      charges: '',
+      notes: '',
+    }
+  });
 
-  const handleSave = () => {
-    // const selectedItems = list.filter(item => item.selected);
-    // onSave(selectedItems);
-    // onClose();
+  const onSubmit = (data) => {
+    console.log('Form Submitted:', data);
+    // if (type === 'Add') {
+
+    // } else if (type === 'Edit') {
+
+    // }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{
+      '& .MuiDialog-paper': { // Target the paper class
+        width: '1545px',
+        height: 'auto',
+        maxHeight: 'none',
+        maxWidth: 'none',
+      }
+    }}>
       <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
       <DialogContent sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 2 }}>
-          
-        </Box>
+        <>
+          {/* form  */}
+          <Box component="form" sx={{ pt: 2, pb: 2 }}>
+            <Stack spacing={4} sx={{ p: 3 }}>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                <Controller
+                  name="accessorial"
+                  control={control}
+                  rules={{
+                    required: 'Accessorial is required',
+                    maxLength: {
+                      value: 255,
+                      message: 'Accessorial cannot exceed 255 characters'
+                    },
+                  }}
+                  render={({ field: { value, onChange, onBlur, ref } }) => (
+                    <StyledTextField
+                      select
+                      label="Accessorial"
+                      variant="standard"
+                      fullWidth
+                      required
+                      // FIX: MUI Select cannot handle null. If value is null/undefined, use ''
+                      value={value ?? ''}
+                      onChange={onChange}
+                      onBlur={onBlur}
+                      inputRef={ref}
+                      sx={{
+                        width: '25%',
+                      }}
+                      error={!!errors.accessorial}
+                      helperText={errors.accessorial?.message}
+                      disabled={actionType === 'Edit' || actionType === 'View'}
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps: {
+                          // Crucial: disables internal centering logic so origins work
+                          getContentAnchorEl: null,
+                          // Prevents layout shifts and menu misplacement on scroll
+                          disableScrollLock: true,
+                          anchorOrigin: {
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                          },
+                          transformOrigin: {
+                            vertical: 'top',
+                            horizontal: 'left',
+                          },
+                          PaperProps: {
+                            sx: {
+                              marginTop: '4px', // Your custom gap
+                              maxHeight: 300,
+                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                            }
+                          }
+                        },
+                        inputProps: { maxLength: 255 },
+                      }}
+                      InputLabelProps={{ shrink: true }}
+                    >
+                      {/* {accessorialData && accessorialData.length > 0 ? (
+                                        accessorialData.map((data, index) => (
+                                            <MenuItem key={`${data.accessorialId}-${index}`} value={data.accessorialId}>
+                                                {data.accessorialName}
+                                            </MenuItem>
+                                        ))
+                                    ) : ( */}
+                      <MenuItem disabled value="">
+                        <em>No accessorials available.</em>
+                      </MenuItem>
+                      {/* )} */}
+                    </StyledTextField>
+                  )}
+                />
+
+                <Controller
+                  name="chargesType"
+                  control={control}
+                  rules={{
+                    required: 'Charges Type is required',
+                    maxLength: {
+                      value: 50,
+                      message: 'Charges Type cannot exceed 50 characters'
+                    },
+                  }}
+                  render={({ field }) => (
+                    <StyledTextField
+                      {...field}
+                      select
+                      label="Charges Type"
+                      variant="standard" fullWidth required
+                      sx={{
+                        width: '25%',
+                      }}
+                      error={!!errors.chargesType} helperText={errors.chargesType?.message}
+                      SelectProps={{
+                        inputProps: { maxLength: 50 }
+                      }}
+                      disabled={actionType === 'View'}
+                    >
+                      <MenuItem value="HOURLY">Hourly</MenuItem>
+                      <MenuItem value="FLAT_RATE">Flat Rate</MenuItem>
+                      <MenuItem value="PER_POUND">Per Pound</MenuItem>
+                    </StyledTextField>
+                  )}
+                />
+                <Controller
+                  name="charges"
+                  control={control}
+                  rules={{
+                    required: 'Charges is required',
+                    min: {
+                      value: 0,
+                      message: 'Value cannot be below 0'
+                    },
+                    pattern: {
+                      // Regex for decimal(12,2): up to 10 digits before dot, optional dot, up to 2 after
+                      value: /^\d{1,10}(\.\d{0,2})?$/,
+                      message: 'Invalid format (max 10 digits before and 2 after decimal)'
+                    },
+                    validate: (value) => {
+                      if (value && value.toString().length > 13) return 'Total length exceeded';
+                      return true;
+                    }
+                  }}
+                  render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                    <StyledTextField
+                      {...field}
+                      value={value || ''}
+                      label="Charges"
+                      // Use type="text" to gain better control over formatting and maxLength
+                      type="text"
+                      variant="standard"
+                      fullWidth
+                      required
+                      sx={{ width: '25%' }}
+                      error={!!error}
+                      helperText={error?.message}
+                      // 13 characters allows for 10 digits + 1 dot + 2 decimal digits
+                      inputProps={{ maxLength: 13 }}
+                      onChange={(e) => {
+                        let val = e.target.value;
+
+                        // 1. Prevent initial empty space
+                        if (val.startsWith(' ')) return;
+
+                        // 2. Allow only numbers and a single decimal point
+                        val = val.replace(/[^0-9.]/g, '');
+
+                        // 3. Prevent multiple decimal points
+                        const parts = val.split('.');
+                        if (parts.length > 2) return;
+
+                        // 4. Enforce 2 decimal places restriction while typing
+                        if (parts[1] && parts[1].length > 2) return;
+
+                        // 5. Enforce 10 digit limit for the integer part (before decimal)
+                        if (parts[0] && parts[0].length > 10) return;
+
+                        onChange(val);
+                        if (setChargeValue) setChargeValue(val);
+                      }}
+                      disabled={actionType === 'View'}
+                    />
+                  )}
+                />
+                {actionType === 'Add' && <Controller
+                  name="notes"
+                  control={control}
+                  rules={{
+                    required: parseInt(chargeValue, 10) === 0 ? true : false,
+                    maxLength: {
+                      value: 255,
+                      message: 'Notes cannot exceed 255 characters'
+                    },
+                    validate: (value) => !value || value.trim().length > 0 || 'Notes cannot be only spaces'
+                  }}
+                  render={({ field, fieldState: { error } }) => (
+                    <StyledTextField
+                      {...field}
+                      label={`Notes`}
+                      required={parseInt(chargeValue, 10) === 0 ? true : false}
+                      variant="standard" fullWidth
+                      sx={{
+                        width: '25%',
+                      }}
+                      // Intercept onChange to prevent leading spaces
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        // prevent only leading spaces while typing
+                        if (value.startsWith(' ')) {
+                          field.onChange(value.trimStart());
+                        } else {
+                          field.onChange(value);
+                        }
+                      }}
+                      error={!!error}
+                      inputProps={{ maxLength: 255 }}
+                      disabled={actionType === 'View'}
+                    />
+                  )}
+                />}
+              </Stack>
+            </Stack>
+            {(actionType === 'Add' || actionType === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+              <Button
+                variant="outlined"
+                onClick={onClose}
+                size="small"
+                sx={{
+                  '&.MuiButton-outlined': {
+                    borderRadius: '4px',
+                    color: '#000',
+                    boxShadow: 'none',
+                    fontSize: '14px',
+                    p: '2px 16px',
+                    bgcolor: '#fff',
+                    fontWeight: 'normal',
+                    ml: 1,
+                    mr: 1,
+                    borderColor: '#000'
+                  },
+                }}
+              >
+                Cancel
+              </Button>
+
+              <Box>
+                {!isLoading && <Button
+                  variant="contained"
+                  size="small"
+                  type='submit'
+                  onClick={handleSubmit(onSubmit)}
+                  sx={{
+                    '&.MuiButton-contained': {
+                      borderRadius: '4px',
+                      color: '#ffffff',
+                      boxShadow: 'none',
+                      fontSize: '14px',
+                      p: '2px 16px',
+                      bgcolor: '#A22',
+                      fontWeight: 'normal',
+                      ml: 1,
+                    },
+                  }}
+                >
+                  {actionType === 'Add' ? 'Add' : 'Edit'}
+                </Button>
+                }
+                {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
+              </Box>
+            </Stack>}
+          </Box>
+        </>
       </DialogContent>
-      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
-      </DialogActions>
     </Dialog>
   );
 };
@@ -702,6 +1000,7 @@ const ShipmentForm = () => {
   const [lineHaulAccModal, setLineHaulAccModal] = useState(false);
   const [deliveryAccModal, setDeliveryAccModal] = useState(false);
   const [addAccModal, setAddAccModal] = useState(false);
+  const [actionType, setActionType] = useState('');
 
 
 
@@ -872,11 +1171,11 @@ const ShipmentForm = () => {
           lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
             'Setup for pickup today ____ ',
             'Drop to Forward Air',],
-          lineHaulNotes : '',
+          lineHaulNotes: '',
           deliveryNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
             'Setup for pickup today ____ ',
             'Drop to Forward Air',],
-          deliveryNotes : '',
+          deliveryNotes: '',
           primaryEmail: 'dayton@email.com',
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
           airportTransfer: false,
@@ -2020,8 +2319,14 @@ const ShipmentForm = () => {
                             </TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                                <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                <IconButton size="small" onClick={() => {
+                                  setActionType('View');
+                                  setAddAccModal(true);
+                                }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                <IconButton size="small" onClick={() => {
+                                  setActionType('Edit');
+                                  setAddAccModal(true);
+                                }}><Iconify icon="tabler:edit" /></IconButton>
                                 <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                               </Stack>
                             </TableCell>
@@ -2036,8 +2341,28 @@ const ShipmentForm = () => {
 
               <PickupAccessorialDialog
                 open={pickupAccModal}
-                onClose={() => setPickupAccModal(false)}
+                onClose={() => {
+                  setPickupAccModal(false);
+                  setAddAccModal(false);
+                  setActionType('');
+                }}
                 onSave={(selectedData) => replacePickupAcc(selectedData)}
+                setActionType={setActionType}
+                setAddAccModal={setAddAccModal}
+                addAccModal={addAccModal}
+                actionType={actionType}
+              />
+              <AddAccessorialDialog
+                open={addAccModal}
+                onClose={() => {
+                  setAddAccModal(false);
+                  setActionType('');
+                }}
+                // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                setActionType={setActionType}
+                setAddAccModal={setAddAccModal}
+                addAccModal={addAccModal}
+                actionType={actionType}
               />
 
               {/* pick alert details section */}
@@ -2450,8 +2775,14 @@ const ShipmentForm = () => {
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                                    <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                    <IconButton size="small" onClick={() => {
+                                      setActionType('View');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                    <IconButton size="small" onClick={() => {
+                                      setActionType('Edit');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
                                 </TableCell>
@@ -2465,8 +2796,28 @@ const ShipmentForm = () => {
 
                   <PickupAccessorialDialog
                     open={lineHaulAccModal}
-                    onClose={() => setLineHaulAccModal(false)}
+                    onClose={() => {
+                      setLineHaulAccModal(false);
+                      setAddAccModal(false);
+                      setActionType('');
+                    }}
                     onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
+                    setActionType={setActionType}
+                    setAddAccModal={setAddAccModal}
+                    addAccModal={addAccModal}
+                    actionType={actionType}
+                  />
+                  <AddAccessorialDialog
+                    open={addAccModal}
+                    onClose={() => {
+                      setAddAccModal(false);
+                      setActionType('');
+                    }}
+                    // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                    setActionType={setActionType}
+                    setAddAccModal={setAddAccModal}
+                    addAccModal={addAccModal}
+                    actionType={actionType}
                   />
 
 
@@ -2832,8 +3183,14 @@ const ShipmentForm = () => {
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <IconButton size="small"><Iconify icon="carbon:view-filled" /></IconButton>
-                                    <IconButton size="small"><Iconify icon="tabler:edit" /></IconButton>
+                                    <IconButton size="small" onClick={() => {
+                                      setActionType('View');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                    <IconButton size="small" onClick={() => {
+                                      setActionType('Edit');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
                                 </TableCell>
@@ -2847,8 +3204,28 @@ const ShipmentForm = () => {
 
                   <PickupAccessorialDialog
                     open={deliveryAccModal}
-                    onClose={() => setDeliveryAccModal(false)}
+                    onClose={() => {
+                      setDeliveryAccModal(false);
+                      setAddAccModal(false);
+                      setActionType('');
+                    }}
                     onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
+                    setActionType={setActionType}
+                    setAddAccModal={setAddAccModal}
+                    addAccModal={addAccModal}
+                    actionType={actionType}
+                  />
+                  <AddAccessorialDialog
+                    open={addAccModal}
+                    onClose={() => {
+                      setAddAccModal(false);
+                      setActionType('');
+                    }}
+                    // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                    setActionType={setActionType}
+                    setAddAccModal={setAddAccModal}
+                    addAccModal={addAccModal}
+                    actionType={actionType}
                   />
 
                   <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>

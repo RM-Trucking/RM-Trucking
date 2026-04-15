@@ -931,7 +931,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                 />}
               </Stack>
             </Stack>
-            {(actionType === 'Add' || actionType === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
+            {<Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
               <Button
                 variant="outlined"
                 onClick={onClose}
@@ -954,7 +954,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                 Cancel
               </Button>
 
-              <Box>
+              {(actionType === 'Add' || actionType === 'Edit') && <Box>
                 {!isLoading && <Button
                   variant="contained"
                   size="small"
@@ -977,7 +977,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                 </Button>
                 }
                 {isLoading && <CircularProgress color="inherit" size={16} sx={{ ml: 1 }} />}
-              </Box>
+              </Box>}
             </Stack>}
           </Box>
         </>

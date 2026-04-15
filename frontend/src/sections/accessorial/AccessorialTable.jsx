@@ -34,6 +34,23 @@ export default function AccessorialTable() {
     // datagrid columns
     const columns = [
         {
+            field: 'accessorialId',
+            headerName: 'SNo',
+            width: 100,
+            renderCell: (params) => {
+                // Calculate the serial number based on its current position in the list
+                const sNo = params.api.getRowIndexRelativeToVisibleRows(params.id) + 1;
+
+                return (
+                    <Box>
+                        <Typography variant="normal">
+                            {sNo}
+                        </Typography>
+                    </Box>
+                );
+            },
+        },
+        {
             field: 'accessorialName',
             headerName: 'Accessorial Name',
             width: 300,
@@ -67,9 +84,7 @@ export default function AccessorialTable() {
                             <Box onClick={() => {
 
                                 // using callback to refresh table data after delete
-                                dispatch(deleteAccessorial(params?.row?.accessorialId, () => {
-                                    dispatch(getAccessorialData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: accessorialSearchStr }));
-                                }));
+                                dispatch(deleteAccessorial(params?.row?.accessorialId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
                                 />
@@ -107,6 +122,9 @@ export default function AccessorialTable() {
         if (operationalMessage) {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
+        }
+        if (operationalMessage === "Accessorial deleted successfully.") {
+            dispatch(getAccessorialData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: accessorialSearchStr }));
         }
     }, [operationalMessage])
 

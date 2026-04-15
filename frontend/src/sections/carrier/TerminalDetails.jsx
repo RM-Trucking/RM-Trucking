@@ -24,7 +24,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import { setTableBeingViewed } from '../../redux/slices/customer';
-import { postTerminalData, putTerminalData } from '../../redux/slices/carrier';
+import { postTerminalData, putTerminalData, patchTerminalStatus } from '../../redux/slices/carrier';
 
 
 TerminalDetails.propTypes = {
@@ -158,6 +158,15 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                     <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Terminal Details </Typography>
                     {type === 'View' && <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Status
                         <Switch slotProps={{ input: { 'aria-label': 'controlled' } }} checked={selectedCarrierTabRowDetails?.activeStatus === 'Y'}
+                        onChange={(e) => {
+                            e.stopPropagation();
+                            console.log(e.target.checked);
+                            const newStatus = e.target.checked ? 'Y' : 'N';
+                            const obj = {
+                                "status": newStatus
+                            }
+                            dispatch(patchTerminalStatus(obj, selectedCarrierTabRowDetails.terminalId));
+                        }}
                             sx={{
                                 '& .MuiSwitch-switchBase.Mui-checked': {
                                     color: (selectedCarrierTabRowDetails?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)',
@@ -165,7 +174,7 @@ export default function TerminalDetails({ type, handleCloseConfirm, selectedCarr
                                 '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
                                     backgroundColor: (selectedCarrierTabRowDetails?.activeStatus?.toLowerCase() !== 'y') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)',
                                 },
-                            }} /> {selectedCarrierTabRowDetails?.activeStatus === 'Y' ? 'Active' : 'Inactive'}
+                            }} /> <span style={{ fontSize: '16px', fontWeight: 'normal' }}>{selectedCarrierTabRowDetails?.activeStatus === 'Y' ? 'Active' : 'Inactive'}</span>
                     </Typography>}
 
                     {type === 'Add' && <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />}

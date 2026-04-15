@@ -3,6 +3,7 @@ import { createSlice, current } from '@reduxjs/toolkit';
 import axios from '../../utils/axios';
 //
 import { dispatch } from '../store';
+import { act } from 'react';
 
 
 // ----------------------------------------------------------------------
@@ -71,7 +72,7 @@ const slice = createSlice({
             state.pagination = {
                 page: action.payload?.pagination?.page || state.pagination?.page,
                 pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
-                totalRecords: action.payload?.pagination?.total ,
+                totalRecords: action.payload?.pagination?.total,
             };
         },
         postCarrierDataSuccess(state, action) {
@@ -96,7 +97,7 @@ const slice = createSlice({
             state.carrierSuccess = true;
             state.operationalMessage = `Carrier deleted successfully.`;
         },
-        patchCarrierdataSuccess(state,action){
+        patchCarrierdataSuccess(state, action) {
             state.isLoading = false;
             state.carrierSuccess = true;
             state.operationalMessage = `Carrier Status changed successfully.`;
@@ -134,6 +135,15 @@ const slice = createSlice({
             state.isLoading = false;
             state.carrierSuccess = true;
             state.operationalMessage = `Terminal deleted successfully.`;
+        },
+        patchTerminaldataSuccess(state, action) {
+            state.isLoading = false;
+            state.carrierSuccess = true;
+            state.operationalMessage = `Terminal Status changed successfully.`;
+            if (state.selectedCarrierTabRowDetails.activeStatus) {
+                console.log(action);
+                state.selectedCarrierTabRowDetails.activeStatus = action.payload.status;
+            }
         },
 
         setSelectedRowCarrierType(state, action) {
@@ -224,7 +234,7 @@ const slice = createSlice({
         setCarrierViewTabData(state, action) {
             state.carrierViewTabData = action.payload;
         },
-        setTerminalViewTabData(state,action){
+        setTerminalViewTabData(state, action) {
             state.terminalViewTabData = action.payload;
         },
         setError(state) {
@@ -361,6 +371,17 @@ export function deleteTerminal(id) {
             dispatch(slice.actions.deleteTerminalDataSuccess({
                 id, message: response.data
             }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function patchTerminalStatus(obj, id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.patch(`maintenance/terminal/${id}/status`, obj);
+            dispatch(slice.actions.patchTerminaldataSuccess(obj));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
         }

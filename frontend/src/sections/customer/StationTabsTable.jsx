@@ -791,7 +791,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     slots={{
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
-                    getRowHeight={() => 'auto'}
+                    // getRowHeight={() => 'auto'}
                     hideFooterSelectedRowCount
                     autoHeight
                 />

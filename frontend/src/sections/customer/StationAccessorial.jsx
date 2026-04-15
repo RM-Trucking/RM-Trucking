@@ -123,16 +123,30 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     helperText={errors.accessorial?.message}
                                     disabled={type === 'Edit'}
                                     SelectProps={{
-                                        // Pass props to the underlying Select component
-                                        MenuProps: {
-                                            PaperProps: {
-                                                style: {
-                                                    maxHeight: 300, // Optional: keeps long lists scrollable
+                                                displayEmpty: true,
+                                                MenuProps: {
+                                                    // Crucial: disables internal centering logic so origins work
+                                                    getContentAnchorEl: null,
+                                                    // Prevents layout shifts and menu misplacement on scroll
+                                                    disableScrollLock: true,
+                                                    anchorOrigin: {
+                                                        vertical: 'bottom',
+                                                        horizontal: 'left',
+                                                    },
+                                                    transformOrigin: {
+                                                        vertical: 'top',
+                                                        horizontal: 'left',
+                                                    },
+                                                    PaperProps: {
+                                                        sx: {
+                                                            marginTop: '4px', // Your custom gap
+                                                            maxHeight: 300,
+                                                            maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                                                        }
+                                                    }
                                                 },
-                                            },
-                                        },
-                                        inputProps: { maxLength: 255 }
-                                    }}
+                                                inputProps: { maxLength: 255 },
+                                            }}
                                     InputLabelProps={{ shrink: true }}
                                 >
                                     {accessorialData && accessorialData.length > 0 ? (

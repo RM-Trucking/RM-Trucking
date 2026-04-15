@@ -664,6 +664,29 @@ const PickupAccessorialDialog = ({ open, onClose, onSave }) => {
     </Dialog>
   );
 };
+const AddAccessorialDialog = ({ open, onClose, onSave }) => {
+
+  const handleSave = () => {
+    // const selectedItems = list.filter(item => item.selected);
+    // onSave(selectedItems);
+    // onClose();
+  };
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Accessorial Details</DialogTitle>
+      <DialogContent sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2, mt: 2 }}>
+          
+        </Box>
+      </DialogContent>
+      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+        <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+        <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 const ShipmentForm = () => {
 
@@ -678,6 +701,7 @@ const ShipmentForm = () => {
   const [pickupAccModal, setPickupAccModal] = useState(false);
   const [lineHaulAccModal, setLineHaulAccModal] = useState(false);
   const [deliveryAccModal, setDeliveryAccModal] = useState(false);
+  const [addAccModal, setAddAccModal] = useState(false);
 
 
 

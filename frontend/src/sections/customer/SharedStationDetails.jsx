@@ -403,6 +403,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="zipCode"
                             control={control}
                             rules={{
+                                required: 'Zip Code is required',
                                 validate: (value) => {
                                     if (!value || value.length <= 5) return true;
 
@@ -461,6 +462,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     fullWidth
                                     sx={{ width: '25%' }}
                                     disabled={readOnly}
+                                    required
                                 />
                             )}
                         />

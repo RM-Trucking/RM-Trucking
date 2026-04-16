@@ -147,7 +147,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                                 },
                                                 inputProps: { maxLength: 255 },
                                             }}
-                                    InputLabelProps={{ shrink: true }}
+                                    InputLabelProps={{ shrink: type === 'Edit' }}
                                 >
                                     {accessorialData && accessorialData.length > 0 ? (
                                         accessorialData.map((data, index) => (

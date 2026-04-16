@@ -34,23 +34,6 @@ export default function AccessorialTable() {
     // datagrid columns
     const columns = [
         {
-            field: 'accessorialId',
-            headerName: 'SNo',
-            width: 100,
-            renderCell: (params) => {
-                // Calculate the serial number based on its current position in the list
-                const sNo = params.api.getRowIndexRelativeToVisibleRows(params.id) + 1;
-
-                return (
-                    <Box>
-                        <Typography variant="normal">
-                            {sNo}
-                        </Typography>
-                    </Box>
-                );
-            },
-        },
-        {
             field: 'accessorialName',
             headerName: 'Accessorial Name',
             width: 300,

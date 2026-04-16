@@ -781,17 +781,17 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                 />
 
             </Box>}
-            {(currentTab === 'rate') && <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+            {(currentTab === 'rate') && <Box sx={{ height: 500, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     rows={stationTabTableData}
                     columns={tableColumns}
                     loading={customerLoading}
                     getRowId={(row) => row?.rateId}
                     pagination
-                    slots={{
-                        noRowsOverlay: CustomNoRowsOverlay,
-                    }}
-                    // getRowHeight={() => 'auto'}
+                    // slots={{
+                    //     noRowsOverlay: CustomNoRowsOverlay,
+                    // }}
+                    getRowHeight={() => 'auto'}
                     hideFooterSelectedRowCount
                     autoHeight
                 />

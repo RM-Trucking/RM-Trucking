@@ -1074,6 +1074,15 @@ const ShipmentForm = () => {
       emergencyContactName: '',
       emergencyContactPhone: '',
 
+      doDetails: {
+        handlingUnits: [{
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '40',
+          items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
+        }],
+        emergencyContactName: '',
+        emergencyContactPhone: '',
+      },
+
       // step 3 - Carrier Information
       carrierInfo: {
         orderReceivedPending: false,
@@ -1161,7 +1170,7 @@ const ShipmentForm = () => {
             state: '',
             zip: '',
           },
-          agent: '',
+          // agent: '',
           etaDate: null,
           etaTime: null,
           pcsWeight: '',
@@ -1296,6 +1305,7 @@ const ShipmentForm = () => {
   });
 
   const handleNext = async () => {
+    console.log('Current Form Values:', getValues());
 
     // let fieldsToValidate = [];
 
@@ -1338,12 +1348,43 @@ const ShipmentForm = () => {
     //   setErrorVisible(true);
 
     // }
+    if (activeStep === 2 && hasInitialData()) {
+      const currentValues = getValues();
+      setValue('doDetails.handlingUnits', currentValues.handlingUnits);
+      setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
+      setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
+    }
 
+  };
+
+  const hasInitialData = () => {
+    const values = getValues();
+
+    // Check if contact info is filled
+    const hasContactInfo = !!(values.emergencyContactName || values.emergencyContactPhone);
+
+    // Check if handling units have been modified (e.g., checking if description exists)
+    // or simply if the array is not empty/has more than 1 item
+    const hasHandlingData = values.handlingUnits?.some(unit =>
+      unit.items?.[0]?.description !== '' || // user changed default
+      unit.weight !== ''
+    );
+
+    return hasContactInfo || hasHandlingData;
   };
 
 
 
-  const handleBack = () => setActiveStep((prev) => prev - 1);
+  const handleBack = () => {
+    console.log('Current Form Values:', getValues());
+    setActiveStep((prev) => prev - 1);
+    if (activeStep === 2 &&hasInitialData()) {
+      const currentValues = getValues();
+      setValue('doDetails.handlingUnits', currentValues.handlingUnits);
+      setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
+      setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
+    }
+  };
 
   // --- HELPER: RENDER ZIP CODE --- 
 
@@ -2915,7 +2956,7 @@ const ShipmentForm = () => {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
-                  {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
+                  {selectedRouting !== "Line haul & Delivery" && <>
                   <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
                     <Box sx={{ flex: '1 1 200px' }}>
                       <Controller
@@ -3062,6 +3103,7 @@ const ShipmentForm = () => {
                       </Box>
                     </Paper>
                   )}
+                  </>}
                   {/* ETA and Weight Section - Flexbox Layout */}
                   <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                     {/* ETA Date */}
@@ -3117,7 +3159,7 @@ const ShipmentForm = () => {
                         )}
                       />
                     </Box>
-                    <Box sx={{ flex: 1.5 }}>
+                    {/* <Box sx={{ flex: 1.5 }}>
                       <Controller
                         name="carrierInfo.deliveryDetails.agent"
                         control={control}
@@ -3131,7 +3173,7 @@ const ShipmentForm = () => {
                           />
                         )}
                       />
-                    </Box>
+                    </Box> */}
                   </Box>
 
                   <Box sx={{ flex: '0 1 200px' }}>

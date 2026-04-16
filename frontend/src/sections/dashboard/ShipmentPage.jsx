@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { useForm, Controller, useFieldArray, useWatch } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, useWatch, set } from 'react-hook-form';
 
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
@@ -498,7 +498,12 @@ const CommoditiesList = ({ watchedHU }) => {
                   {/* Dimensions/Weight/Class spans all items in this specific HU */}
                   {itmIdx === 0 ? (
                     <>
-                      <td style={cellStyle} rowSpan={hu.items.length}>{hu.weight}</td>
+                      <td style={cellStyle} rowSpan={hu.items.length}>
+                        {hu.weightUnit === 'lbs'
+                          ? `${hu.weight}`
+                          : `${(Number(hu.weight) * 2.20462).toFixed(2)}`
+                        }
+                      </td>
                       <td style={cellStyle} rowSpan={hu.items.length}>{hu.class}</td>
                       <td style={cellStyle} rowSpan={hu.items.length}>{hu.length}</td>
                       <td style={cellStyle} rowSpan={hu.items.length}>{hu.width}</td>
@@ -1001,6 +1006,7 @@ const ShipmentForm = () => {
   const [deliveryAccModal, setDeliveryAccModal] = useState(false);
   const [addAccModal, setAddAccModal] = useState(false);
   const [actionType, setActionType] = useState('');
+  const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
 
 
 
@@ -1068,8 +1074,8 @@ const ShipmentForm = () => {
       // Step 2 - Handling Units 
 
       handlingUnits: [{
-        uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '40',
-        items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '40',
+        items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
       emergencyContactPhone: '',
@@ -1215,12 +1221,7 @@ const ShipmentForm = () => {
     // Validation: Check if the required fields in the last unit are filled
     const isFilled =
       lastUnit.uom &&
-      lastUnit.unitsCount &&
-      lastUnit.length &&
-      lastUnit.width &&
-      lastUnit.height &&
-      lastUnit.weight &&
-      lastUnit.class;
+      lastUnit.unitsCount;
 
     if (isFilled) {
       appendHU({
@@ -1231,11 +1232,11 @@ const ShipmentForm = () => {
         width: '',
         height: '',
         weight: '',
-        weightUnit: 'lbs',
+        weightUnit: '',
         class: '',
         items: [{
           pieces: '',
-          piecesUom: 'Skid', // Added missing piecesUom
+          piecesUom: '',
           description: '',
           hazmatInfo: false,
           hazmatData: null
@@ -1378,7 +1379,7 @@ const ShipmentForm = () => {
   const handleBack = () => {
     console.log('Current Form Values:', getValues());
     setActiveStep((prev) => prev - 1);
-    if (activeStep === 2 &&hasInitialData()) {
+    if (activeStep === 2 && hasInitialData()) {
       const currentValues = getValues();
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
@@ -1623,6 +1624,20 @@ const ShipmentForm = () => {
     console.log("Submitting partial data due to Pickup Pending:", data);
     // Your API call here
   };
+
+  useEffect(() => {
+    if (watchedHU.length === 0) return true;
+
+    const firstUnit = watchedHU[0].weightUnit;
+    const isConsistent = watchedHU.every(item => item.weightUnit === firstUnit);
+
+    if (!isConsistent && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].weightUnit !== '') {
+      setHandlingUnitWtFlag(true);
+    } else {
+      setHandlingUnitWtFlag(false);
+    }
+
+  }, [watchedHU]);
 
 
 
@@ -2001,8 +2016,8 @@ const ShipmentForm = () => {
                       variant="outlined"
                       size="small"
                       onClick={() => setValue(`handlingUnits.0`, {
-                        uom: 'Skid', unitsCount: '01', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
-                        items: [{ pieces: '', piecesUom: 'Skid', description: '', hazmatInfo: false }]
+                        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
+                        items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
                       })}
                       sx={{ height: 20, fontSize: '0.65rem', color: '#000', borderColor: '#000', textTransform: 'none' }}
                     >
@@ -2048,7 +2063,7 @@ const ShipmentForm = () => {
                     <Box key={dim} sx={{ flex: '1 1 140px', }}>
                       <Box display={'flex'} alignItems={'flex-end'}>
                         <Controller name={`handlingUnits.${huIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
-                          <TextField {...field} fullWidth label={`Handling ${dim} *`} variant="standard" InputLabelProps={{ shrink: true }} />
+                          <TextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} />
                         )} />
                         <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
                           <TextField {...field} select sx={{ width: '80px' }} label="" variant="standard">
@@ -2062,7 +2077,7 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '1 1 90px' }}>
                     <Box display={'flex'} alignItems={'flex-end'}>
                       <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Weight *" variant="standard" InputLabelProps={{ shrink: true }} />
+                        <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
                       )} />
                       <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
                         <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
@@ -2074,7 +2089,7 @@ const ShipmentForm = () => {
                   </Box>
                   <Box sx={{ flex: '1 1 80px' }}>
                     <Controller name={`handlingUnits.${huIdx}.class`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Class *" variant="standard" InputLabelProps={{ shrink: true }}>
+                      <TextField {...field} select fullWidth label="Class" variant="standard" InputLabelProps={{ shrink: true }}>
                         {[40, 50, 60, 70, 85, 92.5, 100].map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
                       </TextField>
                     )} />
@@ -2714,38 +2729,37 @@ const ShipmentForm = () => {
                   <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                     {/* ETA Date */}
                     <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name="carrierInfo.lineHaul.etaDate"
-                        control={control}
-                        defaultValue="11/30/2025"
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="ETA Date"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
-                      />
-                    </Box>
 
-                    {/* ETA Time */}
-                    <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name="carrierInfo.lineHaul.etaTime"
-                        control={control}
-                        defaultValue="11:00 - 18:00"
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="ETA Time"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
+                      <Controller name="carrierInfo.lineHaul.etaDate" control={control} rules={{ required: true }} render={({ field }) => (
+
+                        <DatePicker {...field} label="ETA Date" slotProps={{
+                          textField: {
+                            variant: 'standard', fullWidth: true, error:
+                              !!errors.date
+                          }
+                        }} InputLabelProps={{ shrink: true }} />
+
+                      )}
+
                       />
+
+                    </Box>
+                    {/* ETA time */}
+                    <Box sx={{ flex: 1 }}>
+
+                      <Controller name="carrierInfo.lineHaul.etaTime" control={control} rules={{ required: true }} render={({ field }) => (
+
+                        <TimePicker {...field} label="ETA Time" ampm={false} slotProps={{
+                          textField: {
+                            variant: 'standard', fullWidth:
+                              true, error: !!errors.time
+                          }
+                        }} InputLabelProps={{ shrink: true }} />
+
+                      )}
+
+                      />
+
                     </Box>
 
                     {/* Pcs / Wght */}
@@ -2957,189 +2971,190 @@ const ShipmentForm = () => {
 
                 <AccordionDetails sx={{ pt: 2 }}>
                   {selectedRouting !== "Line haul & Delivery" && <>
-                  <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                    <Box sx={{ flex: '1 1 200px' }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.carrier"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
-                            <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
-                          </TextField>
-                        )}
-                      />
-                    </Box>
-                    <Box sx={{ flex: '1 1 200px' }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.billNumber"
-                        control={control}
-                        render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
-                      />
-                    </Box>
-                    <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.fromLocation"
-                        control={control}
-                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                      />
-                      <Controller
-                        name="carrierInfo.deliveryDetails.manualFromLocation"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                            control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
-                          />
-                        )}
-                      />
-                    </Box>
-                  </Box>
-
-                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                  {watchedCarrierInfo?.deliveryDetails.manualFromLocation && (
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual From Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeField('carrierInfo.deliveryDetails.manualFromLocationDetails.zip')}
-                        </Box>
+                    <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.carrier"
+                          control={control}
+                          render={({ field }) => (
+                            <TextField {...field} select fullWidth label="Select Carrier *" variant="standard">
+                              <MenuItem value="carrier1">Carrier Name - 4567</MenuItem>
+                            </TextField>
+                          )}
+                        />
                       </Box>
-                    </Paper>
-                  )}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                    <Box sx={{ flex: '1 1 200px' }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.toLocationType"
-                        control={control}
-                        defaultValue={[]}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            select
-                            fullWidth
-                            label="Select To Type *"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                            SelectProps={{
-                              multiple: true,
-                              // Shows selected items as a comma-separated list in the closed field
-                              renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                            }}
-                          >
-                            <MenuItem value="Carrier">
-                              {/* 1. Add the Checkbox */}
-                              <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                              {/* 2. Wrap text in ListItemText for better alignment */}
-                              <ListItemText primary="Carrier" />
-                            </MenuItem>
-
-                            <MenuItem value="Consignee">
-                              <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                              <ListItemText primary="Consignee" />
-                            </MenuItem>
-                          </TextField>
-                        )}
-                      />
-
-
-
-                    </Box>
-                    <Box sx={{ flex: '1 1 200px' }}>
-                      <Controller name="carrierInfo.deliveryDetails.toLocation" control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                      )} />
-                    </Box>
-                    <Box>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.manualToLocation"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                            control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
-                          />
-                        )}
-                      />
-                    </Box>
-                  </Box>
-                  {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                  {watchedCarrierInfo?.deliveryDetails.manualToLocation && (
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual To Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeField('carrierInfo.deliveryDetails.manualToLocationDetails.zip')}
-                        </Box>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.billNumber"
+                          control={control}
+                          render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                        />
                       </Box>
-                    </Paper>
-                  )}
+                      <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.fromLocation"
+                          control={control}
+                          render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                        />
+                        <Controller
+                          name="carrierInfo.deliveryDetails.manualFromLocation"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControlLabel
+                              sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                              control={<Checkbox {...field} checked={field.value} size="small" />}
+                              label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                            />
+                          )}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                    {watchedCarrierInfo?.deliveryDetails.manualFromLocation && (
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual From Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeField('carrierInfo.deliveryDetails.manualFromLocationDetails.zip')}
+                          </Box>
+                        </Box>
+                      </Paper>
+                    )}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.toLocationType"
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              select
+                              fullWidth
+                              label="Select To Type *"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              SelectProps={{
+                                multiple: true,
+                                // Shows selected items as a comma-separated list in the closed field
+                                renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
+                              }}
+                            >
+                              <MenuItem value="Carrier">
+                                {/* 1. Add the Checkbox */}
+                                <Checkbox checked={field.value.indexOf("Carrier") > -1} />
+                                {/* 2. Wrap text in ListItemText for better alignment */}
+                                <ListItemText primary="Carrier" />
+                              </MenuItem>
+
+                              <MenuItem value="Consignee">
+                                <Checkbox checked={field.value.indexOf("Consignee") > -1} />
+                                <ListItemText primary="Consignee" />
+                              </MenuItem>
+                            </TextField>
+                          )}
+                        />
+
+
+
+                      </Box>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller name="carrierInfo.deliveryDetails.toLocation" control={control} render={({ field }) => (
+                          <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                        )} />
+                      </Box>
+                      <Box>
+                        <Controller
+                          name="carrierInfo.deliveryDetails.manualToLocation"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControlLabel
+                              sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                              control={<Checkbox {...field} checked={field.value} size="small" />}
+                              label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                            />
+                          )}
+                        />
+                      </Box>
+                    </Box>
+                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+                    {watchedCarrierInfo?.deliveryDetails.manualToLocation && (
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual To Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeField('carrierInfo.deliveryDetails.manualToLocationDetails.zip')}
+                          </Box>
+                        </Box>
+                      </Paper>
+                    )}
                   </>}
                   {/* ETA and Weight Section - Flexbox Layout */}
                   <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                     {/* ETA Date */}
                     <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.etaDate"
-                        control={control}
-                        defaultValue="11/30/2025"
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="ETA Date"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
-                      />
-                    </Box>
 
-                    {/* ETA Time */}
-                    <Box sx={{ flex: 1 }}>
-                      <Controller
-                        name="carrierInfo.deliveryDetails.etaTime"
-                        control={control}
-                        defaultValue="11:00 - 18:00"
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="ETA Time"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
+                      <Controller name="carrierInfo.deliveryDetails.etaDate" control={control} rules={{ required: true }} render={({ field
+                      }) => (
+
+                        <DatePicker {...field} label="ETA Date" slotProps={{
+                          textField: {
+                            variant: 'standard', fullWidth: true, error:
+                              !!errors.date
+                          }
+                        }} InputLabelProps={{ shrink: true }} />
+
+                      )}
+
                       />
+
+                    </Box>
+                    {/* ETA time  */}
+                    <Box sx={{ flex: 1 }}>
+
+                      <Controller name="carrierInfo.deliveryDetails.etaTime" control={control} rules={{ required: true }} render={({ field
+                      }) => (
+
+                        <TimePicker {...field} label="ETA Time" ampm={false} slotProps={{
+                          textField: {
+                            variant: 'standard', fullWidth:
+                              true, error: !!errors.time
+                          }
+                        }} InputLabelProps={{ shrink: true }} />
+
+                      )}
+
+                      />
+
                     </Box>
 
                     {/* Pcs / Wght */}
@@ -3502,6 +3517,32 @@ const ShipmentForm = () => {
           <Alert severity="error" variant="filled">Please check required fields.</Alert>
 
         </Snackbar>
+        <Snackbar
+          open={handlingUnitWtFlag}
+          autoHideDuration={3000}
+          onClose={(event, reason) => {
+            // 1. Close the alert
+            setHandlingUnitWtFlag(false);
+
+            // 2. Prevent logic if the user clicked away (optional)
+            if (reason === 'clickaway') return;
+
+            // 3. Correctly update the state/array
+            const updatedHU = [...watchedHU]; // Create a copy
+            const lastIndex = updatedHU.length - 1;
+
+            if (updatedHU[0] && updatedHU[lastIndex]) {
+              updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
+              setValue('handlingUnits', updatedHU); // Update the form state if needed
+            }
+          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert severity="error" variant="filled">
+            All items must have the same weight unit as the first item
+          </Alert>
+        </Snackbar>
+
 
       </Box>
       {/* Place this at the end of your return block */}

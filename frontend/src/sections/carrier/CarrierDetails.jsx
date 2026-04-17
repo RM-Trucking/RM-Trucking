@@ -129,7 +129,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     },
                 ],
                 "note": {
-                    "messageText": data.carrierNotes
+                    "messageText": data.carrierNotes || ""
                 }
             }
             dispatch(postCarrierData(obj));
@@ -1182,16 +1182,15 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                         name="carrierNotes"
                         control={control}
                         rules={{
-                            required: true,
                             maxLength: {
                                 value: 2000,
                                 message: 'Carrier Notes cannot exceed 2000 characters'
                             },
-                            validate: (value) => value.trim().length > 0 || 'Carrier Notes cannot be only spaces'
+                            validate: (value) => !value || value.trim().length > 0 || 'Carrier Notes cannot be only spaces'
                         }}
                         render={({ field, fieldState: { error } }) => (
-                            <StyledTextField variant="standard" {...field} fullWidth label="Carrier Notes *" error={!!error}
-                                helperText={error ? 'Carrier notes is required' : ''}
+                            <StyledTextField variant="standard" {...field} fullWidth label="Carrier Notes" error={!!error}
+                                helperText={error ? error.message : ''}
                                 // Intercept onChange to prevent leading spaces
                                 onChange={(e) => {
                                     const value = e.target.value;

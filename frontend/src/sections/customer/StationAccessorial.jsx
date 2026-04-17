@@ -147,7 +147,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                                 },
                                                 inputProps: { maxLength: 255 },
                                             }}
-                                    InputLabelProps={{ shrink: type === 'Edit' }}
+                                    InputLabelProps={{ shrink: true }}
                                 >
                                     {accessorialData && accessorialData.length > 0 ? (
                                         accessorialData.map((data, index) => (
@@ -187,6 +187,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     SelectProps={{
                                         inputProps: { maxLength: 50 }
                                     }}
+                                    InputLabelProps={{ shrink: true }}
                                 >
                                     <MenuItem value="HOURLY">Hourly</MenuItem>
                                     <MenuItem value="FLAT_RATE">Flat Rate</MenuItem>
@@ -250,6 +251,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                         onChange(val);
                                         if (setChargeValue) setChargeValue(val);
                                     }}
+                                    InputLabelProps={{ shrink: true }}
                                 />
                             )}
                         />
@@ -285,6 +287,7 @@ export default function StationAccessorial({ type, handleCloseConfirm, selectedS
                                     }}
                                     error={!!error}
                                     inputProps={{ maxLength: 255 }}
+                                    InputLabelProps={{ shrink: true }}
                                 />
                             )}
                         />}

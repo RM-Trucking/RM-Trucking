@@ -14,7 +14,7 @@ import {
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postZoneData, putZoneData, } from '../../redux/slices/zone';
+import { postZoneData, putZoneData, setZipCheck } from '../../redux/slices/zone';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
 
@@ -90,6 +90,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     }, [selectedZoneRowDetails]);
     const handleCloseConfirmDialog = () => {
         setopenConfirmDialog(false);
+        dispatch(setZipCheck(false));
     }
     useEffect(() => {
         if (zipCheck) {

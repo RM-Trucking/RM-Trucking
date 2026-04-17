@@ -3,6 +3,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import axios from '../../utils/axios';
 //
 import { dispatch } from '../store';
+import { set } from 'react-hook-form';
 
 
 // ----------------------------------------------------------------------
@@ -129,11 +130,15 @@ const slice = createSlice({
     setError(state) {
       state.error = '';
     },
+    setZipCheck(state, action) {
+      state.zipCheck = action.payload;
+    },
   },
 });
 
 export const {
   setError,
+  setZipCheck,
   setOperationalMessage,
   setPaginationObject,
   setZoneSearchStr,

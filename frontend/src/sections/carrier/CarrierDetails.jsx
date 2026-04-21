@@ -1100,7 +1100,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     )}
                                 />
 
-                                <Controller
+                                {/* <Controller
                                     name="salesRepPhoneNumber"
                                     control={control}
                                     rules={{
@@ -1137,7 +1137,55 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             disabled={(type === 'View')}
                                         />
                                     )}
+                                /> */}
+                                <Controller
+                                    name="salesRepPhoneNumber"
+                                    control={control}
+                                    rules={{
+                                        maxLength: {
+                                            value: 20,
+                                            message: 'Sales Rep Phone number cannot exceed 20 characters'
+                                        },
+                                        validate: (value) => {
+                                            if (!value) return true; // Allow empty
+
+                                            // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                                            const digitsOnly = value.replace(/\D/g, '');
+                                            const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                                            if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                                            // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                                            // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                                            return true;
+                                        }
+                                    }}
+                                    render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            value={value || ''}
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                if (val.startsWith(' ')) return;
+
+                                                // Keeps your existing formatting, allowing up to 20 characters
+                                                const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                                onChange(formattedValue);
+                                            }}
+                                            variant="standard"
+                                            fullWidth
+                                            sx={{ width: '30%' }}
+                                            label="Sales rep Phone Number"
+                                            inputProps={{ maxLength: 20 }}
+                                            error={!!error}
+                                            helperText={error ? error.message : ''}
+                                            disabled={(type === 'View')}
+                                        />
+                                    )}
                                 />
+
+
 
                                 <Controller
                                     name="salesRepEmailId"

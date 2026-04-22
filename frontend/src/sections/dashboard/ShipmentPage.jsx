@@ -42,6 +42,22 @@ const shipmentTypes = [
 
 ];
 
+const shipmentStatusOptions = ['Order received Pickup Pending',
+  'Order received Pickup Setup',
+  'Dispatched / RSL',
+  'Picked',
+  'At Warehouse',
+  'To be recovered',
+  'To be Routed',
+  'Added to Queue',
+  'Manifested',
+  'Carrier Picked Up',
+  'In Transit',
+  'Delivered',
+  'Appointment',
+  'Recovered Short',
+]
+
 const STEPS = [
   'Shipment Details',
   'Customer Details',
@@ -93,6 +109,274 @@ const commonBtnStyle = {
 
 
 // item section
+const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, control, errors, liveShipmentStatus }) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `shipmentStatus.shipmentStatusTable`,
+  });
+
+  // on update
+  // append({
+  //   status: getValues('shipmentStatus.status') || '',
+  //   dateTime: getValues('shipmentStatus.date') && getValues('shipmentStatus.time')     ? new Date(`${getValues('shipmentStatus.date')}${getValues('shipmentStatus.time')}`) : null,
+  //   location: getValues('shipmentStatus.location') || '',
+  //   description: '',
+  //   comments: getValues('shipmentStatus.comments') || '',
+  //   postedDateTime: new Date(),
+  //  signature: getValues('shipmentStatus.signature') || '',
+  //  deliveryDateTime: getValues('shipmentStatus.deliveryDate') && getValues('shipmentStatus.deliveryTime') ? new Date(`${getValues('shipmentStatus.deliveryDate')}${getValues('shipmentStatus.deliveryTime')}`) : null,
+  //  appointmentDateTime: getValues('shipmentStatus.appointmentDate') && getValues('shipmentStatus.appointmentTime') ? new Date(`${getValues('shipmentStatus.appointmentDate')}${getValues('shipmentStatus.appointmentTime')}`) : null,
+  //   user: '',
+  // });
+
+
+  return (
+    <Dialog open={open} onClose={onClose} sx={{
+      '& .MuiPaper-root': { borderRadius: '12px' }, '& .MuiDialog-paper': { // Target the paper class
+        width: '1500px',
+        height: 'auto',
+        maxHeight: 'none',
+        maxWidth: 'none',
+      }
+    }}>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>Shipment Status</DialogTitle>
+      <DialogContent sx={{ mt: 2, pb: 4 }}>
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
+          <Box>
+          <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.status"
+
+                control={control}
+
+                rules={{ required: true }}
+
+                render={({ field }) => (
+
+                  <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentType} SelectProps={{
+                    displayEmpty: true,
+                    MenuProps: {
+                      // Crucial: disables internal centering logic so origins work
+                      getContentAnchorEl: null,
+                      // Prevents layout shifts and menu misplacement on scroll
+                      disableScrollLock: true,
+                      anchorOrigin: {
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                      },
+                      transformOrigin: {
+                        vertical: 'top',
+                        horizontal: 'left',
+                      },
+                      PaperProps: {
+                        sx: {
+                          marginTop: '4px', // Your custom gap
+                          maxHeight: 300,
+                          maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                        }
+                      }
+                    },
+                  }}>
+
+                    {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+
+                  </TextField>
+
+                )}
+
+              />
+
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.date"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <DatePicker {...field} label="Date" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
+
+                )}
+
+              />
+
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.time"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <TimePicker {...field} label="Time" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
+
+                )}
+
+              />
+
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+              <Controller name="shipmentStatus.location" control={control} rules={{ required: true }} render={({ field }) => (
+                <TextField {...field} fullWidth label="Current Location *" variant="standard" error={!!errors.location} />
+
+              )} />
+            </Box>
+          </Box>
+          {liveShipmentStatus === 'Delivered' && <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ flex: '1 1 22%' }}>
+              <Controller name="shipmentStatus.signature" control={control} render={({ field }) => (
+                <TextField {...field} fullWidth label="Signature" variant="standard" error={!!errors.signature} />
+              )} />
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.deliveryDate"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <DatePicker required {...field} label="Delivery Date*" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.deliveryDate } }} />
+
+                )}
+
+              />
+
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.deliveryTime"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <TimePicker required {...field} label="Delivery Time*" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.deliveryTime } }} />
+
+                )}
+
+              />
+
+            </Box>
+          </Box>}
+          {liveShipmentStatus === 'Appointment' && <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, flexWrap: 'wrap' }}>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.appointmentDate"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <DatePicker required {...field} label="Appointment Date*" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.appointmentDate } }} />
+
+                )}
+
+              />
+
+            </Box>
+            <Box sx={{ flex: '1 1 22%' }}>
+
+              <Controller
+
+                name="shipmentStatus.appointmentTime"
+
+                control={control}
+
+                render={({ field }) => (
+
+                  <TimePicker required {...field} label="Appointment Time*" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.appointmentTime } }} />
+
+                )}
+
+              />
+
+            </Box>
+          </Box>}
+          <Box sx={{ flex: '1', mt: 4 }}>
+            <Controller
+              name="shipmentStatus.comments"
+              control={control}
+              rules={{
+                maxLength: {
+                  value: 255,
+                  message: 'Notes cannot exceed 255 characters'
+                },
+                validate: (value) => !value || value.trim().length > 0 || 'Notes cannot be only spaces'
+              }}
+              render={({ field, fieldState: { error } }) => (
+                <TextField
+                  {...field}
+                  label={`Notes`}
+                  variant="standard" fullWidth
+
+                  // Intercept onChange to prevent leading spaces
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    // prevent only leading spaces while typing
+                    if (value.startsWith(' ')) {
+                      field.onChange(value.trimStart());
+                    } else {
+                      field.onChange(value);
+                    }
+                  }}
+                  error={!!error}
+                  inputProps={{ maxLength: 255 }}
+                  InputLabelProps={{ shrink: true }}
+                />
+              )}
+            />
+          </Box>
+          <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                    <Table size="small">
+                      <TableHead sx={{ bgcolor: '#eee' }}>
+                        <TableRow>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Status</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Date & Time</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Location</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Description</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Comments</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Posted Date & Time</TableCell>
+                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>User ID</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {fields.map((field, index) => (
+                          <TableRow key={field.id}>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.status}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>date</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.location}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.description}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.comments}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>date</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.user}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+          </Box>
+
+        </LocalizationProvider>
+      </DialogContent>
+    </Dialog>
+  );
+};
 const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
   const { fields, append, remove } = useFieldArray({
     control,
@@ -997,6 +1281,7 @@ const ShipmentForm = () => {
   const [errorVisible, setErrorVisible] = useState(false);
   // This state controls the opening, closing, and index of the Hazmat modal
   const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
+  const [shipmentStatusModal, setShipmentStatusModal] = useState(false);
   // for notes dialog
   const notesRef = useRef({});
   const [openNotesDialog, setOpenNotesDialog] = useState(false);
@@ -1087,6 +1372,29 @@ const ShipmentForm = () => {
         }],
         emergencyContactName: '',
         emergencyContactPhone: '',
+      },
+
+      // shipment status
+      shipmentStatus: {
+        status: '',
+        date: null,
+        time: null,
+        location: '',
+        comments: '',
+        signature: '',
+        deliveryDate: null,
+        deliveryTime: null,
+        appointmentDate: null,
+        appointmentTime: null,
+        shipmentStatusTable: [{
+          status: 'Order received Pickup Pending',
+          dateTime: new Date(),
+          location: 'Austin, Texas',
+          description: 'Revised Shipment Details',
+          comments : 'Shipment details have been revised. Awaiting pickup scheduling.',
+          postedDateTime: new Date(),
+          user: 'Admin',
+        }]
       },
 
       // step 3 - Carrier Information
@@ -1265,9 +1573,13 @@ const ShipmentForm = () => {
     control,
     name: 'carrierInfo.selectRouting',
   });
-  const pickupAlertSelectedRouting = useWatch({
+  const lineHaulDeliveryIncluded = useWatch({
     control,
-    name: 'carrierInfo.pickupAlertDetails.selectRouting',
+    name: 'carrierInfo.lineHaul.deliveryIncluded',
+  });
+  const liveShipmentStatus = useWatch({
+    control,
+    name: 'shipmentStatus.status',
   });
 
   // This checks if any item has hazmat checked to show the Emergency Contact
@@ -1286,6 +1598,10 @@ const ShipmentForm = () => {
   const { fields: deliveryAccFields, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
     control,
     name: "carrierInfo.deliveryDetails.deliveryAccessorials"
+  });
+  const { fields: shipmentStatusTable, replace: replaceShipmentStatusTable, } = useFieldArray({
+    control,
+    name: "shipmentStatus.shipmentStatusTable"
   });
 
   const inboundNotes = useWatch({
@@ -1748,6 +2064,7 @@ const ShipmentForm = () => {
                     fontSize: '0.65rem',
                     textTransform: 'none'
                   }}
+                  onClick={() => setShipmentStatusModal(true)}
                 >
                   Update
                 </Button>
@@ -1793,6 +2110,19 @@ const ShipmentForm = () => {
             </Stack>
           </Box>
         </Box>
+
+        {/* dialog for update shipment status  */}
+        <ShipmentStatusUpdateDialog
+          open={shipmentStatusModal}
+          onClose={() => setShipmentStatusModal(false)}
+          setValue={setValue}
+          getValues={getValues}
+          control={control}
+          errors={errors}
+          liveShipmentStatus={liveShipmentStatus}
+        />
+
+
 
 
 
@@ -2081,8 +2411,8 @@ const ShipmentForm = () => {
                       )} />
                       <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
                         <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
-                          <MenuItem value="in">lbs</MenuItem>
-                          <MenuItem value="cm">kgs</MenuItem>
+                          <MenuItem value="lbs">lbs</MenuItem>
+                          <MenuItem value="kgs">kgs</MenuItem>
                         </TextField>
                       )} />
                     </Box>
@@ -2970,7 +3300,7 @@ const ShipmentForm = () => {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
-                  {selectedRouting !== "Line haul & Delivery" && <>
+                  {(selectedRouting !== "Line haul & Delivery" && !lineHaulDeliveryIncluded) && <>
                     <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
                       <Box sx={{ flex: '1 1 200px' }}>
                         <Controller

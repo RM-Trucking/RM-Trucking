@@ -46,6 +46,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     const defaultValues = {
         carrierName: '',
         carrierType: [],
+        corporatePhoneNumber: '',
         carrierStatus: type === 'Add' ? 'active' : '',
         corpAddressLine1: '',
         corpAddressLine2: '',
@@ -100,6 +101,8 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             const obj = {
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
+                "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
+                "corporatePhoneNumber": data.corporatePhoneNumber,
                 "carrierStatus": "Active",
                 "tsaCertified": data.tsa ? 'Y' : 'N',
                 "ustDotNo": data.ustDotNo,
@@ -139,7 +142,9 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             const obj = {
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
+                "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
                 "carrierStatus": data.carrierStatus,
+                "corporatePhoneNumber": data.corporatePhoneNumber,
                 "tsaCertified": data.tsa ? 'Y' : 'N',
                 "totalShipments": selectedCarrierRowDetails?.totalShipments,
                 "rmOnTimePercent": selectedCarrierRowDetails?.rmOnTimePercent,
@@ -215,6 +220,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
             setValue('tariffRenewalDate', selectedCarrierRowDetails?.tariffRenewalDate || '');
             setValue('salesRepName', selectedCarrierRowDetails?.salesRepName || '');
             setValue('salesRepPhoneNumber', selectedCarrierRowDetails?.salesRepPhone || '');
+            setValue('corporatePhoneNumber', selectedCarrierRowDetails?.corporatePhoneNumber || '');
             setValue('salesRepEmailId', selectedCarrierRowDetails?.salesRepEmail || '');
         }
 
@@ -291,7 +297,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                             rules={{ required: "Carrier type is required" }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => {
                                 const groups = {
-                                    ltl: ["LTL Carrier", "Truck Load Carriers", "LTL Truck Load Carriers", "Dedicated Carriers"],
+                                    ltl: ["LTL Carrier", "Truck Load Carriers", "LTL Truck Load Carriers", "Dedicated Carriers", 'Parcel Carriers'],
                                     airport: ["Airport Carrier", "Airport Agent"]
                                 };
 
@@ -376,6 +382,52 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     </StyledTextField>
                                 );
                             }}
+                        />
+                        <Controller
+                            name="corporatePhoneNumber"
+                            control={control}
+                            rules={{
+                                maxLength: {
+                                    value: 20,
+                                    message: 'Corporate Phone number cannot exceed 20 characters'
+                                },
+                                validate: (value) => {
+                                    if (!value) return true; // Allow empty
+
+                                    // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                                    const digitsOnly = value.replace(/\D/g, '');
+                                    const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                                    if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                                    // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                                    // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                                    return true;
+                                }
+                            }}
+                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    value={value || ''}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        if (val.startsWith(' ')) return;
+
+                                        // Keeps your existing formatting, allowing up to 20 characters
+                                        const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                                        onChange(formattedValue);
+                                    }}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{ width: '30%' }}
+                                    label="Corporate Phone Number"
+                                    inputProps={{ maxLength: 20 }}
+                                    error={!!error}
+                                    helperText={error ? error.message : ''}
+                                    disabled={(type === 'View')}
+                                />
+                            )}
                         />
 
 

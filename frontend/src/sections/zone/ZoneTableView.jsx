@@ -7,8 +7,9 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage,setZoneZipCodeData, setZoneRateData, setError } from '../../redux/slices/zone';
-import { setSelectedCurrentRateRow } from '../../redux/slices/rate';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, setZoneZipCodeData, setZoneRateData, setError, getZoneCustomerRate, getZoneCarrierRate } from '../../redux/slices/zone';
+import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
+import NotesTable from '../customer/NotesTable';
 
 
 export default function ZoneTableView() {
@@ -21,6 +22,7 @@ export default function ZoneTableView() {
     const pagination = useSelector((state) => state?.zonedata?.pagination);
     const zoneSearchStr = useSelector((state) => state?.zonedata?.zoneSearchStr);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
+    const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
     const zoneLoading = useSelector((state) => state?.zonedata?.isLoading);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [openRateDialog, setOpenRateDialog] = useState(false);
@@ -34,6 +36,9 @@ export default function ZoneTableView() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+
+    const notesRef = useRef({});
+    const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
     // datagrid columns
     const columns = [
@@ -49,7 +54,7 @@ export default function ZoneTableView() {
             width: 700,
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt:1 }} alignItems={'center'} >
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                         {params.row.ranges?.map((range, index) => (
                             <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
                         ))}
@@ -62,25 +67,89 @@ export default function ZoneTableView() {
             }
         },
         {
-            field: 'rateCount',
-            headerName: 'Rate ID',
-            width: 100,
+            field: 'customerRateCount',
+            headerName: 'Customer Rate #',
+            width: 200,
+            cellClassName: 'padded-column',
             renderCell: (params) => {
                 const element = (
-                    <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', mt: 1.2, pt: 0.5 }} alignItems={'flex-start'}
-                        onClick={() => {
-                            setOpenRateDialog(true);
-                            dispatch(setSelectedZoneRowDetails(params?.row));
-                        }}
-                    >
-                        <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
-                        <Typography variant="normal" sx={{ height: '25px' }}>
-                            {params.row.rateCount}
-                        </Typography>
-                    </Stack>
+                    <>
+                        {
+                            params?.row?.customerRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('customer'));
+                                    dispatch(getZoneCustomerRate(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.customerRateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.customerRateCount}
+                            </Typography>
+                        }
+                    </>
                 );
                 return element;
             }
+        },
+        {
+            field: 'carrierRateCount',
+            headerName: 'Carrier Rate #',
+            width: 200,
+            cellClassName: 'padded-column',
+            renderCell: (params) => {
+                const element = (
+                    <>
+                        {
+                            params?.row?.carrierRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    dispatch(getZoneCarrierRate(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.carrierRateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.carrierRateCount}
+                            </Typography>
+                        }
+                    </>
+                );
+                return element;
+            }
+        },
+        {
+            field: "notes",
+            headerName: "Notes",
+            minWidth: 100,
+            flex: 1,
+            filterable: false,
+            cellClassName: 'padded-column',
+            renderCell: (params) => {
+                const handleDialogOpen = () => {
+                    setOpenConfirmDialog(true);
+                    notesRef.current = params?.row;
+                }
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+
+                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
+
+                    </Box>
+                );
+                return element;
+            },
         },
         {
             field: "actions",
@@ -121,12 +190,12 @@ export default function ZoneTableView() {
             });
         }
     }, [pagination]);
-    
+
     useEffect(() => {
-      const data = localStorage.getItem('zoneZipCodeCheckData');
-      if (data) {
-        dispatch(setZoneZipCodeData(JSON.parse(data)));
-      }
+        const data = localStorage.getItem('zoneZipCodeCheckData');
+        if (data) {
+            dispatch(setZoneZipCodeData(JSON.parse(data)));
+        }
     }, []);
 
     useEffect(() => {
@@ -147,6 +216,12 @@ export default function ZoneTableView() {
         console.log('zone rows updated', zoneZipCodeCheckData);
     }, [zoneZipCodeCheckData])
 
+    useEffect(() => {
+        if (rateData && rateData.length > 0) {
+            setOpenRateDialog(true);
+        }
+    }, [rateData])
+
     // dialog actions and functions
     const handleCloseEdit = () => {
         setActionType('');
@@ -158,6 +233,10 @@ export default function ZoneTableView() {
         dispatch(setZoneRateData([]));
         dispatch(setSelectedCurrentRateRow({}));
         setOpenRateDialog(false);
+    };
+    const handleCloseConfirm = () => {
+        setOpenConfirmDialog(false);
+        notesRef.current = {};
     };
 
     return (<>
@@ -210,7 +289,34 @@ export default function ZoneTableView() {
             }}
         >
             <DialogContent>
-                <RateViewTable handleCloseRate={handleCloseRate}/>
+                <RateViewTable handleCloseRate={handleCloseRate} />
+            </DialogContent>
+        </Dialog>
+        <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
+            if (event.key === 'Escape') {
+                handleCloseConfirm();
+            }
+        }}
+            sx={{
+                '& .MuiDialog-paper': { // Target the paper class
+                    width: '1000px',
+                    height: '80%',
+                    maxHeight: 'none',
+                    maxWidth: 'none',
+                }
+            }}
+        >
+            <DialogContent>
+                <>
+                    <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Zone Notes</Typography>
+                        <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                    </Stack>
+                    <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                </>
+                <Box sx={{ pt: 2 }}>
+                    <NotesTable notes={notesRef.current} handleCloseConfirm={handleCloseConfirm} />
+                </Box>
             </DialogContent>
         </Dialog>
 

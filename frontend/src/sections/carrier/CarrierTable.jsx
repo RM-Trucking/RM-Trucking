@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import {
     setSelectedCarrierRowDetails, getCarrierData, setOperationalMessage,
     patchCarrierStatus, setSelectedRowCarrierType, setCarrierViewTabData,
-    setError, 
+    setError,
 } from '../../redux/slices/carrier';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { clearNotesState } from '../../redux/slices/note';
@@ -174,11 +174,13 @@ export default function RateTable() {
                             <Box onClick={() => {
                                 dispatch(setCarrierViewTabData([]));
                                 dispatch(setSelectedCarrierRowDetails(params.row));
-                                const ltlKeywords = ["LTL Carrier", "Truck Load Carriers", "Dedicated Carriers"];
-                                const result = ltlKeywords.some(keyword => params.row.carrierType.includes(keyword))
-                                    ? "LTL"
-                                    : "Airport";
-                                dispatch(setSelectedRowCarrierType(result));
+                                if (params.row.carrierType) {
+                                    const ltlKeywords = ["LTL Carrier", "Truck Load Carriers", "Dedicated Carriers"];
+                                    const result = ltlKeywords.some(keyword => params.row.carrierType.includes(keyword))
+                                        ? "LTL"
+                                        : "Airport";
+                                    dispatch(setSelectedRowCarrierType(result));
+                                }
                                 localStorage.setItem('carrierId', params?.row?.carrierId);
                                 setActionType('View');
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.carrierView);

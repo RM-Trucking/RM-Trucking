@@ -1343,6 +1343,32 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     </Dialog>
   );
 };
+// to alculate freight class
+const getFreightClass = (length, width, height, lbs) => {
+  // 1. Calculate Cubic Feet
+  // (L * W * H in inches) / 1728 = Cubic Feet
+  const cubicInches = length * width * height;
+  const cubicFeet = cubicInches / 1728;
+
+  // 2. Calculate Density (PCF)
+  const density = lbs / cubicFeet;
+
+  // 3. Return Class based on your specific density table
+  if (density > 50) return 'Class 50';
+  if (density >= 35) return 'Class 55';
+  if (density >= 30) return 'Class 60';
+  if (density >= 22.5) return 'Class 65';
+  if (density >= 15) return 'Class 70';
+  if (density >= 12) return 'Class 85';
+  if (density >= 10) return 'Class 92.5';
+  if (density >= 8) return 'Class 100';
+  if (density >= 6) return 'Class 125';
+  if (density >= 4) return 'Class 175';
+  if (density >= 2) return 'Class 250';
+  if (density >= 1) return 'Class 300';
+  return 'Class 400'; // Less than 1 lb/cu ft
+}
+
 
 const ShipmentForm = () => {
 
@@ -1428,7 +1454,7 @@ const ShipmentForm = () => {
       // Step 2 - Handling Units 
 
       handlingUnits: [{
-        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '40',
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', freightClass : [],
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
@@ -1436,7 +1462,7 @@ const ShipmentForm = () => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '40',
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '',freightClass : [],
           items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
         }],
         emergencyContactName: '',
@@ -1604,7 +1630,7 @@ const ShipmentForm = () => {
       appendHU({
         uom: '',
         unitsCount: '',
-        unit: 'in',
+        unit: '',
         length: '',
         width: '',
         height: '',
@@ -2013,14 +2039,41 @@ const ShipmentForm = () => {
   useEffect(() => {
     if (watchedHU.length === 0) return true;
 
-    const firstUnit = watchedHU[0].weightUnit;
-    const isConsistent = watchedHU.every(item => item.weightUnit === firstUnit);
+    const firstWeightUnit = watchedHU[0].weightUnit;
+    const isConsistentWeightUnit = watchedHU.every(item => item.weightUnit === firstWeightUnit);
 
-    if (!isConsistent && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].weightUnit !== '') {
+    if (!isConsistentWeightUnit && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].weightUnit !== '') {
       setHandlingUnitWtFlag(true);
     } else {
       setHandlingUnitWtFlag(false);
     }
+    const firstUnit = watchedHU[0].unit;
+    const isConsistentUnit = watchedHU.every(item => item.unit === firstUnit);
+
+    if (!isConsistentUnit && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].unit !== '') {
+      setHandlingUnitWtFlag(true);
+    } else {
+      setHandlingUnitWtFlag(false);
+    }
+
+    // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
+    watchedHU.forEach((hu, index) => {
+      if (hu.length && hu.width && hu.height && hu.weight && hu.weightUnit) {
+        const length = hu.unit === 'cm' ? parseFloat(hu.length) / 2.54 : parseFloat(hu.length);
+        const width = hu.unit === 'cm' ? parseFloat(hu.width) / 2.54 : parseFloat(hu.width);
+        const height = hu.unit === 'cm' ? parseFloat(hu.height) / 2.54 : parseFloat(hu.height);
+        const weight = hu.weightUnit === 'kg' ? parseFloat(hu.weight) * 2.20462 : parseFloat(hu.weight);
+
+        const freightClass = getFreightClass(
+          parseFloat(length),
+          parseFloat(width),
+          parseFloat(height),
+          parseFloat(weight)
+        );
+        setValue(`handlingUnits.${index}.class`, freightClass);
+        setValue(`handlingUnits.${index}.freightClass`, [freightClass]);
+      }
+    });
 
   }, [watchedHU]);
 
@@ -2489,7 +2542,13 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '1 1 80px' }}>
                     <Controller name={`handlingUnits.${huIdx}.class`} control={control} render={({ field }) => (
                       <TextField {...field} select fullWidth label="Class" variant="standard" InputLabelProps={{ shrink: true }}>
-                        {[40, 50, 60, 70, 85, 92.5, 100].map(c => <MenuItem key={c} value={c}>{c}</MenuItem>)}
+                        {watchedHU[huIdx]?.freightClass?.length > 0 ? (
+                          watchedHU[huIdx]?.freightClass?.map(fc => <MenuItem key={fc} value={fc}>{fc}</MenuItem>)
+                        ) : (
+                          <MenuItem value="" disabled>
+                            No freight classes available
+                          </MenuItem>
+                        )}
                       </TextField>
                     )} />
                   </Box>
@@ -3932,6 +3991,10 @@ const ShipmentForm = () => {
 
             if (updatedHU[0] && updatedHU[lastIndex]) {
               updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
+              setValue('handlingUnits', updatedHU); // Update the form state if needed
+            }
+            if (updatedHU[0] && updatedHU[lastIndex]) {
+              updatedHU[lastIndex].unit = updatedHU[0].unit;
               setValue('handlingUnits', updatedHU); // Update the form state if needed
             }
           }}

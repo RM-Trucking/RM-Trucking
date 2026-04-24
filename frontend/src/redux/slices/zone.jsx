@@ -185,7 +185,7 @@ export function putZoneData(id, obj, zipCheck) {
     }
   };
 }
-export function deleteZone(id, callback) {
+export function deleteZone(id) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
@@ -193,7 +193,6 @@ export function deleteZone(id, callback) {
       dispatch(slice.actions.deleteZoneDataSuccess({
         id, message: response.data
       }));
-      callback();
     } catch (error) {
       dispatch(slice.actions.hasError(error))
     }

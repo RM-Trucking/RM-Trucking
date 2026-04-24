@@ -858,7 +858,15 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                             // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
-                                            } else {
+                                            }
+                                            if (value === "") {
+                                                field.onChange("");
+                                                if (type === 'Search') {
+                                                    dispatch(setRateSearchObj({}));
+                                                    dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: '' }));
+                                                }
+                                            }
+                                            else {
                                                 field.onChange(value);
                                             }
                                         }}
@@ -981,7 +989,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                                 if (val === " ") return; // Blocks leading space in real-time
                                                 field.onChange(e);
                                             }}
-                                            sx={{mt:2}}
+                                            sx={{ mt: 2 }}
                                         />
                                     )}
                                 />}

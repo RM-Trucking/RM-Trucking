@@ -194,9 +194,7 @@ export default function ZoneTable() {
                                 onClick={() => {
                                     setActionType('Delete');
                                     // using callback to refresh table data after delete
-                                    dispatch(deleteZone(params?.row?.zoneId, () => {
-                                        dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
-                                    }));
+                                    dispatch(deleteZone(params?.row?.zoneId));
                                 }}
                                 sx={{ display: 'inline-flex', cursor: 'pointer' }}>
                                 <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
@@ -235,6 +233,9 @@ export default function ZoneTable() {
         if (operationalMessage) {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
+        }
+        if (operationalMessage === 'Zone deleted successfully.') {
+            dispatch(getZoneData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: zoneSearchStr }));
         }
     }, [operationalMessage])
 

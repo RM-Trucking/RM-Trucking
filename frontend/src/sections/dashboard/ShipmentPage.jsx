@@ -938,15 +938,15 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
 }));
 
 const MASTER_ACCESSORIALS = [
-  { name: 'Residential', type: 'Hourly', charges: '0.00', notes: true, selected: true },
-  { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: true, selected: true },
-  { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: true, selected: true },
-  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: true, selected: false },
-  { name: 'Pickup at airport', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
-  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
-  { name: 'Lift Gate', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
-  { name: 'Documentation Fees', type: 'Per Pound', charges: '.24 per lb', notes: false, selected: false },
-  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: false, selected: false },
+  { name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential', selected: true },
+  { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', selected: true },
+  { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', selected: true },
+  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', selected: false },
+  { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', selected: false },
+  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
+  { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', selected: false },
+  { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', selected: false },
+  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', selected: false },
 ];
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
@@ -1368,6 +1368,143 @@ const getFreightClass = (length, width, height, lbs) => {
   if (density >= 1) return 'Class 300';
   return 'Class 400'; // Less than 1 lb/cu ft
 }
+// step 5 carrier rate
+const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control }) => {
+  // Track which row index is currently in "Edit Mode"
+  const [editIndex, setEditIndex] = useState(null);
+  const [manual, setManual] = useState(false);
+  const [isRateEditing, setIsRateEditing] = useState(false);
+
+  return (
+    <Box sx={{ mb: 4 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+        <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}>
+          Invoice Approval
+        </Button>
+      </Box>
+
+      <Box sx={{ border: '1px solid #ccc', borderRadius: '4px' }}>
+        {/* Header Row */}
+        <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
+          <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">{sectionName}</Typography></Box>
+          <Box sx={{ flex: 1, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+        </Box>
+        {/* zip to zip  Static Rates Array (e.g., from API or predefined) */}
+        <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
+          <Box sx={{ flex: 3, p: 1 }}>
+            <Typography variant="body2">Zip to Zip</Typography>
+          </Box>
+          <Box sx={{
+            flex: 1, p: 1, borderLeft: '1px solid #ccc',
+            display: 'flex', alignItems: 'center', gap: 1
+          }}>
+            <Controller
+              name={rate}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  size="small"
+                  disabled={!isRateEditing} // Editable ONLY when isEditing is true
+                  variant="outlined"
+                  sx={{
+                    bgcolor: isRateEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                    '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                    '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                  }}
+                />
+              )}
+            />
+
+            {/* Toggle between Edit and Save Icons */}
+            {isRateEditing ? (
+              <IconButton
+                size="small"
+                onClick={() => setIsRateEditing(false)} // "Save" by clearing the index
+                sx={{ color: 'success.main' }}
+              >
+                <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+              </IconButton>
+            ) : (
+              <IconButton
+                size="small"
+                onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
+              >
+                <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+              </IconButton>
+            )}
+
+            {manual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
+          </Box>
+        </Box>
+
+        {/* Dynamic Rates Array */}
+        {fields.map((item, index) => {
+          const isEditing = editIndex === index;
+
+          return (
+            <Box key={item.name} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
+              <Box sx={{ flex: 3, p: 1 }}>
+                <Typography variant="body2">{item.name}</Typography>
+              </Box>
+              <Box sx={{
+                flex: 1, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                {console.log(`${path}[${index}].charges`, watchedCarrierRateInfo.pickUp.pickupAccessorials[index]?.charges)}
+                <Controller
+                  name={`${path}[${index}].charges`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="small"
+                      disabled={!isEditing} // Editable ONLY when isEditing is true
+                      variant="outlined"
+                      sx={{
+                        bgcolor: isEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Toggle between Edit and Save Icons */}
+                {isEditing ? (
+                  <IconButton
+                    size="small"
+                    onClick={() => setEditIndex(null)} // "Save" by clearing the index
+                    sx={{ color: 'success.main' }}
+                  >
+                    <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    size="small"
+                    onClick={() => setEditIndex(index)} // Enable edit mode for this row
+                  >
+                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                )}
+
+                {item.isManual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
+              </Box>
+            </Box>
+          );
+        })}
+
+        {/* Sub Total Row */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '15%' }}>
+          <Typography variant="subtitle2" fontWeight="bold">Sub Total</Typography>
+          <Typography variant="subtitle2" fontWeight="bold" sx={{ minWidth: 100 }}>
+            {totalSubCharges}
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
 
 const ShipmentForm = () => {
@@ -1454,7 +1591,7 @@ const ShipmentForm = () => {
       // Step 2 - Handling Units 
 
       handlingUnits: [{
-        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', freightClass : [],
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', freightClass: [],
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
@@ -1462,7 +1599,7 @@ const ShipmentForm = () => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '',freightClass : [],
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', freightClass: [],
           items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
         }],
         emergencyContactName: '',
@@ -1600,11 +1737,57 @@ const ShipmentForm = () => {
         }
       },
 
+      // step 4 - Carrier Rates
+      carrierRates: {
+        pickUp: {
+          pickUpCarrier: 'Pickup Carrier',
+          pickUpRate: '130',
+          pickupAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
+          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
+          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
+          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
+          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
+          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
+          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
+          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
+          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+        },
+        lineHaul: {
+          lineHaulCarrier: 'Line Haul Carrier',
+          lineHaulRate: '140',
+          lineHaulAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
+          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
+          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
+          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
+          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
+          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
+          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
+          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
+          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+        },
+        delivery: {
+          deliveryCarrier: 'Delivery Carrier',
+          deliveryRate: '150',
+          deliveryAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
+          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
+          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
+          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
+          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
+          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
+          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
+          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
+          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+        }
+      },
+
     },
 
   });
 
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
+  const { fields: carrierRatesPickUpAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
+  const { fields: carrierRatesLineHaulAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
+  const { fields: carrierRatesDeliveryAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
@@ -1660,6 +1843,10 @@ const ShipmentForm = () => {
   const watchedCarrierInfo = useWatch({
     control,
     name: 'carrierInfo',
+  });
+  const watchedCarrierRateInfo = useWatch({
+    control,
+    name: 'carrierRates',
   });
   // Boolean helper to check the checkbox state
   const isPickupPending = watchedCarrierInfo?.orderReceivedPending;
@@ -2244,17 +2431,13 @@ const ShipmentForm = () => {
           liveShipmentStatus={liveShipmentStatus}
         />
 
-
-
-
-
         {/* STEP 0 */}
 
         {activeStep === 0 && (
 
           <Paper variant="outlined" sx={{ p: 3, mt: 2, borderRadius: 2 }}>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid #eee', pb: 1, mb: 3 }}>Shipment Details</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Shipment Details</Typography>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
 
@@ -2360,7 +2543,7 @@ const ShipmentForm = () => {
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid #eee', pb: 1, mb: 3 }}>Customer Details</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom : ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
 
@@ -2448,7 +2631,7 @@ const ShipmentForm = () => {
 
         {activeStep === 2 && (
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom : ' 1px solid rgba(143, 143, 143, 1)' }}>
               Commodities Details
             </Typography>
 
@@ -2615,9 +2798,9 @@ const ShipmentForm = () => {
         {activeStep === 3 && (
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
             {/* Top Level Checkbox */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom : ' 1px solid rgba(143, 143, 143, 1)' }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-                Commodities Details
+                Carrier Information
               </Typography>
               <FormControlLabel
                 control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
@@ -3956,17 +4139,86 @@ const ShipmentForm = () => {
           </Paper>
         )}
 
+        {/* step 4 */}
 
+        {
+          activeStep === 4 && (<Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom : ' 1px solid rgba(143, 143, 143, 1)'}}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
+                Carrier Rates
+              </Typography>
+            </Box>
+            <CarrierSection
+              fields={carrierRatesPickUpAccessorials}
+              sectionName={`Pickup Carrier -  ${watchedCarrierRateInfo.pickUp.pickUpCarrier || ''}`}
+              rate={'carrierRates.pickUp.pickUpRate'}
+              totalSubCharges={(
+                parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                  return sum + parseFloat(item.charges || 0);
+                }, 0)
+              ).toFixed(2)}
+              watchedCarrierRateInfo={watchedCarrierRateInfo}
+              setValue={setValue}
+              path="carrierRates.pickUp.pickupAccessorials"
+              control={control}
+            />
+            <CarrierSection
+              fields={carrierRatesLineHaulAccessorials}
+              sectionName={`Line Haul Carrier -  ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier || ''}`}
+              rate={'carrierRates.lineHaul.lineHaulRate'}
+              totalSubCharges={(
+                parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                  return sum + parseFloat(item.charges || 0);
+                }, 0)
+              ).toFixed(2)}
+              watchedCarrierRateInfo={watchedCarrierRateInfo}
+              setValue={setValue}
+              path="carrierRates.lineHaul.lineHaulAccessorials"
+              control={control}
+            />
+            <CarrierSection
+              fields={carrierRatesDeliveryAccessorials}
+              sectionName={`Delivery Carrier -  ${watchedCarrierRateInfo.delivery.deliveryCarrier || ''}`}
+              rate='carrierRates.delivery.deliveryRate'
+              totalSubCharges={(
+                parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                  return sum + parseFloat(item.charges || 0);
+                }, 0)
+              ).toFixed(2)}
+              watchedCarrierRateInfo={watchedCarrierRateInfo}
+              setValue={setValue}
+              path="carrierRates.delivery.deliveryAccessorials"
+              control={control}
+            />
 
-        {activeStep > 3 && (
-
-          <Paper sx={{ p: 10, textAlign: 'center' }} variant="outlined">
-
-            <Typography variant="h5">Step {activeStep + 1} Content</Typography>
-
-          </Paper>
-
-        )}
+            {/* Grand total  */}
+            <Box sx={{ bgcolor: '#f5f5f5' }}>
+              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '15%' }}>
+                <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
+                  (
+                    parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                    watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                      return sum + parseFloat(item.charges || 0);
+                    }, 0) +
+                    parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                    watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                      return sum + parseFloat(item.charges || 0);
+                    }, 0) +
+                    parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                    watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                      return sum + parseFloat(item.charges || 0);
+                    }, 0)
+                  ).toFixed(2)
+                }
+                </Typography>
+              </Box>
+            </Box>
+          </Paper>)
+        }
 
 
 

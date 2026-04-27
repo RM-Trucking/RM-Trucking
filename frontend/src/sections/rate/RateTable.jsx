@@ -615,10 +615,20 @@ export default function RateTable() {
     };
     const onClickOfAddRate = () => {
         if (currentRateRoutedFrom === 'customer') {
-            dispatch(postStationRate(selectedRatesArr));
+            if (selectedRatesArr && selectedRatesArr.length > 0) {
+                dispatch(postStationRate(selectedRatesArr));
+            } else {
+                setSnackbarMessage('Please select at least one rate to add.');
+                setSnackbarOpen(true);
+            }
         }
         if (currentRateRoutedFrom === 'carrier') {
-            dispatch(postTerminalRate(selectedRatesArr));
+            if (selectedRatesArr && selectedRatesArr.length > 0) {
+                dispatch(postTerminalRate(selectedRatesArr));
+            } else {
+                setSnackbarMessage('Please select at least one rate to add.');
+                setSnackbarOpen(true);
+            }
         }
     }
     const handleNotesCloseConfirm = () => {

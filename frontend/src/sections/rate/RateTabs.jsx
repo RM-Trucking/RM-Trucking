@@ -69,7 +69,7 @@ export default function RateTabs({ }) {
     }
 
     useEffect(() => {
-        dispatch(setCurrentRateTab('transportation'));
+        dispatch(setCurrentRateTab(currentRateTab));
     }, []);
 
     return (

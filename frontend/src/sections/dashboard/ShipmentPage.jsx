@@ -424,7 +424,7 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
                   {fields.map((field, index) => (
                     <TableRow key={field.id}>
                       <TableCell sx={{ fontSize: '0.8rem' }}>{field.status}</TableCell>
-                      <TableCell sx={{ fontSize: '0.8rem' }}>{dayjs(field.dateTime || null).format('MM/DD/YYYY HH:mm')}</TableCell>
+                      <TableCell sx={{ fontSize: '0.8rem' }}>{!field.dateTime.includes(null) ? dayjs(field.dateTime).format('MM/DD/YYYY HH:mm') : ''}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem' }}>{field.location}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem' }}>{field.description}</TableCell>
                       <TableCell sx={{ fontSize: '0.8rem' }}>{field.comments}</TableCell>
@@ -1591,7 +1591,7 @@ const ShipmentForm = () => {
       // Step 2 - Handling Units 
 
       handlingUnits: [{
-        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', freightClass: [],
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['Class 50', 'Class 55', 'Class 60', 'Class 65', 'Class 70', 'Class 85', 'Class 92.5', 'Class 100', 'Class 125', 'Class 175', 'Class 250', 'Class 300', 'Class 400'],
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
@@ -1599,7 +1599,7 @@ const ShipmentForm = () => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', freightClass: [],
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['Class 50', 'Class 55', 'Class 60', 'Class 65', 'Class 70', 'Class 85', 'Class 92.5', 'Class 100', 'Class 125', 'Class 175', 'Class 250', 'Class 300', 'Class 400'],
           items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
         }],
         emergencyContactName: '',
@@ -1608,7 +1608,7 @@ const ShipmentForm = () => {
 
       // shipment status
       shipmentStatus: {
-        status: '',
+        status: 'New Shipment',
         date: null,
         time: null,
         location: '',
@@ -1618,15 +1618,7 @@ const ShipmentForm = () => {
         deliveryTime: null,
         appointmentDate: null,
         appointmentTime: null,
-        shipmentStatusTable: [{
-          status: 'Order received Pickup Pending',
-          dateTime: new Date(),
-          location: 'Austin, Texas',
-          description: 'Revised Shipment Details',
-          comments: 'Shipment details have been revised. Awaiting pickup scheduling.',
-          postedDateTime: new Date(),
-          user: 'Admin',
-        }]
+        shipmentStatusTable: []
       },
 
       // step 3 - Carrier Information
@@ -2257,8 +2249,7 @@ const ShipmentForm = () => {
           parseFloat(height),
           parseFloat(weight)
         );
-        setValue(`handlingUnits.${index}.class`, freightClass);
-        setValue(`handlingUnits.${index}.freightClass`, [freightClass]);
+        setValue(`handlingUnits.${index}.calculatedFC`, freightClass);
       }
     });
 
@@ -2362,7 +2353,7 @@ const ShipmentForm = () => {
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                 <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
-                <Typography sx={valueStyle}>Recovered Short</Typography>
+                <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
                 <Button
                   variant="contained"
                   size="small"
@@ -2543,7 +2534,7 @@ const ShipmentForm = () => {
 
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom : ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
 
@@ -2631,7 +2622,7 @@ const ShipmentForm = () => {
 
         {activeStep === 2 && (
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom : ' 1px solid rgba(143, 143, 143, 1)' }}>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
               Commodities Details
             </Typography>
 
@@ -2695,21 +2686,15 @@ const ShipmentForm = () => {
                     )} />
                   </Box>
                   {['Length', 'Width', 'Height'].map((dim) => (
-                    <Box key={dim} sx={{ flex: '1 1 140px', }}>
+                    <Box key={dim} sx={{ flex: '1 1 80px', }}>
                       <Box display={'flex'} alignItems={'flex-end'}>
                         <Controller name={`handlingUnits.${huIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
                           <TextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} />
                         )} />
-                        <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
-                          <TextField {...field} select sx={{ width: '80px' }} label="" variant="standard">
-                            <MenuItem value="in">in</MenuItem>
-                            <MenuItem value="cm">cm</MenuItem>
-                          </TextField>
-                        )} />
                       </Box>
                     </Box>
                   ))}
-                  <Box sx={{ flex: '1 1 90px' }}>
+                  <Box sx={{ flex: '1 1 70px' }}>
                     <Box display={'flex'} alignItems={'flex-end'}>
                       <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
                         <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
@@ -2722,11 +2707,59 @@ const ShipmentForm = () => {
                       )} />
                     </Box>
                   </Box>
-                  <Box sx={{ flex: '1 1 80px' }}>
+                  <Box sx={{ flex: '1 1 120px' }}>
                     <Controller name={`handlingUnits.${huIdx}.class`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Class" variant="standard" InputLabelProps={{ shrink: true }}>
+                      <TextField {...field} select fullWidth label="Class" variant="standard"
+                        InputLabelProps={{ shrink: true }}
+                        SelectProps={{
+                          displayEmpty: true,
+                          MenuProps: {
+                            // Crucial: disables internal centering logic so origins work
+                            getContentAnchorEl: null,
+                            // Prevents layout shifts and menu misplacement on scroll
+                            disableScrollLock: true,
+                            anchorOrigin: {
+                              vertical: 'bottom',
+                              horizontal: 'left',
+                            },
+                            transformOrigin: {
+                              vertical: 'top',
+                              horizontal: 'left',
+                            },
+                            PaperProps: {
+                              sx: {
+                                marginTop: '4px', // Your custom gap
+                                maxHeight: 200,
+                                maxWidth: 350    // Recommended to prevent long lists from going off-screen
+                              }
+                            }
+                          },
+                          inputProps: { maxLength: 255 },
+                        }}>
                         {watchedHU[huIdx]?.freightClass?.length > 0 ? (
-                          watchedHU[huIdx]?.freightClass?.map(fc => <MenuItem key={fc} value={fc}>{fc}</MenuItem>)
+                          // watchedHU[huIdx]?.freightClass?.map(fc => <MenuItem key={fc} value={fc}>{fc}</MenuItem>)
+
+                          watchedHU[huIdx]?.freightClass?.map((fc) => {
+                            const isCalculated = fc === watchedHU[huIdx]?.calculatedFC; // Check if this item is the calculated one
+
+                            return (
+                              <MenuItem
+                                key={fc}
+                                value={fc}
+                                sx={{
+                                  backgroundColor: isCalculated ? '#e3f2fd !important' : 'transparent', // Light blue highlight
+                                  fontWeight: isCalculated ? 'bold' : 'normal',
+                                  borderLeft: isCalculated ? '4px solid #1976d2' : 'none', // Optional accent bar
+                                  '&:hover': {
+                                    backgroundColor: isCalculated ? '#bbdefb !important' : ''
+                                  }
+                                }}
+                              >
+                                {fc} {isCalculated && "(Recommended)"}
+                              </MenuItem>
+                            );
+                          })
+
                         ) : (
                           <MenuItem value="" disabled>
                             No freight classes available
@@ -2798,7 +2831,7 @@ const ShipmentForm = () => {
         {activeStep === 3 && (
           <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
             {/* Top Level Checkbox */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom : ' 1px solid rgba(143, 143, 143, 1)' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
                 Carrier Information
               </Typography>
@@ -4143,7 +4176,7 @@ const ShipmentForm = () => {
 
         {
           activeStep === 4 && (<Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom : ' 1px solid rgba(143, 143, 143, 1)'}}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
                 Carrier Rates
               </Typography>

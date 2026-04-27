@@ -4,7 +4,7 @@ import { List, Stack, Button, Collapse } from '@mui/material';
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import {
-  setCurrentRateRoutedFrom
+  setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab
 } from '../../../redux/slices/rate';
 import {
   setAccessorialData,
@@ -58,6 +58,8 @@ function NavItem({ item, depth = 0 }) {
     dispatch(setRateTableData([]));
     dispatch(setCarrierList([]));
     dispatch(setCustomerList([]));
+    dispatch(setIsSelectRateClicked(false));
+    dispatch(setCurrentRateTab('transportation'));
 
 
     if (item.path) {

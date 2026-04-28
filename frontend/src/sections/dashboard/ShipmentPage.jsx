@@ -486,7 +486,32 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.piecesUom`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}>
+                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps: {
+                          // Crucial: disables internal centering logic so origins work
+                          getContentAnchorEl: null,
+                          // Prevents layout shifts and menu misplacement on scroll
+                          disableScrollLock: true,
+                          anchorOrigin: {
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                          },
+                          transformOrigin: {
+                            vertical: 'top',
+                            horizontal: 'left',
+                          },
+                          PaperProps: {
+                            sx: {
+                              marginTop: '4px', // Your custom gap
+                              maxHeight: 300,
+                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                            }
+                          }
+                        },
+                      }}
+                    >
                       {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map((u) => (
                         <MenuItem key={u} value={u}>{u}</MenuItem>
                       ))}
@@ -1369,12 +1394,17 @@ const getFreightClass = (length, width, height, lbs) => {
   return '400'; // Less than 1 lb/cu ft
 }
 // step 5 carrier rate
-const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, handlingUnits }) => {
+const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals }) => {
   // Track which row index is currently in "Edit Mode"
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [manual, setManual] = useState(false);
   const [isRateEditing, setIsRateEditing] = useState(false);
+  //  invoice approval
+  // invoice approval dialogs
+  const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
+  const hasManualEntry = fields.some(item => item.isManual === true);
+
 
   return (
     <Box sx={{ mb: 4 }}>
@@ -1389,7 +1419,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
         <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
           <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">{sectionName}</Typography></Box>
           <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
-          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+          <Box sx={{ flex: 2.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
           <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Total Rates ($)</Typography></Box>
         </Box>
         {/* zip to zip  Static Rates Array (e.g., from API or predefined) */}
@@ -1404,7 +1434,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
             <Typography variant="body2">-</Typography>
           </Box>
           <Box sx={{
-            flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+            flex: 2.5, p: 1, borderLeft: '1px solid #ccc',
             display: 'flex', alignItems: 'center', gap: 1
           }}>
             <Controller
@@ -1457,7 +1487,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
             {manual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
           </Box>
-          <Box sx={{ flex: 1.5, p: 1 }}>
+          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
             {rate === 'carrierRates.pickUp.pickUpRate' &&
               <Typography variant="body2">{getValues(`carrierRates.pickUp.pickUpRate`)}</Typography>
             }
@@ -1564,7 +1594,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 }
               </Box>
               <Box sx={{
-                flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+                flex: 2.5, p: 1, borderLeft: '1px solid #ccc',
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
                 <Controller
@@ -1618,7 +1648,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
                 {getValues(`${path}[${index}].isManual`) && <Typography variant="caption" sx={{ color: '#666', flex: 1 }}>Manual Entry</Typography>}
               </Box>
-              <Box sx={{ flex: 1.5, p: 1 }}>
+              <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
                 {
                   item.type.toLowerCase() === 'hourly' && (
                     <Typography variant="body2">
@@ -1643,7 +1673,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                     <Typography variant="body2">
                       {(() => {
                         const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
-                        const weightVal = getValues(`handlingUnits[0].weight`);
+                        const weightVal = totals.totalWeight;
 
                         // Check if weight exists (not empty, null, or undefined)
                         const hasWeight = weightVal !== undefined && weightVal !== "" && weightVal !== null;
@@ -1675,6 +1705,35 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
           </Typography>
         </Box>
       </Box>
+
+      <Dialog open={invoiceApprovalModal} onClose={() => setInvoiceApprovalModal(false)} sx={{
+        '& .MuiPaper-root': { borderRadius: '12px' }, '& .MuiDialog-paper': { // Target the paper class
+          width: '500px',
+          height: 'auto',
+          maxHeight: 'none',
+          maxWidth: 'none',
+        }
+      }}>
+        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>{(rate.includes('pickup')) ? 'Pickup' : (rate.includes('line haul')) ? 'Line Haul' : 'Delivery'} Confirmation</DialogTitle>
+        <DialogContent sx={{ mt: 2, pb: 4 }}>
+          {
+            !hasManualEntry && <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} the total amount  ${`${totalSubCharges}`} ?</Typography>
+          }
+          {
+            hasManualEntry && <Box>
+              <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} ?</Typography>
+            </Box>
+          }
+        </DialogContent>
+        <DialogActions sx={{ p: 3, justifyContent: 'center', gap: 2 }}>
+          <Button onClick={() => setInvoiceApprovalModal(false)} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+            Cancel
+          </Button>
+          <Button onClick={() => setInvoiceApprovalModal(false)} variant="contained" sx={{ ...commonBtnStyle, bgcolor: '#a22', px: 4, '&:hover': { bgcolor: '#811' } }}>
+            Save
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
@@ -1697,13 +1756,6 @@ const ShipmentForm = () => {
   const [addAccModal, setAddAccModal] = useState(false);
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
-
-  // invoice approval dialogs
-  const [invoiceApprovalForPickupModal, setInvoiceApprovalForPickupModal] = useState(false);
-  const [invoiceApprovalForLineHaulModal, setInvoiceApprovalForLineHaulModal] = useState(false);
-  const [invoiceApprovalForDeliveryModal, setInvoiceApprovalForDeliveryModal] = useState(false);
-
-
 
   const {
     control,
@@ -1912,23 +1964,21 @@ const ShipmentForm = () => {
         pickUp: {
           pickUpCarrier: 'Pickup Carrier',
           pickUpRate: '130',
+          apiPickUpRate: '130',
           pickupAccessorials: [],
         },
         lineHaul: {
           lineHaulCarrier: 'Line Haul Carrier',
           lineHaulRate: '140',
+          apiLineHaulRate: '140',
           lineHaulAccessorials: [],
         },
         delivery: {
           deliveryCarrier: 'Delivery Carrier',
           deliveryRate: '150',
+          apiDeliveryRate: '150',
           deliveryAccessorials: [],
         },
-        delivery: {
-          deliveryCarrier: 'Delivery Carrier',
-          deliveryRate: '150',
-          deliveryAccessorials: [],
-        }
       },
 
     },
@@ -2053,6 +2103,23 @@ const ShipmentForm = () => {
     control,
     name: 'carrierInfo.deliveryDetails.deliveryNotesArr',
   });
+
+  const calculateTotals = (huArray) => {
+    let totalHU = 0, totalPieces = 0, totalHM = 0, totalWeight = 0;
+    huArray?.forEach((hu) => {
+      totalHU += Number(hu.unitsCount || 0);
+      hu.items?.forEach((item) => {
+        totalPieces += Number(item.pieces || 0);
+        if (item.hazmatInfo) totalHM += 1;
+      });
+      totalWeight += Number(hu.weight || 0);
+    });
+    return { totalHU, totalPieces, totalHM, totalWeight };
+  };
+
+
+
+  const totals = calculateTotals(watchedHU);
 
   const handleNext = async () => {
     console.log('Current Form Values:', getValues());
@@ -2447,7 +2514,8 @@ const ShipmentForm = () => {
       const updatedPickupAcc = watchedCarrierInfo.pickupAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.charges,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
@@ -2455,7 +2523,8 @@ const ShipmentForm = () => {
       const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.charges,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
@@ -2463,7 +2532,8 @@ const ShipmentForm = () => {
       const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.charges,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
@@ -2882,7 +2952,32 @@ const ShipmentForm = () => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                   <Box sx={{ flex: '1 1 120px' }}>
                     <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}>
+                      <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
+                        SelectProps={{
+                          displayEmpty: true,
+                          MenuProps: {
+                            // Crucial: disables internal centering logic so origins work
+                            getContentAnchorEl: null,
+                            // Prevents layout shifts and menu misplacement on scroll
+                            disableScrollLock: true,
+                            anchorOrigin: {
+                              vertical: 'bottom',
+                              horizontal: 'left',
+                            },
+                            transformOrigin: {
+                              vertical: 'top',
+                              horizontal: 'left',
+                            },
+                            PaperProps: {
+                              sx: {
+                                marginTop: '4px', // Your custom gap
+                                maxHeight: 300,
+                                maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                              }
+                            }
+                          },
+                        }}
+                      >
                         {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
                       </TextField>
                     )} />
@@ -4415,7 +4510,7 @@ const ShipmentForm = () => {
               path="carrierRates.pickUp.pickupAccessorials"
               control={control}
               getValues={getValues}
-              handlingUnits={'handlingUnits'}
+              totals={totals}
             />}
             {(selectedRouting === "None") && <CarrierSection
               fields={carrierRatesLineHaulAccessorials}
@@ -4441,7 +4536,7 @@ const ShipmentForm = () => {
               path="carrierRates.lineHaul.lineHaulAccessorials"
               control={control}
               getValues={getValues}
-              handlingUnits={'handlingUnits'}
+              totals={totals}
             />}
             {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <CarrierSection
               fields={carrierRatesDeliveryAccessorials}
@@ -4467,7 +4562,7 @@ const ShipmentForm = () => {
               path="carrierRates.delivery.deliveryAccessorials"
               control={control}
               getValues={getValues}
-              handlingUnits={'handlingUnits'}
+              totals={totals}
             />}
 
             {/* Grand total  */}

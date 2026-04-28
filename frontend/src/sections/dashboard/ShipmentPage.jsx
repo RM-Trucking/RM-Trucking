@@ -1354,22 +1354,22 @@ const getFreightClass = (length, width, height, lbs) => {
   const density = lbs / cubicFeet;
 
   // 3. Return Class based on your specific density table
-  if (density > 50) return 'Class 50';
-  if (density >= 35) return 'Class 55';
-  if (density >= 30) return 'Class 60';
-  if (density >= 22.5) return 'Class 65';
-  if (density >= 15) return 'Class 70';
-  if (density >= 12) return 'Class 85';
-  if (density >= 10) return 'Class 92.5';
-  if (density >= 8) return 'Class 100';
-  if (density >= 6) return 'Class 125';
-  if (density >= 4) return 'Class 175';
-  if (density >= 2) return 'Class 250';
-  if (density >= 1) return 'Class 300';
-  return 'Class 400'; // Less than 1 lb/cu ft
+  if (density > 50) return '50';
+  if (density >= 35) return '55';
+  if (density >= 30) return '60';
+  if (density >= 22.5) return '65';
+  if (density >= 15) return '70';
+  if (density >= 12) return '85';
+  if (density >= 10) return '92.5';
+  if (density >= 8) return '100';
+  if (density >= 6) return '125';
+  if (density >= 4) return '175';
+  if (density >= 2) return '250';
+  if (density >= 1) return '300';
+  return '400'; // Less than 1 lb/cu ft
 }
 // step 5 carrier rate
-const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control }) => {
+const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues }) => {
   // Track which row index is currently in "Edit Mode"
   const [editIndex, setEditIndex] = useState(null);
   const [manual, setManual] = useState(false);
@@ -1387,7 +1387,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
         {/* Header Row */}
         <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
           <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">{sectionName}</Typography></Box>
-          <Box sx={{ flex: 1, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
         </Box>
         {/* zip to zip  Static Rates Array (e.g., from API or predefined) */}
         <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
@@ -1395,7 +1395,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
             <Typography variant="body2">Zip to Zip</Typography>
           </Box>
           <Box sx={{
-            flex: 1, p: 1, borderLeft: '1px solid #ccc',
+            flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
             display: 'flex', alignItems: 'center', gap: 1
           }}>
             <Controller
@@ -1420,8 +1420,20 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
             {isRateEditing ? (
               <IconButton
                 size="small"
-                onClick={() => setIsRateEditing(false)} // "Save" by clearing the index
                 sx={{ color: 'success.main' }}
+                onClick={() => {
+                  // 1. Get the current value from the form
+                  // const currentVal = getValues(`rate`);
+                  // // 2. Get the original value from the fields array
+                  // const originalVal = getValues(rate);
+
+                  // // 3. If they differ, update the 'isManual' key in the form state
+                  // if (currentVal !== originalVal) {
+                  //   setValue(`${path}[${index}].isManual`, true);
+                  // }
+                  setIsRateEditing(false); // Exit edit mode
+                  setManual(true);
+                }}
               >
                 <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
               </IconButton>
@@ -1439,7 +1451,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
         </Box>
 
         {/* Dynamic Rates Array */}
-        {fields.map((item, index) => {
+        {fields && fields.length > 0 && fields.map((item, index) => {
           const isEditing = editIndex === index;
 
           return (
@@ -1448,10 +1460,9 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 <Typography variant="body2">{item.name}</Typography>
               </Box>
               <Box sx={{
-                flex: 1, p: 1, borderLeft: '1px solid #ccc',
+                flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
-                {console.log(`${path}[${index}].charges`, watchedCarrierRateInfo.pickUp.pickupAccessorials[index]?.charges)}
                 <Controller
                   name={`${path}[${index}].charges`}
                   control={control}
@@ -1474,7 +1485,20 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 {isEditing ? (
                   <IconButton
                     size="small"
-                    onClick={() => setEditIndex(null)} // "Save" by clearing the index
+                    onClick={() => {
+                      // 1. Get the current value from the form
+                      const currentVal = getValues(`${path}[${index}].charges`);
+                      // 2. Get the original value from the fields array
+                      const originalVal = item.charges;
+
+                      // 3. If they differ, update the 'isManual' key in the form state
+                      if (currentVal !== originalVal) {
+                        setValue(`${path}[${index}].isManual`, true);
+                      }
+                      { console.log(`${path}[${index}].isManual`, getValues(`${path}[${index}].isManual`)) }
+
+                      setEditIndex(null); // Exit edit mode
+                    }}
                     sx={{ color: 'success.main' }}
                   >
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
@@ -1488,14 +1512,14 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   </IconButton>
                 )}
 
-                {item.isManual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
+                {getValues(`${path}[${index}].isManual`) && <Typography variant="caption" sx={{ color: '#666', flex: 1 }}>Manual Entry</Typography>}
               </Box>
             </Box>
           );
         })}
 
         {/* Sub Total Row */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '15%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '25%' }}>
           <Typography variant="subtitle2" fontWeight="bold">Sub Total</Typography>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ minWidth: 100 }}>
             {totalSubCharges}
@@ -1524,6 +1548,11 @@ const ShipmentForm = () => {
   const [addAccModal, setAddAccModal] = useState(false);
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
+
+  // invoice approval dialogs
+  const [invoiceApprovalForPickupModal, setInvoiceApprovalForPickupModal] = useState(false);
+  const [invoiceApprovalForLineHaulModal, setInvoiceApprovalForLineHaulModal] = useState(false);
+  const [invoiceApprovalForDeliveryModal, setInvoiceApprovalForDeliveryModal] = useState(false);
 
 
 
@@ -1591,7 +1620,7 @@ const ShipmentForm = () => {
       // Step 2 - Handling Units 
 
       handlingUnits: [{
-        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['Class 50', 'Class 55', 'Class 60', 'Class 65', 'Class 70', 'Class 85', 'Class 92.5', 'Class 100', 'Class 125', 'Class 175', 'Class 250', 'Class 300', 'Class 400'],
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
@@ -1599,7 +1628,7 @@ const ShipmentForm = () => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['Class 50', 'Class 55', 'Class 60', 'Class 65', 'Class 70', 'Class 85', 'Class 92.5', 'Class 100', 'Class 125', 'Class 175', 'Class 250', 'Class 300', 'Class 400'],
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
           items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
         }],
         emergencyContactName: '',
@@ -1734,41 +1763,22 @@ const ShipmentForm = () => {
         pickUp: {
           pickUpCarrier: 'Pickup Carrier',
           pickUpRate: '130',
-          pickupAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
-          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
-          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
-          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
-          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
-          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
-          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
-          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
-          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+          pickupAccessorials: [],
         },
         lineHaul: {
           lineHaulCarrier: 'Line Haul Carrier',
           lineHaulRate: '140',
-          lineHaulAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
-          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
-          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
-          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
-          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
-          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
-          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
-          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
-          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+          lineHaulAccessorials: [],
         },
         delivery: {
           deliveryCarrier: 'Delivery Carrier',
           deliveryRate: '150',
-          deliveryAccessorials: [{ name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential' },
-          { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', isManual: false },
-          { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', isManual: false },
-          { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', isManual: false },
-          { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', isManual: false },
-          { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', isManual: false },
-          { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', isManual: false },
-          { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', isManual: false },
-          { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', isManual: false },],
+          deliveryAccessorials: [],
+        },
+        delivery: {
+          deliveryCarrier: 'Delivery Carrier',
+          deliveryRate: '150',
+          deliveryAccessorials: [],
         }
       },
 
@@ -1777,9 +1787,6 @@ const ShipmentForm = () => {
   });
 
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
-  const { fields: carrierRatesPickUpAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
-  const { fields: carrierRatesLineHaulAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
-  const { fields: carrierRatesDeliveryAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
@@ -1836,6 +1843,9 @@ const ShipmentForm = () => {
     control,
     name: 'carrierInfo',
   });
+  const { fields: carrierRatesPickUpAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
+  const { fields: carrierRatesLineHaulAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
+  const { fields: carrierRatesDeliveryAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
   const watchedCarrierRateInfo = useWatch({
     control,
     name: 'carrierRates',
@@ -2235,26 +2245,79 @@ const ShipmentForm = () => {
       setHandlingUnitWtFlag(false);
     }
 
+  }, [watchedHU]);
+
+  const dimensionsSync = JSON.stringify(
+    watchedHU?.map(hu => ({
+      l: hu.length,
+      w: hu.width,
+      h: hu.height,
+      wt: hu.weight,
+      u: hu.unit,
+      wu: hu.weightUnit
+    }))
+  );
+
+  useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
+    if (!watchedHU || watchedHU.length === 0) return;
     watchedHU.forEach((hu, index) => {
-      if (hu.length && hu.width && hu.height && hu.weight && hu.weightUnit) {
+      // Only calculate if all fields have values
+      if (hu.length && hu.width && hu.height && hu.weight) {
         const length = hu.unit === 'cm' ? parseFloat(hu.length) / 2.54 : parseFloat(hu.length);
         const width = hu.unit === 'cm' ? parseFloat(hu.width) / 2.54 : parseFloat(hu.width);
         const height = hu.unit === 'cm' ? parseFloat(hu.height) / 2.54 : parseFloat(hu.height);
         const weight = hu.weightUnit === 'kg' ? parseFloat(hu.weight) * 2.20462 : parseFloat(hu.weight);
 
-        const freightClass = getFreightClass(
-          parseFloat(length),
-          parseFloat(width),
-          parseFloat(height),
-          parseFloat(weight)
-        );
-        setValue(`handlingUnits.${index}.calculatedFC`, freightClass);
+        const freightClass = getFreightClass(length, width, height, weight);
+
+        // CRITICAL: Only call setValue if the value is actually DIFFERENT
+        // This prevents the infinite loop
+        if (hu.calculatedFC !== freightClass) {
+          setValue(`handlingUnits.${index}.calculatedFC`, freightClass);
+          setValue(`handlingUnits.${index}.class`, freightClass);
+        }
       }
     });
+  }, [dimensionsSync, setValue])
 
-  }, [watchedHU]);
 
+
+  useEffect(() => {
+    if (watchedCarrierInfo.selectCarrier) {
+      setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
+    }
+    if (watchedCarrierInfo.lineHaul.carrier) {
+      setValue('carrierRates.lineHaul.lineHaulCarrier', watchedCarrierInfo.lineHaul.carrier);
+    }
+    if (watchedCarrierInfo.deliveryDetails.carrier) {
+      setValue('carrierRates.delivery.deliveryCarrier', watchedCarrierInfo.deliveryDetails.carrier);
+    }
+    // apply accessorial details
+    if (watchedCarrierInfo.pickupAccessorials.length > 0) {
+      const updatedPickupAcc = watchedCarrierInfo.pickupAccessorials.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
+    }
+    if (watchedCarrierInfo.lineHaul.linehaulAccessorials.length > 0) {
+      const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
+    }
+    if (watchedCarrierInfo.deliveryDetails.deliveryAccessorials.length > 0) {
+      const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
+    }
+
+
+  }, [watchedCarrierInfo])
 
 
   return (
@@ -2708,65 +2771,60 @@ const ShipmentForm = () => {
                     </Box>
                   </Box>
                   <Box sx={{ flex: '1 1 120px' }}>
-                    <Controller name={`handlingUnits.${huIdx}.class`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Class" variant="standard"
-                        InputLabelProps={{ shrink: true }}
-                        SelectProps={{
-                          displayEmpty: true,
-                          MenuProps: {
-                            // Crucial: disables internal centering logic so origins work
-                            getContentAnchorEl: null,
-                            // Prevents layout shifts and menu misplacement on scroll
-                            disableScrollLock: true,
-                            anchorOrigin: {
-                              vertical: 'bottom',
-                              horizontal: 'left',
-                            },
-                            transformOrigin: {
-                              vertical: 'top',
-                              horizontal: 'left',
-                            },
-                            PaperProps: {
-                              sx: {
-                                marginTop: '4px', // Your custom gap
-                                maxHeight: 200,
-                                maxWidth: 350    // Recommended to prevent long lists from going off-screen
+                    <Controller
+                      name={`handlingUnits.${huIdx}.class`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          select
+                          fullWidth
+                          label="Class"
+                          variant="standard"
+                          InputLabelProps={{ shrink: true }}
+                          SelectProps={{
+                            displayEmpty: true,
+                            // This ensures the input only shows the value, not the "(Recommended)" text
+                            renderValue: (selected) => selected || <em>Select Class</em>,
+                            MenuProps: {
+                              getContentAnchorEl: null,
+                              disableScrollLock: true,
+                              anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                              transformOrigin: { vertical: 'top', horizontal: 'left' },
+                              PaperProps: {
+                                sx: { marginTop: '4px', maxHeight: 200, maxWidth: 350 }
                               }
-                            }
-                          },
-                          inputProps: { maxLength: 255 },
-                        }}>
-                        {watchedHU[huIdx]?.freightClass?.length > 0 ? (
-                          // watchedHU[huIdx]?.freightClass?.map(fc => <MenuItem key={fc} value={fc}>{fc}</MenuItem>)
+                            },
+                            inputProps: { maxLength: 255 },
+                          }}
+                        >
+                          {watchedHU[huIdx]?.freightClass?.length > 0 ? (
+                            watchedHU[huIdx]?.freightClass?.map((fc) => {
+                              const isCalculated = fc === watchedHU[huIdx]?.calculatedFC;
 
-                          watchedHU[huIdx]?.freightClass?.map((fc) => {
-                            const isCalculated = fc === watchedHU[huIdx]?.calculatedFC; // Check if this item is the calculated one
+                              return (
+                                <MenuItem
+                                  key={fc}
+                                  value={fc}
+                                  sx={{
+                                    backgroundColor: isCalculated ? '#e3f2fd !important' : 'transparent',
+                                    fontWeight: isCalculated ? 'bold' : 'normal',
+                                    borderLeft: isCalculated ? '4px solid #1976d2' : 'none',
+                                    '&:hover': { backgroundColor: isCalculated ? '#bbdefb !important' : '' }
+                                  }}
+                                >
+                                  {/* This text is what appears in the DROPDOWN list */}
+                                  {fc} {isCalculated && "(Recommended)"}
+                                </MenuItem>
+                              );
+                            })
+                          ) : (
+                            <MenuItem value="" disabled>No freight classes available</MenuItem>
+                          )}
+                        </TextField>
+                      )}
+                    />
 
-                            return (
-                              <MenuItem
-                                key={fc}
-                                value={fc}
-                                sx={{
-                                  backgroundColor: isCalculated ? '#e3f2fd !important' : 'transparent', // Light blue highlight
-                                  fontWeight: isCalculated ? 'bold' : 'normal',
-                                  borderLeft: isCalculated ? '4px solid #1976d2' : 'none', // Optional accent bar
-                                  '&:hover': {
-                                    backgroundColor: isCalculated ? '#bbdefb !important' : ''
-                                  }
-                                }}
-                              >
-                                {fc} {isCalculated && "(Recommended)"}
-                              </MenuItem>
-                            );
-                          })
-
-                        ) : (
-                          <MenuItem value="" disabled>
-                            No freight classes available
-                          </MenuItem>
-                        )}
-                      </TextField>
-                    )} />
                   </Box>
                 </Box>
 
@@ -4181,7 +4239,7 @@ const ShipmentForm = () => {
                 Carrier Rates
               </Typography>
             </Box>
-            <CarrierSection
+            {(selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul") && <CarrierSection
               fields={carrierRatesPickUpAccessorials}
               sectionName={`Pickup Carrier -  ${watchedCarrierRateInfo.pickUp.pickUpCarrier || ''}`}
               rate={'carrierRates.pickUp.pickUpRate'}
@@ -4195,8 +4253,9 @@ const ShipmentForm = () => {
               setValue={setValue}
               path="carrierRates.pickUp.pickupAccessorials"
               control={control}
-            />
-            <CarrierSection
+              getValues={getValues}
+            />}
+            {(selectedRouting === "None") && <CarrierSection
               fields={carrierRatesLineHaulAccessorials}
               sectionName={`Line Haul Carrier -  ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier || ''}`}
               rate={'carrierRates.lineHaul.lineHaulRate'}
@@ -4210,8 +4269,9 @@ const ShipmentForm = () => {
               setValue={setValue}
               path="carrierRates.lineHaul.lineHaulAccessorials"
               control={control}
-            />
-            <CarrierSection
+              getValues={getValues}
+            />}
+            {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <CarrierSection
               fields={carrierRatesDeliveryAccessorials}
               sectionName={`Delivery Carrier -  ${watchedCarrierRateInfo.delivery.deliveryCarrier || ''}`}
               rate='carrierRates.delivery.deliveryRate'
@@ -4225,11 +4285,12 @@ const ShipmentForm = () => {
               setValue={setValue}
               path="carrierRates.delivery.deliveryAccessorials"
               control={control}
-            />
+              getValues={getValues}
+            />}
 
             {/* Grand total  */}
             <Box sx={{ bgcolor: '#f5f5f5' }}>
-              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '15%' }}>
+              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '25%' }}>
                 <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
                 <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
                   (
@@ -4250,6 +4311,10 @@ const ShipmentForm = () => {
                 </Typography>
               </Box>
             </Box>
+
+            {/*  invoice approval section */}
+
+
           </Paper>)
         }
 

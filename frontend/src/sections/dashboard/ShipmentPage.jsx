@@ -7,8 +7,7 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText, CircularProgress,
-  selectClasses
+  TableBody, ListItemText, CircularProgress, InputAdornment,
 
 
 } from '@mui/material';
@@ -488,7 +487,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                   control={control}
                   render={({ field }) => (
                     <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}>
-                      {['Skid', 'Pallet', 'Box', 'Crate'].map((u) => (
+                      {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map((u) => (
                         <MenuItem key={u} value={u}>{u}</MenuItem>
                       ))}
                     </TextField>
@@ -938,15 +937,16 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
 }));
 
 const MASTER_ACCESSORIALS = [
-  { name: 'Residential', type: 'Hourly', charges: '0.00', notes: 'Notes for Residential', selected: true },
-  { name: 'EXPO/Shows', type: 'Hourly', charges: '0.00', notes: 'Notes for EXPO/Shows', selected: true },
-  { name: '24 hours service', type: 'Hourly', charges: '0.00', notes: 'Notes for 24 hours service', selected: true },
-  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '0.00', notes: 'Notes for Pickup at Warehouse', selected: false },
-  { name: 'Pickup at airport', type: 'Per Pound', charges: '0.24', notes: 'Notes for Pickup at airport', selected: false },
-  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '0.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
-  { name: 'Lift Gate', type: 'Per Pound', charges: '0.24', notes: 'Notes for Lift Gate', selected: false },
-  { name: 'Documentation Fees', type: 'Per Pound', charges: '0.24', notes: 'Notes for Documentation Fees', selected: false },
-  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '90.00', notes: 'Notes for Terminal Handling Charges', selected: false },
+  { name: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
+  { name: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
+  { name: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
+  { name: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
+  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
+  { name: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
+  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
+  { name: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
+  { name: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
+  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
 ];
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
@@ -1369,8 +1369,9 @@ const getFreightClass = (length, width, height, lbs) => {
   return '400'; // Less than 1 lb/cu ft
 }
 // step 5 carrier rate
-const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues }) => {
+const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, handlingUnits }) => {
   // Track which row index is currently in "Edit Mode"
+  const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [manual, setManual] = useState(false);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -1387,12 +1388,20 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
         {/* Header Row */}
         <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
           <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">{sectionName}</Typography></Box>
+          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
           <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Total Rates ($)</Typography></Box>
         </Box>
         {/* zip to zip  Static Rates Array (e.g., from API or predefined) */}
         <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
           <Box sx={{ flex: 3, p: 1 }}>
             <Typography variant="body2">Zip to Zip</Typography>
+          </Box>
+          <Box sx={{
+            flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+            display: 'flex', alignItems: 'center', gap: 1
+          }}>
+            <Typography variant="body2">-</Typography>
           </Box>
           <Box sx={{
             flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
@@ -1448,16 +1457,111 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
             {manual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
           </Box>
+          <Box sx={{ flex: 1.5, p: 1 }}>
+            {rate === 'carrierRates.pickUp.pickUpRate' &&
+              <Typography variant="body2">{getValues(`carrierRates.pickUp.pickUpRate`)}</Typography>
+            }
+            {rate === 'carrierRates.lineHaul.lineHaulRate' &&
+              <Typography variant="body2">{getValues(`carrierRates.lineHaul.lineHaulRate`)}</Typography>}
+            {rate === 'carrierRates.delivery.deliveryRate' &&
+              <Typography variant="body2">{getValues(`carrierRates.delivery.deliveryRate`)}</Typography>}
+          </Box>
         </Box>
 
         {/* Dynamic Rates Array */}
         {fields && fields.length > 0 && fields.map((item, index) => {
           const isEditing = editIndex === index;
+          const isInputEditing = editInputIndex === index;
 
           return (
             <Box key={item.name} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
               <Box sx={{ flex: 3, p: 1 }}>
                 <Typography variant="body2">{item.name}</Typography>
+              </Box>
+              <Box sx={{
+                flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                {
+                  item.type.toLowerCase() === 'hourly' && (
+                    <>
+                      <Controller
+                        name={`${path}[${index}].input`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            size="small"
+                            disabled={!isInputEditing} // Editable ONLY when isInputEditing is true
+                            variant="outlined"
+                            // Add this section:
+                            InputProps={{
+                              endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
+                            }}
+                            sx={{
+                              bgcolor: isInputEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                              '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                              '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                            }}
+                          />
+                        )}
+                      />
+
+                      {/* Toggle between Edit and Save Icons */}
+                      {isInputEditing ? (
+                        <IconButton
+                          size="small"
+                          onClick={() => {
+                            setEditInputIndex(null); // Exit edit mode
+                          }}
+                          sx={{ color: 'success.main' }}
+                        >
+                          <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                        </IconButton>
+                      ) : (
+                        <IconButton
+                          size="small"
+                          onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
+                        >
+                          <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                        </IconButton>
+                      )}
+                    </>
+                  )
+                }
+                {
+                  item.type.toLowerCase() === 'per pound' && (
+                    <>
+                      <Controller
+                        name={`${path}[${index}].input`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            size="small"
+                            disabled={!isInputEditing}
+                            variant="outlined"
+                            // Add this section:
+                            InputProps={{
+                              endAdornment: <InputAdornment position="end">lbs</InputAdornment>,
+                            }}
+                            sx={{
+                              bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
+                              '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                              '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
+                            }}
+                          />
+                        )}
+                      />
+
+                    </>
+                  )
+                }
+                {
+                  item.type.toLowerCase() === 'flat rate' && (
+                    <Typography variant="body2">-</Typography>
+                  )
+                }
               </Box>
               <Box sx={{
                 flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
@@ -1514,12 +1618,57 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
                 {getValues(`${path}[${index}].isManual`) && <Typography variant="caption" sx={{ color: '#666', flex: 1 }}>Manual Entry</Typography>}
               </Box>
+              <Box sx={{ flex: 1.5, p: 1 }}>
+                {
+                  item.type.toLowerCase() === 'hourly' && (
+                    <Typography variant="body2">
+                      {(() => {
+                        const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
+                        const inputVal = getValues(`${path}[${index}].input`);
+
+                        // Check if input is a valid string or number
+                        const hasInput = inputVal !== undefined && inputVal !== "" && inputVal !== null;
+
+                        return (hasInput
+                          ? charge * (parseFloat(inputVal) || 0)
+                          : charge
+                        ).toFixed(2);
+                      })()}
+                    </Typography>
+
+                  )
+                }
+                {
+                  item.type.toLowerCase() === 'per pound' && (
+                    <Typography variant="body2">
+                      {(() => {
+                        const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
+                        const weightVal = getValues(`handlingUnits[0].weight`);
+
+                        // Check if weight exists (not empty, null, or undefined)
+                        const hasWeight = weightVal !== undefined && weightVal !== "" && weightVal !== null;
+
+                        return (hasWeight
+                          ? charge * (parseFloat(weightVal) || 0)
+                          : charge
+                        ).toFixed(2);
+                      })()}
+                    </Typography>
+
+                  )
+                }
+                {
+                  item.type.toLowerCase() === 'flat rate' && (
+                    <Typography variant="body2">{getValues(`${path}[${index}].charges`)}</Typography>
+                  )
+                }
+              </Box>
             </Box>
           );
         })}
 
         {/* Sub Total Row */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '25%' }}>
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '10%' }}>
           <Typography variant="subtitle2" fontWeight="bold">Sub Total</Typography>
           <Typography variant="subtitle2" fontWeight="bold" sx={{ minWidth: 100 }}>
             {totalSubCharges}
@@ -2298,6 +2447,7 @@ const ShipmentForm = () => {
       const updatedPickupAcc = watchedCarrierInfo.pickupAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
@@ -2305,6 +2455,7 @@ const ShipmentForm = () => {
       const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
@@ -2312,6 +2463,7 @@ const ShipmentForm = () => {
       const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
+        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? watchedHU[0].weight : `${(Number(watchedHU[0].weight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
@@ -2731,7 +2883,7 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '1 1 120px' }}>
                     <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
                       <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}>
-                        {['Skid', 'Pallet', 'Box', 'Crate'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+                        {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
                       </TextField>
                     )} />
                   </Box>
@@ -4246,7 +4398,16 @@ const ShipmentForm = () => {
               totalSubCharges={(
                 parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
                 watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                  return sum + parseFloat(item.charges || 0);
+                  const charge = parseFloat(item.charges) || 0;
+
+                  // Check if input exists and isn't an empty string
+                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                    const input = parseFloat(item.input) || 0;
+                    return sum + (charge * input);
+                  }
+
+                  // Otherwise, treat as a flat fee
+                  return sum + charge;
                 }, 0)
               ).toFixed(2)}
               watchedCarrierRateInfo={watchedCarrierRateInfo}
@@ -4254,6 +4415,7 @@ const ShipmentForm = () => {
               path="carrierRates.pickUp.pickupAccessorials"
               control={control}
               getValues={getValues}
+              handlingUnits={'handlingUnits'}
             />}
             {(selectedRouting === "None") && <CarrierSection
               fields={carrierRatesLineHaulAccessorials}
@@ -4262,7 +4424,16 @@ const ShipmentForm = () => {
               totalSubCharges={(
                 parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
                 watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                  return sum + parseFloat(item.charges || 0);
+                  const charge = parseFloat(item.charges) || 0;
+
+                  // Check if input exists and isn't an empty string
+                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                    const input = parseFloat(item.input) || 0;
+                    return sum + (charge * input);
+                  }
+
+                  // Otherwise, treat as a flat fee
+                  return sum + charge;
                 }, 0)
               ).toFixed(2)}
               watchedCarrierRateInfo={watchedCarrierRateInfo}
@@ -4270,6 +4441,7 @@ const ShipmentForm = () => {
               path="carrierRates.lineHaul.lineHaulAccessorials"
               control={control}
               getValues={getValues}
+              handlingUnits={'handlingUnits'}
             />}
             {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <CarrierSection
               fields={carrierRatesDeliveryAccessorials}
@@ -4278,7 +4450,16 @@ const ShipmentForm = () => {
               totalSubCharges={(
                 parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
                 watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                  return sum + parseFloat(item.charges || 0);
+                  const charge = parseFloat(item.charges) || 0;
+
+                  // Check if input exists and isn't an empty string
+                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                    const input = parseFloat(item.input) || 0;
+                    return sum + (charge * input);
+                  }
+
+                  // Otherwise, treat as a flat fee
+                  return sum + charge;
                 }, 0)
               ).toFixed(2)}
               watchedCarrierRateInfo={watchedCarrierRateInfo}
@@ -4286,26 +4467,44 @@ const ShipmentForm = () => {
               path="carrierRates.delivery.deliveryAccessorials"
               control={control}
               getValues={getValues}
+              handlingUnits={'handlingUnits'}
             />}
 
             {/* Grand total  */}
             <Box sx={{ bgcolor: '#f5f5f5' }}>
-              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '25%' }}>
+              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
                 <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
                 <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
                   (
-                    parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
-                    watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                      return sum + parseFloat(item.charges || 0);
-                    }, 0) +
-                    parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
-                    watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                      return sum + parseFloat(item.charges || 0);
-                    }, 0) +
-                    parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
-                    watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                      return sum + parseFloat(item.charges || 0);
-                    }, 0)
+                    // 1. PickUp Section
+                    ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
+                      ? (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                        watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      : 0) +
+
+                    // 2. LineHaul Section
+                    ((selectedRouting === "None")
+                      ? (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                        watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      : 0) +
+
+                    // 3. Delivery Section
+                    ((selectedRouting === "Line haul & Delivery" || selectedRouting === "None")
+                      ? (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                        watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      : 0)
                   ).toFixed(2)
                 }
                 </Typography>

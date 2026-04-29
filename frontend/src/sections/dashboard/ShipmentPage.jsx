@@ -1675,18 +1675,19 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                         const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
                         const weightVal = totals.totalWeight;
 
-                        // Check if weight exists (not empty, null, or undefined)
-                        const hasWeight = weightVal !== undefined && weightVal !== "" && weightVal !== null;
+                        // Weight is considered "present" if it's not empty, null, undefined, or 0
+                        const hasWeight = weightVal !== undefined && weightVal !== "" && weightVal !== null && weightVal !== 0;
 
-                        return (hasWeight
-                          ? charge * (parseFloat(weightVal) || 0)
-                          : charge
-                        ).toFixed(2);
+                        const finalValue = hasWeight
+                          ? charge * parseFloat(weightVal)
+                          : charge;
+
+                        return finalValue.toFixed(2);
                       })()}
                     </Typography>
-
                   )
                 }
+
                 {
                   item.type.toLowerCase() === 'flat rate' && (
                     <Typography variant="body2">{getValues(`${path}[${index}].charges`)}</Typography>
@@ -2106,6 +2107,7 @@ const ShipmentForm = () => {
 
   const calculateTotals = (huArray) => {
     let totalHU = 0, totalPieces = 0, totalHM = 0, totalWeight = 0;
+
     huArray?.forEach((hu) => {
       totalHU += Number(hu.unitsCount || 0);
       hu.items?.forEach((item) => {
@@ -2114,8 +2116,16 @@ const ShipmentForm = () => {
       });
       totalWeight += Number(hu.weight || 0);
     });
-    return { totalHU, totalPieces, totalHM, totalWeight };
+
+    return {
+      totalHU,
+      totalPieces,
+      totalHM,
+      // If totalWeight is 0, return an empty string, otherwise return the number
+      totalWeight: totalWeight === 0 ? "" : totalWeight
+    };
   };
+
 
 
 

@@ -1394,12 +1394,14 @@ const getFreightClass = (length, width, height, lbs) => {
   return '400'; // Less than 1 lb/cu ft
 }
 // step 5 carrier rate
-const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals }) => {
+const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo }) => {
   // Track which row index is currently in "Edit Mode"
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [manual, setManual] = useState(false);
   const [isRateEditing, setIsRateEditing] = useState(false);
+  const [isInvoiceEditing, setIsInvoiceEditing] = useState(false);
+  const [manualInvoice, setManualInvoice] = useState(false);
   //  invoice approval
   // invoice approval dialogs
   const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
@@ -1409,7 +1411,11 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
   return (
     <Box sx={{ mb: 4 }}>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-        <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}>
+        <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}
+          onClick={() => {
+            setInvoiceApprovalModal(true);
+          }}
+        >
           Invoice Approval
         </Button>
       </Box>
@@ -1417,14 +1423,68 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
       <Box sx={{ border: '1px solid #ccc', borderRadius: '4px' }}>
         {/* Header Row */}
         <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
-          <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">{sectionName}</Typography></Box>
-          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
-          <Box sx={{ flex: 2.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
-          <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2">Total Rates ($)</Typography></Box>
+          <Box sx={{ display: 'flex', p: 1, alignItems: 'center', gap: 1, flex: 3.5, fontWeight: 'bold', justifyContent: 'space-between' }}>
+            <Typography variant="normal" fontSize={'12px'}>{sectionName}</Typography>
+            <Box sx={{
+              p: 1,
+              display: 'flex', alignItems: 'center', gap: 1
+            }}>
+              <Controller
+                name={invoiceNo}
+                control={control}
+                render={({ field }) => (
+                  <TextField
+                    {...field}
+                    size="small"
+                    disabled={!isInvoiceEditing} // Editable ONLY when isEditing is true
+                    variant="outlined"
+                    sx={{
+                      bgcolor: isInvoiceEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                      '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                      '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                    }}
+                  />
+                )}
+              />
+
+              {/* Toggle between Edit and Save Icons */}
+              {isInvoiceEditing ? (
+                <IconButton
+                  size="small"
+                  sx={{ color: 'success.main' }}
+                  onClick={() => {
+                    // 1. Get the current value from the form
+                    // const currentVal = getValues(`rate`);
+                    // // 2. Get the original value from the fields array
+                    // const originalVal = getValues(rate);
+
+                    // // 3. If they differ, update the 'isManual' key in the form state
+                    // if (currentVal !== originalVal) {
+                    //   setValue(`${path}[${index}].isManual`, true);
+                    // }
+                    setIsInvoiceEditing(false); // Exit edit mode
+                    setManualInvoice(true);
+                  }}
+                >
+                  <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                </IconButton>
+              ) : (
+                <IconButton
+                  size="small"
+                  onClick={() => setIsInvoiceEditing(true)} // Enable edit mode for this row
+                >
+                  <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                </IconButton>
+              )}
+            </Box>
+          </Box>
+          <Box sx={{ display: 'flex', flex: 1.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
+          <Box sx={{ display: 'flex', flex: 2.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+          <Box sx={{ display: 'flex', flex: 1.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Total Rates ($)</Typography></Box>
         </Box>
         {/* zip to zip  Static Rates Array (e.g., from API or predefined) */}
-        <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
-          <Box sx={{ flex: 3, p: 1 }}>
+        <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (manual ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
+          <Box sx={{ flex: 3.5, p: 1 }}>
             <Typography variant="body2">Zip to Zip</Typography>
           </Box>
           <Box sx={{
@@ -1504,8 +1564,8 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
           const isInputEditing = editInputIndex === index;
 
           return (
-            <Box key={item.name} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center' }}>
-              <Box sx={{ flex: 3, p: 1 }}>
+            <Box key={item.name} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (getValues(`${path}[${index}].isManual`) ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
+              <Box sx={{ flex: 3.5, p: 1 }}>
                 <Typography variant="body2">{item.name}</Typography>
               </Box>
               <Box sx={{
@@ -1715,23 +1775,44 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
           maxWidth: 'none',
         }
       }}>
-        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>{(rate.includes('pickup')) ? 'Pickup' : (rate.includes('line haul')) ? 'Line Haul' : 'Delivery'} Confirmation</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>{(sectionName.toLowerCase().includes('pickup')) ? 'Pickup' : (sectionName.toLowerCase().includes('line haul')) ? 'Line Haul' : 'Delivery'} Confirmation</DialogTitle>
         <DialogContent sx={{ mt: 2, pb: 4 }}>
           {
-            !hasManualEntry && <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} the total amount  ${`${totalSubCharges}`} ?</Typography>
+            !manual && <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} the total amount  ${`${totalSubCharges}`} ?</Typography>
           }
           {
-            hasManualEntry && <Box>
+            manual && <Box>
               <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} ?</Typography>
+              <Box sx={{ display: 'flex', border: '1px solid #000', mt: 2, borderBottom: 'none' }}>
+                <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">Initial API amount</Typography></Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2" fontWeight={'700'}>$ {apiZipRate}</Typography></Box>
+              </Box>
+              <Box sx={{ display: 'flex', border: '1px solid #000', borderBottom: 'none' }}>
+                <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">Manual Entry amount</Typography></Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2" fontWeight={'700'}>$ {`${getValues(`${rate}`)}`}</Typography></Box>
+              </Box>
+              <Box sx={{ display: 'flex', border: '1px solid #000' }}>
+                <Box sx={{ flex: 3, p: 1 }}>
+                  <Typography variant="subtitle2">Difference amount</Typography>
+                </Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}>
+                  <Typography variant="subtitle2" fontWeight={'700'}> $
+                    {Math.abs(
+                      parseFloat(apiZipRate || 0) - parseFloat(getValues(`${rate}`) || 0)
+                    ).toFixed(2)}
+                  </Typography>
+                </Box>
+              </Box>
+
             </Box>
           }
         </DialogContent>
-        <DialogActions sx={{ p: 3, justifyContent: 'center', gap: 2 }}>
+        <DialogActions sx={{ pb: 3, justifyContent: 'center', gap: 2 }}>
           <Button onClick={() => setInvoiceApprovalModal(false)} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
             Cancel
           </Button>
           <Button onClick={() => setInvoiceApprovalModal(false)} variant="contained" sx={{ ...commonBtnStyle, bgcolor: '#a22', px: 4, '&:hover': { bgcolor: '#811' } }}>
-            Save
+            Yes
           </Button>
         </DialogActions>
       </Dialog>
@@ -1856,7 +1937,7 @@ const ShipmentForm = () => {
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
-        selectCarrier: 'R&M Carrier name',
+        selectCarrier: 'R&M Carrier',
         fromLocation: 'Shipper Details',
         isManualFromLocation: true,
         manualAddress: {
@@ -1883,7 +1964,7 @@ const ShipmentForm = () => {
           additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
         },
         lineHaul: {
-          carrier: 'R&M Carrier name',
+          carrier: 'R&M Carrier',
           billNumber: "",
           fromLocation: '',
           manualFromLocation: false,
@@ -1918,7 +1999,7 @@ const ShipmentForm = () => {
           airportTransfer: false,
         },
         deliveryDetails: {
-          carrier: 'R&M Carrier name',
+          carrier: 'R&M Carrier',
           billNumber: "",
           fromLocation: '',
           manualFromLocation: false,
@@ -1966,18 +2047,21 @@ const ShipmentForm = () => {
           pickUpCarrier: 'Pickup Carrier',
           pickUpRate: '130',
           apiPickUpRate: '130',
+          invoiceNo: '',
           pickupAccessorials: [],
         },
         lineHaul: {
           lineHaulCarrier: 'Line Haul Carrier',
           lineHaulRate: '140',
           apiLineHaulRate: '140',
+          invoiceNo: '',
           lineHaulAccessorials: [],
         },
         delivery: {
           deliveryCarrier: 'Delivery Carrier',
           deliveryRate: '150',
           apiDeliveryRate: '150',
+          invoiceNo: '',
           deliveryAccessorials: [],
         },
       },
@@ -4521,6 +4605,8 @@ const ShipmentForm = () => {
               control={control}
               getValues={getValues}
               totals={totals}
+              apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
+              invoiceNo={`${watchedCarrierRateInfo.pickUp.invoiceNo || ''}`}
             />}
             {(selectedRouting === "None") && <CarrierSection
               fields={carrierRatesLineHaulAccessorials}
@@ -4547,6 +4633,8 @@ const ShipmentForm = () => {
               control={control}
               getValues={getValues}
               totals={totals}
+              apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
+              invoiceNo={`${watchedCarrierRateInfo.lineHaul.invoiceNo || ''}`}
             />}
             {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <CarrierSection
               fields={carrierRatesDeliveryAccessorials}
@@ -4573,6 +4661,8 @@ const ShipmentForm = () => {
               control={control}
               getValues={getValues}
               totals={totals}
+              apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
+              invoiceNo={`${watchedCarrierRateInfo.delivery.invoiceNo || ''}`}
             />}
 
             {/* Grand total  */}

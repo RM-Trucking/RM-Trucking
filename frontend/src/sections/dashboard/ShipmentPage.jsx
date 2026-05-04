@@ -1435,17 +1435,34 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 render={({ field }) => (
                   <TextField
                     {...field}
+                    // When NOT editing, we show "Invoice #" as a label/placeholder
+                    // When editing, we show the real value so you can type freely
+                    placeholder={!isInvoiceEditing ? "Invoice #" : ""}
+
+                    // Crucial: Only override the value if it's NOT in edit mode
+                    // If editing, use field.value or '' to keep it "controlled"
+                    value={!isInvoiceEditing ? (field.value ? `Invoice #` : "Invoice #") : (field.value ?? '')}
+
                     size="small"
-                    disabled={!isInvoiceEditing} // Editable ONLY when isEditing is true
+                    disabled={!isInvoiceEditing}
                     variant="outlined"
                     sx={{
-                      bgcolor: isInvoiceEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                      bgcolor: isInvoiceEditing ? '#e3f2fd' : '#fff',
                       '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                      '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                      '& .Mui-disabled': {
+                        WebkitTextFillColor: '#000',
+                        cursor: 'default'
+                      }
                     }}
                   />
                 )}
               />
+
+
+
+
+
+
 
               {/* Toggle between Edit and Save Icons */}
               {isInvoiceEditing ? (
@@ -4606,7 +4623,7 @@ const ShipmentForm = () => {
               getValues={getValues}
               totals={totals}
               apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
-              invoiceNo={`${watchedCarrierRateInfo.pickUp.invoiceNo || ''}`}
+              invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
             />}
             {(selectedRouting === "None") && <CarrierSection
               fields={carrierRatesLineHaulAccessorials}
@@ -4634,7 +4651,7 @@ const ShipmentForm = () => {
               getValues={getValues}
               totals={totals}
               apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
-              invoiceNo={`${watchedCarrierRateInfo.lineHaul.invoiceNo || ''}`}
+              invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
             />}
             {(selectedRouting === "Line haul & Delivery" || selectedRouting === "None") && <CarrierSection
               fields={carrierRatesDeliveryAccessorials}
@@ -4662,7 +4679,7 @@ const ShipmentForm = () => {
               getValues={getValues}
               totals={totals}
               apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
-              invoiceNo={`${watchedCarrierRateInfo.delivery.invoiceNo || ''}`}
+              invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
             />}
 
             {/* Grand total  */}

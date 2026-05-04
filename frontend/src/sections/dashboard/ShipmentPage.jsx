@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-import { useForm, Controller, useFieldArray, useWatch, set } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
 
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
@@ -576,7 +576,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                   Hazmat info
                 </Typography>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#555' }}>
-                  {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.class}, ${hazData.packagingGroup}, ${hazData.weight} lbs`}
+                  {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
                 </Typography>
               </Box>
             )}
@@ -602,7 +602,296 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
     </Box>
   );
 };
+const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal, getValues, setValue, setHazmatModal }) => {
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: `doDetails.handlingUnits.${huIndex}.items`,
+  });
 
+  return (
+    <Box sx={{ mt: 2 }}>
+      {fields.map((item, itemIndex) => {
+        const currentItem = watchedHU[huIndex]?.items[itemIndex];
+        const hazData = currentItem?.hazmatData;
+
+        return (
+          <Box key={item.id} sx={{ mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
+              <Iconify icon="solar:box-bold" />
+              <Typography variant="caption" sx={{ minWidth: 100, fontWeight: 'bold' }}>
+                {/* Logic: Label as "Pallet Details" if it's the only item in the first unit, else "Item X" */}
+                {fields.length === 1 ? "Pallet Details" : `Item ${itemIndex + 1}`}
+              </Typography>
+              <Box sx={{ flex: '0 1 120px' }}>
+                <Controller
+                  name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.pieces`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField {...field} label="Pieces *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
+                  )}
+                />
+              </Box>
+
+              <Box sx={{ flex: '1 1 80px' }}>
+                <Controller
+                  name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.piecesUom`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps: {
+                          // Crucial: disables internal centering logic so origins work
+                          getContentAnchorEl: null,
+                          // Prevents layout shifts and menu misplacement on scroll
+                          disableScrollLock: true,
+                          anchorOrigin: {
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                          },
+                          transformOrigin: {
+                            vertical: 'top',
+                            horizontal: 'left',
+                          },
+                          PaperProps: {
+                            sx: {
+                              marginTop: '4px', // Your custom gap
+                              maxHeight: 300,
+                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                            }
+                          }
+                        },
+                      }}
+                    >
+                      {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map((u) => (
+                        <MenuItem key={u} value={u}>{u}</MenuItem>
+                      ))}
+                    </TextField>
+                  )}
+                />
+              </Box>
+
+              <Box sx={{ flex: '1 1 250px' }}>
+                <Controller
+                  name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.description`}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField {...field} label="Description *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
+                  )}
+                />
+              </Box>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {currentItem?.hazmatInfo && (
+                  <IconButton onClick={() => openHazmat(huIndex, itemIndex)} size="small">
+                    <Iconify icon="solar:pen-bold" sx={{ fontSize: 16 }} />
+                  </IconButton>
+                )}
+              </Box>
+
+            </Box>
+
+            {/* --- HAZMAT SUMMARY BOX --- */}
+            {currentItem?.hazmatInfo && hazData && (
+              <Box sx={{
+                ml: 7, mt: 5, p: 1.5, border: '1px solid #ccc',
+                borderRadius: 2, bgcolor: '#fcfcfc', position: 'relative',
+                maxWidth: '70%'
+              }}>
+                <Typography variant="caption" sx={{
+                  position: 'absolute', top: -10, left: 15,
+                  bgcolor: '#fcfcfc', px: 0.5, fontWeight: 'bold'
+                }}>
+                  Hazmat info
+                </Typography>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#555' }}>
+                  {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        );
+      })}
+      <HazmatDialogView
+        state={hazmatModal}
+        onClose={() => setHazmatModal({ ...hazmatModal, open: false })}
+        setValue={setValue}
+        getValues={getValues}
+      />
+    </Box>
+  );
+};
+
+// hazmat modal component
+const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
+  const { open, huIdx, itemIdx } = state;
+  const [errors, setErrors] = useState({});
+
+  const emptyHazmat = {
+    unNumber: '',
+    shippingName: '',
+    packagingGroup: '',
+    hazmatClass: '',
+    weight: '',
+    weightUnit: 'lbs',
+    technicalName: '',
+    contactPhone: '',
+    description: '',
+    limitedQuality: false,
+    marinePollutant: false,
+    residueLastContained: false,
+    reportableQuantity: false,
+    dotExemption: false,
+  };
+
+  const [localData, setLocalData] = useState(emptyHazmat);
+
+  useEffect(() => {
+    if (open) {
+      // 1. Clear any previous errors from the last item
+      setErrors({});
+      // 2. Fetch data for the SPECIFIC item currently being edited 
+      const existingData = getValues(`doDetails.handlingUnits.${huIdx}.items.${itemIdx}.hazmatData`);
+      if (existingData) {
+        setLocalData(existingData);
+      } else {
+        // 3. CRITICAL: If Item 2 is new, reset to empty so Item 1's data doesn't persist
+        setLocalData(emptyHazmat);
+      }
+    }
+  }, [open, huIdx, itemIdx, getValues]);
+
+  if (!open) return null;
+
+  return (
+    <Dialog open={open} onClose={onClose} sx={{
+      '& .MuiPaper-root': { borderRadius: '12px' }, '& .MuiDialog-paper': { // Target the paper class
+        width: '1000px',
+        height: 'auto',
+        maxHeight: 'none',
+        maxWidth: 'none',
+      }
+    }}>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>Hazmat Info</DialogTitle>
+
+      <DialogContent sx={{ mt: 2, pb: 4 }}>
+        {/* Row 1: UN, Shipping Name, PKG Group, Class */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField select label="UN Number *" variant="standard" fullWidth value={localData.unNumber} disabled>
+              <MenuItem value="UN1567">UN1567</MenuItem>
+            </TextField>
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField select label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} disabled>
+              <MenuItem value="Hazard Substance,liquid.n.o.s">Hazard Substance,liquid.n.o.s</MenuItem>
+            </TextField>
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField label="Packaging Group *" variant="standard" fullWidth value={localData.packagingGroup} disabled />
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField label="Class *" variant="standard" fullWidth value={localData.hazmatClass} disabled />
+          </Box>
+        </Box>
+
+
+
+        {/* Row 2: Weight, Technical Name, Contact Phone */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+          <Box sx={{ flex: '1 1 22%', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+            <Box display={'flex'} alignItems={'flex-end'}>
+              <TextField label="Weight *" variant="standard" fullWidth value={localData.weight} disabled />
+              <TextField select variant="standard" value={localData.weightUnit} disabled sx={{ width: '80px' }}>
+                <MenuItem value="lbs">lbs</MenuItem>
+                <MenuItem value="kgs">kgs</MenuItem>
+              </TextField>
+            </Box>
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField label="Technical Name *" variant="standard" fullWidth value={localData.technicalName} disabled />
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }}>
+            <TextField
+              label="Contact phone *"
+              variant="standard"
+              fullWidth
+              value={localData.contactPhone || ''}
+              inputProps={{ maxLength: 20 }}
+              error={!!errors.contactPhone}
+              helperText={errors.contactPhone || ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (val.startsWith(' ')) return; // Prevent leading spaces [cite: 37]
+
+                // Apply the same formatting mask used in Step 1 
+                const formattedValue = formatPhoneNumber(val).slice(0, 20);
+
+                // Real-time Validation Logic 
+                const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
+                if (!formattedValue) {
+                  setErrors(prev => ({ ...prev, contactPhone: 'Phone number is required' }));
+                } else if (!phoneRegex.test(formattedValue)) {
+                  setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone format' }));
+                } else {
+                  setErrors(prev => ({ ...prev, contactPhone: null }));
+                }
+              }}
+              disabled
+            />
+          </Box>
+          <Box sx={{ flex: '1 1 22%' }} /> {/* Empty Flex Item for alignment */}
+        </Box>
+
+
+
+        {/* Bottom Section: Description and Checkbox Columns */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {/* Hazmat Description - Fieldset Style */}
+          <Box sx={{ flex: '2 1 400px', border: '1px solid #ccc', borderRadius: '8px', p: 2, position: 'relative', minHeight: '120px' }}>
+            <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+              Hazmat Description
+            </Typography>
+            <TextField
+              multiline
+              fullWidth
+              rows={4}
+              variant="standard"
+              InputProps={{ disableUnderline: true }}
+              value={localData.description}
+              disabled
+              sx={{ mt: 1 }}
+            />
+          </Box>
+
+
+
+          {/* Checkbox Column 1 */}
+          <Box sx={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column' }}>
+            <FormControlLabel control={<Checkbox size="small" checked={localData.limitedQuality} disabled />} label={<Typography variant="body2">Limited Quality</Typography>} />
+            <FormControlLabel control={<Checkbox size="small" checked={localData.marinePollutant} disabled />} label={<Typography variant="body2">Marine Pollutant</Typography>} />
+            <FormControlLabel control={<Checkbox size="small" checked={localData.residueLastContained} disabled />} label={<Typography variant="body2">Residue Last Contained</Typography>} />
+          </Box>
+
+
+
+          {/* Checkbox Column 2 */}
+          <Box sx={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column' }}>
+            <FormControlLabel control={<Checkbox size="small" checked={localData.reportableQuantity} disabled />} label={<Typography variant="body2">Reportable Quantity</Typography>} />
+            <FormControlLabel control={<Checkbox size="small" checked={localData.dotExemption} disabled />} label={<Typography variant="body2">DOT Exemption</Typography>} />
+          </Box>
+        </Box>
+      </DialogContent>
+
+
+
+      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+        <Button onClick={onClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 // hazmat modal component
 const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
   const { open, huIdx, itemIdx } = state;
@@ -614,7 +903,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
     packagingGroup: '',
     hazmatClass: '',
     weight: '',
-    weightUnit: 'lbs',
+    weightUnit: getValues(`handlingUnits.${huIdx}.weightUnit`) || '',
     technicalName: '',
     contactPhone: '',
     description: '',
@@ -710,7 +999,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
           <Box sx={{ flex: '1 1 22%', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
             <Box display={'flex'} alignItems={'flex-end'}>
               <TextField label="Weight *" variant="standard" fullWidth value={localData.weight} onChange={(e) => handleChange('weight', e.target.value)} />
-              <TextField select variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} sx={{ width: '80px' }}>
+              <TextField select variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} sx={{ width: '80px' }} disabled>
                 <MenuItem value="lbs">lbs</MenuItem>
                 <MenuItem value="kgs">kgs</MenuItem>
               </TextField>
@@ -1836,6 +2125,189 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
     </Box>
   );
 }
+// DO Details popup dialog
+const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetailsFields, isHazmatSelectedInDoDetails }) => {
+  const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{
+      '& .MuiDialog-paper': { // Target the paper class
+        width: '1545px',
+        height: '700px',
+        maxHeight: 'none',
+        maxWidth: 'none',
+      }
+    }}>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Do Details</DialogTitle>
+      <DialogContent sx={{ p: 3 }}>
+        <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+          <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
+            Commodities Details
+          </Typography>
+
+          {doDetailsFields.map((doDetail, doDetailIdx) => (
+            <Paper key={doDetail.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
+              {/* Label on Border */}
+              <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                Handling Unit {doDetailIdx + 1}
+              </Typography>
+
+              {/* Handling Unit Dimensions Row */}
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                <Box sx={{ flex: '1 1 120px' }}>
+                  <Controller name={`doDetails.handlingUnits.${doDetailIdx}.uom`} control={control} render={({ field }) => (
+                    <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
+                      SelectProps={{
+                        displayEmpty: true,
+                        MenuProps: {
+                          // Crucial: disables internal centering logic so origins work
+                          getContentAnchorEl: null,
+                          // Prevents layout shifts and menu misplacement on scroll
+                          disableScrollLock: true,
+                          anchorOrigin: {
+                            vertical: 'bottom',
+                            horizontal: 'left',
+                          },
+                          transformOrigin: {
+                            vertical: 'top',
+                            horizontal: 'left',
+                          },
+                          PaperProps: {
+                            sx: {
+                              marginTop: '4px', // Your custom gap
+                              maxHeight: 300,
+                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                            }
+                          }
+                        },
+                      }}
+                      disabled
+                    >
+                      {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+                    </TextField>
+                  )} />
+                </Box>
+                <Box sx={{ flex: '1 1 100px' }}>
+                  <Controller name={`doDetails.handlingUnits.${doDetailIdx}.unitsCount`} control={control} render={({ field }) => (
+                    <TextField {...field} fullWidth label="Handling Units *" variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                  )} />
+                </Box>
+                <Box sx={{ flex: '1 1 80px' }}>
+                  <Controller name={`doDetails.handlingUnits.${doDetailIdx}.unit`} control={control} render={({ field }) => (
+                    <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }} disabled>
+                      <MenuItem value="in">in</MenuItem>
+                      <MenuItem value="cm">cm</MenuItem>
+                    </TextField>
+                  )} />
+                </Box>
+                {['Length', 'Width', 'Height'].map((dim) => (
+                  <Box key={dim} sx={{ flex: '1 1 80px', }}>
+                    <Box display={'flex'} alignItems={'flex-end'}>
+                      <Controller name={`doDetails.handlingUnits.${doDetailIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                      )} />
+                    </Box>
+                  </Box>
+                ))}
+                <Box sx={{ flex: '1 1 70px' }}>
+                  <Box display={'flex'} alignItems={'flex-end'}>
+                    <Controller name={`doDetails.handlingUnits.${doDetailIdx}.weight`} control={control} render={({ field }) => (
+                      <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                    )} />
+                    <Controller name={`doDetails.handlingUnits.${doDetailIdx}.weightUnit`} control={control} render={({ field }) => (
+                      <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }} disabled>
+                        <MenuItem value="lbs">lbs</MenuItem>
+                        <MenuItem value="kgs">kgs</MenuItem>
+                      </TextField>
+                    )} />
+                  </Box>
+                </Box>
+                <Box sx={{ flex: '1 1 120px' }}>
+                  <Controller
+                    name={`doDetails.handlingUnits.${doDetailIdx}.class`}
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Class"
+                        variant="standard"
+                        InputLabelProps={{ shrink: true }}
+                        SelectProps={{
+                          displayEmpty: true,
+                          // This ensures the input only shows the value, not the "(Recommended)" text
+                          renderValue: (selected) => selected || <em>Select Class</em>,
+                          MenuProps: {
+                            getContentAnchorEl: null,
+                            disableScrollLock: true,
+                            anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                            transformOrigin: { vertical: 'top', horizontal: 'left' },
+                            PaperProps: {
+                              sx: { marginTop: '4px', maxHeight: 200, maxWidth: 350 }
+                            }
+                          },
+                          inputProps: { maxLength: 255 },
+                        }}
+                        disabled
+                      />
+                    )}
+                  />
+
+                </Box>
+              </Box>
+
+
+
+              {/* Dynamic Items List */}
+              <ItemsSectionView
+                huIndex={doDetailIdx}
+                control={control}
+                watchedHU={getValues(`doDetails.handlingUnits`)}
+                openHazmat={(hu, itm) => setHazmatModal({ open: true, huIdx: hu, itemIdx: itm })}
+                hazmatModal={hazmatModal}
+                getValues={getValues}
+                setValue={setValue}
+                setHazmatModal={setHazmatModal}
+              />
+            </Paper>
+          ))}
+
+
+          {/* Emergency Contact: Conditional Render */}
+          {isHazmatSelectedInDoDetails && (
+            <Paper variant="outlined" sx={{ p: 3, mt: 4, borderRadius: 2, position: 'relative' }}>
+              <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                Emergency Contact
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
+                <Box sx={{ flex: '1 1 30%' }}>
+                  <Controller name="doDetails.emergencyContactName" control={control} render={({ field }) => (
+                    <TextField {...field} fullWidth label="Contact Name *" variant="standard" />
+                  )} />
+                </Box>
+                <Box sx={{ flex: '1 1 30%' }}>
+                  <Controller name="doDetails.emergencyContactPhone" control={control} render={({ field }) => (
+                    <TextField {...field} fullWidth label="Phone Number *" variant="standard"
+                      onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
+                    />
+                  )} />
+                </Box>
+              </Box>
+            </Paper>
+          )}
+
+          {/* Commodities List Table */}
+          <CommoditiesList watchedHU={getValues(`doDetails.handlingUnits`)} />
+        </Paper>
+      </DialogContent>
+      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+        <Button onClick={onClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
+
 
 
 const ShipmentForm = () => {
@@ -1855,6 +2327,7 @@ const ShipmentForm = () => {
   const [addAccModal, setAddAccModal] = useState(false);
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
+  const [doDetailsModal, setDoDetailsModal] = useState(false);
 
   const {
     control,
@@ -1928,11 +2401,29 @@ const ShipmentForm = () => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
-          items: [{ pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: false }]
+          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '30', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
+          items: [{
+            pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: true, hazmatData: {
+
+              "contactPhone": "(456) 456-5653",
+              "description": "desc",
+              "dotExemption": true,
+              "hazmatClass": "4",
+              "limitedQuality": true,
+              marinePollutant: true,
+              packagingGroup: "4",
+              reportableQuantity: true,
+              residueLastContained: true,
+              shippingName: "Hazard Substance,liquid.n.o.s",
+              technicalName: "tech",
+              unNumber: "UN1567",
+              weight: "4",
+              weightUnit: "lbs"
+            }
+          }]
         }],
-        emergencyContactName: '',
-        emergencyContactPhone: '',
+        emergencyContactName: 'Name',
+        emergencyContactPhone: '123-456-7890',
       },
 
       // shipment status
@@ -2088,6 +2579,7 @@ const ShipmentForm = () => {
   });
 
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
+  const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
@@ -2139,6 +2631,10 @@ const ShipmentForm = () => {
     control,
     name: 'handlingUnits',
   });
+  const watchedDoDetails = useWatch({
+    control,
+    name: 'doDetails',
+  });
 
   const watchedCarrierInfo = useWatch({
     control,
@@ -2169,6 +2665,9 @@ const ShipmentForm = () => {
 
   // This checks if any item has hazmat checked to show the Emergency Contact
   const isHazmatSelected = watchedHU?.some((hu) =>
+    hu.items?.some((item) => item.hazmatInfo)
+  );
+  const isHazmatSelectedInDoDetails = watchedDoDetails?.handlingUnits?.some((hu) =>
     hu.items?.some((item) => item.hazmatInfo)
   );
   const { fields: pickupAccFields, replace: replacePickupAcc, remove: removePickupAcc } = useFieldArray({
@@ -2793,6 +3292,7 @@ const ShipmentForm = () => {
                 size="small"
                 // startIcon={<Iconify icon="solar:document-bold" />}
                 sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                onClick={() => setDoDetailsModal(true)}
               >
                 DO Details
               </Button>}
@@ -2816,6 +3316,17 @@ const ShipmentForm = () => {
           control={control}
           errors={errors}
           liveShipmentStatus={liveShipmentStatus}
+        />
+
+        {/* dialog for DO details */}
+        <DoDetailsDialog
+          open={doDetailsModal}
+          onClose={() => setDoDetailsModal(false)}
+          getValues={getValues}
+          setValue={setValue}
+          control={control}
+          doDetailsFields={doDetailsFields}
+          isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
         />
 
         {/* STEP 0 */}

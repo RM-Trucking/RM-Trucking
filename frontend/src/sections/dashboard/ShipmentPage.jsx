@@ -627,7 +627,7 @@ const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal
                   name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.pieces`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Pieces *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
+                    <StyledTextField {...field} label="Pieces *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
                   )}
                 />
               </Box>
@@ -637,7 +637,7 @@ const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal
                   name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.piecesUom`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled
+                    <StyledTextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled
                       SelectProps={{
                         displayEmpty: true,
                         MenuProps: {
@@ -666,7 +666,7 @@ const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal
                       {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map((u) => (
                         <MenuItem key={u} value={u}>{u}</MenuItem>
                       ))}
-                    </TextField>
+                    </StyledTextField>
                   )}
                 />
               </Box>
@@ -676,7 +676,7 @@ const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal
                   name={`doDetails.handlingUnits.${huIndex}.items.${itemIndex}.description`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} label="Description *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
+                    <StyledTextField {...field} label="Description *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} disabled />
                   )}
                 />
               </Box>
@@ -703,7 +703,7 @@ const ItemsSectionView = ({ huIndex, control, watchedHU, openHazmat, hazmatModal
                 }}>
                   Hazmat info
                 </Typography>
-                <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#555' }}>
+                <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#0a0a0a' }}>
                   {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
                 </Typography>
               </Box>
@@ -777,20 +777,20 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
         {/* Row 1: UN, Shipping Name, PKG Group, Class */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="UN Number *" variant="standard" fullWidth value={localData.unNumber} disabled>
+            <StyledTextField select label="UN Number *" variant="standard" fullWidth value={localData.unNumber} disabled>
               <MenuItem value="UN1567">UN1567</MenuItem>
-            </TextField>
+            </StyledTextField>
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} disabled>
+            <StyledTextField select label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} disabled>
               <MenuItem value="Hazard Substance,liquid.n.o.s">Hazard Substance,liquid.n.o.s</MenuItem>
-            </TextField>
+            </StyledTextField>
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Packaging Group *" variant="standard" fullWidth value={localData.packagingGroup} disabled />
+            <StyledTextField label="Packaging Group *" variant="standard" fullWidth value={localData.packagingGroup} disabled />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Class *" variant="standard" fullWidth value={localData.hazmatClass} disabled />
+            <StyledTextField label="Class *" variant="standard" fullWidth value={localData.hazmatClass} disabled />
           </Box>
         </Box>
 
@@ -800,18 +800,18 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
           <Box sx={{ flex: '1 1 22%', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
             <Box display={'flex'} alignItems={'flex-end'}>
-              <TextField label="Weight *" variant="standard" fullWidth value={localData.weight} disabled />
-              <TextField select variant="standard" value={localData.weightUnit} disabled sx={{ width: '80px' }}>
+              <StyledTextField label="Weight *" variant="standard" fullWidth value={localData.weight} disabled />
+              <StyledTextField select variant="standard" value={localData.weightUnit} disabled sx={{ width: '80px' }}>
                 <MenuItem value="lbs">lbs</MenuItem>
                 <MenuItem value="kgs">kgs</MenuItem>
-              </TextField>
+              </StyledTextField>
             </Box>
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Technical Name *" variant="standard" fullWidth value={localData.technicalName} disabled />
+            <StyledTextField label="Technical Name *" variant="standard" fullWidth value={localData.technicalName} disabled />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField
+            <StyledTextField
               label="Contact phone *"
               variant="standard"
               fullWidth
@@ -819,23 +819,6 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
               inputProps={{ maxLength: 20 }}
               error={!!errors.contactPhone}
               helperText={errors.contactPhone || ''}
-              onChange={(e) => {
-                const val = e.target.value;
-                if (val.startsWith(' ')) return; // Prevent leading spaces [cite: 37]
-
-                // Apply the same formatting mask used in Step 1 
-                const formattedValue = formatPhoneNumber(val).slice(0, 20);
-
-                // Real-time Validation Logic 
-                const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
-                if (!formattedValue) {
-                  setErrors(prev => ({ ...prev, contactPhone: 'Phone number is required' }));
-                } else if (!phoneRegex.test(formattedValue)) {
-                  setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone format' }));
-                } else {
-                  setErrors(prev => ({ ...prev, contactPhone: null }));
-                }
-              }}
               disabled
             />
           </Box>
@@ -851,7 +834,7 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
             <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
               Hazmat Description
             </Typography>
-            <TextField
+            <StyledTextField
               multiline
               fullWidth
               rows={4}
@@ -2155,7 +2138,7 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                 <Box sx={{ flex: '1 1 120px' }}>
                   <Controller name={`doDetails.handlingUnits.${doDetailIdx}.uom`} control={control} render={({ field }) => (
-                    <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
+                    <StyledTextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
                       SelectProps={{
                         displayEmpty: true,
                         MenuProps: {
@@ -2183,27 +2166,27 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
                       disabled
                     >
                       {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
-                    </TextField>
+                    </StyledTextField>
                   )} />
                 </Box>
                 <Box sx={{ flex: '1 1 100px' }}>
                   <Controller name={`doDetails.handlingUnits.${doDetailIdx}.unitsCount`} control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Handling Units *" variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                    <StyledTextField {...field} fullWidth label="Handling Units *" variant="standard" InputLabelProps={{ shrink: true }} disabled />
                   )} />
                 </Box>
                 <Box sx={{ flex: '1 1 80px' }}>
                   <Controller name={`doDetails.handlingUnits.${doDetailIdx}.unit`} control={control} render={({ field }) => (
-                    <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }} disabled>
+                    <StyledTextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }} disabled>
                       <MenuItem value="in">in</MenuItem>
                       <MenuItem value="cm">cm</MenuItem>
-                    </TextField>
+                    </StyledTextField>
                   )} />
                 </Box>
                 {['Length', 'Width', 'Height'].map((dim) => (
                   <Box key={dim} sx={{ flex: '1 1 80px', }}>
                     <Box display={'flex'} alignItems={'flex-end'}>
                       <Controller name={`doDetails.handlingUnits.${doDetailIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                        <StyledTextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} disabled />
                       )} />
                     </Box>
                   </Box>
@@ -2211,13 +2194,13 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
                 <Box sx={{ flex: '1 1 70px' }}>
                   <Box display={'flex'} alignItems={'flex-end'}>
                     <Controller name={`doDetails.handlingUnits.${doDetailIdx}.weight`} control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} disabled />
+                      <StyledTextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} disabled />
                     )} />
                     <Controller name={`doDetails.handlingUnits.${doDetailIdx}.weightUnit`} control={control} render={({ field }) => (
-                      <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }} disabled>
+                      <StyledTextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }} disabled>
                         <MenuItem value="lbs">lbs</MenuItem>
                         <MenuItem value="kgs">kgs</MenuItem>
-                      </TextField>
+                      </StyledTextField>
                     )} />
                   </Box>
                 </Box>
@@ -2226,7 +2209,7 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
                     name={`doDetails.handlingUnits.${doDetailIdx}.class`}
                     control={control}
                     render={({ field }) => (
-                      <TextField
+                      <StyledTextField
                         {...field}
                         fullWidth
                         label="Class"
@@ -2281,13 +2264,13 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
               <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
                 <Box sx={{ flex: '1 1 30%' }}>
                   <Controller name="doDetails.emergencyContactName" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Contact Name *" variant="standard" />
+                    <StyledTextField {...field} fullWidth label="Contact Name *" variant="standard" disabled />
                   )} />
                 </Box>
                 <Box sx={{ flex: '1 1 30%' }}>
                   <Controller name="doDetails.emergencyContactPhone" control={control} render={({ field }) => (
-                    <TextField {...field} fullWidth label="Phone Number *" variant="standard"
-                      onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
+                    <StyledTextField {...field} fullWidth label="Phone Number *" variant="standard"
+                      disabled
                     />
                   )} />
                 </Box>

@@ -176,8 +176,10 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                     },
                 ]
             }
-            obj.addresses[0].addressId = (selectedCarrierRowDetails.addresses[0].addressRole === 'Corporate') ? selectedCarrierRowDetails.addresses[0].addressId : selectedCarrierRowDetails.addresses[1].addressId;
-            obj.addresses[1].addressId = (selectedCarrierRowDetails.addresses[1].addressRole === 'Billing') ? selectedCarrierRowDetails.addresses[1].addressId : selectedCarrierRowDetails.addresses[0].addressId;;
+            if (selectedCarrierRowDetails?.addresses?.length > 0) {
+                obj.addresses[0].addressId = (selectedCarrierRowDetails?.addresses?.[0]?.addressRole === 'Corporate') ? selectedCarrierRowDetails?.addresses?.[0]?.addressId || null : selectedCarrierRowDetails?.addresses?.[1]?.addressId || null;
+                obj.addresses[1].addressId = (selectedCarrierRowDetails?.addresses?.[1]?.addressRole === 'Billing') ? selectedCarrierRowDetails?.addresses?.[1]?.addressId || null : selectedCarrierRowDetails?.addresses?.[0]?.addressId || null;
+            }
             console.log('data');
             dispatch(putCarrierData(obj, selectedCarrierRowDetails?.carrierId))
         }

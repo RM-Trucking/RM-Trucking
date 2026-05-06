@@ -202,10 +202,19 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                                     value: 20,
                                     message: 'Phone number cannot exceed 20 characters'
                                 },
-                                pattern: {
-                                    // Regex allows (XXX) XXX-XXXX followed by any extra digits/characters up to 20
-                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
-                                    message: 'Invalid phone format'
+                                validate: (value) => {
+                                    if (!value) return true; // Allow empty
+
+                                    // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                                    const digitsOnly = value.replace(/\D/g, '');
+                                    const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                                    if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                                    // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                                    // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                                    return true;
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (

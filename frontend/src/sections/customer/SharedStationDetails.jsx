@@ -403,9 +403,14 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             name="zipCode"
                             control={control}
                             rules={{
-                                required: 'Zip Code is required',
                                 validate: (value) => {
-                                    if (!value || value.length <= 5) return true;
+                                    if (!value) return true; // Let 'required' rule handle empty if needed
+
+                                    // 1. Block "all zeros" for both 5-digit and range formats
+                                    const rawDigits = value.replace(/[^\d]/g, '');
+                                    if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
+
+                                    if (value.length <= 5) return true;
 
                                     const parts = value.split('-');
                                     if (parts.length === 2 && parts[1].length === 5) {
@@ -428,13 +433,15 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         const raw = input.replace(/[^\d]/g, '');
                                         const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-                                        // 1. CLEARING & BACKSPACE: Let the user clear the field or delete the first part
-                                        if (!input || raw.length === 0 || (isDeleting && (input.length <= 5 || !input.includes('-')))) {
-                                            onChange(raw.slice(0, 5));
+                                        // 1. If deleting or clearing, just update with raw digits 
+                                        // This allows the user to backspace freely through the second part.
+                                        if (isDeleting || !raw) {
+                                            // If they delete the dash, we just show the first 5 digits
+                                            onChange(raw.slice(0, 10));
                                             return;
                                         }
 
-                                        // 2. FORMATTING LOGIC
+                                        // 2. FORMATTING LOGIC (Only runs when typing/pasting)
                                         let formatted = '';
                                         if (raw.length <= 5) {
                                             formatted = raw;
@@ -443,7 +450,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             const prefix = first5.slice(0, 3);
                                             let suffixPart = raw.slice(5);
 
-                                            // Auto-fill prefix if user types the 6th digit
+                                            // Auto-fill prefix logic
                                             if (!suffixPart.startsWith(prefix)) {
                                                 const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
                                                 suffixPart = prefix + userTypedDigits;
@@ -477,10 +484,19 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     value: 20,
                                     message: 'Phone number cannot exceed 20 characters'
                                 },
-                                pattern: {
-                                    // Regex allows (XXX) XXX-XXXX followed by any extra digits/characters up to 20
-                                    value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
-                                    message: 'Invalid phone format'
+                                validate: (value) => {
+                                    if (!value) return true; // Allow empty
+
+                                    // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                                    const digitsOnly = value.replace(/\D/g, '');
+                                    const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                                    if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                                    // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                                    // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                                    return true;
                                 }
                             }}
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (

@@ -171,25 +171,29 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     if (!value) return true;
                                     const zips = value.split(',').map(z => z.trim()).filter(z => z.length > 0);
 
-                                    // 1. Check for duplicates
+                                    // 1. Check for "00000"
+                                    const hasZeroZip = zips.some(z => /^0+$/.test(z));
+                                    if (hasZeroZip) return "Invalid Zip Code: 00000 is not allowed";
+
+                                    // 2. Check for duplicates
                                     const seen = new Set();
                                     const duplicates = zips.filter(z => {
-                                        const duplicate = seen.has(z);
+                                        const isDuplicate = seen.has(z);
                                         seen.add(z);
-                                        return duplicate;
+                                        return isDuplicate;
                                     });
 
                                     if (duplicates.length > 0) {
-                                        // Capitalized error message showing the re-entered value
                                         return `Duplicate zip code detected: ${duplicates[0]}`;
                                     }
 
-                                    // 2. Format and length validation
+                                    // 3. Format and length validation
                                     if (zips.length === 0) return "Please enter at least one 5-digit zip code";
                                     const allValid = zips.every(z => /^\d{5}$/.test(z));
                                     return allValid || "Each zip code must be exactly 5 digits";
                                 }
                             }}
+
                             render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
@@ -248,13 +252,17 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 validate: (value) => {
                                     if (!value || value.length === 0) return true;
 
-                                    // Check for duplicates in the array
                                     const duplicates = value.filter((item, index) => value.indexOf(item) !== index);
-                                    if (duplicates.length > 0) {
-                                        return `Duplicate range detected: ${duplicates[0]}`;
-                                    }
+                                    if (duplicates.length > 0) return `Duplicate range detected: ${duplicates[0]}`;
 
                                     for (let range of value) {
+                                        if (range === '00000-00000') return "Invalid Range: 00000-00000 not allowed";
+
+                                        // NEW: Check if the numeric content is all zeros
+                                        if (range.replace(/[^\d]/g, '') === '0000000000') {
+                                            return `Invalid range: ${range} is not a valid zip code`;
+                                        }
+
                                         const match = range.match(/^(\d{3})(\d{2})-(\d{3})(\d{2})$/);
                                         if (!match) return `Invalid format: ${range}`;
                                         const [, p1, s1, p2, s2] = match;
@@ -263,6 +271,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     }
                                     return true;
                                 }
+
                             }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => {
                                 const [typedText, setTypedText] = useState("");
@@ -346,7 +355,15 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                             setLocalError("Please enter a complete 5-5 digit range");
                                         }
                                     }
+
+                                    const isAllZeros = /^0{5}-0{5}$/.test(typedText) || typedText.replace(/-/g, '') === '0000000000';
+
+                                    if (isAllZeros) {
+                                        setLocalError("Invalid Zip Code: 00000-00000 is not allowed");
+                                        return;
+                                    }
                                 };
+
 
 
                                 return (
@@ -414,49 +431,49 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                             }}
                         />
 
-                        {(type === 'Add' || type === 'View') && 
+                        {(type === 'Add' || type === 'View') &&
                             <Controller
                                 name="notes"
                                 control={control}
                                 rules={{
                                     validate: (value) => {
                                         // 1. If it's empty, it's valid (because it's optional)
-                                    if (!value || value.length === 0) return true;
+                                        if (!value || value.length === 0) return true;
 
-                                    // 2. If it has value, ensure it's not just whitespace
-                                    if (value.trim().length === 0) {
-                                        return "Notes cannot be empty spaces";
+                                        // 2. If it has value, ensure it's not just whitespace
+                                        if (value.trim().length === 0) {
+                                            return "Notes cannot be empty spaces";
+                                        }
+
+                                        // 3. Ensure the first character is not a space (prevents " empty starts")
+                                        if (value.startsWith(" ")) {
+                                            return "Notes cannot start with a space";
+                                        }
+
+                                        return true;
                                     }
-
-                                    // 3. Ensure the first character is not a space (prevents " empty starts")
-                                    if (value.startsWith(" ")) {
-                                        return "Notes cannot start with a space";
-                                    }
-
-                                    return true;
-                                }
-                            }}
-                            render={({ field }) => (
-                                <StyledTextField
-                                    {...field}
-                                    label="Notes"
-                                    variant="outlined"
-                                    fullWidth
-                                    multiline
-                                    rows={4}
-                                    sx={{ width: '50%' }}
-                                    error={!!errors.notes}
-                                    helperText={errors.notes?.message}
-                                    disabled={type === 'View'}
-                                    // Optional: Prevent typing a space as the very first character
-                                    onChange={(e) => {
-                                        const val = e.target.value;
-                                        if (val === " ") return; // Blocks leading space in real-time
-                                        field.onChange(e);
-                                    }}
-                                />
-                            )}
-                        />}
+                                }}
+                                render={({ field }) => (
+                                    <StyledTextField
+                                        {...field}
+                                        label="Notes"
+                                        variant="outlined"
+                                        fullWidth
+                                        multiline
+                                        rows={4}
+                                        sx={{ width: '50%' }}
+                                        error={!!errors.notes}
+                                        helperText={errors.notes?.message}
+                                        disabled={type === 'View'}
+                                        // Optional: Prevent typing a space as the very first character
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (val === " ") return; // Blocks leading space in real-time
+                                            field.onChange(e);
+                                        }}
+                                    />
+                                )}
+                            />}
                     </Stack>
                 </Stack>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>

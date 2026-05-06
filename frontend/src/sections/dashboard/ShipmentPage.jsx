@@ -3279,6 +3279,14 @@ const ShipmentForm = () => {
               >
                 DO Details
               </Button>}
+              {activeStep === 4 && <Button
+                variant="contained"
+                size="small"
+                sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                
+              >
+                Customer Rate
+              </Button>}
 
               <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
                 setOpenNotesDialog(true);

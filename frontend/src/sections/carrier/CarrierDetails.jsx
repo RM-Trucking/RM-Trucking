@@ -143,7 +143,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
                 "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
-                "carrierStatus": data.carrierStatus,
+                "carrierStatus": data.carrierStatus  ? data.carrierStatus.charAt(0).toUpperCase() + data.carrierStatus.slice(1) : '',
                 "corporatePhoneNumber": data.corporatePhoneNumber,
                 "tsaCertified": data.tsa ? 'Y' : 'N',
                 "totalShipments": selectedCarrierRowDetails?.totalShipments,
@@ -202,7 +202,12 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         if ((type === 'Edit' || type === 'View') && selectedCarrierRowDetails) {
             setValue('carrierName', selectedCarrierRowDetails?.carrierName || '');
             setValue('carrierType', selectedCarrierRowDetails?.carrierType?.split(",")?.map(s => s.trim()) || []);
-            setValue('carrierStatus', selectedCarrierRowDetails?.carrierStatus?.charAt(0).toLowerCase() + selectedCarrierRowDetails?.carrierStatus?.slice(1) || '');
+            if(selectedCarrierRowDetails?.carrierStatus?.toLowerCase() === 'incomplete'){
+                setValue('carrierStatus', 'active');
+            }else{
+                setValue('carrierStatus', selectedCarrierRowDetails?.carrierStatus?.charAt(0).toLowerCase() + selectedCarrierRowDetails?.carrierStatus?.slice(1) || '');
+            }
+            
             setValue('corpAddressLine1', selectedCarrierRowDetails?.addresses?.[0]?.line1 || '');
             setValue('corpAddressLine2', selectedCarrierRowDetails?.addresses?.[0]?.line2 || '');
             setValue('corpCity', selectedCarrierRowDetails?.addresses?.[0]?.city || '');

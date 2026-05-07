@@ -1234,16 +1234,16 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
 }));
 
 const MASTER_ACCESSORIALS = [
-  { name: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
-  { name: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
-  { name: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
-  { name: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
-  { name: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
-  { name: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
-  { name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
-  { name: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
-  { name: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
-  { name: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
+  { id: 1, name: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
+  { id: 2, name: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
+  { id: 3, name: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
+  { id: 4, name: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
+  { id: 5, name: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
+  { id: 6, name: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
+  { id: 7, name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
+  { id: 8, name: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
+  { id: 9, name: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
+  { id: 10, name: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
 ];
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
@@ -2290,7 +2290,469 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
     </Dialog>
   );
 };
+// customer Rate pop up dialog box
+const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, watchedHU }) => {
+  const [editInputIndex, setEditInputIndex] = useState(null);
+  const [editIndex, setEditIndex] = useState(null);
+  const [isRateEditing, setIsRateEditing] = useState(false);
+  const [isFuelSurchargeEditing, setIsFuelSurchargeEditing] = useState(false);
+  const [addFlag, setAddFlag] = useState(false);
+  const [errorVisible, setErrorVisible] = useState(false);
 
+  const addAccessorial = () => {
+    const selectedObj = getValues('customerRate.selectedAccToAdd');
+    const exists = getValues('customerRate.customerAccessorials').some(item => item.id === selectedObj.id);
+    if(!exists){
+      appendCustomerRateAccFields({
+        ...selectedObj,
+        isManual: false,
+        apiCharges: selectedObj.charges,
+        input: (selectedObj.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+      });
+      setErrorVisible(false);
+    }else{
+      setErrorVisible(true);
+    }
+    setAddFlag(false);
+  }
+
+  return (
+    <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{
+      '& .MuiDialog-paper': { // Target the paper class
+        width: '1545px',
+        height: '500px',
+        maxHeight: 'none',
+        maxWidth: 'none',
+      }
+    }}>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Customer Rate</DialogTitle>
+      <DialogContent sx={{ p: 3, pb:0 }}>
+        <Box>
+
+          <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', mt: 2 }}>
+            {/* Header Row */}
+            <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
+              <Box sx={{ display: 'flex', p: 1, alignItems: 'center', gap: 1, flex: 3.5, fontWeight: 'bold', justifyContent: 'space-between' }}>
+                <Typography variant="normal" fontSize={'12px'}>Charges</Typography>
+              </Box>
+              <Box sx={{ display: 'flex', flex: 1.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
+              <Box sx={{ display: 'flex', flex: 2.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
+              <Box sx={{ display: 'flex', flex: 1.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Total Rates ($)</Typography></Box>
+            </Box>
+            {/* state rate Rates Array (e.g., from API or predefined) */}
+            <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+              <Box sx={{ flex: 3.5, p: 1 }}>
+                <Typography variant="body2">Rate</Typography>
+              </Box>
+              <Box sx={{
+                flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                <Typography variant="body2">-</Typography>
+              </Box>
+              <Box sx={{
+                flex: 2.5, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                <Controller
+                  name={'customerRate.rate'}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="small"
+                      disabled={!isRateEditing} // Editable ONLY when isEditing is true
+                      variant="outlined"
+                      sx={{
+                        bgcolor: isRateEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Toggle between Edit and Save Icons */}
+                {isRateEditing ? (
+                  <IconButton
+                    size="small"
+                    sx={{ color: 'success.main' }}
+                    onClick={() => {
+                      setIsRateEditing(false); // Exit edit mode
+                    }}
+                  >
+                    <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    size="small"
+                    onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
+                  >
+                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                )}
+              </Box>
+              <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
+                <Typography variant="body2">{getValues(`customerRate.rate`)}</Typography>
+              </Box>
+            </Box>
+            {/* state Fuel surcharge Rates Array (e.g., from API or predefined) */}
+            <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+              <Box sx={{ flex: 3.5, p: 1 }}>
+                <Typography variant="body2">Fuel Surcharge (35% Charge)</Typography>
+              </Box>
+              <Box sx={{
+                flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                <Typography variant="body2">-</Typography>
+              </Box>
+              <Box sx={{
+                flex: 2.5, p: 1, borderLeft: '1px solid #ccc',
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                <Controller
+                  name={'customerRate.fuelSurchargeRate'}
+                  control={control}
+                  render={({ field }) => (
+                    <TextField
+                      {...field}
+                      size="small"
+                      disabled={!isFuelSurchargeEditing} // Editable ONLY when isEditing is true
+                      variant="outlined"
+                      sx={{
+                        bgcolor: isFuelSurchargeEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                      }}
+                    />
+                  )}
+                />
+
+                {/* Toggle between Edit and Save Icons */}
+                {isFuelSurchargeEditing ? (
+                  <IconButton
+                    size="small"
+                    sx={{ color: 'success.main' }}
+                    onClick={() => {
+                      setIsFuelSurchargeEditing(false); // Exit edit mode
+                    }}
+                  >
+                    <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                ) : (
+                  <IconButton
+                    size="small"
+                    onClick={() => setIsFuelSurchargeEditing(true)} // Enable edit mode for this row
+                  >
+                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                )}
+              </Box>
+              <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
+                <Typography variant="body2">{getValues(`customerRate.fuelSurchargeRate`)}</Typography>
+              </Box>
+            </Box>
+
+            {/* Dynamic Rates Array */}
+            {customerRateAccFields && customerRateAccFields.length > 0 && customerRateAccFields.map((item, index) => {
+              const isEditing = editIndex === index;
+              const isInputEditing = editInputIndex === index;
+
+              return (
+                <Box key={`${item.name}-${index}`} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+                  <Box sx={{ flex: 3.5, p: 1 }}>
+                    <Typography variant="body2">{item.name}</Typography>
+                  </Box>
+                  <Box sx={{
+                    flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
+                    display: 'flex', alignItems: 'center', gap: 1
+                  }}>
+                    {
+                      item.type.toLowerCase() === 'hourly' && (
+                        <>
+                          <Controller
+                            name={`customerRate.customerAccessorials[${index}].input`}
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                size="small"
+                                disabled={!isInputEditing} // Editable ONLY when isInputEditing is true
+                                variant="outlined"
+                                // Add this section:
+                                InputProps={{
+                                  endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
+                                }}
+                                sx={{
+                                  bgcolor: isInputEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                                  '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                                  '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                                }}
+                              />
+                            )}
+                          />
+
+                          {/* Toggle between Edit and Save Icons */}
+                          {isInputEditing ? (
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setEditInputIndex(null); // Exit edit mode
+                              }}
+                              sx={{ color: 'success.main' }}
+                            >
+                              <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                            </IconButton>
+                          ) : (
+                            <IconButton
+                              size="small"
+                              onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
+                            >
+                              <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                            </IconButton>
+                          )}
+                        </>
+                      )
+                    }
+                    {
+                      item.type.toLowerCase() === 'per pound' && (
+                        <>
+                          <Controller
+                            name={`customerRate.customerAccessorials[${index}].input`}
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                size="small"
+                                disabled={!isInputEditing}
+                                variant="outlined"
+                                // Add this section:
+                                InputProps={{
+                                  endAdornment: <InputAdornment position="end">lbs</InputAdornment>,
+                                }}
+                                sx={{
+                                  bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
+                                  '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                                  '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
+                                }}
+                              />
+                            )}
+                          />
+
+                        </>
+                      )
+                    }
+                    {
+                      item.type.toLowerCase() === 'flat rate' && (
+                        <Typography variant="body2">-</Typography>
+                      )
+                    }
+                  </Box>
+                  <Box sx={{
+                    flex: 2.5, p: 1, borderLeft: '1px solid #ccc',
+                    display: 'flex', alignItems: 'center', gap: 1
+                  }}>
+                    <Controller
+                      name={`customerRate.customerAccessorials[${index}].charges`}
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          size="small"
+                          disabled={!isEditing} // Editable ONLY when isEditing is true
+                          variant="outlined"
+                          sx={{
+                            bgcolor: isEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                            '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                            '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                          }}
+                        />
+                      )}
+                    />
+
+                    {/* Toggle between Edit and Save Icons */}
+                    {isEditing ? (
+                      <IconButton
+                        size="small"
+                        onClick={() => {
+                          // 1. Get the current value from the form
+                          const currentVal = getValues(`customerRate.customerAccessorials[${index}].charges`);
+                          // 2. Get the original value from the fields array
+                          const originalVal = item.charges;
+
+                          // 3. If they differ, update the 'isManual' key in the form state
+                          if (currentVal !== originalVal) {
+                            setValue(`customerRate.customerAccessorials[${index}].isManual`, true);
+                          }
+                          { console.log(`customerRate.customerAccessorials[${index}].isManual`, getValues(`customerRate.customerAccessorials[${index}].isManual`)) }
+
+                          setEditIndex(null); // Exit edit mode
+                        }}
+                        sx={{ color: 'success.main' }}
+                      >
+                        <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
+                      </IconButton>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={() => setEditIndex(index)} // Enable edit mode for this row
+                      >
+                        <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                      </IconButton>
+                    )}
+
+                  </Box>
+                  <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
+                    {
+                      item.type.toLowerCase() === 'hourly' && (
+                        <Typography variant="body2">
+                          {(() => {
+                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].charges`)) || 0;
+                            const inputVal = getValues(`customerRate.customerAccessorials.[${index}].input`);
+
+                            // Check if input is a valid string or number
+                            const hasInput = inputVal !== undefined && inputVal !== "" && inputVal !== null;
+
+                            return (hasInput
+                              ? charge * (parseFloat(inputVal) || 0)
+                              : charge
+                            ).toFixed(2);
+                          })()}
+                        </Typography>
+
+                      )
+                    }
+                    {
+                      item.type.toLowerCase() === 'per pound' && (
+                        <Typography variant="body2">
+                          {(() => {
+                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].charges`)) || 0;
+                            const weightVal = totals.totalWeight;
+
+                            // Weight is considered "present" if it's not empty, null, undefined, or 0
+                            const hasWeight = weightVal !== undefined && weightVal !== "" && weightVal !== null && weightVal !== 0;
+
+                            const finalValue = hasWeight
+                              ? charge * parseFloat(weightVal)
+                              : charge;
+
+                            return finalValue.toFixed(2);
+                          })()}
+                        </Typography>
+                      )
+                    }
+
+                    {
+                      item.type.toLowerCase() === 'flat rate' && (
+                        <Typography variant="body2">{getValues(`customerRate.customerAccessorials.[${index}].charges`)}</Typography>
+                      )
+                    }
+                  </Box>
+                </Box>
+              );
+            })}
+
+            {/* Adding accessorials */}
+            {addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+
+              <Box sx={{
+                flex: 1.5, p: 1,
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+
+                <TextField
+                  size="small"
+                  variant="outlined"
+                  select
+                  sx={{
+                    width: "15%",
+                    '& .MuiOutlinedInput-input': { p: '4px 8px' },
+                    '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                  }}
+                  onChange={(event) => {
+                    const selectedObject = MASTER_ACCESSORIALS.find(item => item.id === event.target.value);
+                    setValue('customerRate.selectedAccToAdd', selectedObject);
+                  }}
+                >
+                  {MASTER_ACCESSORIALS.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.name}</MenuItem>))}
+                </TextField>
+
+                <StyledTextField value={getValues('customerRate.selectedAccToAdd.type')} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
+
+                <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+                  onClick={addAccessorial}
+                >
+                  Save
+                </Button>
+              </Box>
+
+            </Box>}
+
+            {/* add acc button  */}
+            {!addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+
+              <Box sx={{
+                flex: 1.5, p: 1,
+                display: 'flex', alignItems: 'center', gap: 1
+              }}>
+                <Typography variant="normal" fontSize={'12px'}>Accessorial</Typography>
+                <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+                  onClick={() => {
+                    setAddFlag(true);
+                  }}
+                >
+                  Add
+                </Button>
+              </Box>
+
+            </Box>}
+
+            {/* Sub Total Row */}
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 1, gap: 12, mr: '10%' }}>
+              <Typography variant="subtitle2" fontWeight="bold">Total</Typography>
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ minWidth: 100 }}>
+                {(
+                  parseFloat(getValues('customerRate.rate') || 0) +
+                  parseFloat(getValues('customerRate.fuelSurchargeRate') || 0) +
+                  getValues('customerRate.customerAccessorials').reduce((sum, item) => {
+                    const charge = parseFloat(item.charges) || 0;
+
+                    // Check if input exists and isn't an empty string
+                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                      const input = parseFloat(item.input) || 0;
+                      return sum + (charge * input);
+                    }
+
+                    // Otherwise, treat as a flat fee
+                    return sum + charge;
+                  }, 0)
+                ).toFixed(2)}
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        <Snackbar
+          open={errorVisible}
+          autoHideDuration={3000}
+          onClose={() => {
+            setErrorVisible(false);
+          }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <Alert severity="error" variant="filled">
+            This accessorial is alreay available in the list.
+          </Alert>
+        </Snackbar>
+      </DialogContent>
+      <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
+        <Button onClick={onClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+          Cancel
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+};
 
 
 const ShipmentForm = () => {
@@ -2311,6 +2773,7 @@ const ShipmentForm = () => {
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
   const [doDetailsModal, setDoDetailsModal] = useState(false);
+  const [custommerRateModal, setCustomerRateModal] = useState(false);
 
   const {
     control,
@@ -2556,6 +3019,15 @@ const ShipmentForm = () => {
           deliveryAccessorials: [],
         },
       },
+      customerRate: {
+        rate: '130',
+        apiRate: '130',
+        spotRate: false,
+        fuelSurcharge: 'Fuel Surcharge (35% Charge)',
+        fuelSurchargeRate: '',
+        customerAccessorials: [],
+        selectedAccToAdd: null,
+      },
 
     },
 
@@ -2563,6 +3035,7 @@ const ShipmentForm = () => {
 
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
+  const { fields: customerRateAccFields, append: appendCustomerRateAccFields, } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
@@ -2622,6 +3095,10 @@ const ShipmentForm = () => {
   const watchedCarrierInfo = useWatch({
     control,
     name: 'carrierInfo',
+  });
+  const watchedCustomerRateInfo = useWatch({
+    control,
+    name: 'customerRate',
   });
   const { fields: carrierRatesPickUpAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
   const { fields: carrierRatesLineHaulAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
@@ -3092,6 +3569,18 @@ const ShipmentForm = () => {
 
 
 
+  // useEffect(() => {
+  //   // apply accessorial details
+  //   if (custommerRateModal && MASTER_ACCESSORIALS.length > 0) {
+  //     const updatedAcc = MASTER_ACCESSORIALS.map((acc, index) => ({
+  //       ...acc,
+  //       isManual: false,
+  //       apiCharges: acc.charges,
+  //       input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+  //     }));
+  //     setValue('customerRate.customerAccessorials', updatedAcc);
+  //   }
+  // }, [custommerRateModal])
   useEffect(() => {
     if (watchedCarrierInfo.selectCarrier) {
       setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
@@ -3130,8 +3619,6 @@ const ShipmentForm = () => {
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
-
-
   }, [watchedCarrierInfo])
 
 
@@ -3283,7 +3770,9 @@ const ShipmentForm = () => {
                 variant="contained"
                 size="small"
                 sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
-                
+                onClick={() => {
+                  setCustomerRateModal(true);
+                }}
               >
                 Customer Rate
               </Button>}
@@ -3318,6 +3807,19 @@ const ShipmentForm = () => {
           control={control}
           doDetailsFields={doDetailsFields}
           isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
+        />
+
+        {/* dialog for customer rate  */}
+        <CustomerRateDialog
+          open={custommerRateModal}
+          onClose={() => setCustomerRateModal(false)}
+          getValues={getValues}
+          setValue={setValue}
+          control={control}
+          totals={totals}
+          customerRateAccFields={customerRateAccFields}
+          appendCustomerRateAccFields={appendCustomerRateAccFields}
+          watchedHU = {watchedHU}
         />
 
         {/* STEP 0 */}
@@ -3776,7 +4278,7 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '1 1 200px' }}>
                     <Controller name="carrierInfo.selectCarrier" control={control} render={({ field }) => (
                       <TextField {...field} select fullWidth label="Select Carrier *" variant="standard" InputLabelProps={{ shrink: true }}>
-                        <MenuItem value="R&M Carrier name">R&M Carrier name</MenuItem>
+                        <MenuItem value="R&M Carrier">R&M Carrier</MenuItem>
                       </TextField>
                     )} />
                   </Box>

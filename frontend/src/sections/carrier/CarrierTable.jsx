@@ -86,23 +86,26 @@ export default function RateTable() {
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
-                // 1. Get the raw value (e.g., "2026-03-10 00:00:00.000000")
                 const rawValue = params?.value;
-
-                // 2. Return nothing if the date is missing
                 if (!rawValue) return '';
 
-                // 3. Convert to Date object and format
                 const dateObj = new Date(rawValue);
-                const formatted = dateObj.toLocaleDateString('en-CA'); // Result: "2026-03-10"
+                const formatted = dateObj.toLocaleDateString('en-CA');
 
-                // 4. MUST use 'return' to display the formatted value
+                // 1. Get today's date at midnight for an accurate comparison
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // 2. Check if the expiry date is in the past
+                const isExpired = dateObj < today;
+
                 return (
-                    <Box>
+                    <Box sx={{ color: isExpired ? '#a22' : 'inherit', fontWeight: isExpired ? 'bold' : 'normal' }}>
                         {formatted}
                     </Box>
                 );
             }
+
         },
         {
             field: 'carrierStatus',

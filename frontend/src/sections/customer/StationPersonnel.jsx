@@ -273,7 +273,6 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                             name="cellPhoneNumber"
                             control={control}
                             rules={{
-                                required: 'Cell Phone number is required',
                                 maxLength: {
                                     value: 20,
                                     message: ' Cell Phone number cannot exceed 20 characters'

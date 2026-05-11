@@ -222,7 +222,6 @@ export default function TerminalPersonnelDetails({ type, handleCloseConfirm, sel
                             name="cellPhoneNumber"
                             control={control}
                             rules={{
-                                required: 'Cell Phone number is required',
                                 maxLength: {
                                     value: 20,
                                     message: ' Cell Phone number cannot exceed 20 characters'

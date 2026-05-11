@@ -58,8 +58,6 @@ export interface CustomerRateDetail {
     perUnitFlag: 'Y' | 'N';
 }
 
-
-
 // Request object for creating a transport rate
 export interface CreateCustomerTransportRateRequest {
     originZoneId: number;

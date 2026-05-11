@@ -119,9 +119,6 @@ export async function getAllCustomers(
 ): Promise<Customer[]> {
     const offset = (page - 1) * pageSize;
 
-    console.log(SCHEMA);
-
-
     let query = `
         SELECT "customerId", "customerName", "rmAccountNumber", "phoneNumber", "website","activeStatusReason", "corporateBillingSame",
                "activeStatus", "createdAt", "createdBy", "updatedAt", "updatedBy",
@@ -135,7 +132,7 @@ export async function getAllCustomers(
         params.push(`%${searchTerm.toLowerCase()}%`);
     }
 
-    query += ` ORDER BY "customerName" ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY `;
+    query += ` ORDER BY "customerId" ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY `;
     params.push(offset, pageSize);
 
     const result = (await conn.query(query, params)) as any[];
@@ -197,7 +194,7 @@ export async function getCustomersByRateId(
 
 export async function countCustomersByRateId(conn: Connection, rateId: number): Promise<number> {
     const query = `
-    SELECT COUNT(DISTINCT c."customerId") AS total
+    SELECT COUNT(st."stationId") AS total
     FROM ${SCHEMA}."Station_Rate_Map" srm
     JOIN ${SCHEMA}."Station" st ON srm."stationId" = st."stationId"
     JOIN ${SCHEMA}."Customer" c ON st."customerId" = c."customerId"

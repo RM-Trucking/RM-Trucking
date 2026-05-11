@@ -23,13 +23,13 @@ export async function createAccessorial(req: Request, res: Response, conn: Conne
  */
 export async function getAllAccessorials(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const { page = 1, limit = 10, search } = req.query;
+        const { page = 1, pageSize = 10, search } = req.query;
 
         const result = await accessorialService.getAllAccessorialsService(
             conn,
             search ? String(search) : null,
             Number(page),      // ✅ page
-            Number(limit)      // ✅ pageSize
+            Number(pageSize)      // ✅ pageSize
         );
 
         res.status(200).json({

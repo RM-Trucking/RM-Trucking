@@ -242,6 +242,10 @@ export async function updateTerminalService(
             }
         }
 
+        if (updates.note?.messageText?.trim()) {
+            await noteDB.createNoteMessage(conn, existing.noteThreadId, updates.note.messageText.trim(), userId);
+        }
+
         // Commit transaction if everything succeeds
         await conn.commit();
 
@@ -268,6 +272,17 @@ export async function updateTerminalService(
     }
 }
 
+export async function toggleTerminalStatusService(
+    conn: Connection,
+    terminalId: number,
+    status: 'Y' | 'N',
+    adminId: number
+): Promise<void> {
+    await terminalDB.updateTerminal(conn, terminalId, {
+        activeStatus: status,
+        updatedBy: adminId
+    });
+}
 
 export async function deleteTerminal(conn: Connection, terminalId: number, adminId: number): Promise<void> {
     await terminalDB.softDeleteTerminal(conn, terminalId, adminId);

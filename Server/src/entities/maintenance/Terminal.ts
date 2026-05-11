@@ -47,6 +47,7 @@ export interface UpdateTerminalRequest {
     closeTime?: string;
     hours?: string;
     addresses?: AddressUpdateRequest[];
+    note?: { messageText: string };
 }
 
 export interface TerminalResponse extends Terminal {

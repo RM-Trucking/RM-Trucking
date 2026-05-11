@@ -12,8 +12,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
       ("carrierName","carrierType","carrierStatus","tsaCertified","ustDotNo","mcnNo",
        "insuranceExpiry","tariffRenewalDate","totalShipments","rmOnTimePercent","lateShipments",
        "salesRepName","salesRepPhone","salesRepEmail",
-       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame")
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?)
+       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame", "corporatePhoneNumber", "isParcelCarrier")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?, ?)
     )
   `;
 
@@ -35,10 +35,12 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
         carrier.createdBy,
         carrier.entityId,
         carrier.noteThreadId,
-        carrier.corporateBillingSame ?? 'N'
-    ].map(v => v === undefined || v === null ? '' : v);
+        carrier.corporateBillingSame ?? 'N',
+        carrier.corporatePhoneNumber,
+        carrier.isParcelCarrier ?? 'N'
+    ].map(v => v === undefined ? '' : v);
 
-    const result = await conn.query(insertQuery, params);
+    const result = await conn.query(insertQuery, params as any[]) as any[];
     return (result as any)?.[0]?.carrierId;
 }
 
@@ -136,7 +138,8 @@ export async function updateCarrier(conn: Connection, carrierId: number, updates
     if (updates.salesRepPhone !== undefined) { fields.push(`"salesRepPhone" = ?`); params.push(updates.salesRepPhone); }
     if (updates.salesRepEmail !== undefined) { fields.push(`"salesRepEmail" = ?`); params.push(updates.salesRepEmail); }
     if (updates.corporateBillingSame !== undefined) { fields.push(`"corporateBillingSame" = ?`); params.push(updates.corporateBillingSame); }
-
+    if (updates.corporatePhoneNumber !== undefined) { fields.push(`"corporatePhoneNumber" = ?`); params.push(updates.corporatePhoneNumber); }
+    if (updates.isParcelCarrier !== undefined) { fields.push(`"isParcelCarrier" = ?`); params.push(updates.isParcelCarrier); }
     if (!fields.length) return;
 
     fields.push(`"updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)`);
@@ -159,7 +162,7 @@ export async function getCarriersByRateId(conn: Connection, rateId: number): Pro
     SELECT c."carrierId", c."carrierName", c."carrierType", c."carrierStatus", c."tsaCertified", c."ustDotNo", c."mcnNo", c."insuranceExpiry", c."tariffRenewalDate",
            c."totalShipments", c."rmOnTimePercent", c."lateShipments", c."salesRepName", c."salesRepPhone", c."salesRepEmail", c."corporateBillingSame",
            c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
-           c."noteThreadId", c."entityId"
+           c."noteThreadId", c."entityId", c."corporatePhoneNumber", c."isParcelCarrier"
     FROM ${SCHEMA}."Terminal_Rate_Map" srm
     JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
@@ -171,7 +174,7 @@ export async function getCarriersByRateId(conn: Connection, rateId: number): Pro
 
 export async function countCarriersByRateId(conn: Connection, rateId: number): Promise<number> {
     const query = `
-    SELECT COUNT(DISTINCT c."carrierId") AS total
+    SELECT COUNT(st."terminalId") AS total
     FROM ${SCHEMA}."Terminal_Rate_Map" srm
     JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
@@ -179,4 +182,26 @@ export async function countCarriersByRateId(conn: Connection, rateId: number): P
   `;
     const result = await conn.query(query, [rateId]) as any[];
     return result.length ? result[0].TOTAL : 0;
+}
+
+export async function checkCarrierUniqueFields(
+    conn: Connection,
+    { carrierName }:
+        { carrierName?: string },
+    terminalId?: number // optional, so we can exclude current record on update
+): Promise<string | null> {
+    const queries: string[] = [];
+    const params: (string | number)[] = [];
+
+    if (carrierName) {
+        queries.push(`SELECT 'carrierName' AS "conflictField" FROM "${SCHEMA}"."Carrier" WHERE "carrierName" = ? AND "carrierId" <> ?`);
+        params.push(carrierName, terminalId ?? -1);
+    }
+
+    if (queries.length === 0) return null;
+
+    const query = queries.join(' UNION ALL ');
+
+    const result = await conn.query(query, params) as { conflictField: string }[];
+    return result.length ? result[0].conflictField : null;
 }

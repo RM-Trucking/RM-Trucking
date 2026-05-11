@@ -239,12 +239,12 @@ export async function getStationRates(
 
         for (const part of parts) {
             if (part.includes('-')) {
-                const [start, end] = part.split('-').map(r => Number(r.trim()));
+                const [start, end] = part.split('-').map(r => r.trim());
 
                 // Case: input is a range
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = main."zoneId"
+                    WHERE z."zoneId" = ${zoneField}
                     AND (
                     (z."zipCode" BETWEEN ? AND ?) OR
                     (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
@@ -255,12 +255,12 @@ export async function getStationRates(
                 // note: overlap check may need careful ordering depending on your DB
 
             } else {
-                const zip = Number(part);
+                const zip = part;
 
                 // Case: input is a single zip
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = main."zoneId"
+                    WHERE z."zoneId" = ${zoneField}
                     AND (
                     z."zipCode" = ? OR
                     (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
@@ -286,9 +286,6 @@ export async function getStationRates(
         query += ` AND ${destZipFilter.clause}`;
         params.push(...destZipFilter.params);
     }
-
-    console.log('Query:', query);
-    console.log('Params:', params.map(p => [p, typeof p]));
 
     const result = await conn.query(query, params) as any[];
     return result;
@@ -390,12 +387,12 @@ export async function listCustomerTransportRates(
 
         for (const part of parts) {
             if (part.includes('-')) {
-                const [start, end] = part.split('-').map(r => Number(r.trim()));
+                const [start, end] = part.split('-').map(r => r.trim());
 
                 // Case: input is a range
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = main."zoneId"
+                    WHERE z."zoneId" = ${zoneField}
                     AND (
                     (z."zipCode" BETWEEN ? AND ?) OR
                     (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
@@ -406,12 +403,12 @@ export async function listCustomerTransportRates(
                 // note: overlap check may need careful ordering depending on your DB
 
             } else {
-                const zip = Number(part);
+                const zip = part;
 
                 // Case: input is a single zip
                 subConditions.push(`EXISTS (
                     SELECT 1 FROM ${SCHEMA}."Zone_Zip" z
-                    WHERE z."zoneId" = main."zoneId"
+                    WHERE z."zoneId" = ${zoneField}
                     AND (
                     z."zipCode" = ? OR
                     (z."rangeStart" IS NOT NULL AND z."rangeEnd" IS NOT NULL 
@@ -446,9 +443,6 @@ export async function listCustomerTransportRates(
         OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
     `;
     params.push((page - 1) * pageSize, pageSize);
-
-    console.log('Query:', query);
-    console.log('Params:', params);
 
     const result = await conn.query(query, params) as any[];
     const totalResult = await conn.query(

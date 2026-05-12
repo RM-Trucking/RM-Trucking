@@ -199,6 +199,8 @@ components:
         salesRepPhone: { type: string }
         salesRepEmail: { type: string }
         corporateBillingSame: { type: string, enum: [Y, N] }
+        corporatePhoneNumber: { type: string }
+        isParcelCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -224,6 +226,8 @@ components:
         salesRepPhone: { type: string }
         salesRepEmail: { type: string }
         corporateBillingSame: { type: string, enum: [Y, N] }
+        corporatePhoneNumber: { type: string }
+        isParcelCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -254,6 +258,8 @@ components:
         noteThreadId: { type: integer }
         entityId: { type: integer }
         corporateBillingSame: { type: string, enum: [Y, N] }
+        corporatePhoneNumber: { type: string }
+        isParcelCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:

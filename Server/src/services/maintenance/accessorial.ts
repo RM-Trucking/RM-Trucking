@@ -15,6 +15,16 @@ export async function createAccessorialService(
     req: CreateAccessorialRequest,
     userId: number
 ): Promise<AccessorialResponse> {
+
+    if (!req.accessorialName || req.accessorialName.trim() === '') {
+        throw new Error('Accessorial name is required and cannot be empty');
+    }
+
+    const conflict = await accessorialDB.checkAccessorialUniqueFields(conn, { accessorialName: req.accessorialName });
+    if (conflict) {
+        throw new Error(`Accessorial name "${req.accessorialName}" already exists. Please choose a different name.`);
+    }
+
     const accessorialId = await accessorialDB.createAccessorial(conn, req, userId);
 
     // Fetch the newly created record
@@ -57,12 +67,9 @@ export async function getAllAccessorialsService(
     };
 }
 
-
-
 export async function getAccessorialDropdownService(conn: Connection) {
     return await accessorialDB.getAccessorialDropdown(conn);
 }
-
 
 /**
  * Update an accessorial

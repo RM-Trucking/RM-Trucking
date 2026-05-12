@@ -1,0 +1,255 @@
+openapi: 3.0.1
+info:
+  title: Cargo API Module
+  description: CRUD API for managing cargo APIs
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+tags:
+  - name: Cargo API
+    description: Cargo API configuration management endpoints
+
+paths:
+  /api/maintenance/cargo-api:
+    post:
+      summary: Create a new cargo API configuration
+      tags: [Cargo API]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateCargoAPIRequest"
+      responses:
+        "201":
+          description: Cargo API created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CargoAPIResponse"
+
+    get:
+      summary: List cargo APIs with pagination, search, and status filter
+      tags: [Cargo API]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Current page number
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+          description: Number of items per page
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Search term to filter cargo APIs by name
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [Y, N]
+          description: Filter cargo APIs by active status
+      responses:
+        "200":
+          description: List of cargo APIs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/CargoAPIResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      page: { type: integer }
+                      pageSize: { type: integer }
+
+  /api/maintenance/cargo-api/{id}:
+    get:
+      summary: Get cargo API by ID
+      tags: [Cargo API]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Cargo API details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    $ref: "#/components/schemas/CargoAPIResponse"
+        "404":
+          description: Cargo API not found
+
+    put:
+      summary: Update cargo API by ID
+      tags: [Cargo API]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateCargoAPIRequest"
+      responses:
+        "200":
+          description: Cargo API updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: "#/components/schemas/CargoAPIResponse"
+
+  /api/maintenance/cargo-api/{id}/status:
+    patch:
+      summary: Toggle cargo API active status
+      tags: [Cargo API]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Y, N]
+              required: [status]
+      responses:
+        "200":
+          description: Cargo API status updated successfully
+        "404":
+          description: Cargo API not found
+
+  /api/maintenance/cargo-api/dropdown/list:
+    get:
+      summary: Get list of active cargo APIs for dropdown
+      tags: [Cargo API]
+      responses:
+        "200":
+          description: List of active cargo APIs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        apiId: { type: integer }
+                        apiName: { type: string }
+
+components:
+  schemas:
+    CargoAPI:
+      type: object
+      properties:
+        apiId:
+          type: integer
+          description: Unique API identifier
+        apiName:
+          type: string
+          description: Name of the cargo API
+        apiEndPoint:
+          type: string
+          description: API endpoint URL
+        apiKey:
+          type: string
+          description: API key for authentication
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          description: API active status
+
+    CreateCargoAPIRequest:
+      type: object
+      required:
+        - apiName
+        - apiEndPoint
+        - apiKey
+        - activeStatus
+      properties:
+        apiName:
+          type: string
+          example: "DHL Cargo API"
+        apiEndPoint:
+          type: string
+          example: "https://api.dhl.com/cargo/v1"
+        apiKey:
+          type: string
+          example: "sk_live_abc123xyz789"
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          example: "Y"
+
+    UpdateCargoAPIRequest:
+      type: object
+      properties:
+        apiName:
+          type: string
+          example: "DHL Cargo API"
+        apiEndPoint:
+          type: string
+          example: "https://api.dhl.com/cargo/v1"
+        apiKey:
+          type: string
+          example: "sk_live_abc123xyz789"
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          example: "Y"
+
+    CargoAPIResponse:
+      type: object
+      properties:
+        apiId:
+          type: integer
+        apiName:
+          type: string
+        apiEndPoint:
+          type: string
+        apiKey:
+          type: string
+        activeStatus:
+          type: string
+          enum: [Y, N]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

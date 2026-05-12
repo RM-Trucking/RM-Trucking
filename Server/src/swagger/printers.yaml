@@ -1,0 +1,255 @@
+openapi: 3.0.1
+info:
+  title: Printers Module API
+  description: CRUD API for managing printers
+  version: 1.0.0
+
+servers:
+  - url: /api
+
+tags:
+  - name: Printers
+    description: Printer management endpoints
+
+paths:
+  /api/maintenance/printers:
+    post:
+      summary: Create a new printer
+      tags: [Printers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePrinterRequest"
+      responses:
+        "201":
+          description: Printer created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PrinterResponse"
+
+    get:
+      summary: List printers with pagination, search, and status filter
+      tags: [Printers]
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, default: 1 }
+          description: Current page number
+        - in: query
+          name: pageSize
+          schema: { type: integer, default: 10 }
+          description: Number of items per page
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Search term to filter printers by name or IP
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [Y, N]
+          description: Filter printers by active status
+      responses:
+        "200":
+          description: List of printers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PrinterResponse"
+                  pagination:
+                    type: object
+                    properties:
+                      total: { type: integer }
+                      page: { type: integer }
+                      pageSize: { type: integer }
+
+  /api/maintenance/printers/{id}:
+    get:
+      summary: Get printer by ID
+      tags: [Printers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Printer details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    $ref: "#/components/schemas/PrinterResponse"
+        "404":
+          description: Printer not found
+
+    put:
+      summary: Update printer by ID
+      tags: [Printers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePrinterRequest"
+      responses:
+        "200":
+          description: Printer updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  message: { type: string }
+                  data:
+                    $ref: "#/components/schemas/PrinterResponse"
+
+  /api/maintenance/printers/{id}/status:
+    patch:
+      summary: Toggle printer active status
+      tags: [Printers]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Y, N]
+              required: [status]
+      responses:
+        "200":
+          description: Printer status updated successfully
+        "404":
+          description: Printer not found
+
+  /api/maintenance/printers/dropdown/list:
+    get:
+      summary: Get list of active printers for dropdown
+      tags: [Printers]
+      responses:
+        "200":
+          description: List of active printers
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean }
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        printerId: { type: integer }
+                        printerName: { type: string }
+
+components:
+  schemas:
+    Printer:
+      type: object
+      properties:
+        printerId:
+          type: integer
+          description: Unique printer identifier
+        printerName:
+          type: string
+          description: Name of the printer
+        printerIP:
+          type: string
+          description: IP address of the printer
+        printerPort:
+          type: integer
+          description: Port number for printer connection
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          description: Printer active status
+
+    CreatePrinterRequest:
+      type: object
+      required:
+        - printerName
+        - printerIP
+        - printerPort
+        - activeStatus
+      properties:
+        printerName:
+          type: string
+          example: "Warehouse Printer 1"
+        printerIP:
+          type: string
+          example: "192.168.1.100"
+        printerPort:
+          type: integer
+          example: 9100
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          example: "Y"
+
+    UpdatePrinterRequest:
+      type: object
+      properties:
+        printerName:
+          type: string
+          example: "Warehouse Printer 1"
+        printerIP:
+          type: string
+          example: "192.168.1.100"
+        printerPort:
+          type: integer
+          example: 9100
+        activeStatus:
+          type: string
+          enum: [Y, N]
+          example: "Y"
+
+    PrinterResponse:
+      type: object
+      properties:
+        printerId:
+          type: integer
+        printerName:
+          type: string
+        printerIP:
+          type: string
+        printerPort:
+          type: integer
+        activeStatus:
+          type: string
+          enum: [Y, N]
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - BearerAuth: []

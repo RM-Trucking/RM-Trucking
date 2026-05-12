@@ -35,6 +35,8 @@ export async function createCarrierPersonnel(
 export async function checkCarrierPersonnelEmailExists(conn: Connection, email: string): Promise<boolean> {
     const query = `SELECT 1 FROM ${SCHEMA}."Carrier_Personnel" WHERE "email" = ?`;
     const result = await conn.query(query, [email]) as any[];
+    console.log(result);
+    
     return result.length > 0;
 }
 

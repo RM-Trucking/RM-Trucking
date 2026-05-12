@@ -183,12 +183,15 @@ export async function findZonesByZipsAndRanges(
     return [];
   }
 
+  console.log(parts);
+
+
   const subConditions: string[] = [];
   const subParams: (string | number)[] = [];
 
   for (const part of parts) {
     if (part.includes('-')) {
-      const [start, end] = part.split('-').map(r => Number(r.trim()));
+      const [start, end] = part.split('-').map(r => r.trim());
 
       // Case: input is a range
       subConditions.push(`EXISTS (
@@ -204,8 +207,7 @@ export async function findZonesByZipsAndRanges(
       // note: overlap check may need careful ordering depending on your DB
 
     } else {
-      const zip = Number(part);
-
+      const zip = part;
       // Case: input is a single zip
       subConditions.push(`EXISTS (
         SELECT 1 FROM ${SCHEMA}."Zone_Zip" z

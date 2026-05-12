@@ -10,7 +10,6 @@ import routes from './routes';
 import cors from 'cors';
 import { initializeDB2Pool, closeDB2Pool, getSchema } from './config/db2';
 
-
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
@@ -51,7 +50,6 @@ function getPort(): number {
             return 3000;
     }
 }
-
 
 const port = getPort();
 const SCHEMA = getSchema();

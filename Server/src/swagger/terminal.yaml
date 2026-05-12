@@ -148,6 +148,29 @@ paths:
         "400":
           description: Failed to fetch terminals
 
+  /api/maintenance/terminal/{id}/status:
+    patch:
+      summary: Toggle terminal status (Y/N)
+      tags: [Terminal]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [Y, N]
+      responses:
+        "200":
+          description: Terminal status updated
+
 components:
   securitySchemes:
     bearerAuth:

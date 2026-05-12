@@ -4,9 +4,11 @@ import { Connection } from "odbc";
 import * as carrierDB from "../../database/maintenance/carrier";
 import * as entityDB from "../../database/maintenance/entity";
 import * as noteDB from "../../database/maintenance/note";
+import * as userDB from "../../database/maintenance/user";
 import * as addressDB from "../../database/maintenance/address";
 import { CreateCarrierRequest, UpdateCarrierRequest, CarrierResponse } from "../../entities/maintenance/Carrier";
 import { toUtcDate } from "../../utils/dateFormater";
+
 
 
 export async function createNewCarrier(
@@ -17,7 +19,7 @@ export async function createNewCarrier(
     const {
         carrierName, carrierType, carrierStatus,
         tsaCertified, ustDotNo, mcnNo, insuranceExpiry,
-        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame,
+        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame, corporatePhoneNumber, isParcelCarrier,
         addresses, note
     } = createCarrierReq;
 
@@ -41,8 +43,8 @@ export async function createNewCarrier(
             tsaCertified,
             ustDotNo,
             mcnNo,
-            insuranceExpiry: insuranceExpiry ? new Date(insuranceExpiry) : undefined,
-            tariffRenewalDate: tariffRenewalDate ? new Date(tariffRenewalDate) : undefined,
+            insuranceExpiry: insuranceExpiry ? new Date(insuranceExpiry) : null,
+            tariffRenewalDate: tariffRenewalDate ? new Date(tariffRenewalDate) : null,
             salesRepName,
             salesRepPhone,
             salesRepEmail,
@@ -52,7 +54,9 @@ export async function createNewCarrier(
             createdBy: adminId,
             entityId,
             noteThreadId,
-            corporateBillingSame
+            corporateBillingSame,
+            corporatePhoneNumber,
+            isParcelCarrier
         });
 
         // 4) Insert addresses
@@ -91,7 +95,7 @@ export async function createNewCarrier(
                         messageText: note.messageText.trim(),
                         createdAt: new Date(),
                         createdBy: adminId,
-                        createdByName: "" // placeholder
+                        createdByName: await userDB.getUserName(conn, adminId)
                     }]
                     : []
             }

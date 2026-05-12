@@ -9,8 +9,8 @@ export interface Carrier {
     tsaCertified: 'Y' | 'N';
     ustDotNo?: string;
     mcnNo?: string;
-    insuranceExpiry?: Date;
-    tariffRenewalDate?: Date;
+    insuranceExpiry?: Date | null;
+    tariffRenewalDate?: Date | null;
     totalShipments: number;
     rmOnTimePercent: number;
     lateShipments: number;
@@ -24,6 +24,8 @@ export interface Carrier {
     noteThreadId: number | null;
     entityId: number;
     corporateBillingSame: 'Y' | 'N';
+    corporatePhoneNumber?: string;
+    isParcelCarrier?: 'Y' | 'N';
 }
 
 export interface CreateCarrierRequest {
@@ -33,14 +35,16 @@ export interface CreateCarrierRequest {
     tsaCertified?: 'Y' | 'N';
     ustDotNo?: string;
     mcnNo?: string;
-    insuranceExpiry?: string;
-    tariffRenewalDate?: string;
+    insuranceExpiry?: string | Date | null;
+    tariffRenewalDate?: string | Date | null;
     salesRepName?: string;
     salesRepPhone?: string;
     salesRepEmail?: string;
     corporateBillingSame: 'Y' | 'N';
     addresses: AddressRequest[];
     note?: NoteMessageRequest;
+    corporatePhoneNumber?: string;
+    isParcelCarrier?: 'Y' | 'N';
 }
 
 export interface UpdateCarrierRequest {
@@ -60,6 +64,8 @@ export interface UpdateCarrierRequest {
     salesRepPhone?: string;
     salesRepEmail?: string;
     corporateBillingSame: 'Y' | 'N';
+    corporatePhoneNumber?: string;
+    isParcelCarrier?: 'Y' | 'N';
     addresses?: AddressUpdateRequest[];
 }
 
@@ -71,8 +77,8 @@ export interface CarrierResponse {
     tsaCertified: 'Y' | 'N';
     ustDotNo?: string;
     mcnNo?: string;
-    insuranceExpiry?: Date;
-    tariffRenewalDate?: Date;
+    insuranceExpiry?: Date | null;
+    tariffRenewalDate?: Date | null;
     totalShipments: number;
     rmOnTimePercent: number;
     lateShipments: number;

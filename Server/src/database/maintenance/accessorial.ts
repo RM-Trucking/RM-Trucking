@@ -28,24 +28,19 @@ export async function getAllAccessorials(
         SELECT "accessorialId", "accessorialName", "activeStatus",
                "createdAt", "createdBy", "updatedAt", "updatedBy"
         FROM ${SCHEMA}."Accessorial"
+        WHERE "activeStatus" = 'Y'
     `;
   const params: any[] = [];
 
   if (searchTerm) {
-    query += ` WHERE LOWER("accessorialName") LIKE ? `;
+    query += ` AND LOWER("accessorialName") LIKE ? `;
     params.push(`%${searchTerm.toLowerCase()}%`);
   }
 
-  query += ` ORDER BY "accessorialName" ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY `;
+  query += ` ORDER BY "accessorialId" ASC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY `;
   params.push(offset, pageSize);
 
-  console.log(query);
-
-
   const result = (await conn.query(query, params)) as any[];
-
-  console.log(result);
-
 
   return result as Accessorial[];
 }
@@ -54,11 +49,14 @@ export async function countAccessorials(
   conn: Connection,
   searchTerm: string | null
 ): Promise<number> {
-  let query = `SELECT COUNT(*) as total FROM ${SCHEMA}."Accessorial"`;
+  let query = `
+    SELECT COUNT(*) as total 
+    FROM ${SCHEMA}."Accessorial"
+    WHERE "activeStatus" = 'Y'`;
   const params: any[] = [];
 
   if (searchTerm) {
-    query += ` WHERE LOWER("accessorialName") LIKE ? `;
+    query += ` AND LOWER("accessorialName") LIKE ? `;
     params.push(`%${searchTerm.toLowerCase()}%`);
   }
 
@@ -68,7 +66,10 @@ export async function countAccessorials(
 
 
 export async function getAccessorialDropdown(conn: Connection): Promise<{ id: number, name: string }[]> {
-  const query = `SELECT "accessorialId", "accessorialName" FROM ${SCHEMA}."Accessorial" ORDER BY "accessorialName" ASC`;
+  const query = `SELECT "accessorialId", "accessorialName" 
+                FROM ${SCHEMA}."Accessorial" 
+                WHERE "activeStatus" = 'Y'
+                ORDER BY "accessorialName" ASC`;
   const result = await conn.query(query) as any[];
   return result;
 }

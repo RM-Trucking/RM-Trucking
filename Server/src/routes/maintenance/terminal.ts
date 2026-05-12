@@ -45,6 +45,12 @@ router.put('/:terminalId', authenticateJWT, async (req: Request, res: Response) 
     if (conn) conn.close();
 });
 
+router.patch("/:id/status", authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await terminalController.toggleTerminalStatus(req, res, conn);
+    conn.close();
+});
+
 /**
  * DELETE /api/terminals/:terminalId
  * Soft delete a terminal

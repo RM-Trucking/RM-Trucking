@@ -76,6 +76,20 @@ export async function updateTerminal(req: Request, res: Response, conn: Connecti
     }
 }
 
+export async function toggleTerminalStatus(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const terminalId = Number(req.params.id);
+        const { status } = req.body; // 'Active' | 'Inactive' | 'Incomplete'
+        const adminId = (req as any).user?.userId || 1;
+
+        await terminalService.toggleTerminalStatusService(conn, terminalId, status, adminId);
+
+        res.status(200).json({ success: true, message: `Terminal status updated to ${status}` });
+    } catch (error: any) {
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
 export async function deleteTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const terminalId = parseInt(req.params.terminalId, 10);

@@ -1233,31 +1233,21 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
   },
 }));
 
-const MASTER_ACCESSORIALS = [
-  { id: 1, name: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
-  { id: 2, name: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
-  { id: 3, name: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
-  { id: 4, name: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
-  { id: 5, name: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
-  { id: 6, name: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
-  { id: 7, name: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
-  { id: 8, name: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
-  { id: 9, name: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
-  { id: 10, name: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
-];
+
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
-  actionType }) => {
-  const [list, setList] = useState(MASTER_ACCESSORIALS);
+  actionType, MASTER_ACCESSORIALS, setMASTER_Accessorials }) => {
+  // const [list, setList] = useState(MASTER_ACCESSORIALS);
+  // const [editAccIndex, setEditAccIndex] = useState(null);
 
   const handleToggle = (index) => {
-    const newList = [...list];
+    const newList = [...MASTER_ACCESSORIALS];
     newList[index].selected = !newList[index].selected;
-    setList(newList);
+    setMASTER_Accessorials(newList);
   };
 
   const handleSave = () => {
-    const selectedItems = list.filter(item => item.selected);
+    const selectedItems = MASTER_ACCESSORIALS.filter(item => item.selected);
     onSave(selectedItems);
     onClose();
   };
@@ -1290,12 +1280,12 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
                   <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                   <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                  <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                  <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                  {/* <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell> */}
+                  {/* <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell> */}
                 </TableRow>
               </TableHead>
               <TableBody>
-                {list.map((item, index) => (
+                {(Array.isArray(MASTER_ACCESSORIALS) ? MASTER_ACCESSORIALS : [])?.map((item, index) => (
                   <TableRow key={index} selected={item.selected}>
                     <TableCell padding="checkbox">
                       <Checkbox
@@ -1305,18 +1295,19 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
                         sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
                       />
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.name}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.accessorial}</TableCell>
                     <TableCell sx={{ fontSize: '0.8rem' }}>{item.type}</TableCell>
                     <TableCell sx={{ fontSize: '0.8rem' }}>{item.charges}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       {item.notes && <Iconify icon="solar:file-text-bold" sx={{ color: '#90caf9' }} />}
-                    </TableCell>
-                    <TableCell align="right">
+                    </TableCell> */}
+                    {/* <TableCell align="right">
                       <IconButton size="small" onClick={() => {
                         setActionType('View');
                         setAddAccModal(true);
+                        setEditAccIndex(index);
                       }}><Iconify icon="solar:eye-bold" /></IconButton>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
               </TableBody>
@@ -1329,30 +1320,35 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
         </DialogActions>
       </Dialog>
 
-      <AddAccessorialDialog
+      {/* <AddAccessorialDialog
         open={addAccModal}
         onClose={() => {
           setAddAccModal(false);
           setActionType('');
+          setEditAccIndex(null);
         }}
         // onSave={(selectedData) => replacePickupAcc(selectedData)}
         setActionType={setActionType}
         setAddAccModal={setAddAccModal}
         addAccModal={addAccModal}
-        actionType={actionType}
-      />
+        actionType={'View'}
+        accFields={MASTER_ACCESSORIALS}
+        editAccIndex={editAccIndex}
+      /> */}
     </>
   );
 };
-const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType, setAddAccModal, addAccModal }) => {
+const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType, setAddAccModal, addAccModal, accFields, editAccIndex, editableObj, appendAccFields, MASTER_ACCESSORIALS,
+  setMASTER_Accessorials }) => {
   const isLoading = useSelector((state) => state?.dashboarddata?.isLoading);
   const [chargeValue, setChargeValue] = useState(null);
+
   const {
     control,
     handleSubmit,
     formState: { errors },
     setValue,
-    getValues
+    getValues, reset
   } = useForm({
     defaultValues: {
       accessorial: null,
@@ -1362,11 +1358,41 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     }
   });
 
+  useEffect(() => {
+    // GUARD: If we're in Edit mode but the object is missing, STOP.
+    // This prevents the "undefined" flicker from clearing your form.
+    if (actionType === 'Edit') {
+      if (!editableObj || !editableObj.accessorial) return;
+
+      reset({
+        accessorial: editableObj.accessorial,
+        chargesType: editableObj.type,
+        charges: editableObj.charges,
+      });
+    } else if (actionType === 'Add') {
+      reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
+    }
+  }, [editableObj, actionType, reset]);
+
+
+
+
   const onSubmit = (data) => {
     console.log('Form Submitted:', data);
-    // if (type === 'Add') {
+    if (actionType === 'Add') {
+      setMASTER_Accessorials((prev) => [
+        ...prev,
+        {
+          id: prev.length + 1,
+          accessorial: data.accessorial,
+          type: data.chargesType,
+          charges: data.charges
+        }
+      ]);
 
-    // } else if (type === 'Edit') {
+      onClose();
+    }
+    //  else if (type === 'Edit') {
 
     // }
   };
@@ -1449,8 +1475,17 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                                             </MenuItem>
                                         ))
                                     ) : ( */}
-                      <MenuItem disabled value="">
+                      {/* <MenuItem disabled value="">
                         <em>No accessorials available.</em>
+                      </MenuItem> */}
+                      <MenuItem value="Accessorial 1">
+                        Accessorial 1
+                      </MenuItem>
+                      <MenuItem value="Accessorial 2">
+                        Accessorial 2
+                      </MenuItem>
+                      <MenuItem value="Accessorial 3">
+                        Accessorial 3
                       </MenuItem>
                       {/* )} */}
                     </StyledTextField>
@@ -2302,7 +2337,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
   const addAccessorial = () => {
     const selectedObj = getValues('customerRate.selectedAccToAdd');
     const exists = getValues('customerRate.customerAccessorials').some(item => item.id === selectedObj.id);
-    if(!exists){
+    if (!exists) {
       appendCustomerRateAccFields({
         ...selectedObj,
         isManual: false,
@@ -2310,7 +2345,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
         input: (selectedObj.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       });
       setErrorVisible(false);
-    }else{
+    } else {
       setErrorVisible(true);
     }
     setAddFlag(false);
@@ -2326,7 +2361,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
       }
     }}>
       <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Customer Rate</DialogTitle>
-      <DialogContent sx={{ p: 3, pb:0 }}>
+      <DialogContent sx={{ p: 3, pb: 0 }}>
         <Box>
 
           <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', mt: 2 }}>
@@ -2675,7 +2710,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     setValue('customerRate.selectedAccToAdd', selectedObject);
                   }}
                 >
-                  {MASTER_ACCESSORIALS.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.name}</MenuItem>))}
+                  {MASTER_ACCESSORIALS.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.accessorial}</MenuItem>))}
                 </TextField>
 
                 <StyledTextField value={getValues('customerRate.selectedAccToAdd.type')} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
@@ -2774,6 +2809,19 @@ const ShipmentForm = () => {
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
   const [doDetailsModal, setDoDetailsModal] = useState(false);
   const [custommerRateModal, setCustomerRateModal] = useState(false);
+  const [editAccIndex, setEditAccIndex] = useState(null);
+  const [MASTER_ACCESSORIALS, setMASTER_Accessorials] = useState([
+    { id: 1, accessorial: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
+    { id: 2, accessorial: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
+    { id: 3, accessorial: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
+    { id: 4, accessorial: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
+    { id: 5, accessorial: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
+    { id: 6, accessorial: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
+    { id: 7, accessorial: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
+    { id: 8, accessorial: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
+    { id: 9, accessorial: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
+    { id: 10, accessorial: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
+  ]);
 
   const {
     control,
@@ -3130,16 +3178,16 @@ const ShipmentForm = () => {
   const isHazmatSelectedInDoDetails = watchedDoDetails?.handlingUnits?.some((hu) =>
     hu.items?.some((item) => item.hazmatInfo)
   );
-  const { fields: pickupAccFields, replace: replacePickupAcc, remove: removePickupAcc } = useFieldArray({
+  const { fields: pickupAccFields, append: appendPickupAccFields, replace: replacePickupAcc, remove: removePickupAcc } = useFieldArray({
     control,
     name: "carrierInfo.pickupAccessorials"
   });
-  const { fields: lineHaulAccFields, replace: replaceLineHaulAcc, remove: removeLineHaulAcc } = useFieldArray({
+  const { fields: lineHaulAccFields, append: appendLineHaulAccFields, replace: replaceLineHaulAcc, remove: removeLineHaulAcc } = useFieldArray({
     control,
     name: "carrierInfo.lineHaul.linehaulAccessorials"
   });
 
-  const { fields: deliveryAccFields, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
+  const { fields: deliveryAccFields, append: appendDeliveryAccFields, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
     control,
     name: "carrierInfo.deliveryDetails.deliveryAccessorials"
   });
@@ -3819,7 +3867,7 @@ const ShipmentForm = () => {
           totals={totals}
           customerRateAccFields={customerRateAccFields}
           appendCustomerRateAccFields={appendCustomerRateAccFields}
-          watchedHU = {watchedHU}
+          watchedHU={watchedHU}
         />
 
         {/* STEP 0 */}
@@ -4461,7 +4509,7 @@ const ShipmentForm = () => {
                       <TableBody>
                         {pickupAccFields.map((field, index) => (
                           <TableRow key={field.id}>
-                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
                             <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                             <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                             <TableCell>
@@ -4469,13 +4517,14 @@ const ShipmentForm = () => {
                             </TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                <IconButton size="small" onClick={() => {
+                                {/* <IconButton size="small" onClick={() => {
                                   setActionType('View');
                                   setAddAccModal(true);
-                                }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                 <IconButton size="small" onClick={() => {
                                   setActionType('Edit');
                                   setAddAccModal(true);
+                                  setEditAccIndex(index);
                                 }}><Iconify icon="tabler:edit" /></IconButton>
                                 <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                               </Stack>
@@ -4501,18 +4550,27 @@ const ShipmentForm = () => {
                 setAddAccModal={setAddAccModal}
                 addAccModal={addAccModal}
                 actionType={actionType}
+                MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                setMASTER_Accessorials={setMASTER_Accessorials}
               />
               <AddAccessorialDialog
                 open={addAccModal}
                 onClose={() => {
                   setAddAccModal(false);
                   setActionType('');
+                  setEditAccIndex(null);
                 }}
                 // onSave={(selectedData) => replacePickupAcc(selectedData)}
                 setActionType={setActionType}
                 setAddAccModal={setAddAccModal}
                 addAccModal={addAccModal}
                 actionType={actionType}
+                accFields={pickupAccFields}
+                editAccIndex={editAccIndex}
+                editableObj={pickupAccFields[editAccIndex]}
+                appendAccFields={appendPickupAccFields}
+                MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                setMASTER_Accessorials={setMASTER_Accessorials}
               />
 
               {/* pick alert details section */}
@@ -4916,7 +4974,7 @@ const ShipmentForm = () => {
                           <TableBody>
                             {lineHaulAccFields.map((field, index) => (
                               <TableRow key={field.id}>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                                 <TableCell>
@@ -4924,13 +4982,14 @@ const ShipmentForm = () => {
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <IconButton size="small" onClick={() => {
+                                    {/* <IconButton size="small" onClick={() => {
                                       setActionType('View');
                                       setAddAccModal(true);
-                                    }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                     <IconButton size="small" onClick={() => {
                                       setActionType('Edit');
                                       setAddAccModal(true);
+                                      setEditAccIndex(index);
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
@@ -4955,18 +5014,26 @@ const ShipmentForm = () => {
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}
                     actionType={actionType}
+                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                    setMASTER_Accessorials={setMASTER_Accessorials}
                   />
                   <AddAccessorialDialog
                     open={addAccModal}
                     onClose={() => {
                       setAddAccModal(false);
                       setActionType('');
+                      setEditAccIndex(null);
                     }}
                     // onSave={(selectedData) => replacePickupAcc(selectedData)}
                     setActionType={setActionType}
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}
                     actionType={actionType}
+                    accFields={lineHaulAccFields}
+                    editableObj={lineHaulAccFields[editAccIndex]}
+                    appendAccFields={appendLineHaulAccFields}
+                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                    setMASTER_Accessorials={setMASTER_Accessorials}
                   />
 
 
@@ -5326,7 +5393,7 @@ const ShipmentForm = () => {
                           <TableBody>
                             {deliveryAccFields.map((field, index) => (
                               <TableRow key={field.id}>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.name}</TableCell>
+                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                                 <TableCell>
@@ -5334,13 +5401,14 @@ const ShipmentForm = () => {
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    <IconButton size="small" onClick={() => {
+                                    {/* <IconButton size="small" onClick={() => {
                                       setActionType('View');
                                       setAddAccModal(true);
-                                    }}><Iconify icon="carbon:view-filled" /></IconButton>
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                     <IconButton size="small" onClick={() => {
                                       setActionType('Edit');
                                       setAddAccModal(true);
+                                      setEditAccIndex(index);
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
@@ -5365,18 +5433,26 @@ const ShipmentForm = () => {
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}
                     actionType={actionType}
+                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                    setMASTER_Accessorials={setMASTER_Accessorials}
                   />
                   <AddAccessorialDialog
                     open={addAccModal}
                     onClose={() => {
                       setAddAccModal(false);
                       setActionType('');
+                      setEditAccIndex(null);
                     }}
                     // onSave={(selectedData) => replacePickupAcc(selectedData)}
                     setActionType={setActionType}
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}
                     actionType={actionType}
+                    accFields={deliveryAccFields}
+                    editableObj={deliveryAccFields[editAccIndex]}
+                    appendAccFields={appendDeliveryAccFields}
+                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                    setMASTER_Accessorials={setMASTER_Accessorials}
                   />
 
                   <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>

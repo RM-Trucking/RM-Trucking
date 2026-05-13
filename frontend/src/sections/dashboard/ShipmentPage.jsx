@@ -1350,18 +1350,18 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     setValue,
     getValues, reset
   } = useForm({
-    defaultValues: {
-      accessorial: null,
-      chargesType: '',
-      charges: '',
-      notes: '',
+    values: {
+      accessorial: editableObj?.accessorial || '',
+      chargesType: editableObj?.type || '',
+      charges: editableObj?.charges || '',
+      notes: editableObj?.notes || '',
     }
   });
 
   useEffect(() => {
     // GUARD: If we're in Edit mode but the object is missing, STOP.
     // This prevents the "undefined" flicker from clearing your form.
-    if (actionType === 'Edit') {
+    if (actionType === 'Edit' && editableObj) {
       if (!editableObj || !editableObj.accessorial) return;
 
       reset({
@@ -1369,10 +1369,8 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
         chargesType: editableObj.type,
         charges: editableObj.charges,
       });
-    } else if (actionType === 'Add') {
-      reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
-    }
-  }, [editableObj, actionType, reset]);
+    } 
+  }, [editableObj]);
 
 
 
@@ -1389,12 +1387,12 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
           charges: data.charges
         }
       ]);
-
+      reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
       onClose();
     }
-    //  else if (type === 'Edit') {
-
-    // }
+    else if (actionType === 'Edit') {
+      onSave(data);
+    }
   };
 
   return (
@@ -2810,17 +2808,19 @@ const ShipmentForm = () => {
   const [doDetailsModal, setDoDetailsModal] = useState(false);
   const [custommerRateModal, setCustomerRateModal] = useState(false);
   const [editAccIndex, setEditAccIndex] = useState(null);
+  const [activeAccType, setActiveAccType] = useState('');
   const [MASTER_ACCESSORIALS, setMASTER_Accessorials] = useState([
     { id: 1, accessorial: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
     { id: 2, accessorial: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
-    { id: 3, accessorial: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: true },
-    { id: 4, accessorial: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: true },
-    { id: 5, accessorial: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: true },
+    { id: 3, accessorial: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
+    { id: 4, accessorial: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: false },
+    { id: 5, accessorial: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: false },
     { id: 6, accessorial: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
     { id: 7, accessorial: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
     { id: 8, accessorial: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
     { id: 9, accessorial: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
     { id: 10, accessorial: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
+    { id: 11, accessorial: 'Accessorial 1', type: 'HOURLY', charges: '1', notes: 'Notes for Accessorial 11', selected: true },
   ]);
 
   const {
@@ -3178,16 +3178,16 @@ const ShipmentForm = () => {
   const isHazmatSelectedInDoDetails = watchedDoDetails?.handlingUnits?.some((hu) =>
     hu.items?.some((item) => item.hazmatInfo)
   );
-  const { fields: pickupAccFields, append: appendPickupAccFields, replace: replacePickupAcc, remove: removePickupAcc } = useFieldArray({
+  const { fields: pickupAccFields, append: appendPickupAccFields, update: updatePickupAcc, replace: replacePickupAcc, remove: removePickupAcc } = useFieldArray({
     control,
     name: "carrierInfo.pickupAccessorials"
   });
-  const { fields: lineHaulAccFields, append: appendLineHaulAccFields, replace: replaceLineHaulAcc, remove: removeLineHaulAcc } = useFieldArray({
+  const { fields: lineHaulAccFields, append: appendLineHaulAccFields, update: updateLineHaulAcc, replace: replaceLineHaulAcc, remove: removeLineHaulAcc } = useFieldArray({
     control,
     name: "carrierInfo.lineHaul.linehaulAccessorials"
   });
 
-  const { fields: deliveryAccFields, append: appendDeliveryAccFields, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
+  const { fields: deliveryAccFields, append: appendDeliveryAccFields, update: updateDeliveryAcc, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
     control,
     name: "carrierInfo.deliveryDetails.deliveryAccessorials"
   });
@@ -3645,7 +3645,7 @@ const ShipmentForm = () => {
         ...acc,
         isManual: false,
         apiCharges: acc.charges,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.type?.toLowerCase() === 'per pound' || acc?.type?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
@@ -3654,7 +3654,7 @@ const ShipmentForm = () => {
         ...acc,
         isManual: false,
         apiCharges: acc.charges,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.type?.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
@@ -3663,11 +3663,48 @@ const ShipmentForm = () => {
         ...acc,
         isManual: false,
         apiCharges: acc.charges,
-        input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.type?.toLowerCase() === 'per pound' || acc?.type?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
   }, [watchedCarrierInfo])
+
+  const onSaveOfEdit = (selectedData) => {
+    alert('Saved with data: ' + JSON.stringify(selectedData) + `${editAccIndex}`);
+    if (activeAccType === 'Pickup') {
+      updatePickupAcc(editAccIndex, {
+        id: pickupAccFields[editAccIndex]?.id, // Keeps the internal form field key intact
+        accessorial: selectedData.accessorial,
+        type: selectedData.chargesType,
+        charges: selectedData.charges,
+        notes: selectedData.notes,
+      });
+    }
+    if (activeAccType === 'LineHaul') {
+      updateLineHaulAcc(
+        editAccIndex, {
+        id: lineHaulAccFields[editAccIndex]?.id,
+        accessorial: selectedData.accessorial,
+        type: selectedData.chargesType,
+        charges: selectedData.charges,
+        notes: selectedData.notes,
+      }
+      );
+    }
+    if (activeAccType === 'Delivery') {
+      updateDeliveryAcc(editAccIndex, {
+        id: deliveryAccFields[editAccIndex]?.id,
+        accessorial: selectedData.accessorial,
+        type: selectedData.chargesType,
+        charges: selectedData.charges,
+        notes: selectedData.notes,
+      });
+    }
+    setActionType('');
+    setActiveAccType('');
+    setEditAccIndex(null);
+    setAddAccModal(false);
+  };
 
 
   return (
@@ -4522,9 +4559,11 @@ const ShipmentForm = () => {
                                   setAddAccModal(true);
                                 }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                 <IconButton size="small" onClick={() => {
+                                  setEditAccIndex(index);
+                                  setActiveAccType('Pickup');
                                   setActionType('Edit');
                                   setAddAccModal(true);
-                                  setEditAccIndex(index);
+
                                 }}><Iconify icon="tabler:edit" /></IconButton>
                                 <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                               </Stack>
@@ -4556,11 +4595,11 @@ const ShipmentForm = () => {
               <AddAccessorialDialog
                 open={addAccModal}
                 onClose={() => {
-                  setAddAccModal(false);
                   setActionType('');
                   setEditAccIndex(null);
+                  setAddAccModal(false);
                 }}
-                // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                onSave={onSaveOfEdit}
                 setActionType={setActionType}
                 setAddAccModal={setAddAccModal}
                 addAccModal={addAccModal}
@@ -4987,9 +5026,10 @@ const ShipmentForm = () => {
                                       setAddAccModal(true);
                                     }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                     <IconButton size="small" onClick={() => {
+                                      setActiveAccType('LineHaul');
+                                      setEditAccIndex(index);
                                       setActionType('Edit');
                                       setAddAccModal(true);
-                                      setEditAccIndex(index);
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
@@ -5024,7 +5064,7 @@ const ShipmentForm = () => {
                       setActionType('');
                       setEditAccIndex(null);
                     }}
-                    // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                    onSave={onSaveOfEdit}
                     setActionType={setActionType}
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}
@@ -5406,9 +5446,11 @@ const ShipmentForm = () => {
                                       setAddAccModal(true);
                                     }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                     <IconButton size="small" onClick={() => {
+                                      setActiveAccType('Delivery');
+                                      setEditAccIndex(index);
                                       setActionType('Edit');
                                       setAddAccModal(true);
-                                      setEditAccIndex(index);
+
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
@@ -5443,7 +5485,7 @@ const ShipmentForm = () => {
                       setActionType('');
                       setEditAccIndex(null);
                     }}
-                    // onSave={(selectedData) => replacePickupAcc(selectedData)}
+                    onSave={onSaveOfEdit}
                     setActionType={setActionType}
                     setAddAccModal={setAddAccModal}
                     addAccModal={addAccModal}

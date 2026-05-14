@@ -2802,7 +2802,10 @@ const ShipmentForm = () => {
   const [pickupAccModal, setPickupAccModal] = useState(false);
   const [lineHaulAccModal, setLineHaulAccModal] = useState(false);
   const [deliveryAccModal, setDeliveryAccModal] = useState(false);
-  const [addAccModal, setAddAccModal] = useState(false);
+  
+  const [addPickUpAccModal, setAddPickUpAccModal] = useState(false);
+  const [addLineHaulAccModal, setAddLineHaulAccModal] = useState(false);
+  const [addDeliveryAccModal, setAddDeliveryAccModal] = useState(false);
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
   const [doDetailsModal, setDoDetailsModal] = useState(false);
@@ -3670,7 +3673,7 @@ const ShipmentForm = () => {
   }, [watchedCarrierInfo])
 
   const onSaveOfEdit = (selectedData) => {
-    alert('Saved with data: ' + JSON.stringify(selectedData) + `${editAccIndex}`);
+    // alert('Saved with data: ' + JSON.stringify(selectedData) + `${editAccIndex}`);
     if (activeAccType === 'Pickup') {
       updatePickupAcc(editAccIndex, {
         id: pickupAccFields[editAccIndex]?.id, // Keeps the internal form field key intact
@@ -3703,7 +3706,10 @@ const ShipmentForm = () => {
     setActionType('');
     setActiveAccType('');
     setEditAccIndex(null);
-    setAddAccModal(false);
+    setAddPickUpAccModal(false);
+    setAddLineHaulAccModal(false);
+    setAddDeliveryAccModal(false);
+
   };
 
 
@@ -4562,8 +4568,7 @@ const ShipmentForm = () => {
                                   setEditAccIndex(index);
                                   setActiveAccType('Pickup');
                                   setActionType('Edit');
-                                  setAddAccModal(true);
-
+                                  setAddPickUpAccModal(true);
                                 }}><Iconify icon="tabler:edit" /></IconButton>
                                 <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                               </Stack>
@@ -4581,28 +4586,28 @@ const ShipmentForm = () => {
                 open={pickupAccModal}
                 onClose={() => {
                   setPickupAccModal(false);
-                  setAddAccModal(false);
+                  setAddPickUpAccModal(false);
                   setActionType('');
                 }}
                 onSave={(selectedData) => replacePickupAcc(selectedData)}
                 setActionType={setActionType}
-                setAddAccModal={setAddAccModal}
-                addAccModal={addAccModal}
+                setAddAccModal={setAddPickUpAccModal}
+                addAccModal={addPickUpAccModal}
                 actionType={actionType}
                 MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
                 setMASTER_Accessorials={setMASTER_Accessorials}
               />
               <AddAccessorialDialog
-                open={addAccModal}
+                open={addPickUpAccModal}
                 onClose={() => {
                   setActionType('');
                   setEditAccIndex(null);
-                  setAddAccModal(false);
+                  setAddPickUpAccModal(false);
                 }}
                 onSave={onSaveOfEdit}
                 setActionType={setActionType}
-                setAddAccModal={setAddAccModal}
-                addAccModal={addAccModal}
+                setAddAccModal={setAddPickUpAccModal}
+                addAccModal={addPickUpAccModal}
                 actionType={actionType}
                 accFields={pickupAccFields}
                 editAccIndex={editAccIndex}
@@ -5029,7 +5034,7 @@ const ShipmentForm = () => {
                                       setActiveAccType('LineHaul');
                                       setEditAccIndex(index);
                                       setActionType('Edit');
-                                      setAddAccModal(true);
+                                      setAddLineHaulAccModal(true);
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                   </Stack>
@@ -5046,28 +5051,28 @@ const ShipmentForm = () => {
                     open={lineHaulAccModal}
                     onClose={() => {
                       setLineHaulAccModal(false);
-                      setAddAccModal(false);
+                      setAddLineHaulAccModal(false);
                       setActionType('');
                     }}
                     onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
                     setActionType={setActionType}
-                    setAddAccModal={setAddAccModal}
-                    addAccModal={addAccModal}
+                    setAddAccModal={setAddLineHaulAccModal}
+                    addAccModal={addLineHaulAccModal}
                     actionType={actionType}
                     MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
                     setMASTER_Accessorials={setMASTER_Accessorials}
                   />
                   <AddAccessorialDialog
-                    open={addAccModal}
+                    open={addLineHaulAccModal}
                     onClose={() => {
-                      setAddAccModal(false);
+                      setAddLineHaulAccModal(false);
                       setActionType('');
                       setEditAccIndex(null);
                     }}
                     onSave={onSaveOfEdit}
                     setActionType={setActionType}
-                    setAddAccModal={setAddAccModal}
-                    addAccModal={addAccModal}
+                    setAddAccModal={setAddLineHaulAccModal}
+                    addAccModal={addLineHaulAccModal}
                     actionType={actionType}
                     accFields={lineHaulAccFields}
                     editableObj={lineHaulAccFields[editAccIndex]}
@@ -5449,7 +5454,7 @@ const ShipmentForm = () => {
                                       setActiveAccType('Delivery');
                                       setEditAccIndex(index);
                                       setActionType('Edit');
-                                      setAddAccModal(true);
+                                      setAddDeliveryAccModal(true);
 
                                     }}><Iconify icon="tabler:edit" /></IconButton>
                                     <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
@@ -5467,28 +5472,28 @@ const ShipmentForm = () => {
                     open={deliveryAccModal}
                     onClose={() => {
                       setDeliveryAccModal(false);
-                      setAddAccModal(false);
+                      setAddDeliveryAccModal(false);
                       setActionType('');
                     }}
                     onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
                     setActionType={setActionType}
-                    setAddAccModal={setAddAccModal}
-                    addAccModal={addAccModal}
+                    setAddAccModal={setAddDeliveryAccModal}
+                    addAccModal={addDeliveryAccModal}
                     actionType={actionType}
                     MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
                     setMASTER_Accessorials={setMASTER_Accessorials}
                   />
                   <AddAccessorialDialog
-                    open={addAccModal}
+                    open={addDeliveryAccModal}
                     onClose={() => {
-                      setAddAccModal(false);
+                      setAddDeliveryAccModal(false);
                       setActionType('');
                       setEditAccIndex(null);
                     }}
                     onSave={onSaveOfEdit}
                     setActionType={setActionType}
-                    setAddAccModal={setAddAccModal}
-                    addAccModal={addAccModal}
+                    setAddAccModal={setAddDeliveryAccModal}
+                    addAccModal={addDeliveryAccModal}
                     actionType={actionType}
                     accFields={deliveryAccFields}
                     editableObj={deliveryAccFields[editAccIndex]}

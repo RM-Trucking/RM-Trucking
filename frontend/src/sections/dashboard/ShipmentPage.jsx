@@ -20,8 +20,11 @@ import dayjs from 'dayjs';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import NotesTable from '../customer/NotesTable';
+import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import { postStep1 } from '../../redux/slices/shipment';
+
 
 
 
@@ -1340,7 +1343,7 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
 };
 const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType, setAddAccModal, addAccModal, accFields, editAccIndex, editableObj, appendAccFields, MASTER_ACCESSORIALS,
   setMASTER_Accessorials }) => {
-  const isLoading = useSelector((state) => state?.dashboarddata?.isLoading);
+  const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const [chargeValue, setChargeValue] = useState(null);
 
   const {
@@ -1369,7 +1372,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
         chargesType: editableObj.type,
         charges: editableObj.charges,
       });
-    } 
+    }
   }, [editableObj]);
 
 
@@ -2324,7 +2327,7 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
   );
 };
 // customer Rate pop up dialog box
-const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, watchedHU }) => {
+const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, watchedHU, masterAccessorials }) => {
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -2493,9 +2496,9 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
               const isInputEditing = editInputIndex === index;
 
               return (
-                <Box key={`${item.name}-${index}`} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+                <Box key={`${item.accessorial}-${index}`} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
                   <Box sx={{ flex: 3.5, p: 1 }}>
-                    <Typography variant="body2">{item.name}</Typography>
+                    <Typography variant="body2">{item.accessorial}</Typography>
                   </Box>
                   <Box sx={{
                     flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
@@ -2510,6 +2513,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                             render={({ field }) => (
                               <TextField
                                 {...field}
+                                value={field.value ?? ''}
                                 size="small"
                                 disabled={!isInputEditing} // Editable ONLY when isInputEditing is true
                                 variant="outlined"
@@ -2558,6 +2562,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                               <TextField
                                 {...field}
                                 size="small"
+                                value={field.value ?? ''}
                                 disabled={!isInputEditing}
                                 variant="outlined"
                                 // Add this section:
@@ -2592,6 +2597,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                       render={({ field }) => (
                         <TextField
                           {...field}
+                          value={field.value ?? ''}
                           size="small"
                           disabled={!isEditing} // Editable ONLY when isEditing is true
                           variant="outlined"
@@ -2704,14 +2710,14 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
                   }}
                   onChange={(event) => {
-                    const selectedObject = MASTER_ACCESSORIALS.find(item => item.id === event.target.value);
+                    const selectedObject = masterAccessorials.find(item => item.id === event.target.value);
                     setValue('customerRate.selectedAccToAdd', selectedObject);
                   }}
                 >
-                  {MASTER_ACCESSORIALS.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.accessorial}</MenuItem>))}
+                  {masterAccessorials.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.accessorial}</MenuItem>))}
                 </TextField>
 
-                <StyledTextField value={getValues('customerRate.selectedAccToAdd.type')} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
+                <StyledTextField value={getValues('customerRate.selectedAccToAdd.type') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
 
                 <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
                   onClick={addAccessorial}
@@ -2789,7 +2795,8 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 
 
 const ShipmentForm = () => {
-
+  const dispatch = useDispatch();
+  const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const [activeStep, setActiveStep] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   // This state controls the opening, closing, and index of the Hazmat modal
@@ -2797,12 +2804,17 @@ const ShipmentForm = () => {
   const [shipmentStatusModal, setShipmentStatusModal] = useState(false);
   // for notes dialog
   const notesRef = useRef({});
+  const notesRefArray = useRef([]);
+  const notesRefArrayIndex = useRef(null);
+  const notesRefArrayObj = useRef({});
   const [openNotesDialog, setOpenNotesDialog] = useState(false);
+  const [openNotesDialogForShipmentAccs, setOpenNotesDialogForShipmentAccs] = useState(false);
+  const [activeNotesIndex, setActiveNotesIndex] = useState(null);
 
   const [pickupAccModal, setPickupAccModal] = useState(false);
   const [lineHaulAccModal, setLineHaulAccModal] = useState(false);
   const [deliveryAccModal, setDeliveryAccModal] = useState(false);
-  
+
   const [addPickUpAccModal, setAddPickUpAccModal] = useState(false);
   const [addLineHaulAccModal, setAddLineHaulAccModal] = useState(false);
   const [addDeliveryAccModal, setAddDeliveryAccModal] = useState(false);
@@ -2823,7 +2835,16 @@ const ShipmentForm = () => {
     { id: 8, accessorial: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
     { id: 9, accessorial: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
     { id: 10, accessorial: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
-    { id: 11, accessorial: 'Accessorial 1', type: 'HOURLY', charges: '1', notes: 'Notes for Accessorial 11', selected: true },
+    {
+      id: 11, accessorial: 'Accessorial 1', type: 'HOURLY', charges: '1', notes: [{
+        "createdAt": "2026-05-18 06:54:25.287159",
+        "createdBy": 46,
+        "createdByName": "Admin",
+        "messageText": "Testing in progress!",
+        "noteMessageId": 1330,
+        "noteThreadId": 1690,
+      }], selected: true
+    },
   ]);
 
   const {
@@ -3244,8 +3265,9 @@ const ShipmentForm = () => {
 
   const handleNext = async () => {
     console.log('Current Form Values:', getValues());
+    const currentValues = getValues();
 
-    // let fieldsToValidate = [];
+    let fieldsToValidate = [];
 
     // if (activeStep === 0) {
 
@@ -3286,8 +3308,24 @@ const ShipmentForm = () => {
     //   setErrorVisible(true);
 
     // }
+    if (activeStep === 0) {
+      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
+      const isValid = await trigger(fieldsToValidate);
+      if (isValid) {
+        dispatch(postStep1({
+          "typeOfShipment": currentValues.shipmentType,
+          "serviceLevel": currentValues.serviceLevel,
+          "shipmentDate": currentValues.date
+            ? new Date(currentValues.date).toLocaleDateString('en-CA')
+            : "",
+          "shipmentTime": currentValues.time
+            ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+            : ""
+        }))
+      }
+    }
     if (activeStep === 2 && hasInitialData()) {
-      const currentValues = getValues();
+
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
       setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
@@ -3555,6 +3593,13 @@ const ShipmentForm = () => {
   const handleNotesCloseConfirm = () => {
     setOpenNotesDialog(false);
     notesRef.current = {};
+  };
+  const handleNotesCloseConfirmForShipmentAccs = () => {
+    setOpenNotesDialogForShipmentAccs(false);
+    notesRefArray.current = [];
+    notesRefArrayIndex.current = null;
+    notesRefArrayObj.current = {};
+    setActiveNotesIndex(null);
   };
 
   const onFormSubmit = (data) => {
@@ -3911,6 +3956,7 @@ const ShipmentForm = () => {
           customerRateAccFields={customerRateAccFields}
           appendCustomerRateAccFields={appendCustomerRateAccFields}
           watchedHU={watchedHU}
+          masterAccessorials={MASTER_ACCESSORIALS}
         />
 
         {/* STEP 0 */}
@@ -4556,7 +4602,15 @@ const ShipmentForm = () => {
                             <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                             <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                             <TableCell>
-                              <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                              <IconButton onClick={() => {
+                                setActiveAccType('Pickup');
+                                notesRefArray.current = field.notes;
+                                notesRefArrayIndex.current = index;
+                                notesRefArrayObj.current = field;
+                                setOpenNotesDialogForShipmentAccs(true);
+                              }}>
+                                <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                              </IconButton>
                             </TableCell>
                             <TableCell align="right">
                               <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -4566,6 +4620,7 @@ const ShipmentForm = () => {
                                 }}><Iconify icon="carbon:view-filled" /></IconButton> */}
                                 <IconButton size="small" onClick={() => {
                                   setEditAccIndex(index);
+                                  setActiveNotesIndex(index);
                                   setActiveAccType('Pickup');
                                   setActionType('Edit');
                                   setAddPickUpAccModal(true);
@@ -5022,7 +5077,15 @@ const ShipmentForm = () => {
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                                 <TableCell>
-                                  <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                  <IconButton onClick={() => {
+                                    setActiveAccType('LineHaul');
+                                    notesRefArray.current = field.notes;
+                                    notesRefArrayIndex.current = index;
+                                    notesRefArrayObj.current = field;
+                                    setOpenNotesDialogForShipmentAccs(true);
+                                  }}>
+                                    <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                  </IconButton>
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -5442,7 +5505,15 @@ const ShipmentForm = () => {
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
                                 <TableCell>
-                                  <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                  <IconButton onClick={() => {
+                                    setActiveAccType('Delivery');
+                                    notesRefArray.current = field.notes;
+                                    notesRefArrayIndex.current = index;
+                                    notesRefArrayObj.current = field;
+                                    setOpenNotesDialogForShipmentAccs(true);
+                                  }}>
+                                    <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                  </IconButton>
                                 </TableCell>
                                 <TableCell align="right">
                                   <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -5902,6 +5973,37 @@ const ShipmentForm = () => {
         setValue={setValue}
         getValues={getValues}
       />
+      <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
+        if (event.key === 'Escape') {
+          handleNotesCloseConfirmForShipmentAccs();
+        }
+      }}
+        sx={{
+          '& .MuiDialog-paper': { // Target the paper class
+            width: '1000px',
+            height: '80%',
+            maxHeight: 'none',
+            maxWidth: 'none',
+          }
+        }}
+      >
+        <DialogContent>
+          <>
+            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+              <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
+              <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirmForShipmentAccs()} sx={{ cursor: 'pointer' }} />
+            </Stack>
+            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+          </>
+          <Box sx={{ pt: 2 }}>
+            <NotesTableForAccessorials notes={notesRefArray.current} handleCloseConfirm={handleNotesCloseConfirmForShipmentAccs}
+              getValues={getValues} setValue={setValue} index={notesRefArrayIndex.current} updatePickupAcc={updatePickupAcc}
+              updateLineHaulAcc={updateLineHaulAcc}
+              updateDeliveryAcc={updateDeliveryAcc}
+              field={notesRefArrayObj.current} activeAccType={activeAccType} />
+          </Box>
+        </DialogContent>
+      </Dialog>
       <Dialog open={openNotesDialog} onClose={handleNotesCloseConfirm} onKeyDown={(event) => {
         if (event.key === 'Escape') {
           handleNotesCloseConfirm();

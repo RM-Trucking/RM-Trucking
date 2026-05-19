@@ -75,6 +75,10 @@ export default function NavVertical({ }) {
         {
           "title": "Accesorial Maintenance",
           "path": "/app/maintenance/accesorial-maintenance"
+        },
+        {
+          "title": "Fuel Surcharge",
+          "path": "/app/maintenance/fuel-surcharge-maintenance"
         }
       ]
     }
@@ -104,7 +108,7 @@ export default function NavVertical({ }) {
         open
         variant="permanent"
         PaperProps={{
-          sx:{
+          sx: {
             width: NAV.W_DASHBOARD,
             bgcolor: '#A22',
             border: "none",

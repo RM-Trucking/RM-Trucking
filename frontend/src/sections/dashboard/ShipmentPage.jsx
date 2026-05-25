@@ -7,7 +7,7 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText, CircularProgress, InputAdornment,
+  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete,
 
 
 } from '@mui/material';
@@ -2795,6 +2795,8 @@ const ShipmentForm = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const customerStationDropdown = useSelector((state) => state?.shipmentdata?.customerStationDropdown);
+  const [customerSearchValue, setCustomerSearchValue] = useState('');
+  const isSelectingCustomerRef = useRef(false);
   const [activeStep, setActiveStep] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   // This state controls the opening, closing, and index of the Hazmat modal
@@ -2853,7 +2855,7 @@ const ShipmentForm = () => {
     getValues, setValue, handleSubmit
 
   } = useForm({
-    mode: 'onChange', 
+    mode: 'onChange',
 
     defaultValues: {
 
@@ -2962,21 +2964,29 @@ const ShipmentForm = () => {
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
-        selectCarrier: 'R&M Carrier',
-        fromLocation: 'Shipper Details',
-        isManualFromLocation: true,
+        selectCarrier: '',
+        fromLocation: '',
+        isManualFromLocation: false,
+        isManualToLocation: false,
         manualAddress: {
-          line1: 'Forward Air',
-          line2: '30108 Eigenbrodt Way, Suite 100',
-          city: 'Union City',
-          state: 'CA',
-          zip: '94587'
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          zip: ''
         },
-        toLocationType: ['Carrier'],
-        toLocation: 'Pickup / Delivery Agent - Terminal',
+        manualToAddress: {
+          line1: '',
+          line2: '',
+          city: '',
+          state: '',
+          zip: ''
+        },
+        toLocationType: '',
+        toLocation: '',
         addPickupAccessorial: true,
         pickupAlert: true,
-        selectRouting: 'Line haul & Delivery',
+        selectRouting: '',
         airportTransfer: false,
         pickupAccessorials: [],
         pickupAlertDetails: {
@@ -2985,11 +2995,11 @@ const ShipmentForm = () => {
             'Drop to Forward Air',
           ],
           pickupNotes: '',
-          primaryEmail: 'dayton@email.com',
-          additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
+          primaryEmail: '',
+          additionalEmail: '',
         },
         lineHaul: {
-          carrier: 'R&M Carrier',
+          carrier: '',
           billNumber: "",
           fromLocation: '',
           manualFromLocation: false,
@@ -3000,8 +3010,8 @@ const ShipmentForm = () => {
             state: '',
             zip: '',
           },
-          toLocationType: ['Carrier'],
-          toLocation: 'Pickup / Delivery Agent - Terminal',
+          toLocationType: '',
+          toLocation: '',
           manualToLocation: false,
           manualToLocationDetails: {
             line1: '',
@@ -3024,7 +3034,7 @@ const ShipmentForm = () => {
           airportTransfer: false,
         },
         deliveryDetails: {
-          carrier: 'R&M Carrier',
+          carrier: '',
           billNumber: "",
           fromLocation: '',
           manualFromLocation: false,
@@ -3035,8 +3045,8 @@ const ShipmentForm = () => {
             state: '',
             zip: '',
           },
-          toLocationType: ['Carrier'],
-          toLocation: 'Pickup / Delivery Agent - Terminal',
+          toLocationType: '',
+          toLocation: '',
           manualToLocation: false,
           manualToLocationDetails: {
             line1: '',
@@ -3060,8 +3070,8 @@ const ShipmentForm = () => {
             'Setup for pickup today ____ ',
             'Drop to Forward Air',],
           deliveryNotes: '',
-          primaryEmail: 'dayton@email.com',
-          additionalEmail: 'joe_dayton@email.com, joe_dayton@email.com',
+          primaryEmail: '',
+          additionalEmail: '',
           airportTransfer: false,
         }
       },
@@ -3285,7 +3295,7 @@ const ShipmentForm = () => {
     const isValid = await trigger(fieldsToValidate);
 
     // if (isValid) {
-      setActiveStep((prev) => prev + 1);
+    setActiveStep((prev) => prev + 1);
     // } else {
     //   setErrorVisible(true);
     // }
@@ -3482,6 +3492,103 @@ const ShipmentForm = () => {
 
               onChange(formatted);
             }}
+
+          />
+
+        )}
+
+      />
+
+    </Box>
+
+  );
+  const renderZipCodeFieldCarrierInfo = (name, flag) => (
+
+    <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+
+      <Controller
+
+        name={name}
+
+        control={control}
+
+        rules={{
+          validate: (value) => {
+            if (!value) return true; // Let 'required' rule handle empty if needed
+
+            // 1. Block "all zeros" for both 5-digit and range formats
+            const rawDigits = value.replace(/[^\d]/g, '');
+            if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
+
+            if (value.length <= 5) return true;
+
+            const parts = value.split('-');
+            if (parts.length === 2 && parts[1].length === 5) {
+              const startSuffix = parseInt(parts[0].slice(-2));
+              const endSuffix = parseInt(parts[1].slice(-2));
+
+              if (endSuffix === startSuffix) return 'End range cannot be equal to start';
+              if (endSuffix < startSuffix) return 'End range must be greater than start';
+              return true;
+            }
+            return 'Complete the range (#####-#####)';
+          }
+        }}
+
+        render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+
+          <TextField
+
+            {...field}
+
+            variant="standard"
+
+            fullWidth
+
+            label="Zip Code"
+
+            error={!!error}
+
+            helperText={error?.message}
+
+            value={value || ''}
+
+            inputProps={{ maxLength: 11 }}
+
+            onChange={(e) => {
+              const input = e.target.value;
+              const raw = input.replace(/[^\d]/g, '');
+              const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
+
+              // 1. If deleting or clearing, just update with raw digits 
+              // This allows the user to backspace freely through the second part.
+              if (isDeleting || !raw) {
+                // If they delete the dash, we just show the first 5 digits
+                onChange(raw.slice(0, 10));
+                return;
+              }
+
+              // 2. FORMATTING LOGIC (Only runs when typing/pasting)
+              let formatted = '';
+              if (raw.length <= 5) {
+                formatted = raw;
+              } else {
+                const first5 = raw.slice(0, 5);
+                const prefix = first5.slice(0, 3);
+                let suffixPart = raw.slice(5);
+
+                // Auto-fill prefix logic
+                if (!suffixPart.startsWith(prefix)) {
+                  const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
+                  suffixPart = prefix + userTypedDigits;
+                }
+
+                formatted = `${first5}-${suffixPart.slice(0, 5)}`;
+              }
+
+              onChange(formatted);
+            }}
+            disabled={flag}
 
           />
 
@@ -3780,6 +3887,116 @@ const ShipmentForm = () => {
 
   };
 
+  // set use wath for shipper details 
+  const watchedShipperName = useWatch({ control, name: "shipperName" });
+  const watchedShipperAddr1 = useWatch({ control, name: "shipperAddr1" });
+  const watchedShipperAddr2 = useWatch({ control, name: "shipperAddr2" });
+  const watchedShipperCity = useWatch({ control, name: "shipperCity" });
+  const watchedShipperZip = useWatch({ control, name: "shipperZip" });
+  const watchedShipperContact = useWatch({ control, name: "shipperContact" });
+  const watchedShipperPhone = useWatch({ control, name: "shipperPhone" });
+
+  // set use watch for consignee details
+  const watchedConsigneeName = useWatch({ control, name: "consigneeName" });
+  const watchedConsigneeAddr1 = useWatch({ control, name: "consigneeAddr1" });
+  const watchedConsigneeAddr2 = useWatch({ control, name: "consigneeAddr2" });
+  const watchedConsigneeCity = useWatch({ control, name: "consigneeCity" });
+  const watchedConsigneeZip = useWatch({ control, name: "consigneeZip" });
+  const watchedConsigneeContact = useWatch({ control, name: "consigneeContact" });
+  const watchedConsigneePhone = useWatch({ control, name: "consigneePhone" });
+
+  // for updating consignee details when to location type is consignee
+  const watchedToLocationType = useWatch({ control, name: "carrierInfo.toLocationType" });
+  const watchedLinehaulToLocationType = useWatch({ control, name: "carrierInfo.toLocationType" });
+  const watchedDeliveryToLocationType = useWatch({ control, name: "carrierInfo.deliveryDetails.toLocationType" });
+  // edit from and to location on carrier info of pickup, linehaul and delivery
+  const watchedFromLocationFlag = useWatch({ control, name: "carrierInfo.isManualFromLocation" });
+  const watchedToLocationFlag = useWatch({ control, name: "carrierInfo.isManualToLocation" });
+  const watchedLinehaulFromLocationFlag = useWatch({ control, name: "carrierInfo.lineHaul.manualFromLocation" });
+  const watchedLinehaulToLocationFlag = useWatch({ control, name: "carrierInfo.lineHaul.manualToLocation" });
+  const watchedDeliveryFromLocationFlag = useWatch({ control, name: "carrierInfo.deliveryDetails.manualFromLocation" });
+  const watchedDeliveryToLocationFlag = useWatch({ control, name: "carrierInfo.deliveryDetails.manualToLocation" });
+
+  useEffect(() => {
+    // Whenever any shipper detail changes, we can perform actions here
+    // update manual from address of carrierinfo 
+    setValue('carrierInfo.fromLocation', watchedShipperName ?? '');
+    setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
+    setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
+    setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
+    setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
+  }, [watchedShipperName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone,]);
+
+  useEffect(() => {
+    // Whenever any consignee detail changes, we can perform actions here
+    // update manual to address of carrierinfo
+    if (watchedToLocationType === 'Consignee') {
+      setValue('carrierInfo.toLocation', watchedConsigneeName ?? '');
+      setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
+      setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
+      setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.manualToAddress.zip', watchedConsigneeZip ?? '');
+    }
+  }, [watchedToLocationType, watchedConsigneeName, watchedConsigneeAddr1, watchedConsigneeAddr2, watchedConsigneeCity, watchedConsigneeZip, watchedConsigneeContact, watchedConsigneePhone,]);
+  useEffect(() => {
+    // Whenever any carrier detail changes, we can perform actions here
+    // update manual to address of carrierinfo
+    if (watchedToLocationType === 'Carrier') {
+      setValue('carrierInfo.toLocation', 'selected Carrier');
+      setValue('carrierInfo.manualToAddress.line1', 'Selected carrier address line 1');
+      setValue('carrierInfo.manualToAddress.line2', 'Selected carrier address line 2');
+      setValue('carrierInfo.manualToAddress.city', 'Selected carrier city');
+      setValue('carrierInfo.manualToAddress.zip', '99999');
+    }
+  }, [watchedToLocationType,]);
+  useEffect(() => {
+    // Whenever any carrier detail changes, we can perform actions here
+    // update manual to address of carrierinfo
+    if (watchedLinehaulToLocationType === 'Carrier') {
+      setValue('carrierInfo.lineHaul.toLocation', 'selected Carrier');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', 'Selected carrier address line 1');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', 'Selected carrier address line 2');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.city', 'Selected carrier city');
+      setValue('carrierInfo.lineHaul.manualToLocationDetailsmanualToLocationDetails.zip', '99999');
+    }
+    if (watchedLinehaulToLocationType === 'Consignee') {
+      setValue('carrierInfo.lineHaul.toLocation', watchedConsigneeName ?? '');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
+    }
+  }, [watchedLinehaulToLocationType,]);
+  useEffect(() => {
+    // Whenever any carrier detail changes, we can perform actions here
+    // update manual to address of carrierinfo
+    if (watchedDeliveryToLocationType === 'Carrier') {
+      setValue('carrierInfo.deliveryDetails.toLocation', 'selected Carrier');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', 'Selected carrier address line 1');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', 'Selected carrier address line 2');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', 'Selected carrier city');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', '99999');
+    }
+    if (watchedDeliveryToLocationType === 'Consignee') {
+      setValue('carrierInfo.deliveryDetails.toLocation', watchedConsigneeName ?? '');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
+    }
+  }, [watchedDeliveryToLocationType,]);
+  useEffect(() => {
+    if (isSelectingCustomerRef.current) {
+      isSelectingCustomerRef.current = false;
+      return;
+    }
+
+    // const timer = setTimeout(() => {
+    //   dispatch(searchCustomers(customerSearchValue));
+    // }, 500);
+
+    // return () => clearTimeout(timer);
+  }, [dispatch, customerSearchValue]);
 
   return (
 
@@ -4098,52 +4315,81 @@ const ShipmentForm = () => {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
 
-              <Box sx={{ flex: '1 1 30%' }}>
 
-                <Controller name="billingCustomer" control={control} rules={{ required: true }} render={({ field }) => (
+              <Box width={'30%'}>
 
-                  <TextField {...field} select fullWidth label="Billing Customer *" variant="standard" error={!!errors.billingCustomer}
-                    SelectProps={{
-                      displayEmpty: true,
-                      MenuProps: {
-                        // Crucial: disables internal centering logic so origins work
-                        getContentAnchorEl: null,
-                        // Prevents layout shifts and menu misplacement on scroll
-                        disableScrollLock: true,
-                        anchorOrigin: {
-                          vertical: 'bottom',
-                          horizontal: 'left',
-                        },
-                        transformOrigin: {
-                          vertical: 'top',
-                          horizontal: 'left',
-                        },
-                        PaperProps: {
-                          sx: {
-                            marginTop: '4px', // Your custom gap
-                            maxHeight: 300,
-                            maxWidth: 300,    // Restricts width to 300px
-                            overflowX: 'auto', // Enables horizontal scrolling on the container
-                          }
-                        },
-                        // Crucial: Prevents text wrapping so the content pushes out and triggers the scrollbar
-                        MenuListProps: {
-                          sx: {
-                            '& .MuiMenuItem-root': {
-                              whiteSpace: 'nowrap',
-                            },
-                          },
-                        },
-                      },
-                    }}
+                <Controller
+                  name="billingCustomer"
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { onChange, value, ...fieldProps } }) => (
+                    <Autocomplete
+                      {...fieldProps} // Spreads ref and name from React Hook Form
+                      fullWidth
+                      options={customerStationDropdown || []}
 
-                  >
+                      // Matches the combined string value logic from your previous MenuItem setup
+                      getOptionLabel={(option) => {
+                        if (option && option.customerName && option.stationName) {
+                          return `${option.customerName} | ${option.stationName}`;
+                        }
+                        return "";
+                      }}
 
-                    {customerStationDropdown?.map((opt) => (<MenuItem key={`${opt.stationId}-${opt.stationName}`} value={`${opt.stationId}-${opt.customerId}`}>{`${opt.customerName} - ${opt.stationName}`}</MenuItem>))}
+                      // Finds the matching option object from customerStationDropdown array based on the stored value
+                      value={customerStationDropdown.find(opt => `${opt.stationId}-${opt.customerId}` === value) || null}
 
-                  </TextField>
+                      // Updates React Hook Form state on change
+                      onChange={(event, newValue) => {
+                        isSelectingCustomerRef.current = true;
 
-                )} />
+                        // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                        const formValue = newValue ? `${newValue.stationId}-${newValue.customerId}` : "";
+                        onChange(formValue);
+                      }}
+
+                      onInputChange={(event, newInputValue, reason) => {
+                        if (reason !== "reset") {
+                          setCustomerSearchValue(newInputValue);
+                          // if (!newInputValue || newInputValue.trim() === "") {
+                          //   dispatch(searchCustomers(""));
+                          // }
+                        }
+                      }}
+                      loading={isLoading}
+                      loadingText="Searching customers..."
+                      noOptionsText={customerSearchValue ? "No customers found" : "Type to search for customers"}
+
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          variant="standard"
+                          label="Billing Customer *"
+                          error={!!errors.billingCustomer} // Uses React Hook Form errors
+                          helperText={errors.billingCustomer ? 'Billing Customer is required' : ' '}
+                          InputLabelProps={{ shrink: true }}
+                          sx={{
+                            '& .MuiInputBase-input:disabled': {
+                              color: '#000',
+                              WebkitTextFillColor: '#000'
+                            }
+                          }}
+                          InputProps={{
+                            ...params.InputProps,
+                            endAdornment: (
+                              <>
+                                {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                {params.InputProps.endAdornment}
+                              </>
+                            ),
+                          }}
+                        />
+                      )}
+                      sx={{ width: '100% !important' }}
+                    />
+                  )}
+                />
+
 
               </Box>
 
@@ -4485,36 +4731,36 @@ const ShipmentForm = () => {
                   <Box sx={{ flex: '0 1 200px' }}>
                     <FormControlLabel
                       control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Manual From Location</Typography>}
+                      label={<Typography variant="body2">Edit From Location</Typography>}
                     />
                   </Box>
                 </Box>
 
                 {/* Nested Manual From Location Section */}
-                {watchedCarrierInfo?.isManualFromLocation && (
-                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual From Location
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                      </Box>
-                      <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeField('carrierInfo.manualAddress.zip')}
-                      </Box>
+
+                <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                    Manual From Location
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                     </Box>
-                  </Paper>
-                )}
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      {renderZipCodeFieldCarrierInfo('carrierInfo.manualAddress.zip', !watchedFromLocationFlag)}
+                    </Box>
+                  </Box>
+                </Paper>
+
 
                 {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
@@ -4531,22 +4777,13 @@ const ShipmentForm = () => {
                           label="Select To Location Type *"
                           variant="standard"
                           InputLabelProps={{ shrink: true }}
-                          SelectProps={{
-                            multiple: true,
-                            // Shows selected items as a comma-separated list in the closed field
-                            renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                          }}
                         >
                           <MenuItem value="Carrier">
-                            {/* 1. Add the Checkbox */}
-                            <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                            {/* 2. Wrap text in ListItemText for better alignment */}
-                            <ListItemText primary="Carrier" />
+                            Carrier
                           </MenuItem>
 
                           <MenuItem value="Consignee">
-                            <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                            <ListItemText primary="Consignee" />
+                            Consignee
                           </MenuItem>
                         </TextField>
                       )}
@@ -4558,6 +4795,40 @@ const ShipmentForm = () => {
                       <TextField {...field} fullWidth label="To Location *" variant="standard" InputLabelProps={{ shrink: true }} />
                     )} />
                   </Box>
+                  <Box sx={{ flex: '0 1 200px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Edit To Location</Typography>}
+                    />
+                  </Box>
+
+                </Box>
+                {/* Nested Manual To Location Section */}
+
+                <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                    Manual To Location
+                  </Typography>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 18%' }}>
+                      {renderZipCodeFieldCarrierInfo('carrierInfo.manualToAddress.zip', !watchedToLocationFlag)}
+                    </Box>
+                  </Box>
+                </Paper>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                   <Box sx={{ flex: '0 1 200px' }}>
                     <FormControlLabel
                       control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
@@ -4920,7 +5191,7 @@ const ShipmentForm = () => {
                           <FormControlLabel
                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
                             control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                           />
                         )}
                       />
@@ -4928,30 +5199,30 @@ const ShipmentForm = () => {
                   </Box>
 
                   {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                  {watchedCarrierInfo?.lineHaul.manualFromLocation && (
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual From Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeField('carrierInfo.lineHaul.manualFromLocationDetails.zip')}
-                        </Box>
+
+                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Manual From Location
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
                       </Box>
-                    </Paper>
-                  )}
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualFromLocationDetails.zip', !watchedLinehaulFromLocationFlag)}
+                      </Box>
+                    </Box>
+                  </Paper>
+
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                     <Box sx={{ flex: '1 1 200px' }}>
                       <Controller
@@ -4966,22 +5237,13 @@ const ShipmentForm = () => {
                             label="Select To Type *"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
-                            SelectProps={{
-                              multiple: true,
-                              // Shows selected items as a comma-separated list in the closed field
-                              renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                            }}
                           >
                             <MenuItem value="Carrier">
-                              {/* 1. Add the Checkbox */}
-                              <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                              {/* 2. Wrap text in ListItemText for better alignment */}
-                              <ListItemText primary="Carrier" />
+                              Carrier
                             </MenuItem>
 
                             <MenuItem value="Consignee">
-                              <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                              <ListItemText primary="Consignee" />
+                              Consignee
                             </MenuItem>
                           </TextField>
                         )}
@@ -5003,37 +5265,37 @@ const ShipmentForm = () => {
                           <FormControlLabel
                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
                             control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                           />
                         )}
                       />
                     </Box>
                   </Box>
                   {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                  {watchedCarrierInfo?.lineHaul.manualToLocation && (
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual To Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeField('carrierInfo.lineHaul.manualToLocationDetails.zip')}
-                        </Box>
+
+                  <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Manual To Location
+                    </Typography>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
                       </Box>
-                    </Paper>
-                  )}
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                      </Box>
+                      <Box sx={{ flex: '1 1 18%' }}>
+                        {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualToLocationDetails.zip', !watchedLinehaulToLocationFlag)}
+                      </Box>
+                    </Box>
+                  </Paper>
+
                   {/* ETA and Weight Section - Flexbox Layout */}
                   <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                     {/* ETA Date */}
@@ -5330,7 +5592,7 @@ const ShipmentForm = () => {
                             <FormControlLabel
                               sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
                               control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Manual From Location</Typography>}
+                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                             />
                           )}
                         />
@@ -5338,30 +5600,30 @@ const ShipmentForm = () => {
                     </Box>
 
                     {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                    {watchedCarrierInfo?.deliveryDetails.manualFromLocation && (
-                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                          Manual From Location
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            {renderZipCodeField('carrierInfo.deliveryDetails.manualFromLocationDetails.zip')}
-                          </Box>
+
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual From Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
                         </Box>
-                      </Paper>
-                    )}
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', !watchedDeliveryFromLocationFlag)}
+                        </Box>
+                      </Box>
+                    </Paper>
+
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                       <Box sx={{ flex: '1 1 200px' }}>
                         <Controller
@@ -5376,22 +5638,13 @@ const ShipmentForm = () => {
                               label="Select To Type *"
                               variant="standard"
                               InputLabelProps={{ shrink: true }}
-                              SelectProps={{
-                                multiple: true,
-                                // Shows selected items as a comma-separated list in the closed field
-                                renderValue: (selected) => (Array.isArray(selected) ? selected.join(', ') : ''),
-                              }}
                             >
                               <MenuItem value="Carrier">
-                                {/* 1. Add the Checkbox */}
-                                <Checkbox checked={field.value.indexOf("Carrier") > -1} />
-                                {/* 2. Wrap text in ListItemText for better alignment */}
-                                <ListItemText primary="Carrier" />
+                                Carrier
                               </MenuItem>
 
                               <MenuItem value="Consignee">
-                                <Checkbox checked={field.value.indexOf("Consignee") > -1} />
-                                <ListItemText primary="Consignee" />
+                                Consignee
                               </MenuItem>
                             </TextField>
                           )}
@@ -5413,37 +5666,37 @@ const ShipmentForm = () => {
                             <FormControlLabel
                               sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
                               control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Manual To Location</Typography>}
+                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                             />
                           )}
                         />
                       </Box>
                     </Box>
                     {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-                    {watchedCarrierInfo?.deliveryDetails.manualToLocation && (
-                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                          Manual To Location
-                        </Typography>
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} />
-                          </Box>
-                          <Box sx={{ flex: '1 1 18%' }}>
-                            {renderZipCodeField('carrierInfo.deliveryDetails.manualToLocationDetails.zip')}
-                          </Box>
+
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual To Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
                         </Box>
-                      </Paper>
-                    )}
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualToLocationDetails.zip', !watchedDeliveryToLocationFlag)}
+                        </Box>
+                      </Box>
+                    </Paper>
+
                   </>}
                   {/* ETA and Weight Section - Flexbox Layout */}
                   <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>

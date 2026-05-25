@@ -23,7 +23,7 @@ import NotesTable from '../customer/NotesTable';
 import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postStep1 } from '../../redux/slices/shipment';
+import { postStep1, getCustomerStationDropdown } from '../../redux/slices/shipment';
 
 
 
@@ -89,9 +89,6 @@ const serviceLevels = [
 
 ];
 
-
-
-const customers = ['Customer 1', 'Customer 2', 'Customer 3'];
 const commonBtnStyle = {
 
   height: '24px',
@@ -2797,6 +2794,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 const ShipmentForm = () => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
+  const customerStationDropdown = useSelector((state) => state?.shipmentdata?.customerStationDropdown);
   const [activeStep, setActiveStep] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   // This state controls the opening, closing, and index of the Hazmat modal
@@ -2855,6 +2853,7 @@ const ShipmentForm = () => {
     getValues, setValue, handleSubmit
 
   } = useForm({
+    mode: 'onChange', 
 
     defaultValues: {
 
@@ -3269,59 +3268,92 @@ const ShipmentForm = () => {
 
     let fieldsToValidate = [];
 
-    // if (activeStep === 0) {
+    if (activeStep === 0) {
+      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
+    } else if (activeStep === 1) {
+      fieldsToValidate = [
+        'billingCustomer',
+        'originAirport',
+        'destinationAirport',
+        'shipperZip',
+        'consigneeZip',
+        'shipperPhone',
+        'consigneePhone',
+      ];
+    }
 
-    //   fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
-
-    // } else if (activeStep === 1) {
-
-    //   fieldsToValidate = [
-
-    //     'billingCustomer',
-
-    //     'originAirport',
-
-    //     'destinationAirport',
-
-    //     'shipperZip',
-
-    //     'consigneeZip',
-
-    //     'shipperPhone',
-
-    //     'consigneePhone',
-
-    //   ];
-
-    // }
-
-
-
-    // const isValid = await trigger(fieldsToValidate);
+    const isValid = await trigger(fieldsToValidate);
 
     // if (isValid) {
-
-    setActiveStep((prev) => prev + 1);
-
+      setActiveStep((prev) => prev + 1);
     // } else {
-
     //   setErrorVisible(true);
-
     // }
     if (activeStep === 0) {
       fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
       const isValid = await trigger(fieldsToValidate);
       if (isValid) {
-        dispatch(postStep1({
-          "typeOfShipment": currentValues.shipmentType,
-          "serviceLevel": currentValues.serviceLevel,
-          "shipmentDate": currentValues.date
-            ? new Date(currentValues.date).toLocaleDateString('en-CA')
-            : "",
-          "shipmentTime": currentValues.time
-            ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-            : ""
-        }))
+        dispatch(postStep1(
+          {
+            "shipmentDetails": {
+              "typeOfShipment": currentValues.shipmentType,
+              "serviceLevel": currentValues.serviceLevel,
+              "shipmentDate": currentValues.date
+                ? new Date(currentValues.date).toLocaleDateString('en-CA')
+                : "",
+              "shipmentTime": currentValues.time
+                ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+                : "",
+              "shipmentStatus": "Active"
+            }
+          }
+        ))
+      }
+    }
+    if (activeStep === 1) {
+      fieldsToValidate = ['billingCustomer', 'originAirport', 'destinationAirport', 'shipperZip', 'consigneeZip', 'shipperPhone', 'consigneePhone',];
+      const isValid = await trigger(fieldsToValidate);
+      const [firstNumber, secondNumber] = currentValues.billingCustomer.split('-');
+      if (isValid) {
+        dispatch(postStep1(
+          {
+            "shipmentDetails": {
+              "typeOfShipment": currentValues.shipmentType,
+              "serviceLevel": currentValues.serviceLevel,
+              "shipmentDate": currentValues.date
+                ? new Date(currentValues.date).toLocaleDateString('en-CA')
+                : "",
+              "shipmentTime": currentValues.time
+                ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+                : "",
+              "shipmentStatus": "Active"
+            },
+            "customerDetails": {
+              "customerId": Number(secondNumber),
+              "stationId": Number(firstNumber),
+              "originAirportCode": currentValues.originAirport,
+              "destinationAirportCode": currentValues.destinationAirport,
+              "shipperDetails": {
+                "shipperName": currentValues.shipperName,
+                "addressLine1": currentValues.shipperAddr1,
+                "addressLine2": currentValues.shipperAddr2,
+                "city": currentValues.shipperCity,
+                "zipCode": currentValues.shipperZip,
+                "contactPersonName": currentValues.shipperContact,
+                "phoneNumber": currentValues.shipperPhone
+              },
+              "consigneeDetails": {
+                "consigneeName": currentValues.consigneeName,
+                "addressLine1": currentValues.consigneeAddr1,
+                "addressLine2": currentValues.consigneeAddr2,
+                "city": currentValues.consigneeCity,
+                "zipCode": currentValues.consigneeZip,
+                "contactPersonName": currentValues.consigneeContact,
+                "phoneNumber": currentValues.consigneePhone
+              }
+            }
+          }
+        ))
       }
     }
     if (activeStep === 2 && hasInitialData()) {
@@ -3375,31 +3407,26 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
-
           validate: (value) => {
+            if (!value) return true; // Let 'required' rule handle empty if needed
 
-            if (!value || value.length <= 5) return true;
+            // 1. Block "all zeros" for both 5-digit and range formats
+            const rawDigits = value.replace(/[^\d]/g, '');
+            if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
+
+            if (value.length <= 5) return true;
 
             const parts = value.split('-');
-
             if (parts.length === 2 && parts[1].length === 5) {
-
               const startSuffix = parseInt(parts[0].slice(-2));
-
               const endSuffix = parseInt(parts[1].slice(-2));
 
               if (endSuffix === startSuffix) return 'End range cannot be equal to start';
-
               if (endSuffix < startSuffix) return 'End range must be greater than start';
-
               return true;
-
             }
-
             return 'Complete the range (#####-#####)';
-
-          },
-
+          }
         }}
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
@@ -3416,56 +3443,44 @@ const ShipmentForm = () => {
 
             error={!!error}
 
-            helperText={error?.message || 'Ex: 12345 or 12345-12346'}
+            helperText={error?.message}
 
             value={value || ''}
 
             inputProps={{ maxLength: 11 }}
 
             onChange={(e) => {
-
               const input = e.target.value;
-
               const raw = input.replace(/[^\d]/g, '');
-
               const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-              if (!input || raw.length === 0 || (isDeleting && (input.length <= 5 || !input.includes('-')))) {
-
-                onChange(raw.slice(0, 5));
-
+              // 1. If deleting or clearing, just update with raw digits 
+              // This allows the user to backspace freely through the second part.
+              if (isDeleting || !raw) {
+                // If they delete the dash, we just show the first 5 digits
+                onChange(raw.slice(0, 10));
                 return;
-
               }
 
+              // 2. FORMATTING LOGIC (Only runs when typing/pasting)
               let formatted = '';
-
               if (raw.length <= 5) {
-
                 formatted = raw;
-
               } else {
-
                 const first5 = raw.slice(0, 5);
-
                 const prefix = first5.slice(0, 3);
-
                 let suffixPart = raw.slice(5);
 
+                // Auto-fill prefix logic
                 if (!suffixPart.startsWith(prefix)) {
-
                   const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
-
                   suffixPart = prefix + userTypedDigits;
-
                 }
 
                 formatted = `${first5}-${suffixPart.slice(0, 5)}`;
-
               }
 
               onChange(formatted);
-
             }}
 
           />
@@ -3493,19 +3508,25 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
-
           required: 'Phone number is required',
-
-          maxLength: { value: 20, message: 'Phone number cannot exceed 20 characters' },
-
-          pattern: {
-
-            value: /^\(\d{3}\) \d{3}-\d{4}.*$/,
-
-            message: 'Invalid phone format',
-
+          maxLength: {
+            value: 20,
+            message: 'Phone number cannot exceed 20 characters'
           },
+          validate: (value) => {
+            if (!value) return true; // Allow empty
 
+            // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+            const digitsOnly = value.replace(/\D/g, '');
+            const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+            if (isAllZeros) return 'Phone number cannot be all zeros';
+
+            // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+            // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+            return true;
+          }
         }}
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
@@ -3529,15 +3550,14 @@ const ShipmentForm = () => {
             helperText={error ? error.message : ''}
 
             onChange={(e) => {
-
               const val = e.target.value;
 
+              // 1. Prevent initial empty space
               if (val.startsWith(' ')) return;
 
+              // 2. Format and enforce 20-character string limit
               const formattedValue = formatPhoneNumber(val).slice(0, 20);
-
               onChange(formattedValue);
-
             }}
 
           />
@@ -3640,6 +3660,9 @@ const ShipmentForm = () => {
     }))
   );
 
+  useEffect(() => {
+    dispatch(getCustomerStationDropdown());
+  }, [])
   useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
     if (!watchedHU || watchedHU.length === 0) return;
@@ -4079,9 +4102,44 @@ const ShipmentForm = () => {
 
                 <Controller name="billingCustomer" control={control} rules={{ required: true }} render={({ field }) => (
 
-                  <TextField {...field} select fullWidth label="Billing Customer *" variant="standard" error={!!errors.billingCustomer}>
+                  <TextField {...field} select fullWidth label="Billing Customer *" variant="standard" error={!!errors.billingCustomer}
+                    SelectProps={{
+                      displayEmpty: true,
+                      MenuProps: {
+                        // Crucial: disables internal centering logic so origins work
+                        getContentAnchorEl: null,
+                        // Prevents layout shifts and menu misplacement on scroll
+                        disableScrollLock: true,
+                        anchorOrigin: {
+                          vertical: 'bottom',
+                          horizontal: 'left',
+                        },
+                        transformOrigin: {
+                          vertical: 'top',
+                          horizontal: 'left',
+                        },
+                        PaperProps: {
+                          sx: {
+                            marginTop: '4px', // Your custom gap
+                            maxHeight: 300,
+                            maxWidth: 300,    // Restricts width to 300px
+                            overflowX: 'auto', // Enables horizontal scrolling on the container
+                          }
+                        },
+                        // Crucial: Prevents text wrapping so the content pushes out and triggers the scrollbar
+                        MenuListProps: {
+                          sx: {
+                            '& .MuiMenuItem-root': {
+                              whiteSpace: 'nowrap',
+                            },
+                          },
+                        },
+                      },
+                    }}
 
-                    {customers.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+                  >
+
+                    {customerStationDropdown?.map((opt) => (<MenuItem key={`${opt.stationId}-${opt.stationName}`} value={`${opt.stationId}-${opt.customerId}`}>{`${opt.customerName} - ${opt.stationName}`}</MenuItem>))}
 
                   </TextField>
 

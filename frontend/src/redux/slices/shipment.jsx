@@ -12,6 +12,7 @@ const initialState = {
   error : null,
   shipmentSuccess : false,
   shipmentData : [],
+  customerStationDropdown : [],
 };
 
 const slice = createSlice({
@@ -32,7 +33,14 @@ const slice = createSlice({
     postStep1Success(state,action){
         state.isLoading = false;
         state.shipmentSuccess = true;
-    }
+    },
+    getCustomerStationDropdownSuccess(state,action){
+        state.isLoading = false;
+        state.customerStationDropdown = action.payload.data.data;
+    },
+    setCustomerStationDropdown(state,action){
+        state.customerStationDropdown = action.payload;
+    },
   },
 });
 
@@ -49,8 +57,19 @@ export function postStep1(obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.post('/network-shipment', obj);
+      const response = await axios.post('network-shipment', obj);
       dispatch(slice.actions.postStep1Success(response));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getCustomerStationDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('maintenance/customer/dropdown');
+      dispatch(slice.actions.getCustomerStationDropdownSuccess(response));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

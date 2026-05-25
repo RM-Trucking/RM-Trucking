@@ -9,9 +9,11 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import { getCustomerData, setSelectedCustomerRowDetails, customerStatusChange, 
+import {
+    getCustomerData, setSelectedCustomerRowDetails, customerStatusChange,
     setOperationalMessage, setStationTabTableData, setCustomerSearchStr,
-    setError } from '../../redux/slices/customer';
+    setError
+} from '../../redux/slices/customer';
 import SharedCustomerDetails from './SharedCustomerDetails';
 import NotesTable from './NotesTable';
 import StyledTextField from '../shared/StyledTextField';
@@ -159,6 +161,10 @@ export default function CustomerHomePageTable() {
         }
     });
 
+    const handleDialogOpen = (row) => {
+        setOpenConfirmDialog(true);
+        notesRef.current = row;
+    }
     // datagrid columns
     const columns = [{
         field: "customerName",
@@ -231,25 +237,22 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         filterable: false,
-        renderCell: (params) => {
-            const handleDialogOpen = () => {
-                setOpenConfirmDialog(true);
-                notesRef.current = params?.row;
-            }
-            const element = (
-                <Box
+        cellClassName: 'center-content-cell',
+
+        renderCell: (params) => (
+            <IconButton
+                onClick={() => handleDialogOpen(params?.row)}
+            >
+                <Iconify
+                    icon="icon-park-solid:notes"
                     sx={{
-                        display: 'flex',
-                        flex: 1,
+                        color: '#7fbfc4',
+                        cursor: 'pointer',
+                        pointerEvents: 'none'
                     }}
-                >
-
-                    <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
-
-                </Box>
-            );
-            return element;
-        },
+                />
+            </IconButton>
+        ),
     },
     {
         field: "actions",
@@ -270,30 +273,25 @@ export default function CustomerHomePageTable() {
                 localStorage.setItem('customerId', params?.row?.customerId);
             }
             const element = (
-                <Box
-                    sx={{
-                        display: 'flex',
-                        flex: 1,
-                    }}
-                >
-                    <Tooltip title={'View'} arrow>
-                        <Box onClick={() => {
+                <Box>
+                    <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                        <IconButton onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
                             dispatch(setStationTabTableData([]));
                             localStorage.setItem('customerId', params?.row?.customerId);
                             navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerView);
-                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                        </Box>
+                        }}  >
+                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                        </IconButton>
                     </Tooltip>
-                    <Tooltip title={'Edit'} arrow>
-                        <Box onClick={() => {
+                    <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                        <IconButton onClick={() => {
                             dispatch(setSelectedCustomerRowDetails(params?.row));
                             localStorage.setItem('customerId', params?.row?.customerId);
                             setOpenEditDialog(true);
-                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                        </Box>
+                        }}>
+                            <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                        </IconButton>
                     </Tooltip>
 
                     <ColoredSwitch slotProps={{ input: { 'aria-label': 'controlled' } }} checked={params?.row?.activeStatus === 'Y'} onChange={(event) => handleSwitchChange(event, params)} />

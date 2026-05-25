@@ -37,3 +37,7 @@ h1 {
   justify-content: center !important; /* Centers the inner Box horizontally */
   align-items: center !important;     /* Centers the inner Box vertically */
 }
+.center-content-cell {
+  display: flex !important;
+  align-items: center !important;     /* Centers the inner Box vertically */
+}

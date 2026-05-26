@@ -3556,7 +3556,7 @@ const ShipmentForm = () => {
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
 
-          <TextField
+          <StyledTextField
 
             {...field}
 
@@ -4048,6 +4048,11 @@ const ShipmentForm = () => {
   // watching pickup agent terminal
   const watchedPickupAgentTerminal = useWatch({ control, name: "carrierInfo.pickupAgentTerminal" });
   const watchedLinehaulSelectRouting = useWatch({ control, name: "carrierInfo.lineHaul.selectRouting" });
+  const watchedAddPickupAccessorial = useWatch({ control, name: "carrierInfo.addPickupAccessorial" });
+  const watchedPickupAlert = useWatch({ control, name: "carrierInfo.pickupAlert" });
+  const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
+  const watchedDeliveryAddAcc = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAddAcc" });
+  const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
 
   return (
 
@@ -4908,16 +4913,16 @@ const ShipmentForm = () => {
                   </Typography>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                     <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                      <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                     </Box>
                     <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
+                      <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
                     </Box>
                     <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                      <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                     </Box>
                     <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                      <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                     </Box>
                     <Box sx={{ flex: '1 1 18%' }}>
                       {renderZipCodeFieldCarrierInfo('carrierInfo.manualAddress.zip', !watchedFromLocationFlag)}
@@ -5077,16 +5082,16 @@ const ShipmentForm = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
                         {renderZipCodeFieldCarrierInfo('carrierInfo.manualToAddress.zip', !watchedToLocationFlag)}
@@ -5116,7 +5121,7 @@ const ShipmentForm = () => {
 
               {/* pickup accessorials section  */}
 
-              <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+              {watchedAddPickupAccessorial && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
                 <AccordionSummary
                   expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                   sx={{ borderBottom: '1px solid #ccc', px: 0 }}
@@ -5185,7 +5190,7 @@ const ShipmentForm = () => {
                     </Table>
                   </TableContainer>
                 </AccordionDetails>
-              </Accordion>
+              </Accordion>}
 
 
               <PickupAccessorialDialog
@@ -5224,7 +5229,7 @@ const ShipmentForm = () => {
               />
 
               {/* pick alert details section */}
-              <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+              {watchedPickupAlert && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
                 <AccordionSummary
                   expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                   sx={{ borderBottom: '1px solid #ccc', px: 0 }}
@@ -5371,7 +5376,7 @@ const ShipmentForm = () => {
                   </Box>
 
                 </AccordionDetails>
-              </Accordion>
+              </Accordion>}
 
               {/* line haul details section  */}
               <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
@@ -5514,16 +5519,16 @@ const ShipmentForm = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
                           {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualFromLocationDetails.zip', !watchedLinehaulFromLocationFlag)}
@@ -5675,16 +5680,16 @@ const ShipmentForm = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
                           {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualToLocationDetails.zip', !watchedLinehaulToLocationFlag)}
@@ -5696,38 +5701,55 @@ const ShipmentForm = () => {
                     <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                       {/* ETA Date */}
                       <Box sx={{ flex: 1 }}>
-
-                        <Controller name="carrierInfo.lineHaul.etaDate" control={control} rules={{ required: true }} render={({ field }) => (
-
-                          <DatePicker {...field} label="ETA Date" slotProps={{
-                            textField: {
-                              variant: 'standard', fullWidth: true, error:
-                                !!errors.date
-                            }
-                          }} InputLabelProps={{ shrink: true }} />
-
-                        )}
-
+                        <Controller
+                          name="carrierInfo.lineHaul.etaDate"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error, isTouched } }) => (
+                            <DatePicker
+                              {...field}
+                              label="ETA Date"
+                              slotProps={{
+                                textField: {
+                                  variant: 'standard',
+                                  fullWidth: true,
+                                  // FIX 1: Uses the exact field error slice from the render arguments
+                                  // FIX 2: (Optional) Only shows error if the user has interacted with it
+                                  error: !!error && isTouched
+                                }
+                              }}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
                         />
-
                       </Box>
+
                       {/* ETA time */}
                       <Box sx={{ flex: 1 }}>
-
-                        <Controller name="carrierInfo.lineHaul.etaTime" control={control} rules={{ required: true }} render={({ field }) => (
-
-                          <TimePicker {...field} label="ETA Time" ampm={false} slotProps={{
-                            textField: {
-                              variant: 'standard', fullWidth:
-                                true, error: !!errors.time
-                            }
-                          }} InputLabelProps={{ shrink: true }} />
-
-                        )}
-
+                        <Controller
+                          name="carrierInfo.lineHaul.etaTime"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error, isTouched } }) => (
+                            <TimePicker
+                              {...field}
+                              label="ETA Time"
+                              ampm={false}
+                              slotProps={{
+                                textField: {
+                                  variant: 'standard',
+                                  fullWidth: true,
+                                  // FIX: Automatically extracts the correct field error state 
+                                  // and only displays it after a user interaction (isTouched)
+                                  error: !!error && isTouched
+                                }
+                              }}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
                         />
-
                       </Box>
+
 
                       {/* Pcs / Wght */}
                       <Box sx={{ flex: 1.5 }}>
@@ -5750,16 +5772,15 @@ const ShipmentForm = () => {
 
                   </>}
 
-                  <Box sx={{ flex: '0 1 200px' }}>
+                  <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                     <FormControlLabel
                       control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
                       label={<Typography variant="body2">Add Accessorial</Typography>}
                     />
                   </Box>
 
-
                   {/* ACCESSORIALS: Flexbox for header */}
-                  <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 3 }}>
+                  {watchedLinehaulAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 6 }}>
                     <AccordionSummary
                       expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                       sx={{ borderBottom: '1px solid #ccc', px: 0 }}
@@ -5827,7 +5848,7 @@ const ShipmentForm = () => {
                         </Table>
                       </TableContainer>
                     </AccordionDetails>
-                  </Accordion>
+                  </Accordion>}
 
                   <PickupAccessorialDialog
                     open={lineHaulAccModal}
@@ -6068,16 +6089,16 @@ const ShipmentForm = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
                           {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', !watchedDeliveryFromLocationFlag)}
@@ -6231,16 +6252,16 @@ const ShipmentForm = () => {
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <TextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <TextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <TextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
                           {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualToLocationDetails.zip', !watchedDeliveryToLocationFlag)}
@@ -6253,40 +6274,55 @@ const ShipmentForm = () => {
                     <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
                       {/* ETA Date */}
                       <Box sx={{ flex: 1 }}>
-
-                        <Controller name="carrierInfo.deliveryDetails.etaDate" control={control} rules={{ required: true }} render={({ field
-                        }) => (
-
-                          <DatePicker {...field} label="ETA Date" slotProps={{
-                            textField: {
-                              variant: 'standard', fullWidth: true, error:
-                                !!errors.date
-                            }
-                          }} InputLabelProps={{ shrink: true }} />
-
-                        )}
-
+                        <Controller
+                          name="carrierInfo.deliveryDetails.etaDate"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error, isTouched } }) => (
+                            <DatePicker
+                              {...field}
+                              label="ETA Date"
+                              slotProps={{
+                                textField: {
+                                  variant: 'standard',
+                                  fullWidth: true,
+                                  // FIX: Targets the specific error block for delivery details
+                                  // only after the user interacts with the input (isTouched)
+                                  error: !!error && isTouched
+                                }
+                              }}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
                         />
-
                       </Box>
+
                       {/* ETA time  */}
                       <Box sx={{ flex: 1 }}>
-
-                        <Controller name="carrierInfo.deliveryDetails.etaTime" control={control} rules={{ required: true }} render={({ field
-                        }) => (
-
-                          <TimePicker {...field} label="ETA Time" ampm={false} slotProps={{
-                            textField: {
-                              variant: 'standard', fullWidth:
-                                true, error: !!errors.time
-                            }
-                          }} InputLabelProps={{ shrink: true }} />
-
-                        )}
-
+                        <Controller
+                          name="carrierInfo.deliveryDetails.etaTime"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field, fieldState: { error, isTouched } }) => (
+                            <TimePicker
+                              {...field}
+                              label="ETA Time"
+                              ampm={false}
+                              slotProps={{
+                                textField: {
+                                  variant: 'standard',
+                                  fullWidth: true,
+                                  // FIX: Targets the specific error state for delivery details time
+                                  // and suppresses layout red-lines on page load
+                                  error: !!error && isTouched
+                                }
+                              }}
+                              InputLabelProps={{ shrink: true }}
+                            />
+                          )}
                         />
-
                       </Box>
+
 
                       {/* Pcs / Wght */}
                       <Box sx={{ flex: 1.5 }}>
@@ -6331,7 +6367,7 @@ const ShipmentForm = () => {
                   </Box>
 
                   {/* ACCESSORIALS: Flexbox for header */}
-                  <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+                  {watchedDeliveryAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
                     <AccordionSummary
                       expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                       sx={{ borderBottom: '1px solid #ccc', px: 0 }}
@@ -6400,7 +6436,7 @@ const ShipmentForm = () => {
                         </Table>
                       </TableContainer>
                     </AccordionDetails>
-                  </Accordion>
+                  </Accordion>}
 
                   <PickupAccessorialDialog
                     open={deliveryAccModal}
@@ -6442,32 +6478,32 @@ const ShipmentForm = () => {
                       label={<Typography variant="body2">Delivery Alert </Typography>}
                     />
                   </Box>
-
-                  {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Line-haul Notes
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {deliveryLineHaulNotesArr.map((note, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            bgcolor: '#e3f2fd',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.65rem',
-                            border: '1px solid #bbdefb'
-                          }}
-                          onClick={() => {
-                            setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
-                          }}
-                        >
-                          {note}
-                          {/* <Box
+                  {watchedDeliveryAlert && <>
+                    {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Line-haul Notes
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        {deliveryLineHaulNotesArr.map((note, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              bgcolor: '#e3f2fd',
+                              borderRadius: '16px',
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.65rem',
+                              border: '1px solid #bbdefb'
+                            }}
+                            onClick={() => {
+                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
+                            }}
+                          >
+                            {note}
+                            {/* <Box
                             component="span"
                             onClick={() => {
                               const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
@@ -6477,55 +6513,55 @@ const ShipmentForm = () => {
                           >
                             &times;
                           </Box> */}
-                        </Box>
-                      ))}
-                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                          </Box>
+                        ))}
+                        {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
                       More..
                     </Box> */}
+                      </Box>
+
+                      <Controller
+                        name="carrierInfo.deliveryDetails.lineHaulNotes"
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Notes"
+                            variant="standard"
+                            placeholder="Type and press Enter"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
                     </Box>
 
-                    <Controller
-                      name="carrierInfo.deliveryDetails.lineHaulNotes"
-                      control={control}
-                      defaultValue=""
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Notes"
-                          variant="standard"
-                          placeholder="Type and press Enter"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-
-                  {/* delivery notes  */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Delivery Notes
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {deliveryNotesArr.map((note, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            bgcolor: '#e3f2fd',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.65rem',
-                            border: '1px solid #bbdefb'
-                          }}
-                          onClick={() => {
-                            setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
-                          }}
-                        >
-                          {note}
-                          {/* <Box
+                    {/* delivery notes  */}
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Delivery Notes
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        {deliveryNotesArr.map((note, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              bgcolor: '#e3f2fd',
+                              borderRadius: '16px',
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.65rem',
+                              border: '1px solid #bbdefb'
+                            }}
+                            onClick={() => {
+                              setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
+                            }}
+                          >
+                            {note}
+                            {/* <Box
                             component="span"
                             onClick={() => {
                               const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
@@ -6535,111 +6571,112 @@ const ShipmentForm = () => {
                           >
                             &times;
                           </Box> */}
-                        </Box>
-                      ))}
-                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                          </Box>
+                        ))}
+                        {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
                       More..
                     </Box> */}
+                      </Box>
+
+                      <Controller
+                        name="carrierInfo.deliveryDetails.deliveryNotes"
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Notes"
+                            variant="standard"
+                            placeholder="Type and press Enter"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
                     </Box>
 
-                    <Controller
-                      name="carrierInfo.deliveryDetails.deliveryNotes"
-                      control={control}
-                      defaultValue=""
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Notes"
-                          variant="standard"
-                          placeholder="Type and press Enter"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
+                    {/* --- EMAIL INFO SECTION --- */}
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                      >
+                        Email Info
+                      </Typography>
 
-                  {/* --- EMAIL INFO SECTION --- */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                    >
-                      Email Info
-                    </Typography>
+                      <Box sx={{ display: 'flex', gap: 4 }}>
+                        <Box sx={{ flex: 1 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.primaryEmail"
+                            control={control}
+                            rules={{
+                              pattern: {
+                                value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                message: "Invalid email address"
+                              }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Primary Email"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                error={!!error}
+                                helperText={error?.message}
+                              />
+                            )}
+                          />
+                        </Box>
 
+                        <Box sx={{ flex: 2 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.additionalEmail"
+                            control={control}
+                            rules={{
+                              validate: (value) => {
+                                if (!value) return true;
+                                const emails = value.split(',').map(e => e.trim());
+                                const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                                const allValid = emails.every(email => emailRegex.test(email));
+                                return allValid || "One or more emails are invalid (separate by comma)";
+                              }
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Additional Email"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                placeholder="email1@test.com, email2@test.com"
+                                error={!!error}
+                                helperText={error?.message}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
+                    </Box>
+
+
+                    {/* BOTTOM OPTIONS: Horizontal Flexbox */}
                     <Box sx={{ display: 'flex', gap: 4 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.primaryEmail"
-                          control={control}
-                          rules={{
-                            pattern: {
-                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                              message: "Invalid email address"
-                            }
-                          }}
-                          render={({ field, fieldState: { error } }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Primary Email"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          )}
-                        />
-                      </Box>
 
-                      <Box sx={{ flex: 2 }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.additionalEmail"
-                          control={control}
-                          rules={{
-                            validate: (value) => {
-                              if (!value) return true;
-                              const emails = value.split(',').map(e => e.trim());
-                              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-                              const allValid = emails.every(email => emailRegex.test(email));
-                              return allValid || "One or more emails are invalid (separate by comma)";
-                            }
-                          }}
-                          render={({ field, fieldState: { error } }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Additional Email"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                              placeholder="email1@test.com, email2@test.com"
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          )}
-                        />
-                      </Box>
+                      <Controller
+                        name="carrierInfo.lineHaul.airportTransfer"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
+                          />
+                        )}
+                      />
+
                     </Box>
-                  </Box>
-
-
-                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                  <Box sx={{ display: 'flex', gap: 4 }}>
-
-                    <Controller
-                      name="carrierInfo.lineHaul.airportTransfer"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
-                        />
-                      )}
-                    />
-
-                  </Box>
+                  </>}
                 </AccordionDetails>
               </Accordion>
 

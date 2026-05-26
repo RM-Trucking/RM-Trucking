@@ -3997,7 +3997,7 @@ const ShipmentForm = () => {
     // Whenever any carrier detail changes, we can perform actions here
     // update manual to address of carrierinfo
     if (watchedLinehaulToLocationType === 'Carrier' && watchedLinehaulToLocation) {
-      const [terminalId, carrierId] = watchedToLocation.split('-');
+      const [terminalId, carrierId] = watchedLinehaulToLocation.split('-');
       const selectedObject = carrierTerminalDropdown.find(
         (item) => item.terminalId === terminalId && item.carrierId === carrierId
       );
@@ -4042,7 +4042,7 @@ const ShipmentForm = () => {
     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', watchedConsigneeCity ?? '');
     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', watchedConsigneeState ?? '');
     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
-  }, []);
+  }, [watchedConsigneeAddr1, watchedConsigneeAddr2, watchedConsigneeCity, watchedConsigneeState, watchedConsigneeZip]);
   useEffect(() => {
     if (selectedRouting) {
       if ((selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul')) {

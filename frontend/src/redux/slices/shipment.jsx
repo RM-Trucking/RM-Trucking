@@ -13,6 +13,7 @@ const initialState = {
   shipmentSuccess : false,
   shipmentData : [],
   customerStationDropdown : [],
+  carrierTerminalDropdown : [],
 };
 
 const slice = createSlice({
@@ -38,8 +39,37 @@ const slice = createSlice({
         state.isLoading = false;
         state.customerStationDropdown = action.payload.data.data;
     },
+    getCarrierTerminalDropdownSuccess(state,action){
+        state.isLoading = false;
+        state.carrierTerminalDropdown = [{
+            id : '1',
+            terminalId : '1',
+            terminalName : 'Terminal 1',
+            carrierId : '1',
+            carrierName : 'Carrier 1',
+            addressLine1 : 'Address Line 1',
+            addressLine2 : 'Address Line 2',
+            city : 'City',
+            state : 'State',
+            zip : '99999',
+        },{
+            id : '2',
+            terminalId : '2',
+            terminalName : 'Terminal 2',
+            carrierId : '2',
+            carrierName : 'Carrier 2',
+            addressLine1 : 'Address Line 1',
+            addressLine2 : 'Address Line 2',
+            city : 'City',
+            state : 'State',
+            zip : '99999',
+        }];
+    },
     setCustomerStationDropdown(state,action){
         state.customerStationDropdown = action.payload;
+    },
+    setCarrierTerminalDropdown(state,action){
+        state.carrierTerminalDropdown = action.payload;
     },
   },
 });
@@ -70,6 +100,18 @@ export function getCustomerStationDropdown() {
     try {
       const response = await axios.get('maintenance/customer/dropdown');
       dispatch(slice.actions.getCustomerStationDropdownSuccess(response));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getCarrierTerminalDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      // const response = await axios.get('maintenance/carrier/dropdown');
+      // dispatch(slice.actions.getCarrierTerminalDropdownSuccess(response));
+      dispatch(slice.actions.getCarrierTerminalDropdownSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

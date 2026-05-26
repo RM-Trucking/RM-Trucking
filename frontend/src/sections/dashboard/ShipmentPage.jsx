@@ -3979,18 +3979,27 @@ const ShipmentForm = () => {
       const selectedObject = carrierTerminalDropdown.find(
         (item) => item.terminalId === terminalId && item.carrierId === carrierId
       );
-      setValue('carrierInfo.manualToAddress.line1', selectedObject.addressLine1);
-      setValue('carrierInfo.manualToAddress.line2', selectedObject.addressLine2);
-      setValue('carrierInfo.manualToAddress.city', selectedObject.city);
-      setValue('carrierInfo.manualToAddress.state', selectedObject.state);
-      setValue('carrierInfo.manualToAddress.zip', selectedObject.zip);
-      setValue('carrierInfo.lineHaul.carrier', watchedToLocation);
-      setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
-      setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
-      setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
-      setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
-      setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
-
+      if (selectedObject) {
+        setValue('carrierInfo.manualToAddress.line1', selectedObject.addressLine1);
+        setValue('carrierInfo.manualToAddress.line2', selectedObject.addressLine2);
+        setValue('carrierInfo.manualToAddress.city', selectedObject.city);
+        setValue('carrierInfo.manualToAddress.state', selectedObject.state);
+        setValue('carrierInfo.manualToAddress.zip', selectedObject.zip);
+        setValue('carrierInfo.lineHaul.carrier', watchedToLocation);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+      }
+      if (selectedRouting === 'pickup_linehaul' && selectedObject) {
+        setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+      }
     }
   }, [watchedToLocation,]);
   useEffect(() => {
@@ -4058,6 +4067,20 @@ const ShipmentForm = () => {
       if (selectedRouting === 'pickup_linehaul_delivery') {
         setValue('carrierInfo.toLocationType', 'Consignee');
       }
+      if (selectedRouting === 'pickup_linehaul') {
+        const [terminalId, carrierId] = watchedToLocation.split('-');
+        const selectedObject = carrierTerminalDropdown.find(
+          (item) => item.terminalId === terminalId && item.carrierId === carrierId
+        );
+        if (selectedObject) {
+          setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+        }
+      }
     }
   }, [selectedRouting]);
   // search values 
@@ -4087,6 +4110,7 @@ const ShipmentForm = () => {
     if (watchedLinehaulSelectRouting) {
       if ((watchedLinehaulSelectRouting === 'linehaul_only')) {
         setValue('carrierInfo.lineHaul.toLocationType', 'Carrier');
+        setValue('carrierInfo.lineHaul.toLocation', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.city', '');
@@ -5169,8 +5193,6 @@ const ShipmentForm = () => {
                   </Box>
                 </Box>
 
-
-
               </Paper>
 
               {/* pickup accessorials section  */}
@@ -5441,7 +5463,7 @@ const ShipmentForm = () => {
                 <AccordionDetails sx={{ pt: 2 }}>
 
                   {/* linehaul details  */}
-                  {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
+                  {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul' && !watchedPickupAgentTerminal) && <>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1, mb: 3 }}>
                       <Box sx={{ flex: '0 1 250px' }}>
                         <Controller

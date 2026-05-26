@@ -2904,6 +2904,8 @@ const ShipmentForm = () => {
 
       shipperCity: '',
 
+      shipperState: '',
+
       shipperZip: '',
 
       shipperContact: '',
@@ -2919,6 +2921,8 @@ const ShipmentForm = () => {
       consigneeAddr2: '',
 
       consigneeCity: '',
+
+      consigneeState: '',
 
       consigneeZip: '',
 
@@ -3064,7 +3068,7 @@ const ShipmentForm = () => {
             state: '',
             zip: '',
           },
-          toLocationType: '',
+          toLocationType: 'Consignee',
           toLocation: '',
           manualToLocation: false,
           manualToLocationDetails: {
@@ -3367,6 +3371,7 @@ const ShipmentForm = () => {
                 "addressLine1": currentValues.shipperAddr1,
                 "addressLine2": currentValues.shipperAddr2,
                 "city": currentValues.shipperCity,
+                // "state": currentValues.shipperState,
                 "zipCode": currentValues.shipperZip,
                 "contactPersonName": currentValues.shipperContact,
                 "phoneNumber": currentValues.shipperPhone
@@ -3376,6 +3381,7 @@ const ShipmentForm = () => {
                 "addressLine1": currentValues.consigneeAddr1,
                 "addressLine2": currentValues.consigneeAddr2,
                 "city": currentValues.consigneeCity,
+                // "state": currentValues.consigneeState,
                 "zipCode": currentValues.consigneeZip,
                 "contactPersonName": currentValues.consigneeContact,
                 "phoneNumber": currentValues.consigneePhone
@@ -3912,6 +3918,7 @@ const ShipmentForm = () => {
   const watchedShipperAddr1 = useWatch({ control, name: "shipperAddr1" });
   const watchedShipperAddr2 = useWatch({ control, name: "shipperAddr2" });
   const watchedShipperCity = useWatch({ control, name: "shipperCity" });
+  const watchedShipperState = useWatch({ control, name: "shipperState" });
   const watchedShipperZip = useWatch({ control, name: "shipperZip" });
   const watchedShipperContact = useWatch({ control, name: "shipperContact" });
   const watchedShipperPhone = useWatch({ control, name: "shipperPhone" });
@@ -3921,6 +3928,7 @@ const ShipmentForm = () => {
   const watchedConsigneeAddr1 = useWatch({ control, name: "consigneeAddr1" });
   const watchedConsigneeAddr2 = useWatch({ control, name: "consigneeAddr2" });
   const watchedConsigneeCity = useWatch({ control, name: "consigneeCity" });
+  const watchedConsigneeState = useWatch({ control, name: "consigneeState" });
   const watchedConsigneeZip = useWatch({ control, name: "consigneeZip" });
   const watchedConsigneeContact = useWatch({ control, name: "consigneeContact" });
   const watchedConsigneePhone = useWatch({ control, name: "consigneePhone" });
@@ -3947,8 +3955,9 @@ const ShipmentForm = () => {
     setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
     setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
     setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
+    setValue('carrierInfo.manualAddress.state', watchedShipperState ?? '');
     setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
-  }, [watchedShipperName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone,]);
+  }, [watchedShipperName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone, watchedShipperState]);
 
   useEffect(() => {
     // Whenever any consignee detail changes, we can perform actions here
@@ -3958,9 +3967,10 @@ const ShipmentForm = () => {
       setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.manualToAddress.state', watchedConsigneeState ?? '');
       setValue('carrierInfo.manualToAddress.zip', watchedConsigneeZip ?? '');
     }
-  }, [watchedToLocationType, watchedConsigneeName, watchedConsigneeAddr1, watchedConsigneeAddr2, watchedConsigneeCity, watchedConsigneeZip, watchedConsigneeContact, watchedConsigneePhone,]);
+  }, [watchedToLocationType, watchedConsigneeName, watchedConsigneeAddr1, watchedConsigneeAddr2, watchedConsigneeCity, watchedConsigneeZip, watchedConsigneeContact, watchedConsigneePhone, watchedConsigneeState]);
   useEffect(() => {
     // Whenever any carrier detail changes, we can perform actions here
     // update manual to address of carrierinfo
@@ -3991,17 +4001,19 @@ const ShipmentForm = () => {
       const selectedObject = carrierTerminalDropdown.find(
         (item) => item.terminalId === terminalId && item.carrierId === carrierId
       );
-      setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject.addressLine1);
-      setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject.addressLine2);
-      setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject.city);
-      setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject.zip);
-      setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject.state);
-      setValue('carrierInfo.deliveryDetails.carrier', watchedLinehaulToLocation);
-      setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
-      setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
-      setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
-      setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
-      setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+      if (selectedObject) {
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject.addressLine1);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject.addressLine2);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject.city);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject.zip);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject.state);
+        setValue('carrierInfo.deliveryDetails.carrier', watchedLinehaulToLocation);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+      }
     }
   }, [watchedLinehaulToLocation]);
   useEffect(() => {
@@ -4009,6 +4021,7 @@ const ShipmentForm = () => {
       setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.lineHaul.manualToLocationDetails.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.lineHaul.manualToLocationDetails.state', watchedConsigneeState ?? '');
       setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
     }
   }, [watchedLinehaulToLocationType])
@@ -4020,17 +4033,33 @@ const ShipmentForm = () => {
       setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', watchedConsigneeCity ?? '');
       setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
+      setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', watchedConsigneeState ?? '');
     }
   }, [watchedDeliveryToLocationType,]);
-  // useEffect(() => {
-  //   if (watchedDeliveryToLocationType === 'Carrier') {
-  //     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', 'Selected carrier address line 1');
-  //     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', 'Selected carrier address line 2');
-  //     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', 'Selected carrier city');
-  //     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', '99999');
-  //     setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', 'Selected carrier state');
-  //   }
-  // }, [watchedDeliveryToLocation]);
+  useEffect(() => {
+    setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
+    setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
+    setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', watchedConsigneeCity ?? '');
+    setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', watchedConsigneeState ?? '');
+    setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
+  }, []);
+  useEffect(() => {
+    if (selectedRouting) {
+      if ((selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul')) {
+        if (getValues('carrierInfo.toLocationType') === 'Consignee') {
+          setValue('carrierInfo.manualToAddress.line1', '');
+          setValue('carrierInfo.manualToAddress.line2', '');
+          setValue('carrierInfo.manualToAddress.city', '');
+          setValue('carrierInfo.manualToAddress.state', '');
+          setValue('carrierInfo.manualToAddress.zip', '');
+        }
+        setValue('carrierInfo.toLocationType', 'Carrier');
+      }
+      if (selectedRouting === 'pickup_linehaul_delivery') {
+        setValue('carrierInfo.toLocationType', 'Consignee');
+      }
+    }
+  }, [selectedRouting]);
   // search values 
   useEffect(() => {
     if (isSelectingCustomerRef.current) {
@@ -4053,6 +4082,27 @@ const ShipmentForm = () => {
   const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
   const watchedDeliveryAddAcc = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAddAcc" });
   const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
+
+  useEffect(() => {
+    if (watchedLinehaulSelectRouting) {
+      if ((watchedLinehaulSelectRouting === 'linehaul_only')) {
+        setValue('carrierInfo.lineHaul.toLocationType', 'Carrier');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', '');
+      }
+      if (watchedLinehaulSelectRouting === 'linehaul_delivery') {
+        setValue('carrierInfo.lineHaul.toLocationType', 'Consignee');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', watchedConsigneeCity ?? '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', watchedConsigneeState ?? '');
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', watchedConsigneeZip ?? '');
+      }
+    }
+  }, [watchedLinehaulSelectRouting]);
 
   return (
 
@@ -4473,6 +4523,8 @@ const ShipmentForm = () => {
 
                 {renderTextField('shipperCity', 'City')}
 
+                {renderTextField('shipperState', 'State')}
+
                 {renderZipCodeField('shipperZip')}
 
                 {renderTextField('shipperContact', 'Contact Person Name')}
@@ -4500,6 +4552,8 @@ const ShipmentForm = () => {
                 {renderTextField('consigneeAddr2', 'Address Line 2')}
 
                 {renderTextField('consigneeCity', 'City')}
+
+                {renderTextField('consigneeState', 'State')}
 
                 {renderZipCodeField('consigneeZip')}
 
@@ -5979,7 +6033,7 @@ const ShipmentForm = () => {
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
-                  {(watchedLinehaulSelectRouting !== 'linehaul_delivery' || selectedRouting !== 'pickup_linehaul_delivery') && <>
+                  {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
                     <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
                       <Box sx={{ flex: '1 1 200px' }}>
                         <Controller

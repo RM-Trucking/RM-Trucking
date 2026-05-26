@@ -1886,9 +1886,9 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
           const isInputEditing = editInputIndex === index;
 
           return (
-            <Box key={item.name} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (getValues(`${path}[${index}].isManual`) ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
+            <Box key={item.accessorial} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (getValues(`${path}[${index}].isManual`) ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
               <Box sx={{ flex: 3.5, p: 1 }}>
-                <Typography variant="body2">{item.name}</Typography>
+                <Typography variant="body2">{item.accessorial}</Typography>
               </Box>
               <Box sx={{
                 flex: 1.5, p: 1, borderLeft: '1px solid #ccc',

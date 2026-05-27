@@ -35,11 +35,13 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
     const notesColumns = [
         {
             field: "createdAt",
-            headerName: "Time",
+            headerName: "Date",
             minWidth: 200,
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography variant='normal'>{convertLocalToET(new Date(params.row.createdAt))}</Typography>
@@ -54,6 +56,8 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography>{params?.row?.createdByName}</Typography>
@@ -68,6 +72,8 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             autoHeight: true,
             renderCell: (params) => {
                 const element = (

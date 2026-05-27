@@ -78,6 +78,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'personType',
@@ -85,6 +87,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'email',
@@ -92,6 +96,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'officePhoneNumber',
@@ -99,6 +105,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'cellPhoneNumber',
@@ -106,6 +114,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -114,6 +124,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -188,6 +200,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "onTimePercentage",
@@ -196,6 +210,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "lateShipment",
@@ -204,6 +220,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
 
                 const element = (
@@ -259,12 +277,16 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "serviceNotOffered",
             headerName: "Service Not Offered",
             minWidth: 200,
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -297,6 +319,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "chargeValue",
@@ -305,6 +329,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -313,6 +339,8 @@ export default function TerminalViewPageTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -381,6 +409,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.carrierRateId || params?.row?.carrierRateId}
@@ -393,6 +423,8 @@ export default function TerminalViewPageTable() {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.originZone?.zoneName || params?.row?.originZone?.zoneName}
@@ -405,6 +437,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
@@ -425,6 +459,9 @@ export default function TerminalViewPageTable() {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.destinationZone?.zoneName || params?.row?.destinationZone?.zoneName}
@@ -437,6 +474,8 @@ export default function TerminalViewPageTable() {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
@@ -457,6 +496,9 @@ export default function TerminalViewPageTable() {
             minWidth: 300,
             minHeight: 200,
             flex: 1,
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
                 const element = (
                     <Box>
@@ -489,6 +531,8 @@ export default function TerminalViewPageTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.transportRate?.expiryDate || params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',

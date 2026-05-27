@@ -48,11 +48,15 @@ export default function ZoneTable() {
             headerName: 'Zone Name',
             width: 300,
             cellClassName: 'padded-column',
+            sortable: false,
+            filterable: false,
         },
         {
             field: 'zipCodes',
             headerName: 'Zip Codes',
             width: 700,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
@@ -72,6 +76,8 @@ export default function ZoneTable() {
             headerName: 'Customer Rate #',
             width: 200,
             cellClassName: 'padded-column',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <>
@@ -101,6 +107,8 @@ export default function ZoneTable() {
             headerName: 'Carrier Rate #',
             width: 200,
             cellClassName: 'padded-column',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <>
@@ -130,6 +138,7 @@ export default function ZoneTable() {
             headerName: "Notes",
             minWidth: 100,
             flex: 1,
+            sortable: false,
             filterable: false,
             cellClassName: 'padded-column',
             renderCell: (params) => {

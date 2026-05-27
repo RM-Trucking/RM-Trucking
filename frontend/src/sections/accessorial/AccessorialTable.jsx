@@ -37,6 +37,8 @@ export default function AccessorialTable() {
             field: 'accessorialName',
             headerName: 'Accessorial Name',
             width: 300,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "actions",

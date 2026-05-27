@@ -4866,37 +4866,37 @@ const ShipmentForm = () => {
                   </Box>
 
                   {/* Conditional Checkbox */}
-                  {selectedRouting === "pickup_linehaul_delivery" && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                      <FormControlLabel
-                        control={
-                          <Controller
-                            name="carrierInfo.airportTransfer"
-                            control={control}
-                            render={({ field }) => (
-                              <Checkbox
-                                {...field}
-                                checked={field.value}
-                                size="small"
-                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                              />
-                            )}
-                          />
-                        }
-                        label={<Typography variant="body2">Airport Transfer</Typography>}
-                      />
-                    </Box>
-                  )}
+                  {/* {selectedRouting === "pickup_linehaul_delivery" && ( */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                    <FormControlLabel
+                      control={
+                        <Controller
+                          name="carrierInfo.airportTransfer"
+                          control={control}
+                          render={({ field }) => (
+                            <Checkbox
+                              {...field}
+                              checked={field.value}
+                              size="small"
+                              sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                            />
+                          )}
+                        />
+                      }
+                      label={<Typography variant="body2">Airport Transfer</Typography>}
+                    />
+                  </Box>
+                  {/* )} */}
                 </Box>
 
                 {/* Row 1: Airport Pickup, Carrier, From Location, Manual Toggle */}
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                  <Box sx={{ flex: '0 1 150px' }}>
+                  {/* <Box sx={{ flex: '0 1 150px' }}>
                     <FormControlLabel
                       control={<Controller name="carrierInfo.airportPickup" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
                       label={<Typography variant="body2">Airport Pickup</Typography>}
                     />
-                  </Box>
+                  </Box> */}
                   <Box sx={{ flex: '1 1 200px' }}>
                     <Controller
                       name="carrierInfo.selectCarrier"
@@ -5463,7 +5463,7 @@ const ShipmentForm = () => {
                 <AccordionDetails sx={{ pt: 2 }}>
 
                   {/* linehaul details  */}
-                  {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul' && !watchedPickupAgentTerminal) && <>
+                  {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1, mb: 3 }}>
                       <Box sx={{ flex: '0 1 250px' }}>
                         <Controller
@@ -6020,8 +6020,8 @@ const ShipmentForm = () => {
                   </Box>
 
                   {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                  <Box sx={{ display: 'flex', gap: 4 }}>
-                    {/* <Controller
+                  {/* <Box sx={{ display: 'flex', gap: 4 }}> */}
+                  {/* <Controller
                       name="carrierInfo.lineHaul.deliveryIncluded"
                       control={control}
                       render={({ field }) => (
@@ -6032,7 +6032,7 @@ const ShipmentForm = () => {
                         />
                       )}
                     /> */}
-                    <Controller
+                  {/* <Controller
                       name="carrierInfo.lineHaul.airportTransfer"
                       control={control}
                       render={({ field }) => (
@@ -6042,9 +6042,9 @@ const ShipmentForm = () => {
                           label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
                         />
                       )}
-                    />
+                    /> */}
 
-                  </Box>
+                  {/* </Box> */}
                 </AccordionDetails>
               </Accordion>
 
@@ -6435,12 +6435,29 @@ const ShipmentForm = () => {
                     </Box>
                   </>}
 
-                  <Box sx={{ flex: '0 1 200px' }}>
+                  <Box display={'flex'} alignItems={'center'}>
                     <FormControlLabel
                       control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
                       label={<Typography variant="body2">Add Accessorial</Typography>}
                     />
+                    <Box sx={{ display: 'flex', gap: 4 }}>
+
+                      <Controller
+                        name="carrierInfo.lineHaul.airportTransfer"
+                        control={control}
+                        render={({ field }) => (
+                          <FormControlLabel
+                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                            label={<Typography variant="body2">Airport Transfer</Typography>}
+                          />
+                        )}
+                      />
+
+                    </Box>
                   </Box>
+                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+
 
                   {/* ACCESSORIALS: Flexbox for header */}
                   {watchedDeliveryAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
@@ -6733,24 +6750,6 @@ const ShipmentForm = () => {
                           />
                         </Box>
                       </Box>
-                    </Box>
-
-
-                    {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                    <Box sx={{ display: 'flex', gap: 4 }}>
-
-                      <Controller
-                        name="carrierInfo.lineHaul.airportTransfer"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                            control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
-                          />
-                        )}
-                      />
-
                     </Box>
                   </>}
                 </AccordionDetails>

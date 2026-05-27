@@ -27,6 +27,8 @@ export default function CustomerListTable({ handleCloseConfirm }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ p: 1 }}>
                     {params?.row?.customerName}
@@ -39,6 +41,8 @@ export default function CustomerListTable({ handleCloseConfirm }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ p: 1 }}>
                     {params?.row?.stationName}
@@ -54,6 +58,8 @@ export default function CustomerListTable({ handleCloseConfirm }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ p: 1 }}>
                     {params?.row?.carrierName}

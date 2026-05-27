@@ -13,8 +13,9 @@ const convertLocalToET = (date) => {
    const TIME_STAMP = import.meta.env.VITE_TIME_STAMP || 'ET';
   let etTime;
   if (TIME_STAMP === 'ET') {
-    etTime = currentDate.toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
-    minute: '2-digit'});
+    // etTime = currentDate.toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit',
+    // minute: '2-digit'});
+    etTime = currentDate.toLocaleString('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit', day: '2-digit'});
   }
   return `${etTime}`;
 };

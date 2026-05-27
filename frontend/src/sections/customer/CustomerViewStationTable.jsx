@@ -50,13 +50,17 @@ export default function CustomerViewStationTable() {
             field: "stationName",
             headerName: "Station Name",
             minWidth: 120,
-            flex: 1
+            flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "rmAccountNumber",
             headerName: "RM Account #",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -76,13 +80,18 @@ export default function CustomerViewStationTable() {
             field: "airportCode",
             headerName: "Airport Code",
             minWidth: 110,
-            flex: 1
+            flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "addresses",
             headerName: "Address",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
                 const element = (
                     <Typography variant='normal'>
@@ -97,6 +106,9 @@ export default function CustomerViewStationTable() {
             headerName: "City",
             minWidth: 110,
             align: 'center',
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
                 const element = (
                     <Typography variant='normal'>
@@ -111,6 +123,9 @@ export default function CustomerViewStationTable() {
             headerName: "State",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
                 const element = (
                     <Typography variant='normal'>
@@ -125,6 +140,9 @@ export default function CustomerViewStationTable() {
             headerName: "ZipCode",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
                 const element = (
                     <Typography variant='normal'>
@@ -145,18 +163,25 @@ export default function CustomerViewStationTable() {
             headerName: "Phone #",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "faxNumber",
             headerName: "Fax #",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "openTime",
             headerName: "Open Time",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
+
             renderCell: (params) => {
 
                 const element = (
@@ -179,6 +204,8 @@ export default function CustomerViewStationTable() {
             headerName: "Close Time",
             minWidth: 110,
             flex: 1,
+            filterable: false,  
+            sortable: false,
             renderCell: (params) => {
 
                 const element = (
@@ -201,18 +228,24 @@ export default function CustomerViewStationTable() {
             headerName: "Hrs",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "warehouseDetail",
             headerName: "Warehouse",
             minWidth: 110,
             flex: 1,
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
             headerName: "Notes",
             minWidth: 100,
             flex: 1,
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenNotesDialog(true);

@@ -55,6 +55,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'carrierName',
@@ -62,6 +64,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'tsaCertified',
@@ -69,6 +73,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography
@@ -85,6 +91,8 @@ export default function RateTable() {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const rawValue = params?.value;
                 if (!rawValue) return '';
@@ -112,6 +120,8 @@ export default function RateTable() {
             headerName: 'Status',
             width: 100,
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -133,6 +143,8 @@ export default function RateTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);

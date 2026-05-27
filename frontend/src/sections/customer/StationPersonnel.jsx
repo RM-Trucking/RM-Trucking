@@ -309,7 +309,7 @@ export default function StationPersonnel({ type, handleCloseConfirm, selectedSta
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
-                                    label="Cell Phone Number *"
+                                    label="Cell Phone Number"
                                     // 3. Physical browser limit for the UI
                                     inputProps={{ maxLength: 20 }}
                                     error={!!error}

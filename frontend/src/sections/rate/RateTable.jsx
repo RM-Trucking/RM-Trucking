@@ -67,6 +67,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {currentRateRoutedFrom === 'customer' ? params?.row?.customerRateId : params?.row?.carrierRateId}
@@ -79,6 +81,8 @@ export default function RateTable() {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.originZone?.zoneName}
@@ -91,6 +95,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.originZone?.ranges?.map((range, index) => (
@@ -108,6 +114,8 @@ export default function RateTable() {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.destinationZone?.zoneName}
@@ -120,6 +128,8 @@ export default function RateTable() {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.destinationZone?.ranges?.map((range, index) => (
@@ -137,6 +147,8 @@ export default function RateTable() {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 // have to add customer list 
                 const element = (<>
@@ -180,6 +192,8 @@ export default function RateTable() {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -200,6 +214,8 @@ export default function RateTable() {
             minWidth: 200,
             minHeight: 200,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
@@ -222,6 +238,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
@@ -239,6 +257,7 @@ export default function RateTable() {
             minWidth: 100,
             flex: 1,
             filterable: false,
+            sortable: false,
             cellClassName: 'center-status-cell',
             renderCell: (params) => {
                 const handleDialogOpen = () => {
@@ -373,6 +392,8 @@ export default function RateTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.rateId}
@@ -385,6 +406,8 @@ export default function RateTable() {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
         },
         {
             field: 'department',
@@ -392,12 +415,16 @@ export default function RateTable() {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
         },
         {
             field: "minRate",
             headerName: "Rates",
             minWidth: 300,
             minHeight: 200,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 1, mb: 1, }}>

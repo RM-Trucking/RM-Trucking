@@ -48,6 +48,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.customerRateId}
@@ -60,6 +62,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Typography variant="normal">
                     {params?.row?.originZone?.zoneName}
@@ -72,6 +76,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
@@ -92,6 +98,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Typography variant="normal">
                     {params?.row?.destinationZone?.zoneName}
@@ -104,6 +112,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 170,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
@@ -124,6 +134,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 // have to add customer list 
                 const element = (<>
@@ -146,6 +158,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -166,6 +180,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             minWidth: 200,
             minHeight: 200,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
@@ -188,6 +204,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
@@ -244,6 +262,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.carrierRateId}
@@ -256,6 +276,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Typography variant="normal">
                     {params?.row?.originZone?.zoneName}
@@ -268,6 +290,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
@@ -288,6 +312,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => (
                 <Typography variant="normal">
                     {params?.row?.destinationZone?.zoneName}
@@ -300,6 +326,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 170,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
@@ -320,6 +348,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 // have to add customer list 
                 const element = (<>
@@ -342,6 +372,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 100,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -362,6 +394,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             minWidth: 200,
             minHeight: 200,
             flex: 1,
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
@@ -384,6 +418,8 @@ export default function RateViewTable({ handleCloseRate, }) {
             width: 150,
             align: 'center',
             cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',

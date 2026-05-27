@@ -33,7 +33,8 @@ export default function RateLogs({ }) {
     const timeConversion = (updatedAt) => {
         const rawDate = updatedAt;
         const utcDate = rawDate?.endsWith('Z') ? rawDate : `${rawDate}Z`;
-        return dayjs.utc(utcDate).local().format('DD/MM/YYYY HH:mm');
+        // return dayjs.utc(utcDate).local().format('DD/MM/YYYY HH:mm');
+        return dayjs.utc(utcDate).local().format('DD/MM/YYYY');
     }
 
 

@@ -41,6 +41,8 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
 
                 const element = <Typography variant='normal'>
@@ -55,6 +57,8 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const updateRowValue = (id, field, value) => {
                     const updatedData = [...tableData];

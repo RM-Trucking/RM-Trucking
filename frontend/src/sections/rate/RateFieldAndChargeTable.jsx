@@ -49,6 +49,8 @@ export default function RateFieldAndChargeTable({ type }) {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleTableUpdate = (id, field, value) => {
                     console.log(`Updating row id ${id}, field ${field} with value: ${value}`);
@@ -137,6 +139,8 @@ export default function RateFieldAndChargeTable({ type }) {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const updateRowValue = (id, field, value) => {
                     console.log(`Updating row id ${id}, field ${field} with value: ${value}`);

@@ -172,6 +172,7 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         filterable: false,
+        sortable: false,
     },
     {
         field: "rmAccountNumber",
@@ -179,6 +180,7 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         filterable: false,
+        sortable: false,
         renderCell: (params) => {
             const element = (
                 <Box
@@ -202,6 +204,7 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         filterable: false,
+        sortable: false,
     },
     {
         field: "website",
@@ -209,6 +212,7 @@ export default function CustomerHomePageTable() {
         minWidth: 100,
         flex: 1,
         filterable: false,
+        sortable: false,
     },
     {
         field: "activeStatus",
@@ -217,6 +221,7 @@ export default function CustomerHomePageTable() {
         align: 'center',
         cellClassName: 'center-status-cell',
         filterable: false,
+        sortable: false,
         renderCell: (params) => {
             const element = (
                 <Box
@@ -238,7 +243,7 @@ export default function CustomerHomePageTable() {
         flex: 1,
         filterable: false,
         cellClassName: 'center-content-cell',
-
+        sortable: false,
         renderCell: (params) => (
             <IconButton
                 onClick={() => handleDialogOpen(params?.row)}
@@ -395,6 +400,7 @@ export default function CustomerHomePageTable() {
                 pagination
 
                 // regarding filters
+                // disableColumnSelector
                 showToolbar
                 slots={{
                     filterPanel: CustomFilterPanel,

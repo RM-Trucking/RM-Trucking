@@ -67,6 +67,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "departmentName",
@@ -75,6 +77,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "email",
@@ -83,6 +87,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "phoneNumber",
@@ -91,6 +97,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -99,6 +107,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -176,6 +186,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "departmentName",
@@ -184,6 +196,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "email",
@@ -192,6 +206,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "officePhoneNumber",
@@ -200,6 +216,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "cellPhoneNumber",
@@ -208,6 +226,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -216,6 +236,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -283,6 +305,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.customerRateId || params?.row?.customerRateId}
@@ -295,6 +319,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.originZone?.zoneName || params?.row?.originZone?.zoneName}
@@ -307,6 +333,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.transportRate?.originZone?.ranges?.map((range, index) => (
@@ -327,6 +355,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 100,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params?.row?.transportRate?.destinationZone?.zoneName || params?.row?.destinationZone?.zoneName}
@@ -339,6 +369,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 170,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
                     {params?.row?.transportRate?.destinationZone?.ranges?.map((range, index) => (
@@ -359,6 +391,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             minWidth: 300,
             minHeight: 200,
             flex: 1,
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box>
@@ -393,6 +427,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const formatted = new Date(params?.row?.transportRate?.expiryDate || params?.row?.expiryDate).toLocaleDateString('en-US', {
                     month: '2-digit',
@@ -463,6 +499,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box sx={{ fontWeight: 'bold' }}>
                     {params.row?.rateId}
@@ -475,6 +513,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box>
                     {params.row?.warehouseRate?.warehouse}
@@ -487,6 +527,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             width: 200,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => (
                 <Box>
                     {params.row?.warehouseRate?.department}
@@ -499,6 +541,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             minWidth: 300,
             minHeight: 200,
             flex: 1,
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box>
@@ -564,6 +608,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "chargeType",
@@ -572,6 +618,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "chargeValue",
@@ -580,6 +628,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -588,6 +638,8 @@ export default function StationTabsTable({ currentTab, setActionType }) {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);

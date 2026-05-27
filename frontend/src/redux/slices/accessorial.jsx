@@ -48,9 +48,9 @@ const slice = createSlice({
             state.accessorialSuccess = true;
             state.accessorialData = action.payload.data;
             state.pagination = {
-                page: action.payload?.pagination?.page || state.pagination?.page,
-                pageSize: action.payload?.pagination?.pageSize || state.pagination?.pageSize,
-                totalRecords: action.payload?.pagination?.total || state.pagination?.totalRecords || state.accessorialData.length,
+                page: action.payload?.pagination?.page,
+                pageSize: action.payload?.pagination?.pageSize,
+                totalRecords: action.payload?.pagination?.total,
             };
         },
         postAccessorialDataSuccess(state,action){

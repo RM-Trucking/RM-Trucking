@@ -64,6 +64,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'rmAccountNumber',
@@ -71,6 +73,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'airportCode',
@@ -78,6 +82,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'totalShipments',
@@ -85,6 +91,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'onTimePercentage',
@@ -92,6 +100,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: 'lateShipments',
@@ -99,6 +109,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography
@@ -116,6 +128,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography
@@ -132,6 +146,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography
@@ -148,6 +164,8 @@ export default function CarrierViewTable() {
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Typography
@@ -164,6 +182,8 @@ export default function CarrierViewTable() {
             width: 700,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap' }} alignItems={'center'} >
@@ -182,6 +202,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "faxNumber",
@@ -190,6 +212,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "openTime",
@@ -198,6 +222,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
 
                 const element = (
@@ -222,6 +248,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
 
                 const element = (
@@ -245,6 +273,8 @@ export default function CarrierViewTable() {
             minWidth: 150,
             cellClassName: 'center-status-cell',
             headerAlign: 'center',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const element = (
                     <Box
@@ -266,6 +296,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -274,6 +306,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);
@@ -350,6 +384,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "chargeType",
@@ -358,6 +394,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "chargeValue",
@@ -366,6 +404,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
         },
         {
             field: "notes",
@@ -374,6 +414,8 @@ export default function CarrierViewTable() {
             flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
+            filterable: false,
+            sortable: false,
             renderCell: (params) => {
                 const handleDialogOpen = () => {
                     setOpenConfirmDialog(true);

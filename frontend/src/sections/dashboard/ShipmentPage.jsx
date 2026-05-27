@@ -2889,9 +2889,9 @@ const ShipmentForm = () => {
       // Step 1 - Customer 
 
       billingCustomer: '',
-
+      airportPickupService: false,
       originAirport: '',
-
+      airportDeliveryService: false,
       destinationAirport: '',
 
       // Step 1 - Shipper 
@@ -4105,6 +4105,8 @@ const ShipmentForm = () => {
   const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
   const watchedDeliveryAddAcc = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAddAcc" });
   const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
+  const watchedAirportPickupService = useWatch({ control, name: "carrierInfo.airportPickupService" });
+  const watchedAirportDeliveryService = useWatch({ control, name: "carrierInfo.airportDeliveryService" });
 
   useEffect(() => {
     if (watchedLinehaulSelectRouting) {
@@ -4443,7 +4445,7 @@ const ShipmentForm = () => {
 
             <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
 
 
               <Box width={'30%'}>
@@ -4523,12 +4525,55 @@ const ShipmentForm = () => {
 
               </Box>
 
-              {renderTextField('originAirport', 'Origin Airport Code', true)}
-
-              {renderTextField('destinationAirport', 'Destination Airport Code', true)}
-
             </Box>
 
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 6 }}>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Controller
+                      name="carrierInfo.airportPickupService"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          {...field}
+                          checked={field.value}
+                          size="small"
+                          sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                        />
+                      )}
+                    />
+                  }
+                  label={<Typography variant="body2">Airport Pickup Service</Typography>}
+                />
+              </Box>
+
+              {renderTextField('originAirport', 'Origin Airport Code', watchedAirportPickupService)}
+
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                <FormControlLabel
+                  control={
+                    <Controller
+                      name="carrierInfo.airportDeliveryService"
+                      control={control}
+                      render={({ field }) => (
+                        <Checkbox
+                          {...field}
+                          checked={field.value}
+                          size="small"
+                          sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                        />
+                      )}
+                    />
+                  }
+                  label={<Typography variant="body2">Airport Delivery Service</Typography>}
+                />
+              </Box>
+
+              {renderTextField('destinationAirport', 'Destination Airport Code', watchedAirportDeliveryService)}
+
+            </Box>
 
 
             {/* Shipper Section */}

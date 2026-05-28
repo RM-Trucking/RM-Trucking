@@ -23,7 +23,7 @@ import NotesTable from '../customer/NotesTable';
 import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown } from '../../redux/slices/shipment';
+import { postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown } from '../../redux/slices/shipment';
 
 
 
@@ -4090,11 +4090,11 @@ const ShipmentForm = () => {
       return;
     }
 
-    // const timer = setTimeout(() => {
-    //   dispatch(searchCustomers(customerSearchValue));
-    // }, 500);
+    const timer = setTimeout(() => {
+      dispatch(searchCustomerStationDropdown(customerSearchValue));
+    }, 500);
 
-    // return () => clearTimeout(timer);
+    return () => clearTimeout(timer);
   }, [dispatch, customerSearchValue]);
 
   // watching pickup agent terminal
@@ -4481,11 +4481,11 @@ const ShipmentForm = () => {
                       }}
 
                       onInputChange={(event, newInputValue, reason) => {
-                        if (reason !== "reset") {
+                        if (reason !== "reset" && reason !== 'blur') {
                           setCustomerSearchValue(newInputValue);
-                          // if (!newInputValue || newInputValue.trim() === "") {
-                          //   dispatch(searchCustomers(""));
-                          // }
+                          if (!newInputValue || newInputValue.trim() === "") {
+                            dispatch(searchCustomerStationDropdown(""));
+                          }
                         }
                       }}
                       loading={isLoading}

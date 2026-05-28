@@ -3352,7 +3352,6 @@ const ShipmentForm = () => {
     if (activeStep === 1) {
       fieldsToValidate = ['billingCustomer', 'originAirport', 'destinationAirport', 'shipperZip', 'consigneeZip', 'shipperPhone', 'consigneePhone',];
       const isValid = await trigger(fieldsToValidate);
-      const [firstNumber, secondNumber] = currentValues.billingCustomer.split('-');
       if (isValid) {
         dispatch(postStep1(
           {
@@ -3368,8 +3367,10 @@ const ShipmentForm = () => {
               "shipmentStatus": "Active"
             },
             "customerDetails": {
-              "customerId": Number(secondNumber),
-              "stationId": Number(firstNumber),
+              "customerId": currentValues.billingCustomer.customerId,
+              "stationId": currentValues.billingCustomer.stationId,
+              "airportPickupService" : currentValues.airportPickupService,
+              "airportDeliveryService" : currentValues.airportDeliveryService,
               "originAirportCode": currentValues.originAirport,
               "destinationAirportCode": currentValues.destinationAirport,
               "shipperDetails": {

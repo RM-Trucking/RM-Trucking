@@ -14,6 +14,8 @@ const initialState = {
   shipmentData: [],
   customerStationDropdown: [],
   carrierTerminalDropdown: [],
+  shipperDropdown: [],
+  consigneeDropdown: [],
 };
 
 const slice = createSlice({
@@ -69,11 +71,27 @@ const slice = createSlice({
         zip: '99999',
       }];
     },
+    getShipperDropdownSuccess(state, action) {
+      state.isLoading = false;
+      state.shipperDropdown = [
+        { shipperId: '1', shipperName: 'Shipper 1' },
+        { shipperId: '2', shipperName: 'Shipper 2' },
+        { shipperId: '3', shipperName: 'Shipper 3' },
+      ];
+    },
     setCustomerStationDropdown(state, action) {
       state.customerStationDropdown = action.payload;
     },
     setCarrierTerminalDropdown(state, action) {
       state.carrierTerminalDropdown = action.payload;
+    },
+    getConsigneeDropdownSuccess(state, action) {
+      state.isLoading = false;
+      state.consigneeDropdown = [
+        { consigneeId: '1', consigneeName: 'Consignee 1' },
+        { consigneeId: '2', consigneeName: 'Consignee 2' },
+        { consigneeId: '3', consigneeName: 'Consignee 3' },
+      ];
     },
   },
 });
@@ -127,6 +145,26 @@ export function getCarrierTerminalDropdown() {
       // const response = await axios.get('maintenance/carrier/dropdown');
       // dispatch(slice.actions.getCarrierTerminalDropdownSuccess(response));
       dispatch(slice.actions.getCarrierTerminalDropdownSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getShipperDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      dispatch(slice.actions.getShipperDropdownSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getConsigneeDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      dispatch(slice.actions.getConsigneeDropdownSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

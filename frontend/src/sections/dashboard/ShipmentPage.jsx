@@ -7,7 +7,7 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete,
+  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions
 
 
 } from '@mui/material';
@@ -23,7 +23,10 @@ import NotesTable from '../customer/NotesTable';
 import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown } from '../../redux/slices/shipment';
+import {
+  postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
+  getShipperDropdown, getConsigneeDropdown,
+} from '../../redux/slices/shipment';
 
 
 
@@ -2796,6 +2799,8 @@ const ShipmentForm = () => {
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const customerStationDropdown = useSelector((state) => state?.shipmentdata?.customerStationDropdown);
   const carrierTerminalDropdown = useSelector((state) => state?.shipmentdata?.carrierTerminalDropdown);
+  const shipperDropdown = useSelector((state) => state?.shipmentdata?.shipperDropdown);
+  const consigneeDropdown = useSelector((state) => state?.shipmentdata?.consigneeDropdown);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -2863,6 +2868,7 @@ const ShipmentForm = () => {
       }], selected: true
     },
   ]);
+  const filter = createFilterOptions();
 
   const {
     control,
@@ -3367,21 +3373,23 @@ const ShipmentForm = () => {
               "originAirportCode": currentValues.originAirport,
               "destinationAirportCode": currentValues.destinationAirport,
               "shipperDetails": {
-                "shipperName": currentValues.shipperName,
+                'shipperId' : currentValues.shipperName.shipperId,
+                "shipperName": currentValues.shipperName.shipperName,
                 "addressLine1": currentValues.shipperAddr1,
                 "addressLine2": currentValues.shipperAddr2,
                 "city": currentValues.shipperCity,
-                // "state": currentValues.shipperState,
+                "state": currentValues.shipperState,
                 "zipCode": currentValues.shipperZip,
                 "contactPersonName": currentValues.shipperContact,
                 "phoneNumber": currentValues.shipperPhone
               },
               "consigneeDetails": {
-                "consigneeName": currentValues.consigneeName,
+                "consigneeId" : currentValues.consigneeName.consigneeId,
+                "consigneeName": currentValues.consigneeName.consigneeName,
                 "addressLine1": currentValues.consigneeAddr1,
                 "addressLine2": currentValues.consigneeAddr2,
                 "city": currentValues.consigneeCity,
-                // "state": currentValues.consigneeState,
+                "state": currentValues.consigneeState,
                 "zipCode": currentValues.consigneeZip,
                 "contactPersonName": currentValues.consigneeContact,
                 "phoneNumber": currentValues.consigneePhone
@@ -3795,6 +3803,8 @@ const ShipmentForm = () => {
   useEffect(() => {
     dispatch(getCustomerStationDropdown());
     dispatch(getCarrierTerminalDropdown());
+    dispatch(getShipperDropdown());
+    dispatch(getConsigneeDropdown());
   }, [])
   useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
@@ -3951,7 +3961,7 @@ const ShipmentForm = () => {
   useEffect(() => {
     // Whenever any shipper detail changes, we can perform actions here
     // update manual from address of carrierinfo 
-    setValue('carrierInfo.fromLocation', watchedShipperName ?? '');
+    setValue('carrierInfo.fromLocation', watchedShipperName.shipperName ?? '');
     setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
     setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
     setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
@@ -3963,7 +3973,7 @@ const ShipmentForm = () => {
     // Whenever any consignee detail changes, we can perform actions here
     // update manual to address of carrierinfo
     if (watchedToLocationType === 'Consignee') {
-      setValue('carrierInfo.toLocation', watchedConsigneeName ?? '');
+      setValue('carrierInfo.toLocation', watchedConsigneeName.consigneeName ?? '');
       setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
@@ -4083,19 +4093,6 @@ const ShipmentForm = () => {
       }
     }
   }, [selectedRouting]);
-  // search values 
-  useEffect(() => {
-    if (isSelectingCustomerRef.current) {
-      isSelectingCustomerRef.current = false;
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      dispatch(searchCustomerStationDropdown(customerSearchValue));
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [dispatch, customerSearchValue]);
 
   // watching pickup agent terminal
   const watchedPickupAgentTerminal = useWatch({ control, name: "carrierInfo.pickupAgentTerminal" });
@@ -4447,83 +4444,69 @@ const ShipmentForm = () => {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
 
+              <Controller
+                name="billingCustomer" // This field will hold the chosen object structure
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value, ref } }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={customerStationDropdown}
 
-              <Box width={'30%'}>
+                    // Bind form state object or fallback to null
+                    value={value || null}
 
-                <Controller
-                  name="billingCustomer"
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { onChange, value, ...fieldProps } }) => (
-                    <Autocomplete
-                      {...fieldProps} // Spreads ref and name from React Hook Form
-                      fullWidth
-                      options={customerStationDropdown || []}
-
-                      // Matches the combined string value logic from your previous MenuItem setup
-                      getOptionLabel={(option) => {
-                        if (option && option.customerName && option.stationName) {
-                          return `${option.customerName} | ${option.stationName}`;
+                    // Handles selection clicks or pressing 'Enter'
+                    onChange={(event, newValue) => {
+                     
+                        onChange(newValue);
+                        if (!newValue) {
+                          dispatch(searchCustomerStationDropdown(''));
                         }
-                        return "";
-                      }}
+                      
+                    }}
 
-                      // Finds the matching option object from customerStationDropdown array based on the stored value
-                      value={customerStationDropdown.find(opt => `${opt.stationId}-${opt.customerId}` === value) || null}
-
-                      // Updates React Hook Form state on change
-                      onChange={(event, newValue) => {
-                        isSelectingCustomerRef.current = true;
-
-                        // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                        const formValue = newValue ? `${newValue.stationId}-${newValue.customerId}` : "";
-                        onChange(formValue);
-                      }}
-
-                      onInputChange={(event, newInputValue, reason) => {
-                        if (reason !== "reset" && reason !== 'blur') {
-                          setCustomerSearchValue(newInputValue);
-                          if (!newInputValue || newInputValue.trim() === "") {
-                            dispatch(searchCustomerStationDropdown(""));
-                          }
-                        }
-                      }}
-                      loading={isLoading}
-                      loadingText="Searching customers..."
-                      noOptionsText={customerSearchValue ? "No customers found" : "Type to search for customers"}
-
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          variant="standard"
-                          label="Billing Customer *"
-                          error={!!errors.billingCustomer} // Uses React Hook Form errors
-                          helperText={errors.billingCustomer ? 'Billing Customer is required' : ' '}
-                          InputLabelProps={{ shrink: true }}
-                          sx={{
-                            '& .MuiInputBase-input:disabled': {
-                              color: '#000',
-                              WebkitTextFillColor: '#000'
-                            }
-                          }}
-                          InputProps={{
-                            ...params.InputProps,
-                            endAdornment: (
-                              <>
-                                {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                {params.InputProps.endAdornment}
-                              </>
-                            ),
-                          }}
-                        />
-                      )}
-                      sx={{ width: '100% !important' }}
-                    />
-                  )}
-                />
+                    // Captures custom text changes if user clicks away without selecting/hitting Enter
+                    onInputChange={(event, newInputValue, reason) => {
+                      if (reason === 'input') {
+                        dispatch(searchCustomerStationDropdown(newInputValue));
+                        onChange(newInputValue);
+                      }
+                    }}
 
 
-              </Box>
+
+                    // Tells MUI how to display text from your specific object structure
+                    getOptionLabel={(option) => {
+                      if (typeof option === 'string') {
+                        return option;
+                      }
+                      if (option.inputValue) {
+                        return option.inputValue;
+                      }
+                      return option.customerName || '';
+                    }}
+
+                    // Ensures proper matching for active highlighted selections
+                    isOptionEqualToValue={(option, val) =>
+                      option.customerId === val?.customerId || option.customerName === val?.customerName
+                    }
+
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        inputRef={ref} // Keeps form validation ref focus working properly
+                        fullWidth
+                        label={`Billing Customer *`}
+                        variant="standard"
+                        error={!!errors['billingCustomer']}
+                        helperText={errors['billingCustomer'] ? 'This field is required' : ''}
+                      />
+                    )}
+                    sx={{ width: '30%', mb:2 }}
+                  />
+                )}
+              />
 
             </Box>
 
@@ -4584,7 +4567,90 @@ const ShipmentForm = () => {
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
-                {renderTextField('shipperName', 'Shipper Name')}
+                <Controller
+                  name="shipperName" // Note: This field will now hold an object: { shipperId, shipperName }
+                  control={control}
+                  rules={{ required: watchedAirportPickupService }}
+                  render={({ field: { onChange, value, ref } }) => (
+                    <Autocomplete
+                      freeSolo
+                      options={shipperDropdown}
+
+                      // Map the current form state to the Autocomplete value
+                      value={value || null}
+
+                      // Update React Hook Form state when a choice is made
+                      onChange={(event, newValue) => {
+                        if (typeof newValue === 'string') {
+                          // User typed text and pressed Enter
+                          onChange({ shipperId: null, shipperName: newValue });
+                        } else if (newValue && newValue.inputValue) {
+                          // User clicked the "Add [Custom Text]" option
+                          onChange({ shipperId: null, shipperName: newValue.inputValue });
+                        } else {
+                          // User selected an existing shipper object
+                          onChange(newValue);
+                        }
+                      }}
+
+                      // Fallback fallback mechanism for typing text freely without selecting dropdown choices
+                      onInputChange={(event, newInputValue, reason) => {
+                        // Only update as a raw string if typing manually (not clicking an option)
+                        if (reason === 'input') {
+                          onChange({ shipperId: null, shipperName: newInputValue });
+                        }
+                      }}
+
+                      // Generates the dynamic "Add..." option if it does not match anything
+                      filterOptions={(options, params) => {
+                        const filtered = filter(options, params);
+                        const { inputValue } = params;
+
+                        const isExisting = options.some(
+                          (option) => inputValue.toLowerCase() === option.shipperName.toLowerCase()
+                        );
+
+                        if (inputValue !== '' && !isExisting) {
+                          filtered.unshift({
+                            inputValue,
+                            shipperName: `Add "${inputValue}"`,
+                          });
+                        }
+
+                        return filtered;
+                      }}
+
+                      // Tells MUI how to read the text label out of your objects
+                      getOptionLabel={(option) => {
+                        if (typeof option === 'string') {
+                          return option;
+                        }
+                        if (option.inputValue) {
+                          return option.inputValue;
+                        }
+                        return option.shipperName || '';
+                      }}
+
+                      // Useful for object comparisons to determine selection highlighting
+                      isOptionEqualToValue={(option, val) =>
+                        option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
+                      }
+
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          inputRef={ref} // Forwards validation focus back to React Hook Form
+                          fullWidth
+                          label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                          variant="standard"
+                          error={!!errors['shipperName']}
+                          helperText={errors['shipperName'] ? 'This field is required' : ''}
+                        />
+                      )}
+                      sx={{ width: '25%' }}
+                    />
+                  )}
+                />
 
                 {renderTextField('shipperAddr1', 'Address Line 1')}
 
@@ -4614,7 +4680,90 @@ const ShipmentForm = () => {
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
-                {renderTextField('consigneeName', 'Consignee Name')}
+
+                <Controller
+                  name="consigneeName" // This field will hold the chosen object structure
+                  control={control}
+                  rules={{ required: watchedAirportDeliveryService }}
+                  render={({ field: { onChange, value, ref } }) => (
+                    <Autocomplete
+                      freeSolo
+                      options={consigneeDropdown}
+
+                      // Bind form state object or fallback to null
+                      value={value || null}
+
+                      // Handles selection clicks or pressing 'Enter'
+                      onChange={(event, newValue) => {
+                        if (typeof newValue === 'string') {
+                          // User typed text and manually hit Enter
+                          onChange({ consigneeId: null, consigneeName: newValue });
+                        } else if (newValue && newValue.inputValue) {
+                          // User clicked the custom dynamic 'Add "..."' option
+                          onChange({ consigneeId: null, consigneeName: newValue.inputValue });
+                        } else {
+                          // User selected an existing item from the dropdown
+                          onChange(newValue);
+                        }
+                      }}
+
+                      // Captures custom text changes if user clicks away without selecting/hitting Enter
+                      onInputChange={(event, newInputValue, reason) => {
+                        if (reason === 'input') {
+                          onChange({ consigneeId: null, consigneeName: newInputValue });
+                        }
+                      }}
+
+                      // Generates the "Add [Custom Text]" selection item if it is not in the array
+                      filterOptions={(options, params) => {
+                        const filtered = filter(options, params);
+                        const { inputValue } = params;
+
+                        const isExisting = options.some(
+                          (option) => inputValue.toLowerCase() === option.consigneeName.toLowerCase()
+                        );
+
+                        if (inputValue !== '' && !isExisting) {
+                          filtered.unshift({
+                            inputValue,
+                            consigneeName: `Add "${inputValue}"`,
+                          });
+                        }
+
+                        return filtered;
+                      }}
+
+                      // Tells MUI how to display text from your specific object structure
+                      getOptionLabel={(option) => {
+                        if (typeof option === 'string') {
+                          return option;
+                        }
+                        if (option.inputValue) {
+                          return option.inputValue;
+                        }
+                        return option.consigneeName || '';
+                      }}
+
+                      // Ensures proper matching for active highlighted selections
+                      isOptionEqualToValue={(option, val) =>
+                        option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
+                      }
+
+                      renderInput={(params) => (
+                        <TextField
+                          {...params}
+                          inputRef={ref} // Keeps form validation ref focus working properly
+                          fullWidth
+                          label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
+                          variant="standard"
+                          error={!!errors['consigneeName']}
+                          helperText={errors['consigneeName'] ? 'This field is required' : ''}
+                        />
+                      )}
+                      sx={{ width: '25%' }}
+                    />
+                  )}
+                />
 
                 {renderTextField('consigneeAddr1', 'Address Line 1')}
 
@@ -5176,7 +5325,7 @@ const ShipmentForm = () => {
                             fullWidth
                             variant="standard"
                             label="To Location *"
-                            value={watchedConsigneeName ?? ''}// Your hardcoded static value displayed to the user
+                            value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
                             disabled // Visual indicator showing the user it cannot be changed manually
                             InputLabelProps={{ shrink: true }}
                             sx={{
@@ -5765,7 +5914,7 @@ const ShipmentForm = () => {
                                 fullWidth
                                 variant="standard"
                                 label="To Location *"
-                                value={watchedConsigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
                                 disabled // Visual indicator showing the user it cannot be changed manually
                                 InputLabelProps={{ shrink: true }}
                                 sx={{
@@ -6337,7 +6486,7 @@ const ShipmentForm = () => {
                                 fullWidth
                                 variant="standard"
                                 label="To Location *"
-                                value={watchedConsigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
                                 disabled // Visual indicator showing the user it cannot be changed manually
                                 InputLabelProps={{ shrink: true }}
                                 sx={{

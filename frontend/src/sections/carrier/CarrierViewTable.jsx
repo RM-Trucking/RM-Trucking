@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider,
+    IconButton
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -14,7 +15,7 @@ import Iconify from '../../components/iconify';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
     setSelectedCarrierTabRowDetails, setOperationalMessage, getTerminalCarrierData,
-    setCarrierViewTabData, deleteTerminal, setTerminalViewTabData, setError, 
+    setCarrierViewTabData, deleteTerminal, setTerminalViewTabData, setError,
 } from '../../redux/slices/carrier';
 import {
     setTableBeingViewed, getAccessorialData, getStationAccessorialData,
@@ -57,6 +58,10 @@ export default function CarrierViewTable() {
         console.error("Error caught:", info);
         console.log(error);
     };
+    const handleDialogOpen = (row) => {
+        setOpenConfirmDialog(true);
+        notesRef.current = row;
+    }
     const terminalColumns = [
         {
             field: 'terminalName',
@@ -308,27 +313,20 @@ export default function CarrierViewTable() {
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: 'actions',
@@ -339,36 +337,35 @@ export default function CarrierViewTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setTerminalViewTabData([]));
                                 dispatch(setSelectedCarrierTabRowDetails(params.row));
                                 localStorage.setItem('terminalId', params.row.terminalId);
                                 localStorage.setItem('terminalEntityId', params.row.entityId);
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.terminalView);
-                            }} />
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedCarrierTabRowDetails(params?.row));
                                 setOpenEditDialog(true);
                                 setActionType('Edit');
-                            }} />
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                            <IconButton onClick={() => {
                                 setActionType('Delete');
                                 dispatch(deleteTerminal(params?.row?.terminalId));
-                            }} />
+                            }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );
@@ -416,27 +413,20 @@ export default function CarrierViewTable() {
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: "actions",
@@ -447,29 +437,26 @@ export default function CarrierViewTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
+                    <Box>
 
-                        <Tooltip title={'Edit'} arrow onClick={() => {
-                            dispatch(setOpertionalMessageOfCustomer(''));
-                            setActionType('Edit');
-                            setOpenEditDialog(true);
-                            dispatch(setSelectedCarrierTabRowDetails(params.row));
-                        }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }} >
+                            <IconButton onClick={() => {
+                                dispatch(setOpertionalMessageOfCustomer(''));
+                                setActionType('Edit');
+                                setOpenEditDialog(true);
+                                dispatch(setSelectedCarrierTabRowDetails(params.row));
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
+                            <IconButton onClick={() => {
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId));
-                            }}
-                            />
+                            }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }}
+                                />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );

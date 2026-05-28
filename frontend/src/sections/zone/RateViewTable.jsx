@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    Box, Typography, Chip, Stack, Divider, Tooltip, DialogContent, Snackbar
+    Box, Typography, Chip, Stack, Divider, Tooltip, DialogContent, Snackbar, IconButton,
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -227,16 +227,9 @@ export default function RateViewTable({ handleCloseRate, }) {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 dispatch(getCustomerListByRateID(params.row.rateId));
@@ -245,9 +238,9 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 dispatch(setCurrentRateRoutedFrom('customer'));
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                            }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );
@@ -441,16 +434,9 @@ export default function RateViewTable({ handleCloseRate, }) {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 dispatch(getCarrierListByRateID(params.row.rateId));
@@ -459,7 +445,9 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 dispatch(setCurrentRateRoutedFrom('carrier'));
                                 navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
-                            }} />
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );

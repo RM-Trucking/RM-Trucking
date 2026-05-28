@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button, Divider
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button, Divider,
+    IconButton
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -59,6 +60,10 @@ export default function RateTable() {
         console.error("Error caught:", info);
         console.log(error);
     };
+    const handleDialogOpen = (row) => {
+        setOpenNotesDialog(true);
+        notesRef.current = row;
+    }
     const rateTransportationColumns = [
         {
             field: 'customerRateId',
@@ -259,25 +264,20 @@ export default function RateTable() {
             filterable: false,
             sortable: false,
             cellClassName: 'center-status-cell',
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenNotesDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: 'actions',
@@ -289,16 +289,9 @@ export default function RateTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("View");
@@ -311,12 +304,12 @@ export default function RateTable() {
                                     dispatch(getCarrierListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
                                 }
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Box onClick={() => {
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setRateFieldChargeData([]));
                                 dispatch(setSelectedCurrentRateRow(params?.row));
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
@@ -324,9 +317,9 @@ export default function RateTable() {
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 setActionType("Edit");
                                 setOpenConfirmDialog(true);
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
 
                         {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
@@ -454,43 +447,36 @@ export default function RateTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            alignItems: 'flex-end'
-                        }}
-                    >
-                        <Tooltip title={'Edit'} arrow>
-                            <Box
+                    <Box>
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                            <IconButton
                                 onClick={() => {
                                     dispatch(setWarehouseRatesFieldChargeData([]));
                                     setActionType("Edit");
                                     dispatch(setSelectedCurrentRateRow(params?.row));
                                     setOpenConfirmDialog(true);
-                                }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                            </Box>
+                                }} >
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Copy'} arrow>
-                            <Box
+                        <Tooltip title={'Copy'} arrow sx={{ mr: 2 }}>
+                            <IconButton
                                 onClick={() => {
                                     setActionType("Copy");
                                     dispatch(setSelectedCurrentRateRow(params?.row));
                                     setOpenConfirmDialog(true);
                                 }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="bxs:copy" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                            </Box>
+                            >
+                                <Iconify icon="bxs:copy" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Delete'} arrow>
-                            <Box onClick={() => {
+                        <Tooltip title={'Delete'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(deleteWarehouseRate(params?.row?.rateId));
                             }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
-                            </Box>
+                            >
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         {currentRateRoutedFrom === 'customer' && isSelectRateClicked && <StyledCheckbox
                             sx={{ mt: -1.5 }}

@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
+import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
@@ -40,7 +40,10 @@ export default function ZoneTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
-
+    const handleDialogOpen = (row) => {
+        setOpenConfirmDialog(true);
+        notesRef.current = row;
+    }
     // datagrid columns
     const columns = [
         {
@@ -141,25 +144,20 @@ export default function ZoneTable() {
             sortable: false,
             filterable: false,
             cellClassName: 'padded-column',
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: "actions",
@@ -170,45 +168,35 @@ export default function ZoneTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 setOpenEditDialog(true);
                                 setActionType('View');
                                 dispatch(setSelectedZoneRowDetails(params?.row));
-                            }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Box onClick={() => {
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 setOpenEditDialog(true);
                                 setActionType('Edit');
                                 dispatch(setSelectedZoneRowDetails(params.row));
-                            }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Box
+                            <IconButton
                                 onClick={() => {
                                     setActionType('Delete');
                                     // using callback to refresh table data after delete
                                     dispatch(deleteZone(params?.row?.zoneId));
-                                }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
+                                }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }}
                                 />
-                            </Box>
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );

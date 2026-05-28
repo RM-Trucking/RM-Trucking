@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
+import { Box, Switch, Stack, Typography, IconButton, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import AccessorialDetails from './AccessorialDetails';
@@ -49,31 +49,24 @@ export default function AccessorialTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'Edit'} arrow >
-                            <Box onClick={() => {
+                    <Box>
+                        <Tooltip title={'Edit'} arrow sx={{mr: 4,}}>
+                            <IconButton onClick={() => {
                                 setOpenEditDialog(true);
                                 dispatch(setSelectedAccessorialRowDetails(params.row));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Box onClick={() => {
+                            <IconButton onClick={() => {
 
                                 // using callback to refresh table data after delete
                                 dispatch(deleteAccessorial(params?.row?.accessorialId));
                             }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }}
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }}
                                 />
-                            </Box>
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );

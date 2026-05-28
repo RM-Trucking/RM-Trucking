@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import {
     Box, Stack, Typography, Button, Dialog,
-    DialogContent, Tooltip, Divider, Snackbar
+    DialogContent, Tooltip, Divider, Snackbar,
+    IconButton, 
 } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
@@ -45,6 +46,11 @@ export default function CustomerViewStationTable() {
     const [snackbarMessage, setSnackbarMessage] = useState('');
 
     // datagrid columns
+    const handleDialogOpen = (row) => {
+        setOpenNotesDialog(true);
+        setOpenConfirmDialog(true);
+        notesRef.current = row;
+    }
     const columns = [
         {
             field: "stationName",
@@ -204,7 +210,7 @@ export default function CustomerViewStationTable() {
             headerName: "Close Time",
             minWidth: 110,
             flex: 1,
-            filterable: false,  
+            filterable: false,
             sortable: false,
             renderCell: (params) => {
 
@@ -246,26 +252,20 @@ export default function CustomerViewStationTable() {
             flex: 1,
             filterable: false,
             sortable: false,
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenNotesDialog(true);
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', marginTop: '15px', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+            renderCell: (params) => (
+            <IconButton
+                onClick={() => handleDialogOpen(params?.row)}
+            >
+                <Iconify
+                    icon="icon-park-solid:notes"
+                    sx={{
+                        color: '#7fbfc4',
+                        cursor: 'pointer',
+                        pointerEvents: 'none'
+                    }}
+                />
+            </IconButton>
+        ),
         },
         {
             field: "actions",
@@ -276,40 +276,35 @@ export default function CustomerViewStationTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr : 2}}>
+                            <IconButton onClick={() => {
                                 setActionType('View');
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.customerStationView);
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                            </Box>
+                            }}  >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Box onClick={() => {
+                        <Tooltip title={'Edit'} arrow sx={{ mr : 2}}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 setActionType('Edit');
                                 setOpenConfirmDialog(true);
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Box onClick={() => {
+                            <IconButton onClick={() => {
                                 localStorage.setItem('stationId', params?.row?.stationId);
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStation(params?.row?.stationId));
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', marginTop: '15px' }} />
-                            </Box>
+                            }} >
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );
@@ -348,7 +343,7 @@ export default function CustomerViewStationTable() {
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
-        if(operationalMessage === 'Station deleted successfully') {
+        if (operationalMessage === 'Station deleted successfully') {
             dispatch(getCustomerStationData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: stationSearchStr, customerId: selectedCustomerRowDetails?.customerId || parseInt(localStorage.getItem('customerId'), 10) }));
         }
     }, [operationalMessage])

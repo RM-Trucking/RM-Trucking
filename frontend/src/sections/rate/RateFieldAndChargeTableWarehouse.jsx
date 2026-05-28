@@ -1,7 +1,8 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent,
+    IconButton
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -34,6 +35,27 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
         console.error("Error caught:", info);
         console.log(error);
     };
+    const updateRowValue = (id, field, value) => {
+        const updatedData = [...tableData];
+        // Clone the specific object to make it writable
+        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], charge: value };
+        setTableData(updatedData);
+        dispatch(setWarehouseRatesFieldChargeData(updatedData));
+    }
+    const onEdit = () => {
+        const updatedData = [...tableData];
+        // Clone the specific object to make it writable
+        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: false };
+        setTableData(updatedData);
+        dispatch(setWarehouseRatesFieldChargeData(updatedData));
+    }
+    const onSave = () => {
+        const updatedData = [...tableData];
+        // Clone the specific object to make it writable
+        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: true };
+        setTableData(updatedData);
+        dispatch(setWarehouseRatesFieldChargeData(updatedData));
+    }
     const columns = [
         {
             field: 'rateField',
@@ -60,13 +82,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
             filterable: false,
             sortable: false,
             renderCell: (params) => {
-                const updateRowValue = (id, field, value) => {
-                    const updatedData = [...tableData];
-                    // Clone the specific object to make it writable
-                    updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], charge: value };
-                    setTableData(updatedData);
-                    dispatch(setWarehouseRatesFieldChargeData(updatedData));
-                }
+
                 const element = <StyledTextField
                     variant="standard"
                     fullWidth
@@ -100,41 +116,20 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
             sortable: false,
             filterable: false,
             renderCell: (params) => {
-                const onEdit = () => {
-                    const updatedData = [...tableData];
-                    // Clone the specific object to make it writable
-                    updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: false };
-                    setTableData(updatedData);
-                    dispatch(setWarehouseRatesFieldChargeData(updatedData));
-                }
-                const onSave = () => {
-                    const updatedData = [...tableData];
-                    // Clone the specific object to make it writable
-                    updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: true };
-                    setTableData(updatedData);
-                    dispatch(setWarehouseRatesFieldChargeData(updatedData));
-                }
 
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            alignItems: 'flex-end', ml: 2
-                        }}
-                    >
+                    <Box>
 
                         {params.row.readonly && (type === 'Edit' || type === 'Copy') &&
-                            <Tooltip title={'Edit'} arrow>
-                                <Box onClick={() => onEdit()} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                    <Iconify icon="tabler:edit" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                                </Box>
+                            <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                                <IconButton onClick={() => onEdit()} >
+                                    <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
                             </Tooltip>}
-                        {!params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Save'} arrow>
-                            <Box onClick={() => onSave()} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="ic:baseline-save" sx={{ color: '#000', marginTop: '15px', mr: 2 }} />
-                            </Box>
+                        {!params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Save'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => onSave()} >
+                                <Iconify icon="ic:baseline-save" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>}
                     </Box>
                 );

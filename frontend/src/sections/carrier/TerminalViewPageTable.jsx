@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider
+    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider,
+    IconButton
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -18,18 +19,18 @@ import {
     setSelectedTeminalTabRowDetails,
     getPersonnelTerminalData,
     getQualityTerminalData, deletePersonnel, getTerminalRateData,
-    deleteTerminalRate, setTerminalViewTabData, setError, 
+    deleteTerminalRate, setTerminalViewTabData, setError,
 } from '../../redux/slices/carrier';
 import {
     setTableBeingViewed, getStationAccessorialData,
     deleteStationAccessorial, patchStationAccessorialData,
     getAccessorialData, setOperationalMessage as setOpertionalMessageOfCustomer,
-    setStationTabTableData, setError as setErrorOfCustomer, 
+    setStationTabTableData, setError as setErrorOfCustomer,
 } from '../../redux/slices/customer';
 import {
     setSelectedCurrentRateRow,
     setCurrentRateRoutedFrom, getCarrierListByRateID, getOriginZoneByZipCode,
-    getDestinationZoneByZipCode, setRateTableData, 
+    getDestinationZoneByZipCode, setRateTableData,
 } from '../../redux/slices/rate';
 import { clearNotesState } from '../../redux/slices/note';
 import NotesTable from '../customer/NotesTable';
@@ -71,6 +72,10 @@ export default function TerminalViewPageTable() {
         console.error("Error caught:", info);
         console.log(error);
     };
+    const handleDialogOpen = (row) => {
+        setOpenConfirmDialog(true);
+        notesRef.current = row;
+    }
     const personnelColumns = [
         {
             field: 'name',
@@ -126,27 +131,20 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: 'actions',
@@ -157,34 +155,33 @@ export default function TerminalViewPageTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedTeminalTabRowDetails(params.row));
                                 setActionType('View');
                                 setOpenEditDialog(true);
-                            }} />
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 1 }} onClick={() => {
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedTeminalTabRowDetails(params?.row));
                                 setOpenEditDialog(true);
                                 setActionType('Edit');
-                            }} />
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000' }} onClick={() => {
+                            <IconButton onClick={() => {
                                 setActionType('Delete');
                                 dispatch(deletePersonnel(params?.row?.personnelId));
-                            }} />
+                            }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );
@@ -248,19 +245,14 @@ export default function TerminalViewPageTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
-                        <Tooltip title={'View'} arrow>
-                            <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} onClick={() => {
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
                                 dispatch(setSelectedTeminalTabRowDetails(params.row));
                                 setActionType('View');
-                            }} />
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
 
                     </Box>
@@ -341,27 +333,20 @@ export default function TerminalViewPageTable() {
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
-            renderCell: (params) => {
-                const handleDialogOpen = () => {
-                    setOpenConfirmDialog(true);
-                    notesRef.current = params?.row;
-                }
-                const element = (
-                    <Box
+            renderCell: (params) => (
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
                         sx={{
-                            display: 'flex',
-                            flex: 1,
-                            justifyContent: 'center',
-                            mb: 0.5,
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
                         }}
-                    >
-
-                        <Iconify icon="icon-park-solid:notes" onClick={handleDialogOpen} sx={{ color: '#7fbfc4', cursor: 'pointer' }} />
-
-                    </Box>
-                );
-                return element;
-            },
+                    />
+                </IconButton>
+            ),
         },
         {
             field: "actions",
@@ -372,29 +357,26 @@ export default function TerminalViewPageTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            mt: 1.2,
-                        }}
-                    >
+                    <Box>
 
-                        <Tooltip title={'Edit'} arrow onClick={() => {
-                            dispatch(setOpertionalMessageOfCustomer(''));
-                            setActionType('Edit');
-                            setOpenEditDialog(true);
-                            dispatch(setSelectedTeminalTabRowDetails(params.row));
-                        }}>
-                            <Iconify icon="tabler:edit" sx={{ color: '#000', mr: 2 }} />
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }} >
+                            <IconButton onClick={() => {
+                                dispatch(setOpertionalMessageOfCustomer(''));
+                                setActionType('Edit');
+                                setOpenEditDialog(true);
+                                dispatch(setSelectedTeminalTabRowDetails(params.row));
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                         <Tooltip title={'Delete'} arrow>
-                            <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', }} onClick={() => {
+                            <IconButton onClick={() => {
                                 // using callback to refresh table data after delete
                                 dispatch(deleteStationAccessorial(params?.row?.entityAccessorialId));
-                            }}
-                            />
+                            }}>
+                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }}
+                                />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );
@@ -562,8 +544,8 @@ export default function TerminalViewPageTable() {
                             mt: 1.2,
                         }}
                     >
-                        <Tooltip title={'View'} arrow>
-                            <Box onClick={() => {
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }} >
+                            <IconButton onClick={() => {
                                 dispatch(setCurrentRateRoutedFrom('carrier'));
                                 dispatch(setSelectedTeminalTabRowDetails(params.row));
                                 // rate view  process
@@ -576,17 +558,17 @@ export default function TerminalViewPageTable() {
                                 dispatch(getCarrierListByRateID(params.row.rateId));
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
 
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', mr: 2 }} />
-                            </Box>
+                            }} >
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
 
                         <Tooltip title={'Delete'} arrow>
-                            <Box onClick={() => {
+                            <IconButton onClick={() => {
                                 dispatch(deleteTerminalRate(params?.row?.terminalRateId));
-                            }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="jam:delete-f" sx={{ color: '#000', }} />
-                            </Box>
+                            }}>
+                                <Iconify icon="jam:delete-f" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
                         </Tooltip>
                     </Box>
                 );

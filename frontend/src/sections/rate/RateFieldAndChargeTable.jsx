@@ -1,7 +1,7 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Autocomplete, Snackbar
+    Box, Typography, Chip, Stack, Tooltip, Dialog, IconButton, Autocomplete, Snackbar
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -41,6 +41,81 @@ export default function RateFieldAndChargeTable({ type }) {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
+    };
+    const stableSort = (data) => {
+        return [...data].sort((a, b) => {
+            const valA = a.rateField;
+            const valB = b.rateField;
+
+            // 1. Min Charge is ALWAYS FIRST
+            if (valA === 'Min Charge') return -1;
+            if (valB === 'Min Charge') return 1;
+
+            // 2. Empty Row (rateField === '') is ALWAYS LAST
+            if (valA === '') return 1;
+            if (valB === '') return -1;
+
+            // 3. Max Charge is ALWAYS SECOND-TO-LAST (last before empty)
+            if (valA === 'Max Charge') return 1;
+            if (valB === 'Max Charge') return -1;
+
+            // 4. Numeric sorting for the middle values
+            const numA = parseFloat(valA);
+            const numB = parseFloat(valB);
+
+            if (!isNaN(numA) && !isNaN(numB)) {
+                return numA - numB;
+            }
+
+            return 0; // Maintain original order if both are same
+        });
+    };
+    const onAdd = () => {
+        const lastRow = tableData[tableData.length - 1];
+        if (tableData.length > 0 && tableData[tableData.length - 1].rateField === '' || tableData[tableData.length - 1].charge === '') {
+            setSnackbarOpen(true);
+            setSnackbarMessage('Please fill in the details to add one.');
+            return;
+        }
+        // 2. Validation: Prevent adding if the last row's rateField is a duplicate
+        const isSpecialText = lastRow.rateField === 'Min Charge' || lastRow.rateField === 'Max Charge';
+        if (isSpecialText) {
+            // Check if this text exists in any OTHER row (excluding the last row itself)
+            const duplicateExists = tableData.slice(0, -1).some(row => row.rateField === lastRow.rateField);
+
+            if (duplicateExists) {
+                setSnackbarOpen(true);
+                setSnackbarMessage(`${lastRow.rateField} is already present in the table. Please change it before adding a new row.`);
+                return;
+            }
+        }
+
+        const lockedData = tableData.map((row) => ({
+            ...row,
+            readonly: true
+        }));
+        const newId = lockedData.length > 0 ? Math.max(...lockedData.map(d => d.id)) + 1 : 1;
+
+        // 3. Define the new editable row
+        const newRow = {
+            id: newId,
+            rateField: '',
+            charge: '',
+            readonly: false // This new row remains editable
+        };
+        const combinedData = [...lockedData, newRow];
+        // 4. SORT everything so Min is top, Max is bottom, and numbers are ordered
+        const sortedData = stableSort(combinedData);
+        // 5. Update the state with the locked rows + the new editable row
+        setTableData(sortedData);
+        dispatch(setRateFieldChargeData(sortedData));
+    }
+    const toggleReadonly = (id, status) => {
+        const updatedData = tableData.map((row) =>
+            row.id === id ? { ...row, readonly: status } : row
+        );
+        setTableData(updatedData);
+        dispatch(setRateFieldChargeData(updatedData));
     };
     const columns = [
         {
@@ -186,146 +261,63 @@ export default function RateFieldAndChargeTable({ type }) {
             renderCell: (params) => {
                 if (type === 'View') return null;
                 const isLastRow = params.row.id === tableData[tableData.length - 1]?.id;
-                const stableSort = (data) => {
-                    return [...data].sort((a, b) => {
-                        const valA = a.rateField;
-                        const valB = b.rateField;
 
-                        // 1. Min Charge is ALWAYS FIRST
-                        if (valA === 'Min Charge') return -1;
-                        if (valB === 'Min Charge') return 1;
-
-                        // 2. Empty Row (rateField === '') is ALWAYS LAST
-                        if (valA === '') return 1;
-                        if (valB === '') return -1;
-
-                        // 3. Max Charge is ALWAYS SECOND-TO-LAST (last before empty)
-                        if (valA === 'Max Charge') return 1;
-                        if (valB === 'Max Charge') return -1;
-
-                        // 4. Numeric sorting for the middle values
-                        const numA = parseFloat(valA);
-                        const numB = parseFloat(valB);
-
-                        if (!isNaN(numA) && !isNaN(numB)) {
-                            return numA - numB;
-                        }
-
-                        return 0; // Maintain original order if both are same
-                    });
-                };
-                const onAdd = () => {
-                    const lastRow = tableData[tableData.length - 1];
-                    if (tableData.length > 0 && tableData[tableData.length - 1].rateField === '' || tableData[tableData.length - 1].charge === '') {
-                        setSnackbarOpen(true);
-                        setSnackbarMessage('Please fill in the details to add one.');
-                        return;
-                    }
-                    // 2. Validation: Prevent adding if the last row's rateField is a duplicate
-                    const isSpecialText = lastRow.rateField === 'Min Charge' || lastRow.rateField === 'Max Charge';
-                    if (isSpecialText) {
-                        // Check if this text exists in any OTHER row (excluding the last row itself)
-                        const duplicateExists = tableData.slice(0, -1).some(row => row.rateField === lastRow.rateField);
-
-                        if (duplicateExists) {
-                            setSnackbarOpen(true);
-                            setSnackbarMessage(`${lastRow.rateField} is already present in the table. Please change it before adding a new row.`);
-                            return;
-                        }
-                    }
-
-                    const lockedData = tableData.map((row) => ({
-                        ...row,
-                        readonly: true
-                    }));
-                    const newId = lockedData.length > 0 ? Math.max(...lockedData.map(d => d.id)) + 1 : 1;
-
-                    // 3. Define the new editable row
-                    const newRow = {
-                        id: newId,
-                        rateField: '',
-                        charge: '',
-                        readonly: false // This new row remains editable
-                    };
-                    const combinedData = [...lockedData, newRow];
-                    // 4. SORT everything so Min is top, Max is bottom, and numbers are ordered
-                    const sortedData = stableSort(combinedData);
-                    // 5. Update the state with the locked rows + the new editable row
-                    setTableData(sortedData);
-                    dispatch(setRateFieldChargeData(sortedData));
-                }
-                const toggleReadonly = (id, status) => {
-                    const updatedData = tableData.map((row) =>
-                        row.id === id ? { ...row, readonly: status } : row
-                    );
-                    setTableData(updatedData);
-                    dispatch(setRateFieldChargeData(updatedData));
-                };
                 const element = (
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            flex: 1,
-                            mb: 1.2,
-                            alignItems: 'flex-end', ml: 2
-                        }}
-                    >
+                    <Box>
                         {isLastRow ? (
                             /* ALWAYS SHOW ADD ON THE LAST ROW */
                             <Tooltip title="Add New Row" arrow>
-                                <Box onClick={(e) => {
+                                <IconButton onClick={(e) => {
                                     e.stopPropagation(); // Prevents popup close
                                     onAdd();
-                                }} sx={{ display: 'inline-flex', cursor: 'pointer' }} >
+                                }}>
                                     <Iconify
                                         icon="basil:add-solid"
-                                        sx={{ color: '#A22', fontSize: '24px' }}
+                                        sx={{ color: '#A22', fontSize: '24px', pointerEvents: 'none' }} // pointerEvents none to ensure only button handles the click
                                     />
-                                </Box>
+                                </IconButton>
                             </Tooltip>
                         ) : (
                             /* TOGGLE EDIT/SAVE FOR ALL OTHER ROWS */
                             <>
                                 {params.row.readonly ? (
                                     <Tooltip title="Edit" arrow>
-                                        <Box onClick={(e) => {
+                                        <IconButton onClick={(e) => {
                                             e.stopPropagation();
                                             toggleReadonly(params.row.id, false);
-                                        }}
-                                            sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                        }}>
                                             <Iconify
                                                 icon="tabler:edit"
-                                                sx={{ color: '#000', }}
+                                                sx={{ color: '#000', pointerEvents: 'none' }}
                                             />
-                                        </Box>
+                                        </IconButton>
                                     </Tooltip>
                                 ) : (
                                     <Tooltip title="Save" arrow>
-                                        <Box onClick={(e) => {
+                                        <IconButton onClick={(e) => {
                                             e.stopPropagation();
                                             toggleReadonly(params.row.id, true);
-                                        }} sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                        }} >
                                             <Iconify
                                                 icon="ant-design:save-filled"
-                                                sx={{ color: '#000', fontSize: '24px' }}
+                                                sx={{ color: '#000', fontSize: '24px', pointerEvents: 'none' }}
                                             />
-                                        </Box>
+                                        </IconButton>
                                     </Tooltip>
                                 )}
 
                                 <Tooltip title="Delete" arrow>
-                                    <Box onClick={(e) => {
+                                    <IconButton onClick={(e) => {
                                         e.stopPropagation();
                                         const updatedData = tableData.filter(row => row.id !== params.row.id);
                                         setTableData(updatedData);
                                         dispatch(setRateFieldChargeData(updatedData));
-                                    }}
-                                        sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                    }}>
                                         <Iconify
                                             icon="material-symbols:delete-rounded"
-                                            sx={{ color: '#000', }}
+                                            sx={{ color: '#000', pointerEvents: 'none' }}
                                         />
-                                    </Box>
+                                    </IconButton>
                                 </Tooltip>
                             </>
                         )}

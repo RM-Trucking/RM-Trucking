@@ -4697,7 +4697,7 @@ const ShipmentForm = () => {
                         if (inputValue !== '' && !isExisting) {
                           filtered.unshift({
                             inputValue,
-                            shipperName: `Add "${inputValue}"`,
+                            shipperName: `${inputValue}`,
                           });
                         }
 
@@ -4810,7 +4810,7 @@ const ShipmentForm = () => {
                         if (inputValue !== '' && !isExisting) {
                           filtered.unshift({
                             inputValue,
-                            consigneeName: `Add "${inputValue}"`,
+                            consigneeName: `${inputValue}`,
                           });
                         }
 

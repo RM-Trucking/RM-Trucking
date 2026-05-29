@@ -3369,12 +3369,12 @@ const ShipmentForm = () => {
             "customerDetails": {
               "customerId": currentValues.billingCustomer.customerId,
               "stationId": currentValues.billingCustomer.stationId,
-              "airportPickupService" : currentValues.airportPickupService,
-              "airportDeliveryService" : currentValues.airportDeliveryService,
+              "airportPickupService": currentValues.airportPickupService,
+              "airportDeliveryService": currentValues.airportDeliveryService,
               "originAirportCode": currentValues.originAirport,
               "destinationAirportCode": currentValues.destinationAirport,
               "shipperDetails": {
-                'shipperId' : currentValues.shipperName.shipperId,
+                'shipperId': currentValues.shipperName.shipperId,
                 "shipperName": currentValues.shipperName.shipperName,
                 "addressLine1": currentValues.shipperAddr1,
                 "addressLine2": currentValues.shipperAddr2,
@@ -3385,7 +3385,7 @@ const ShipmentForm = () => {
                 "phoneNumber": currentValues.shipperPhone
               },
               "consigneeDetails": {
-                "consigneeId" : currentValues.consigneeName.consigneeId,
+                "consigneeId": currentValues.consigneeName.consigneeId,
                 "consigneeName": currentValues.consigneeName.consigneeName,
                 "addressLine1": currentValues.consigneeAddr1,
                 "addressLine2": currentValues.consigneeAddr2,
@@ -3400,8 +3400,91 @@ const ShipmentForm = () => {
         ))
       }
     }
+    if (activeStep === 2) {
+      dispatch(postStep1(
+        {
+          "shipmentDetails": {
+            "typeOfShipment": currentValues.shipmentType,
+            "serviceLevel": currentValues.serviceLevel,
+            "shipmentDate": currentValues.date
+              ? new Date(currentValues.date).toLocaleDateString('en-CA')
+              : "",
+            "shipmentTime": currentValues.time
+              ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+              : "",
+            "shipmentStatus": "Active"
+          },
+          "customerDetails": {
+            "customerId": currentValues.billingCustomer.customerId,
+            "stationId": currentValues.billingCustomer.stationId,
+            "airportPickupService": currentValues.airportPickupService,
+            "airportDeliveryService": currentValues.airportDeliveryService,
+            "originAirportCode": currentValues.originAirport,
+            "destinationAirportCode": currentValues.destinationAirport,
+            "shipperDetails": {
+              'shipperId': currentValues.shipperName.shipperId,
+              "shipperName": currentValues.shipperName.shipperName,
+              "addressLine1": currentValues.shipperAddr1,
+              "addressLine2": currentValues.shipperAddr2,
+              "city": currentValues.shipperCity,
+              "state": currentValues.shipperState,
+              "zipCode": currentValues.shipperZip,
+              "contactPersonName": currentValues.shipperContact,
+              "phoneNumber": currentValues.shipperPhone
+            },
+            "consigneeDetails": {
+              "consigneeId": currentValues.consigneeName.consigneeId,
+              "consigneeName": currentValues.consigneeName.consigneeName,
+              "addressLine1": currentValues.consigneeAddr1,
+              "addressLine2": currentValues.consigneeAddr2,
+              "city": currentValues.consigneeCity,
+              "state": currentValues.consigneeState,
+              "zipCode": currentValues.consigneeZip,
+              "contactPersonName": currentValues.consigneeContact,
+              "phoneNumber": currentValues.consigneePhone
+            }
+          },
+          "commodityDetails": {
+            emergencyContactName: currentValues.emergencyContactName,
+            emergencyContactPhone: currentValues.emergencyContactPhone,
+            handlingUnits: currentValues.handlingUnits.map(hu => ({
+              handlingUnitUOM: hu.uom,
+              handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
+              unit: hu.unit,
+              handlingLength: Number(hu.length) || 0,
+              handlingWidth: Number(hu.width) || 0,
+              handlingHeight: Number(hu.height) || 0,
+              handlingWeight: Number(hu.weight) || 0,
+              handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
+              class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
+              palletDetails: hu.items.map(item => ({
+                pieces: Number(item.pieces) || 0,
+                piecesUOM: item.piecesUom,
+                description: item.description,
+                hazmat: item.hazmatInfo,
+                hazmatDetails: {
+                  unNumber: item.hazmatData.unNumber,
+                  properShippingName: item.hazmatData.shippingName,
+                  hazardClass: `Class ${item.hazmatData.hazmatClass}`,
+                  packingGroup: `${item.hazmatData.packagingGroup}`,
+                  weight: Number(item.hazmatData.weight) || 0,
+                  technicalName: item.hazmatData.technicalName,
+                  contactPhoneNumber: item.hazmatData.contactPhone,
+                  hazmatDescription: item.hazmatData.description,
+                  // Converts boolean values to API's expected "Y" / "N" string flags
+                  limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
+                  marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
+                  residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
+                  reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
+                  dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
+                }
+              }))
+            }))
+          }
+        }
+      ))
+    }
     if (activeStep === 2 && hasInitialData()) {
-
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
       setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
@@ -4459,12 +4542,12 @@ const ShipmentForm = () => {
 
                     // Handles selection clicks or pressing 'Enter'
                     onChange={(event, newValue) => {
-                     
-                        onChange(newValue);
-                        if (!newValue) {
-                          dispatch(searchCustomerStationDropdown(''));
-                        }
-                      
+
+                      onChange(newValue);
+                      if (!newValue) {
+                        dispatch(searchCustomerStationDropdown(''));
+                      }
+
                     }}
 
                     // Captures custom text changes if user clicks away without selecting/hitting Enter
@@ -4504,7 +4587,7 @@ const ShipmentForm = () => {
                         helperText={errors['billingCustomer'] ? 'This field is required' : ''}
                       />
                     )}
-                    sx={{ width: '30%', mb:2 }}
+                    sx={{ width: '30%', mb: 2 }}
                   />
                 )}
               />

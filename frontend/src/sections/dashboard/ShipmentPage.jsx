@@ -4816,7 +4816,7 @@ const ShipmentForm = () => {
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
-                <Controller
+                {!watchedAirportPickupService && <Controller
                   name="shipperName" // Note: This field will now hold an object: { shipperId, shipperName }
                   control={control}
                   rules={{ required: watchedAirportPickupService }}
@@ -4902,7 +4902,195 @@ const ShipmentForm = () => {
                       sx={{ width: '25%' }}
                     />
                   )}
-                />
+                />}
+                {
+                  watchedAirportPickupService &&
+                  <Controller
+                    name="shipperName"
+                    control={control}
+                    rules={{
+                      required: watchedAirportPickupService ? 'This field is required' : false,
+                      validate: (value) => {
+                        if (!value) return true; // Handled by 'required' if empty
+
+                        // 1. Skip custom text check if a valid selection was chosen from the dropdown list
+                        if (typeof value === 'object' && value.airlineNumber) {
+                          return true;
+                        }
+
+                        // 2. Fallback check for manually typed custom text strings
+                        const textToValidate = typeof value === 'string' ? value : (value.shipperName || '');
+
+                        // Double-check if the typed text matches any option's code/number to prevent false positives
+                        const isPreExisting = shipperDropdown.some(
+                          (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
+                        );
+                        if (isPreExisting) return true;
+
+                        // 3. Strict component checks for completely custom text entries
+                        const parts = textToValidate.split('-').map(p => p.trim());
+
+                        const numPart = parts[0] || '';
+                        const codePart = parts[1] || '';
+                        const namePart = parts[2] || '';
+
+                        // Validate Airline Number (Exactly 3 digits)
+                        if (!/^\d{3}$/.test(numPart)) {
+                          return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                        }
+
+                        // Validate Airline Code (Exactly 2 letters)
+                        if (!/^[A-Za-z]{2}$/.test(codePart)) {
+                          return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                        }
+
+                        // Validate Airline Name exists
+                        if (!namePart) {
+                          return 'Please provide the Airline Name at the end';
+                        }
+
+                        // Final structural confirmation (Digits - 2 Letters - Name)
+                        const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                        if (!formatRegex.test(textToValidate.trim())) {
+                          return 'Format error. Use: Airline Number - Airline Code - Airline Name';
+                        }
+
+                        return true;
+                      }
+                    }}
+
+                    render={({ field: { onChange, value, ref } }) => (
+                      <Autocomplete
+                        freeSolo
+                        options={shipperDropdown}
+                        value={value || null}
+
+                        onChange={(event, newValue) => {
+                          if (typeof newValue === 'string') {
+                            onChange({ shipperId: null, shipperName: newValue });
+                          } else if (newValue && newValue.inputValue) {
+                            onChange({ shipperId: null, shipperName: newValue.inputValue });
+                          } else {
+                            onChange(newValue);
+                          }
+                        }}
+
+                        // 4. User-friendly typing mask handler matching the strict validation rules
+                        onInputChange={(event, newInputValue, reason) => {
+                          if (reason === 'input') {
+                            const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                            let formatted = newInputValue;
+
+                            if (!isDeleting) {
+                              // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
+                              let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                              // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
+                              if (/^\d{3}$/.test(clean)) {
+                                formatted = `${clean} - `;
+                              }
+
+                              // Rule B: Auto-format the airline code portion to uppercase and append " - "
+                              const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                              if (match) {
+                                formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                              }
+                            }
+
+                            onChange({ shipperId: null, shipperName: formatted });
+                          }
+                        }}
+
+                        renderOption={(props, option) => {
+                          const { key, ...optionProps } = props;
+
+                          if (option.inputValue) {
+                            return (
+                              <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                Add :  "{option.inputValue}"
+                              </Box>
+                            );
+                          }
+
+                          const num = option.airlineNumber || '';
+                          const code = option.airlineCode || '';
+                          const name = option.airlineName || '';
+                          const add1 = option.addressLine1 || '';
+                          const city = option.city || '';
+
+                          return (
+                            <Box component="li" key={key} {...optionProps}>
+                              {`${num} - ${code} - ${name} - ${add1} - ${city}`}
+                            </Box>
+                          );
+                        }}
+
+                        filterOptions={(options, params) => {
+                          const { inputValue } = params;
+                          const searchStr = inputValue.toLowerCase().trim();
+
+                          const filtered = options.filter((option) => {
+                            return (
+                              (option.shipperName || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineName || '').toLowerCase().includes(searchStr) ||
+                              (option.addressLine1 || '').toLowerCase().includes(searchStr) ||
+                              (option.city || '').toLowerCase().includes(searchStr)
+                            );
+                          });
+
+                          const isExisting = options.some(
+                            (option) => searchStr === (option.shipperName || '').toLowerCase()
+                          );
+
+                          if (inputValue !== '' && !isExisting) {
+                            filtered.unshift({
+                              inputValue,
+                              shipperName: `${inputValue}`,
+                            });
+                          }
+
+                          return filtered;
+                        }}
+
+                        getOptionLabel={(option) => {
+                          if (typeof option === 'string') return option;
+                          if (option.inputValue) return option.inputValue;
+
+                          if (option.airlineNumber) {
+                            const num = option.airlineNumber || '';
+                            const code = option.airlineCode || '';
+                            const name = option.airlineName || '';
+                            const add1 = option.addressLine1 || '';
+                            const city = option.city || '';
+                            return `${num} - ${code} - ${name} - ${add1} - ${city}`;
+                          }
+
+                          return option.shipperName || '';
+                        }}
+
+                        isOptionEqualToValue={(option, val) =>
+                          option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
+                        }
+
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            inputRef={ref}
+                            fullWidth
+                            label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                            variant="standard"
+                            error={!!errors['shipperName']}
+                            helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+                          />
+                        )}
+                        sx={{ width: '25%' }}
+                      />
+                    )}
+                  />
+
+                }
 
                 {renderTextField('shipperAddr1', 'Address Line 1')}
 
@@ -4933,7 +5121,7 @@ const ShipmentForm = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
 
-                <Controller
+                {!watchedAirportDeliveryService && <Controller
                   name="consigneeName" // This field will hold the chosen object structure
                   control={control}
                   rules={{ required: watchedAirportDeliveryService }}
@@ -5015,7 +5203,194 @@ const ShipmentForm = () => {
                       sx={{ width: '25%' }}
                     />
                   )}
-                />
+                />}
+                {
+                  watchedAirportDeliveryService &&
+                  <Controller
+                    name="consigneeName"
+                    control={control}
+                    rules={{
+                      required: watchedAirportDeliveryService ? 'This field is required' : false,
+                      validate: (value) => {
+                        if (!value) return true;
+
+                        // 1. Skip custom text check if a valid selection was chosen from the dropdown list
+                        if (typeof value === 'object' && value.airlineNumber) {
+                          return true;
+                        }
+
+                        const textToValidate = typeof value === 'string' ? value : (value.consigneeName || '');
+
+                        // Double check dropdown option list match to prevent false-positives
+                        const isPreExisting = consigneeDropdown.some(
+                          (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
+                        );
+                        if (isPreExisting) return true;
+
+                        // 2. Strict component checks for completely custom text entries
+                        const parts = textToValidate.split('-').map(p => p.trim());
+
+                        const numPart = parts[0] || '';
+                        const codePart = parts[1] || '';
+                        const namePart = parts[2] || '';
+
+                        // Validate Airline Number (Exactly 3 digits)
+                        if (!/^\d{3}$/.test(numPart)) {
+                          return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                        }
+
+                        // Validate Airline Code (Exactly 2 letters)
+                        if (!/^[A-Za-z]{2}$/.test(codePart)) {
+                          return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                        }
+
+                        // Validate Airline Name exists
+                        if (!namePart) {
+                          return 'Please provide the Airline Name at the end';
+                        }
+
+                        // Final structural confirmation (Digits - 2 Letters - Name)
+                        const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                        if (!formatRegex.test(textToValidate.trim())) {
+                          return 'Format error. Use: Airline Number - Airline Code - Airline Name';
+                        }
+
+                        return true;
+                      }
+                    }}
+                    render={({ field: { onChange, value, ref } }) => (
+                      <Autocomplete
+                        freeSolo
+                        options={consigneeDropdown}
+                        value={value || null}
+
+                        onChange={(event, newValue) => {
+                          if (typeof newValue === 'string') {
+                            onChange({ consigneeId: null, consigneeName: newValue });
+                          } else if (newValue && newValue.inputValue) {
+                            onChange({ consigneeId: null, consigneeName: newValue.inputValue });
+                          } else {
+                            onChange(newValue);
+                          }
+                        }}
+
+                        // 3. User-friendly typing mask handler matching the strict validation rules
+                        onInputChange={(event, newInputValue, reason) => {
+                          if (reason === 'input') {
+                            const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                            let formatted = newInputValue;
+
+                            if (!isDeleting) {
+                              // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
+                              let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                              // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
+                              if (/^\d{3}$/.test(clean)) {
+                                formatted = `${clean} - `;
+                              }
+
+                              // Rule B: Auto-format the airline code portion to uppercase and append " - "
+                              const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                              if (match) {
+                                formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                              }
+                            }
+
+                            onChange({ consigneeId: null, consigneeName: formatted });
+                          }
+                        }}
+
+                        renderOption={(props, option) => {
+                          const { key, ...optionProps } = props;
+
+                          if (option.inputValue) {
+                            return (
+                              <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                Add: "{option.inputValue}"
+                              </Box>
+                            );
+                          }
+
+                          const num = option.airlineNumber || '';
+                          const code = option.airlineCode || '';
+                          const name = option.airlineName || '';
+                          const add1 = option.addressLine1 || '';
+                          const city = option.city || '';
+
+                          return (
+                            <Box component="li" key={key} {...optionProps}>
+                              {`${num} - ${code} - ${name} - ${add1} - ${city}`}
+                            </Box>
+                          );
+                        }}
+
+                        filterOptions={(options, params) => {
+                          const { inputValue } = params;
+                          const searchStr = inputValue.toLowerCase().trim();
+
+                          const filtered = options.filter((option) => {
+                            return (
+                              (option.consigneeName || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                              (option.airlineName || '').toLowerCase().includes(searchStr) ||
+                              (option.addressLine1 || '').toLowerCase().includes(searchStr) ||
+                              (option.city || '').toLowerCase().includes(searchStr)
+                            );
+                          });
+
+                          const isExisting = options.some(
+                            (option) => searchStr === (option.consigneeName || '').toLowerCase()
+                          );
+
+                          if (inputValue !== '' && !isExisting) {
+                            filtered.unshift({
+                              inputValue,
+                              consigneeName: `${inputValue}`,
+                            });
+                          }
+
+                          return filtered;
+                        }}
+
+                        getOptionLabel={(option) => {
+                          if (typeof option === 'string') return option;
+                          if (option.inputValue) return option.inputValue;
+
+                          if (option.airlineNumber) {
+                            const num = option.airlineNumber || '';
+                            const code = option.airlineCode || '';
+                            const name = option.airlineName || '';
+                            const add1 = option.addressLine1 || '';
+                            const city = option.city || '';
+                            return `${num} - ${code} - ${name} - ${add1} - ${city}`;
+                          }
+
+                          return option.consigneeName || '';
+                        }}
+
+                        isOptionEqualToValue={(option, val) =>
+                          option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
+                        }
+
+                        renderInput={(params) => (
+                          <TextField
+                            {...params}
+                            inputRef={ref}
+                            fullWidth
+                            label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
+                            variant="standard"
+                            error={!!errors['consigneeName']}
+                            helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+                          />
+                        )}
+                        sx={{ width: '25%' }}
+                      />
+                    )}
+                  />
+
+
+                }
 
                 {renderTextField('consigneeAddr1', 'Address Line 1')}
 

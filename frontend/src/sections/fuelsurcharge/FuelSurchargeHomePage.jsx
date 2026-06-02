@@ -15,6 +15,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
 import FuelSurchargeTabs from './FuelSurchargeTabs';
 import FuelSurchargeHomeTable from './FuelSuchargeHomeTable';
+import FuelSurchargeDetails from './FuelSurchargeDetails';
 // ----------------------------------------------------------------------
 
 
@@ -61,7 +62,7 @@ export default function CustomerhomePage() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1543px',
-                            height: '520px',
+                            height: '250px',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }
@@ -69,6 +70,7 @@ export default function CustomerhomePage() {
                 >
                     <DialogContent>
                         {/* fuel surcharge details form */}
+                        <FuelSurchargeDetails type={'Add'} handleCloseConfirm={handleCloseConfirm} selectedFuelSurchargeRowDetails={{}}/>
                     </DialogContent>
                 </Dialog>
             </ErrorBoundary>

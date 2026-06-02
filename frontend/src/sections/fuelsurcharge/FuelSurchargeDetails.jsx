@@ -9,8 +9,11 @@ import {
     Stack,
     Typography,
     Divider,
-    CircularProgress
+    CircularProgress, TextField
 } from '@mui/material';
+import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import dayjs from 'dayjs';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { postFuelSurchargeData, putFuelSurchargeData } from '../../redux/slices/fuel';
@@ -73,7 +76,8 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
     }, [selectedFuelSurchargeRowDetails]);
 
     return (
-        <>
+
+        <LocalizationProvider dateAdapter={AdapterDayjs}>
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
@@ -147,7 +151,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                     helperText={errors['customer'] ? 'This field is required' : ''}
                                                 />
                                             )}
-                                            sx={{ width: '30%', mb: 2 }}
+                                            sx={{ width: '50%', mb: 2 }}
                                         />
                                     )}
                                 />
@@ -211,7 +215,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                     helperText={errors['stationList'] ? 'This field is required' : ''}
                                                 />
                                             )}
-                                            sx={{ width: '30%', mb: 2 }}
+                                            sx={{ width: '50%', mb: 2 }}
                                         />
                                     )}
                                 />
@@ -242,7 +246,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     variant="standard"
                                     fullWidth
                                     required
-                                    sx={{ width: '30%' }}
+                                    sx={{ width: '70%' }}
                                     error={!!errors.fuelsurchargePercentage}
                                     helperText={errors.fuelsurchargePercentage?.message || ""}
 
@@ -269,35 +273,58 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                         />
 
                         <Controller
-
                             name="effectiveDate"
-
                             control={control}
-
-                            rules={{ required: true }}
-
-                            render={({ field }) => (
-
-                                <DatePicker {...field} label="Effective Date" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.effectiveDate } }} />
-
+                            rules={{ required: 'Effective date is required' }}
+                            render={({ field: { value, onChange, ...field } }) => (
+                                <DatePicker
+                                    {...field}
+                                    label="Effective Date"
+                                    // 1. Convert string from form state into a Day.js object for the picker [cite: 1.3.19]
+                                    value={value ? dayjs(value) : null}
+                                    // 2. Format it back to a clean string when saving into form state [cite: 1.3.19]
+                                    onChange={(newValue) => {
+                                        onChange(newValue && dayjs(newValue).isValid() ? dayjs(newValue).format('YYYY-MM-DD') : null);
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            required: true,
+                                            variant: 'standard',
+                                            fullWidth: true,
+                                            error: !!errors.effectiveDate,
+                                            helperText: errors.effectiveDate?.message || ''
+                                        }
+                                    }}
+                                />
                             )}
-
                         />
 
                         <Controller
-
                             name="effectiveTime"
-
                             control={control}
-
-                            rules={{ required: true }}
-
-                            render={({ field }) => (
-
-                                <TimePicker {...field} label="Effective Time" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.effectiveTime } }} />
-
+                            rules={{ required: 'Effective time is required' }}
+                            render={({ field: { value, onChange, ...field } }) => (
+                                <TimePicker
+                                    {...field}
+                                    label="Effective Time"
+                                    ampm={false}
+                                    // 3. Convert time string (e.g. "14:30") into a Day.js object for the picker [cite: 1.3.19]
+                                    value={value ? dayjs(value, 'HH:mm') : null}
+                                    // 4. Format it back to 24-hour time format string ("HH:mm") for your API payload [cite: 1.3.19]
+                                    onChange={(newValue) => {
+                                        onChange(newValue && dayjs(newValue).isValid() ? dayjs(newValue).format('HH:mm') : null);
+                                    }}
+                                    slotProps={{
+                                        textField: {
+                                            required: true,
+                                            variant: 'standard',
+                                            fullWidth: true,
+                                            error: !!errors.effectiveTime,
+                                            helperText: errors.effectiveTime?.message || ''
+                                        }
+                                    }}
+                                />
                             )}
-
                         />
 
 
@@ -353,6 +380,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                     </Box>
                 </Stack>}
             </Box>
-        </>
+        </LocalizationProvider>
+
     );
 };

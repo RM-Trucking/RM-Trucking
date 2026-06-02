@@ -537,7 +537,7 @@ export default function FuelSurchargeHomeTable() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1545px',
-                            height: '520px',
+                            height: '250px',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }

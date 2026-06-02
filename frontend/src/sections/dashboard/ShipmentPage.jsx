@@ -4288,6 +4288,9 @@ const ShipmentForm = () => {
   const watchedAirportPickupService = useWatch({ control, name: "carrierInfo.airportPickupService" });
   const watchedAirportDeliveryService = useWatch({ control, name: "carrierInfo.airportDeliveryService" });
 
+  const watchedOriginAirport = useWatch({ control, name: "originAirport" });
+  const watchedDestinationAirport = useWatch({ control, name: "destinationAirport" });
+
   useEffect(() => {
     if (watchedLinehaulSelectRouting) {
       if ((watchedLinehaulSelectRouting === 'linehaul_only')) {
@@ -4962,7 +4965,11 @@ const ShipmentForm = () => {
                     render={({ field: { onChange, value, ref } }) => (
                       <Autocomplete
                         freeSolo
-                        options={shipperDropdown}
+                        options={
+                          watchedOriginAirport ? shipperDropdown.filter(
+                            (item) => item.airportCode === watchedOriginAirport
+                          ) : shipperDropdown
+                        }
                         value={value || null}
 
                         onChange={(event, newValue) => {
@@ -5015,12 +5022,13 @@ const ShipmentForm = () => {
                           const num = option.airlineNumber || '';
                           const code = option.airlineCode || '';
                           const name = option.airlineName || '';
-                          const add1 = option.addressLine1 || '';
+
                           const city = option.city || '';
+                          const airCode = option.airportCode || '';
 
                           return (
                             <Box component="li" key={key} {...optionProps}>
-                              {`${num} - ${code} - ${name} - ${add1} - ${city}`}
+                              {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
                             </Box>
                           );
                         }}
@@ -5035,8 +5043,8 @@ const ShipmentForm = () => {
                               (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
                               (option.airlineCode || '').toLowerCase().includes(searchStr) ||
                               (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                              (option.addressLine1 || '').toLowerCase().includes(searchStr) ||
-                              (option.city || '').toLowerCase().includes(searchStr)
+                              (option.city || '').toLowerCase().includes(searchStr) ||
+                              (option.airportCode || '').toLowerCase().includes(searchStr)
                             );
                           });
 
@@ -5062,9 +5070,9 @@ const ShipmentForm = () => {
                             const num = option.airlineNumber || '';
                             const code = option.airlineCode || '';
                             const name = option.airlineName || '';
-                            const add1 = option.addressLine1 || '';
                             const city = option.city || '';
-                            return `${num} - ${code} - ${name} - ${add1} - ${city}`;
+                            const airCode = option.airportCode || '';
+                            return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
                           }
 
                           return option.shipperName || '';
@@ -5261,7 +5269,11 @@ const ShipmentForm = () => {
                     render={({ field: { onChange, value, ref } }) => (
                       <Autocomplete
                         freeSolo
-                        options={consigneeDropdown}
+                        options={
+                          watchedDestinationAirport ? consigneeDropdown.filter(
+                            (item) => item.airportCode === watchedDestinationAirport
+                          ) : consigneeDropdown
+                        }
                         value={value || null}
 
                         onChange={(event, newValue) => {
@@ -5314,12 +5326,12 @@ const ShipmentForm = () => {
                           const num = option.airlineNumber || '';
                           const code = option.airlineCode || '';
                           const name = option.airlineName || '';
-                          const add1 = option.addressLine1 || '';
                           const city = option.city || '';
+                          const airCode = option.airportCode || '';
 
                           return (
                             <Box component="li" key={key} {...optionProps}>
-                              {`${num} - ${code} - ${name} - ${add1} - ${city}`}
+                              {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
                             </Box>
                           );
                         }}
@@ -5334,8 +5346,8 @@ const ShipmentForm = () => {
                               (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
                               (option.airlineCode || '').toLowerCase().includes(searchStr) ||
                               (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                              (option.addressLine1 || '').toLowerCase().includes(searchStr) ||
-                              (option.city || '').toLowerCase().includes(searchStr)
+                              (option.city || '').toLowerCase().includes(searchStr) ||
+                              (option.airportCode || '').toLowerCase().includes(searchStr)
                             );
                           });
 
@@ -5361,9 +5373,9 @@ const ShipmentForm = () => {
                             const num = option.airlineNumber || '';
                             const code = option.airlineCode || '';
                             const name = option.airlineName || '';
-                            const add1 = option.addressLine1 || '';
                             const city = option.city || '';
-                            return `${num} - ${code} - ${name} - ${add1} - ${city}`;
+                            const airCode = option.airportCode || '';
+                            return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
                           }
 
                           return option.consigneeName || '';

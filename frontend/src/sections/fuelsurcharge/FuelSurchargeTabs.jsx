@@ -19,8 +19,8 @@ export default function FuelSurchargeTabs({ }) {
     const navigate = useNavigate();
     const TABS = [
         {
-            value: 'general',
-            label: 'General',
+            value: 'active',
+            label: 'Active',
         },
         {
             value: 'customer',

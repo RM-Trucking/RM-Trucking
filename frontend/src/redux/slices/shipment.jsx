@@ -74,9 +74,9 @@ const slice = createSlice({
     getShipperDropdownSuccess(state, action) {
       state.isLoading = false;
       state.shipperDropdown = [
-        { shipperId: null, shipperName: 'Shipper 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1 - 1', addressLine2: 'Address Line 2 - 1', city: 'City - 1', state: 'State - 1', zip: '99999' },
-        { shipperId: null, shipperName: 'Shipper 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 1 - 2', addressLine2: 'Address Line 2 - 2', city: 'City - 2', state: 'State - 2', zip: '99999' },
-        { shipperId: null, shipperName: 'Shipper 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 1 - 3', addressLine2: 'Address Line 2 - 3', city: 'City - 3', state: 'State - 3', zip: '99999' },
+        { shipperId: null, shipperName: 'Shipper 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1 - 1', addressLine2: 'Address Line 2 - 1', city: 'City - 1', state: 'State - 1', zip: '99999', airportCode : 'ORD' },
+        { shipperId: null, shipperName: 'Shipper 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 1 - 2', addressLine2: 'Address Line 2 - 2', city: 'City - 2', state: 'State - 2', zip: '99999', airportCode : 'JFK' },
+        { shipperId: null, shipperName: 'Shipper 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 1 - 3', addressLine2: 'Address Line 2 - 3', city: 'City - 3', state: 'State - 3', zip: '99999', airportCode : 'LAX' },
       ];
     },
 
@@ -89,9 +89,9 @@ const slice = createSlice({
     getConsigneeDropdownSuccess(state, action) {
       state.isLoading = false;
       state.consigneeDropdown = [
-        { consigneeId: null, consigneeName: 'Consignee 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1 - 1', addressLine2: 'Address Line 2 - 1', city: 'City - 1', state: 'State - 1', zip: '99999' },
-        { consigneeId: null, consigneeName: 'Consignee 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 1 - 2', addressLine2: 'Address Line 2 - 2', city: 'City - 2', state: 'State - 2', zip: '99999' },
-        { consigneeId: null, consigneeName: 'Consignee 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 1 - 3', addressLine2: 'Address Line 2 - 3', city: 'City - 3', state: 'State - 3', zip: '99999' },
+        { consigneeId: null, consigneeName: 'Consignee 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1 - 1', addressLine2: 'Address Line 2 - 1', city: 'City - 1', state: 'State - 1', zip: '99999', airportCode : 'ORD' },
+        { consigneeId: null, consigneeName: 'Consignee 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 1 - 2', addressLine2: 'Address Line 2 - 2', city: 'City - 2', state: 'State - 2', zip: '99999', airportCode : 'JFK' },
+        { consigneeId: null, consigneeName: 'Consignee 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 1 - 3', addressLine2: 'Address Line 2 - 3', city: 'City - 3', state: 'State - 3', zip: '99999', airportCode : 'LAX' },
       ];
     },
   },

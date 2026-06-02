@@ -78,9 +78,6 @@ const slice = createSlice({
         setOperationalMessage(state) {
             state.operationalMessage = '';
         },
-        setOperationalMessage(state) {
-            state.operationalMessage = '';
-        },
         setError(state) {
             state.error = '';
         },

@@ -14,6 +14,7 @@ import SharedSearchField from '../shared/SharedSearchField';
 import ErrorFallback from '../shared/ErrorBoundary';
 import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
 import FuelSurchargeTabs from './FuelSurchargeTabs';
+import FuelSurchargeHomeTable from './FuelSuchargeHomeTable';
 // ----------------------------------------------------------------------
 
 
@@ -50,6 +51,7 @@ export default function CustomerhomePage() {
                 <FuelSurchargeTabs />
                 <SharedSearchField page="fuelSurcharge" />
                 {/* fuel surcharge table */}
+                <FuelSurchargeHomeTable />
 
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {

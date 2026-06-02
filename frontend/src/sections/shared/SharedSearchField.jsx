@@ -7,7 +7,7 @@ import { setCustomerSearchStr, setStationSearchStr, getCustomerData, getCustomer
 import { getZoneData, setZoneSearchStr } from '../../redux/slices/zone';
 import { setAccessorialSearchStr, getAccessorialData } from '../../redux/slices/accessorial';
 import { setCarrierSearchStr, getCarrierData } from '../../redux/slices/carrier';
-import { setFuelSurchargeSearchStr, getFuelSurchargeData } from '../../redux/slices/fuel';
+import { setFuelSurchargeSearchStr, getFuelSurchargeData, getCustomerFuelSurchargeData } from '../../redux/slices/fuel';
 // ----------------------------------------------------------------------
 
 
@@ -33,6 +33,7 @@ export default function SharedSearchField({ page }) {
     const carrierPagination = useSelector((state) => state?.carrierdata?.pagination);
     const currentCarrierTab = useSelector((state) => state?.carrierdata?.currentCarrierTab);
     const fuelPagination = useSelector((state) => state?.fueldata?.pagination);
+    const currentFuelSurchargeTab = useSelector((state) => state?.fueldata?.currentFuelSurchargeTab);
 
     const handleSearch = (event) => {
         setSearchValue(event.target.value);
@@ -49,8 +50,14 @@ export default function SharedSearchField({ page }) {
         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: event.target.value })); }
         if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: event.target.value, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
-        if (page === 'fuelSurcharge') { dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value })); }
-
+        if (page === 'fuelSurcharge') {
+            if (currentFuelSurchargeTab === 'active') {
+                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value, }));
+            }
+            if (currentFuelSurchargeTab === 'customer') {
+                dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value, }));
+            }
+        }
     }
     const handleKeyDown = (event) => {
         if (event.key === 'Enter') {
@@ -62,7 +69,14 @@ export default function SharedSearchField({ page }) {
             if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
             if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
             if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
-            if (page === 'fuelSurcharge') { dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue })); }
+            if (page === 'fuelSurcharge') {
+                if (currentFuelSurchargeTab === 'active') {
+                    dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
+                }
+                if (currentFuelSurchargeTab === 'customer') {
+                    dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
+                }
+            }
         }
     };
     useEffect(() => {
@@ -117,6 +131,14 @@ export default function SharedSearchField({ page }) {
                                                 if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: '' })); }
                                                 if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: '' })); }
                                                 if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: '', status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
+                                                if (page === 'fuelSurcharge') {
+                                                    if (currentFuelSurchargeTab === 'active') {
+                                                        dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: '', }));
+                                                    }
+                                                    if (currentFuelSurchargeTab === 'customer') {
+                                                        dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: '', }));
+                                                    }
+                                                }
                                             }}
                                             sx={{ mr: 0.5 }}
                                         >
@@ -129,6 +151,14 @@ export default function SharedSearchField({ page }) {
                                         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
+                                        if (page === 'fuelSurcharge') {
+                                            if (currentFuelSurchargeTab === 'active') {
+                                                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue,  }));
+                                            }
+                                            if (currentFuelSurchargeTab === 'customer') {
+                                                dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
+                                            }
+                                        }
                                     }}>
                                         <Iconify icon="material-symbols:search" sx={{ mr: 1 }} />
                                     </IconButton>

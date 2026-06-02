@@ -74,9 +74,9 @@ const slice = createSlice({
     getShipperDropdownSuccess(state, action) {
       state.isLoading = false;
       state.shipperDropdown = [
-        { shipperId: '1', shipperName: 'Shipper 1' },
-        { shipperId: '2', shipperName: 'Shipper 2' },
-        { shipperId: '3', shipperName: 'Shipper 3' },
+        { shipperId: null, shipperName: 'Shipper 1' },
+        { shipperId: null, shipperName: 'Shipper 2' },
+        { shipperId: null, shipperName: 'Shipper 3' },
       ];
     },
     setCustomerStationDropdown(state, action) {
@@ -88,9 +88,9 @@ const slice = createSlice({
     getConsigneeDropdownSuccess(state, action) {
       state.isLoading = false;
       state.consigneeDropdown = [
-        { consigneeId: '1', consigneeName: 'Consignee 1' },
-        { consigneeId: '2', consigneeName: 'Consignee 2' },
-        { consigneeId: '3', consigneeName: 'Consignee 3' },
+        { consigneeId: null, consigneeName: 'Consignee 1' },
+        { consigneeId: null, consigneeName: 'Consignee 2' },
+        { consigneeId: null, consigneeName: 'Consignee 3' },
       ];
     },
   },

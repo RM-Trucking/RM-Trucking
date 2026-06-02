@@ -445,25 +445,41 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpZipCode"
                                 control={control}
                                 rules={{
+                                    required: 'Zipcode is required',
                                     validate: (value) => {
-                                        if (!value) return true; // Let 'required' rule handle empty if needed
+                                        if (!value) return true;
 
-                                        // 1. Block "all zeros" for both 5-digit and range formats
+                                        // 1. Block "all zeros"
                                         const rawDigits = value.replace(/[^\d]/g, '');
                                         if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-                                        if (value.length <= 5) return true;
+                                        // 2. Strict Length/Format check
+                                        // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
+                                        const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+                                        if (!zipRegex.test(value)) {
+                                            return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
+                                        }
 
-                                        const parts = value.split('-');
-                                        if (parts.length === 2 && parts[1].length === 5) {
-                                            const startSuffix = parseInt(parts[0].slice(-2));
-                                            const endSuffix = parseInt(parts[1].slice(-2));
+                                        // 3. Range-specific constraints (only if a range is present)
+                                        if (value.includes('-')) {
+                                            const parts = value.split('-');
+                                            const firstZip = parts[0];
+                                            const secondZip = parts[1];
+
+                                            // Ensure the first 3 digits of both segments match perfectly
+                                            if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
+                                                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+                                            }
+
+                                            // Ensure the last 2 digits of the second segment are strictly greater
+                                            const startSuffix = parseInt(firstZip.slice(-2), 10);
+                                            const endSuffix = parseInt(secondZip.slice(-2), 10);
 
                                             if (endSuffix === startSuffix) return 'End range cannot be equal to start';
                                             if (endSuffix < startSuffix) return 'End range must be greater than start';
-                                            return true;
                                         }
-                                        return 'Complete the range (#####-#####)';
+
+                                        return true;
                                     }
                                 }}
                                 render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
@@ -472,38 +488,21 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value={value || ''}
                                         onChange={(e) => {
                                             const input = e.target.value;
-                                            const raw = input.replace(/[^\d]/g, '');
+                                            // Allow only digits and a single dash character
+                                            let raw = input.replace(/[^\d-]/g, '');
+
+                                            // Detect backspacing/deletion
                                             const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-                                            // 1. If deleting or clearing, just update with raw digits 
-                                            // This allows the user to backspace freely through the second part.
-                                            if (isDeleting || !raw) {
-                                                // If they delete the dash, we just show the first 5 digits
-                                                onChange(raw.slice(0, 10));
-                                                return;
+                                            if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
+                                                // Auto-append dash only when typing forwards past the 5th digit
+                                                raw = `${raw}-`;
                                             }
 
-                                            // 2. FORMATTING LOGIC (Only runs when typing/pasting)
-                                            let formatted = '';
-                                            if (raw.length <= 5) {
-                                                formatted = raw;
-                                            } else {
-                                                const first5 = raw.slice(0, 5);
-                                                const prefix = first5.slice(0, 3);
-                                                let suffixPart = raw.slice(5);
-
-                                                // Auto-fill prefix logic
-                                                if (!suffixPart.startsWith(prefix)) {
-                                                    const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
-                                                    suffixPart = prefix + userTypedDigits;
-                                                }
-
-                                                formatted = `${first5}-${suffixPart.slice(0, 5)}`;
-                                            }
-
-                                            onChange(formatted);
+                                            // Prevent typing more than 11 characters (#####-#####)
+                                            onChange(raw.slice(0, 11));
                                         }}
-                                        inputProps={{ maxLength: 11 }}
+                                        inputProps={{ maxLength: 11, inputMode: 'numeric' }}
                                         label="Zip Code"
                                         error={!!error}
                                         helperText={error?.message || 'Ex: 12345 or 12345-12346'}
@@ -511,6 +510,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={(type === 'View') ? readOnly : false}
+                                        required
                                     />
                                 )}
                             />
@@ -686,25 +686,41 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billZipCode"
                                 control={control}
                                 rules={{
+                                    required: 'Zipcode is required',
                                     validate: (value) => {
-                                        if (!value) return true; // Let 'required' rule handle empty if needed
+                                        if (!value) return true;
 
-                                        // 1. Block "all zeros" for both 5-digit and range formats
+                                        // 1. Block "all zeros"
                                         const rawDigits = value.replace(/[^\d]/g, '');
                                         if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-                                        if (value.length <= 5) return true;
+                                        // 2. Strict Length/Format check
+                                        // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
+                                        const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+                                        if (!zipRegex.test(value)) {
+                                            return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
+                                        }
 
-                                        const parts = value.split('-');
-                                        if (parts.length === 2 && parts[1].length === 5) {
-                                            const startSuffix = parseInt(parts[0].slice(-2));
-                                            const endSuffix = parseInt(parts[1].slice(-2));
+                                        // 3. Range-specific constraints (only if a range is present)
+                                        if (value.includes('-')) {
+                                            const parts = value.split('-');
+                                            const firstZip = parts[0];
+                                            const secondZip = parts[1];
+
+                                            // Ensure the first 3 digits of both segments match perfectly
+                                            if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
+                                                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+                                            }
+
+                                            // Ensure the last 2 digits of the second segment are strictly greater
+                                            const startSuffix = parseInt(firstZip.slice(-2), 10);
+                                            const endSuffix = parseInt(secondZip.slice(-2), 10);
 
                                             if (endSuffix === startSuffix) return 'End range cannot be equal to start';
                                             if (endSuffix < startSuffix) return 'End range must be greater than start';
-                                            return true;
                                         }
-                                        return 'Complete the range (#####-#####)';
+
+                                        return true;
                                     }
                                 }}
                                 render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
@@ -713,38 +729,21 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         value={value || ''}
                                         onChange={(e) => {
                                             const input = e.target.value;
-                                            const raw = input.replace(/[^\d]/g, '');
+                                            // Allow only digits and a single dash character
+                                            let raw = input.replace(/[^\d-]/g, '');
+
+                                            // Detect backspacing/deletion
                                             const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-                                            // 1. If deleting or clearing, just update with raw digits 
-                                            // This allows the user to backspace freely through the second part.
-                                            if (isDeleting || !raw) {
-                                                // If they delete the dash, we just show the first 5 digits
-                                                onChange(raw.slice(0, 10));
-                                                return;
+                                            if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
+                                                // Auto-append dash only when typing forwards past the 5th digit
+                                                raw = `${raw}-`;
                                             }
 
-                                            // 2. FORMATTING LOGIC (Only runs when typing/pasting)
-                                            let formatted = '';
-                                            if (raw.length <= 5) {
-                                                formatted = raw;
-                                            } else {
-                                                const first5 = raw.slice(0, 5);
-                                                const prefix = first5.slice(0, 3);
-                                                let suffixPart = raw.slice(5);
-
-                                                // Auto-fill prefix logic
-                                                if (!suffixPart.startsWith(prefix)) {
-                                                    const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
-                                                    suffixPart = prefix + userTypedDigits;
-                                                }
-
-                                                formatted = `${first5}-${suffixPart.slice(0, 5)}`;
-                                            }
-
-                                            onChange(formatted);
+                                            // Prevent typing more than 11 characters (#####-#####)
+                                            onChange(raw.slice(0, 11));
                                         }}
-                                        inputProps={{ maxLength: 11 }}
+                                        inputProps={{ maxLength: 11, inputMode: 'numeric' }}
                                         label="Zip Code"
                                         error={!!error}
                                         helperText={error?.message || 'Ex: 12345 or 12345-12346'}
@@ -752,6 +751,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={readOnly}
+                                        required
                                     />
                                 )}
                             />

@@ -478,10 +478,41 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.pieces`}
                   control={control}
-                  render={({ field }) => (
-                    <TextField {...field} label="Pieces *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} />
-                  )}
+                  // 1. Core validation rules for whole numbers
+                  rules={{
+                    required: "Pieces count is required",
+                    pattern: {
+                      value: /^[0-9]+$/,
+                      message: "Must be a whole number"
+                    }
+                  }}
+                  // Extract field AND formState directly from the controller render arguments
+                  render={({ field, formState }) => {
+                    // 2. Safely extract the deeply nested error using formState.errors
+                    const pieceError = formState.errors?.handlingUnits?.[huIndex]?.items?.[itemIndex]?.pieces;
+
+                    return (
+                      <TextField
+                        {...field}
+                        // 3. Instantly strips out any typed letters, symbols, or decimals
+                        onChange={(e) => {
+                          const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Allows 0-9 digits only
+                          field.onChange(cleanValue);
+                        }}
+                        label="Pieces *"
+                        variant="standard"
+                        fullWidth
+                        InputLabelProps={{ shrink: true }}
+                        // 4. Prompts virtual mobile keyboards to default to the number pad
+                        inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                        // 5. Safely flags errors and renders the message text
+                        error={!!pieceError}
+                        helperText={pieceError?.message || ""}
+                      />
+                    );
+                  }}
                 />
+
               </Box>
 
               <Box sx={{ flex: '1 1 80px' }}>
@@ -961,20 +992,20 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         {/* Row 1: UN, Shipping Name, PKG Group, Class */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="UN Number *" variant="standard" fullWidth value={localData.unNumber} onChange={(e) => handleChange('unNumber', e.target.value)}>
+            <TextField select label="UN Number" required variant="standard" fullWidth value={localData.unNumber} onChange={(e) => handleChange('unNumber', e.target.value)}>
               <MenuItem value="UN1567">UN1567</MenuItem>
             </TextField>
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} onChange={(e) => handleChange('shippingName', e.target.value)}>
+            <TextField select label="Shipping Name" required variant="standard" fullWidth value={localData.shippingName} onChange={(e) => handleChange('shippingName', e.target.value)}>
               <MenuItem value="Hazard Substance,liquid.n.o.s">Hazard Substance,liquid.n.o.s</MenuItem>
             </TextField>
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Packaging Group *" variant="standard" fullWidth value={localData.packagingGroup} onChange={(e) => handleChange('packagingGroup', e.target.value)} />
+            <TextField label="Packaging Group" required variant="standard" fullWidth value={localData.packagingGroup} onChange={(e) => handleChange('packagingGroup', e.target.value)} />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Class *" variant="standard" fullWidth value={localData.hazmatClass} onChange={(e) => handleChange('hazmatClass', e.target.value)} />
+            <TextField label="Class" required variant="standard" fullWidth value={localData.hazmatClass} onChange={(e) => handleChange('hazmatClass', e.target.value)} />
           </Box>
         </Box>
 
@@ -982,21 +1013,56 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
         {/* Row 2: Weight, Technical Name, Contact Phone */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
-          <Box sx={{ flex: '1 1 22%', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+          <Box sx={{ flex: '1 1 25%', }}>
             <Box display={'flex'} alignItems={'flex-end'}>
-              <TextField label="Weight *" variant="standard" fullWidth value={localData.weight} onChange={(e) => handleChange('weight', e.target.value)} />
+              <TextField
+                label="Weight"
+                required
+                variant="standard"
+                fullWidth
+                value={localData.weight || ''} // Fallback to empty string if undefined
+                error={!!errors.weight} // Assumes you have an errors object like other fields
+                helperText={errors.weight || ''}
+                onChange={(e) => {
+                  let val = e.target.value;
+
+                  // 1. Instantly strip out any characters that are NOT digits or periods
+                  val = val.replace(/[^0-9.]/g, '');
+
+                  // 2. Prevent entering multiple decimal points (e.g., 12.5.5 becomes 12.55)
+                  const splitValue = val.split('.');
+                  if (splitValue.length > 2) {
+                    val = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
+                  }
+
+                  // 3. Update the state with the cleaned numeric string
+                  handleChange('weight', val);
+
+                  // 4. Real-time validation logic (optional, matching your other form fields)
+                  if (!val) {
+                    setErrors(prev => ({ ...prev, weight: 'Weight is required' }));
+                  } else {
+                    setErrors(prev => ({ ...prev, weight: null }));
+                  }
+                }}
+                // Hints mobile browsers to show a decimal-friendly numeric pad
+                inputProps={{ inputMode: 'decimal' }}
+              />
+
               <TextField select variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} sx={{ width: '80px' }} disabled>
                 <MenuItem value="lbs">lbs</MenuItem>
                 <MenuItem value="kgs">kgs</MenuItem>
               </TextField>
             </Box>
           </Box>
-          <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Technical Name *" variant="standard" fullWidth value={localData.technicalName} onChange={(e) => handleChange('technicalName', e.target.value)} />
+          <Box sx={{ flex: '1 1 25%' }}>
+            <TextField label="Technical Name" required variant="standard" fullWidth value={localData.technicalName} onChange={(e) => handleChange('technicalName', e.target.value)} />
           </Box>
-          <Box sx={{ flex: '1 1 22%' }}>
+          <Box sx={{ flex: '1 1 28%' }}>
+
             <TextField
-              label="Contact phone *"
+              label="Contact phone"
+              required
               variant="standard"
               fullWidth
               value={localData.contactPhone || ''}
@@ -1005,7 +1071,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
               helperText={errors.contactPhone || ''}
               onChange={(e) => {
                 const val = e.target.value;
-                if (val.startsWith(' ')) return; // Prevent leading spaces [cite: 37]
+                if (val.startsWith(' ')) return; // Prevent leading spaces
 
                 // Apply the same formatting mask used in Step 1 
                 const formattedValue = formatPhoneNumber(val).slice(0, 20);
@@ -1014,8 +1080,18 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
                 // Real-time Validation Logic 
                 const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
+
+                // 1. Extract raw digits only (e.g., "00000000000000")
+                const numericDigits = formattedValue.replace(/\D/g, '');
+
+                // 2. Check if the string starts with 10 or more consecutive zeros
+                const startsWithTenZeros = /^0{10}/.test(numericDigits);
+
                 if (!formattedValue) {
                   setErrors(prev => ({ ...prev, contactPhone: 'Phone number is required' }));
+                } else if (startsWithTenZeros) {
+                  // 3. Flags any input that begins with ten zeros
+                  setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone number (cannot start with ten zeros)' }));
                 } else if (!phoneRegex.test(formattedValue)) {
                   setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone format' }));
                 } else {
@@ -1023,6 +1099,8 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                 }
               }}
             />
+
+
           </Box>
           <Box sx={{ flex: '1 1 22%' }} /> {/* Empty Flex Item for alignment */}
         </Box>
@@ -3319,6 +3397,8 @@ const ShipmentForm = () => {
         'shipperPhone',
         'consigneePhone',
       ];
+    } else if (activeStep === 2 && isHazmatSelected) {
+      fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
     }
 
     const isValid = await trigger(fieldsToValidate);
@@ -3326,33 +3406,99 @@ const ShipmentForm = () => {
     // if (isValid) {
     setActiveStep((prev) => prev + 1);
     // } else {
-    //   setErrorVisible(true);
+    // setErrorVisible(true);
     // }
-    if (activeStep === 0) {
-      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
-      const isValid = await trigger(fieldsToValidate);
-      if (isValid) {
-        dispatch(postStep1(
-          {
-            "shipmentDetails": {
-              "typeOfShipment": currentValues.shipmentType,
-              "serviceLevel": currentValues.serviceLevel,
-              "shipmentDate": currentValues.date
-                ? new Date(currentValues.date).toLocaleDateString('en-CA')
-                : "",
-              "shipmentTime": currentValues.time
-                ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-                : "",
-              "shipmentStatus": "Active"
+
+    if (activeStep === 2) {
+      if (isHazmatSelected) {
+        const isValid = await trigger(['emergencyContactName', 'emergencyContactPhone']);
+        if (isValid && currentValues?.emergencyContactName && currentValues?.emergencyContactPhone) {
+          dispatch(postStep1(
+            {
+              "shipmentDetails": {
+                "typeOfShipment": currentValues.shipmentType,
+                "serviceLevel": currentValues.serviceLevel,
+                "shipmentDate": currentValues.date
+                  ? new Date(currentValues.date).toLocaleDateString('en-CA')
+                  : "",
+                "shipmentTime": currentValues.time
+                  ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+                  : "",
+                "shipmentStatus": "Active"
+              },
+              "customerDetails": {
+                "customerId": currentValues.billingCustomer.customerId,
+                "stationId": currentValues.billingCustomer.stationId,
+                "airportPickupService": currentValues.airportPickupService,
+                "airportDeliveryService": currentValues.airportDeliveryService,
+                "originAirportCode": currentValues.originAirport,
+                "destinationAirportCode": currentValues.destinationAirport,
+                "shipperDetails": {
+                  'shipperId': currentValues?.shipperName?.shipperId,
+                  "shipperName": currentValues?.shipperName?.shipperName,
+                  "addressLine1": currentValues.shipperAddr1,
+                  "addressLine2": currentValues.shipperAddr2,
+                  "city": currentValues.shipperCity,
+                  "state": currentValues.shipperState,
+                  "zipCode": currentValues.shipperZip,
+                  "contactPersonName": currentValues.shipperContact,
+                  "phoneNumber": currentValues.shipperPhone
+                },
+                "consigneeDetails": {
+                  "consigneeId": currentValues?.consigneeName?.consigneeId,
+                  "consigneeName": currentValues?.consigneeName?.consigneeName,
+                  "addressLine1": currentValues.consigneeAddr1,
+                  "addressLine2": currentValues.consigneeAddr2,
+                  "city": currentValues.consigneeCity,
+                  "state": currentValues.consigneeState,
+                  "zipCode": currentValues.consigneeZip,
+                  "contactPersonName": currentValues.consigneeContact,
+                  "phoneNumber": currentValues.consigneePhone
+                }
+              },
+              "commodityDetails": {
+                emergencyContactName: currentValues.emergencyContactName,
+                emergencyContactPhone: currentValues.emergencyContactPhone,
+                handlingUnits: currentValues.handlingUnits.map(hu => ({
+                  handlingUnitUOM: hu.uom,
+                  handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
+                  unit: hu.unit,
+                  handlingLength: Number(hu.length) || 0,
+                  handlingWidth: Number(hu.width) || 0,
+                  handlingHeight: Number(hu.height) || 0,
+                  handlingWeight: Number(hu.weight) || 0,
+                  handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
+                  class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
+                  palletDetails: hu.items.map(item => ({
+                    pieces: Number(item.pieces) || 0,
+                    piecesUOM: item.piecesUom,
+                    description: item.description,
+                    hazmat: item.hazmatInfo,
+                    hazmatDetails: {
+                      unNumber: item.hazmatData.unNumber,
+                      properShippingName: item.hazmatData.shippingName,
+                      hazardClass: `Class ${item.hazmatData.hazmatClass}`,
+                      packingGroup: `${item.hazmatData.packagingGroup}`,
+                      weight: Number(item.hazmatData.weight) || 0,
+                      technicalName: item.hazmatData.technicalName,
+                      contactPhoneNumber: item.hazmatData.contactPhone,
+                      hazmatDescription: item.hazmatData.description,
+                      // Converts boolean values to API's expected "Y" / "N" string flags
+                      limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
+                      marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
+                      residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
+                      reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
+                      dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
+                    }
+                  }))
+                }))
+              }
             }
-          }
-        ))
-      }
-    }
-    if (activeStep === 1) {
-      fieldsToValidate = ['billingCustomer', 'originAirport', 'destinationAirport', 'shipperZip', 'consigneeZip', 'shipperPhone', 'consigneePhone',];
-      const isValid = await trigger(fieldsToValidate);
-      if (isValid) {
+          ))
+        } else {
+          setErrorVisible(true);
+        }
+      } else {
         dispatch(postStep1(
           {
             "shipmentDetails": {
@@ -3374,8 +3520,8 @@ const ShipmentForm = () => {
               "originAirportCode": currentValues.originAirport,
               "destinationAirportCode": currentValues.destinationAirport,
               "shipperDetails": {
-                'shipperId': currentValues.shipperName.shipperId,
-                "shipperName": currentValues.shipperName.shipperName,
+                'shipperId': currentValues?.shipperName?.shipperId,
+                "shipperName": currentValues?.shipperName?.shipperName,
                 "addressLine1": currentValues.shipperAddr1,
                 "addressLine2": currentValues.shipperAddr2,
                 "city": currentValues.shipperCity,
@@ -3385,8 +3531,8 @@ const ShipmentForm = () => {
                 "phoneNumber": currentValues.shipperPhone
               },
               "consigneeDetails": {
-                "consigneeId": currentValues.consigneeName.consigneeId,
-                "consigneeName": currentValues.consigneeName.consigneeName,
+                "consigneeId": currentValues?.consigneeName?.consigneeId,
+                "consigneeName": currentValues?.consigneeName?.consigneeName,
                 "addressLine1": currentValues.consigneeAddr1,
                 "addressLine2": currentValues.consigneeAddr2,
                 "city": currentValues.consigneeCity,
@@ -3395,94 +3541,48 @@ const ShipmentForm = () => {
                 "contactPersonName": currentValues.consigneeContact,
                 "phoneNumber": currentValues.consigneePhone
               }
+            },
+            "commodityDetails": {
+              emergencyContactName: currentValues.emergencyContactName,
+              emergencyContactPhone: currentValues.emergencyContactPhone,
+              handlingUnits: currentValues.handlingUnits.map(hu => ({
+                handlingUnitUOM: hu.uom,
+                handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
+                unit: hu.unit,
+                handlingLength: Number(hu.length) || 0,
+                handlingWidth: Number(hu.width) || 0,
+                handlingHeight: Number(hu.height) || 0,
+                handlingWeight: Number(hu.weight) || 0,
+                handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
+                class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
+                palletDetails: hu.items.map(item => ({
+                  pieces: Number(item.pieces) || 0,
+                  piecesUOM: item.piecesUom,
+                  description: item.description,
+                  hazmat: item.hazmatInfo,
+                  hazmatDetails: {
+                    unNumber: item.hazmatData.unNumber,
+                    properShippingName: item.hazmatData.shippingName,
+                    hazardClass: `Class ${item.hazmatData.hazmatClass}`,
+                    packingGroup: `${item.hazmatData.packagingGroup}`,
+                    weight: Number(item.hazmatData.weight) || 0,
+                    technicalName: item.hazmatData.technicalName,
+                    contactPhoneNumber: item.hazmatData.contactPhone,
+                    hazmatDescription: item.hazmatData.description,
+                    // Converts boolean values to API's expected "Y" / "N" string flags
+                    limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
+                    marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
+                    residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
+                    reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
+                    dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
+                  }
+                }))
+              }))
             }
           }
         ))
       }
-    }
-    if (activeStep === 2) {
-      dispatch(postStep1(
-        {
-          "shipmentDetails": {
-            "typeOfShipment": currentValues.shipmentType,
-            "serviceLevel": currentValues.serviceLevel,
-            "shipmentDate": currentValues.date
-              ? new Date(currentValues.date).toLocaleDateString('en-CA')
-              : "",
-            "shipmentTime": currentValues.time
-              ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-              : "",
-            "shipmentStatus": "Active"
-          },
-          "customerDetails": {
-            "customerId": currentValues.billingCustomer.customerId,
-            "stationId": currentValues.billingCustomer.stationId,
-            "airportPickupService": currentValues.airportPickupService,
-            "airportDeliveryService": currentValues.airportDeliveryService,
-            "originAirportCode": currentValues.originAirport,
-            "destinationAirportCode": currentValues.destinationAirport,
-            "shipperDetails": {
-              'shipperId': currentValues.shipperName.shipperId,
-              "shipperName": currentValues.shipperName.shipperName,
-              "addressLine1": currentValues.shipperAddr1,
-              "addressLine2": currentValues.shipperAddr2,
-              "city": currentValues.shipperCity,
-              "state": currentValues.shipperState,
-              "zipCode": currentValues.shipperZip,
-              "contactPersonName": currentValues.shipperContact,
-              "phoneNumber": currentValues.shipperPhone
-            },
-            "consigneeDetails": {
-              "consigneeId": currentValues.consigneeName.consigneeId,
-              "consigneeName": currentValues.consigneeName.consigneeName,
-              "addressLine1": currentValues.consigneeAddr1,
-              "addressLine2": currentValues.consigneeAddr2,
-              "city": currentValues.consigneeCity,
-              "state": currentValues.consigneeState,
-              "zipCode": currentValues.consigneeZip,
-              "contactPersonName": currentValues.consigneeContact,
-              "phoneNumber": currentValues.consigneePhone
-            }
-          },
-          "commodityDetails": {
-            emergencyContactName: currentValues.emergencyContactName,
-            emergencyContactPhone: currentValues.emergencyContactPhone,
-            handlingUnits: currentValues.handlingUnits.map(hu => ({
-              handlingUnitUOM: hu.uom,
-              handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
-              unit: hu.unit,
-              handlingLength: Number(hu.length) || 0,
-              handlingWidth: Number(hu.width) || 0,
-              handlingHeight: Number(hu.height) || 0,
-              handlingWeight: Number(hu.weight) || 0,
-              handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
-              class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
-              palletDetails: hu.items.map(item => ({
-                pieces: Number(item.pieces) || 0,
-                piecesUOM: item.piecesUom,
-                description: item.description,
-                hazmat: item.hazmatInfo,
-                hazmatDetails: {
-                  unNumber: item.hazmatData.unNumber,
-                  properShippingName: item.hazmatData.shippingName,
-                  hazardClass: `Class ${item.hazmatData.hazmatClass}`,
-                  packingGroup: `${item.hazmatData.packagingGroup}`,
-                  weight: Number(item.hazmatData.weight) || 0,
-                  technicalName: item.hazmatData.technicalName,
-                  contactPhoneNumber: item.hazmatData.contactPhone,
-                  hazmatDescription: item.hazmatData.description,
-                  // Converts boolean values to API's expected "Y" / "N" string flags
-                  limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
-                  marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
-                  residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
-                  reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
-                  dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
-                }
-              }))
-            }))
-          }
-        }
-      ))
+
     }
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
@@ -3534,25 +3634,41 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
+          required: 'Zipcode is required',
           validate: (value) => {
-            if (!value) return true; // Let 'required' rule handle empty if needed
+            if (!value) return true;
 
-            // 1. Block "all zeros" for both 5-digit and range formats
+            // 1. Block "all zeros"
             const rawDigits = value.replace(/[^\d]/g, '');
             if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-            if (value.length <= 5) return true;
+            // 2. Strict Length/Format check
+            // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
+            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+            if (!zipRegex.test(value)) {
+              return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
+            }
 
-            const parts = value.split('-');
-            if (parts.length === 2 && parts[1].length === 5) {
-              const startSuffix = parseInt(parts[0].slice(-2));
-              const endSuffix = parseInt(parts[1].slice(-2));
+            // 3. Range-specific constraints (only if a range is present)
+            if (value.includes('-')) {
+              const parts = value.split('-');
+              const firstZip = parts[0];
+              const secondZip = parts[1];
+
+              // Ensure the first 3 digits of both segments match perfectly
+              if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
+                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+              }
+
+              // Ensure the last 2 digits of the second segment are strictly greater
+              const startSuffix = parseInt(firstZip.slice(-2), 10);
+              const endSuffix = parseInt(secondZip.slice(-2), 10);
 
               if (endSuffix === startSuffix) return 'End range cannot be equal to start';
               if (endSuffix < startSuffix) return 'End range must be greater than start';
-              return true;
             }
-            return 'Complete the range (#####-#####)';
+
+            return true;
           }
         }}
 
@@ -3569,46 +3685,27 @@ const ShipmentForm = () => {
             label="Zip Code"
 
             error={!!error}
-
-            helperText={error?.message}
+            helperText={error?.message || 'Ex: 12345 or 12345-12346'}
 
             value={value || ''}
 
-            inputProps={{ maxLength: 11 }}
-
             onChange={(e) => {
               const input = e.target.value;
-              const raw = input.replace(/[^\d]/g, '');
+              // Allow only digits and a single dash character
+              let raw = input.replace(/[^\d-]/g, '');
+
+              // Detect backspacing/deletion
               const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-              // 1. If deleting or clearing, just update with raw digits 
-              // This allows the user to backspace freely through the second part.
-              if (isDeleting || !raw) {
-                // If they delete the dash, we just show the first 5 digits
-                onChange(raw.slice(0, 10));
-                return;
+              if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
+                // Auto-append dash only when typing forwards past the 5th digit
+                raw = `${raw}-`;
               }
 
-              // 2. FORMATTING LOGIC (Only runs when typing/pasting)
-              let formatted = '';
-              if (raw.length <= 5) {
-                formatted = raw;
-              } else {
-                const first5 = raw.slice(0, 5);
-                const prefix = first5.slice(0, 3);
-                let suffixPart = raw.slice(5);
-
-                // Auto-fill prefix logic
-                if (!suffixPart.startsWith(prefix)) {
-                  const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
-                  suffixPart = prefix + userTypedDigits;
-                }
-
-                formatted = `${first5}-${suffixPart.slice(0, 5)}`;
-              }
-
-              onChange(formatted);
+              // Prevent typing more than 11 characters (#####-#####)
+              onChange(raw.slice(0, 11));
             }}
+            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
 
           />
 
@@ -3630,25 +3727,41 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
+          required: 'Zipcode is required',
           validate: (value) => {
-            if (!value) return true; // Let 'required' rule handle empty if needed
+            if (!value) return true;
 
-            // 1. Block "all zeros" for both 5-digit and range formats
+            // 1. Block "all zeros"
             const rawDigits = value.replace(/[^\d]/g, '');
             if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-            if (value.length <= 5) return true;
+            // 2. Strict Length/Format check
+            // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
+            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+            if (!zipRegex.test(value)) {
+              return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
+            }
 
-            const parts = value.split('-');
-            if (parts.length === 2 && parts[1].length === 5) {
-              const startSuffix = parseInt(parts[0].slice(-2));
-              const endSuffix = parseInt(parts[1].slice(-2));
+            // 3. Range-specific constraints (only if a range is present)
+            if (value.includes('-')) {
+              const parts = value.split('-');
+              const firstZip = parts[0];
+              const secondZip = parts[1];
+
+              // Ensure the first 3 digits of both segments match perfectly
+              if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
+                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+              }
+
+              // Ensure the last 2 digits of the second segment are strictly greater
+              const startSuffix = parseInt(firstZip.slice(-2), 10);
+              const endSuffix = parseInt(secondZip.slice(-2), 10);
 
               if (endSuffix === startSuffix) return 'End range cannot be equal to start';
               if (endSuffix < startSuffix) return 'End range must be greater than start';
-              return true;
             }
-            return 'Complete the range (#####-#####)';
+
+            return true;
           }
         }}
 
@@ -3665,46 +3778,27 @@ const ShipmentForm = () => {
             label="Zip Code"
 
             error={!!error}
-
-            helperText={error?.message}
+            helperText={error?.message || 'Ex: 12345 or 12345-12346'}
 
             value={value || ''}
 
-            inputProps={{ maxLength: 11 }}
-
             onChange={(e) => {
               const input = e.target.value;
-              const raw = input.replace(/[^\d]/g, '');
+              // Allow only digits and a single dash character
+              let raw = input.replace(/[^\d-]/g, '');
+
+              // Detect backspacing/deletion
               const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
 
-              // 1. If deleting or clearing, just update with raw digits 
-              // This allows the user to backspace freely through the second part.
-              if (isDeleting || !raw) {
-                // If they delete the dash, we just show the first 5 digits
-                onChange(raw.slice(0, 10));
-                return;
+              if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
+                // Auto-append dash only when typing forwards past the 5th digit
+                raw = `${raw}-`;
               }
 
-              // 2. FORMATTING LOGIC (Only runs when typing/pasting)
-              let formatted = '';
-              if (raw.length <= 5) {
-                formatted = raw;
-              } else {
-                const first5 = raw.slice(0, 5);
-                const prefix = first5.slice(0, 3);
-                let suffixPart = raw.slice(5);
-
-                // Auto-fill prefix logic
-                if (!suffixPart.startsWith(prefix)) {
-                  const userTypedDigits = suffixPart.replace(prefix, '').slice(0, 2);
-                  suffixPart = prefix + userTypedDigits;
-                }
-
-                formatted = `${first5}-${suffixPart.slice(0, 5)}`;
-              }
-
-              onChange(formatted);
+              // Prevent typing more than 11 characters (#####-#####)
+              onChange(raw.slice(0, 11));
             }}
+            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
             disabled={flag}
 
           />
@@ -3796,9 +3890,14 @@ const ShipmentForm = () => {
 
 
 
-  const renderTextField = (name, label, required = false) => (
+  const renderTextField = (name, label, required = false) => {
 
-    <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+    // Check if the current field is a city or state field
+    const isCityOrState = ['city', 'state'].some(keyword =>
+      name.toLowerCase().includes(keyword) || label.toLowerCase().includes(keyword)
+    );
+
+    return (<Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
 
       <Controller
 
@@ -3809,28 +3908,28 @@ const ShipmentForm = () => {
         rules={{ required }}
 
         render={({ field }) => (
-
           <TextField
-
             {...field}
-
+            onChange={(e) => {
+              if (isCityOrState) {
+                // Instantly strips out numbers and most special characters from the input field
+                e.target.value = e.target.value.replace(/[^A-Za-z\s.-]/g, '');
+              }
+              field.onChange(e); // Updates React Hook Form state
+            }}
             fullWidth
-
             label={`${label}${required ? ' *' : ''}`}
-
             variant="standard"
-
             error={!!errors[name]}
-
+            helperText={errors[name]?.message || ""}
           />
-
         )}
 
       />
 
-    </Box>
+    </Box>);
 
-  );
+  };
 
   const labelStyle = { fontSize: '0.75rem', color: '#555' };
   const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
@@ -4045,7 +4144,7 @@ const ShipmentForm = () => {
   useEffect(() => {
     // Whenever any shipper detail changes, we can perform actions here
     // update manual from address of carrierinfo 
-    setValue('carrierInfo.fromLocation', watchedShipperName.shipperName ?? '');
+    setValue('carrierInfo.fromLocation', watchedShipperName?.shipperName ?? '');
     setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
     setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
     setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
@@ -4057,7 +4156,7 @@ const ShipmentForm = () => {
     // Whenever any consignee detail changes, we can perform actions here
     // update manual to address of carrierinfo
     if (watchedToLocationType === 'Consignee') {
-      setValue('carrierInfo.toLocation', watchedConsigneeName.consigneeName ?? '');
+      setValue('carrierInfo.toLocation', watchedConsigneeName?.consigneeName ?? '');
       setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
@@ -4528,7 +4627,7 @@ const ShipmentForm = () => {
 
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
 
-              <Controller
+              {/* <Controller
                 name="billingCustomer" // This field will hold the chosen object structure
                 control={control}
                 rules={{ required: true }}
@@ -4590,7 +4689,73 @@ const ShipmentForm = () => {
                     sx={{ width: '30%', mb: 2 }}
                   />
                 )}
+              /> */}
+              <Controller
+                name="billingCustomer"
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { onChange, value, ref } }) => (
+                  <Autocomplete
+                    freeSolo
+                    options={customerStationDropdown}
+                    value={value || null}
+
+                    onChange={(event, newValue) => {
+                      onChange(newValue);
+                      if (!newValue) {
+                        dispatch(searchCustomerStationDropdown(''));
+                      }
+                    }}
+
+                    onInputChange={(event, newInputValue, reason) => {
+                      if (reason === 'input') {
+                        dispatch(searchCustomerStationDropdown(newInputValue));
+                        onChange(newInputValue);
+                      }
+                    }}
+
+                    // 1. Updated: Ensures the input field displays both names when a selection is active
+                    getOptionLabel={(option) => {
+                      if (typeof option === 'string') return option;
+                      if (option.inputValue) return option.inputValue;
+
+                      const name = option.customerName || '';
+                      const station = option.stationName ? ` | ${option.stationName}` : '';
+                      return `${name}${station}`;
+                    }}
+
+                    // 2. Added: Customizes how options look inside the popup dropdown list
+                    renderOption={(props, option) => {
+                      // Safe destructuring of key to prevent React list warnings
+                      const { key, ...optionProps } = props;
+
+                      return (
+                        <Box component="li" key={key} {...optionProps}>
+                          {option.customerName} {option.stationName ? ` | ${option.stationName}` : ''}
+                        </Box>
+                      );
+                    }}
+
+                    isOptionEqualToValue={(option, val) =>
+                      option.customerId === val?.customerId || option.customerName === val?.customerName
+                    }
+
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        inputRef={ref}
+                        fullWidth
+                        label={`Billing Customer *`}
+                        variant="standard"
+                        error={!!errors['billingCustomer']}
+                        helperText={errors['billingCustomer'] ? 'This field is required' : ''}
+                      />
+                    )}
+                    sx={{ width: '30%', mb: 2 }}
+                  />
+                )}
               />
+
 
             </Box>
 
@@ -4668,9 +4833,11 @@ const ShipmentForm = () => {
                         if (typeof newValue === 'string') {
                           // User typed text and pressed Enter
                           onChange({ shipperId: null, shipperName: newValue });
+                          console.log('value to api', newValue);
                         } else if (newValue && newValue.inputValue) {
                           // User clicked the "Add [Custom Text]" option
                           onChange({ shipperId: null, shipperName: newValue.inputValue });
+                          console.log('value to api', newValue.inputValue);
                         } else {
                           // User selected an existing shipper object
                           onChange(newValue);
@@ -4681,7 +4848,8 @@ const ShipmentForm = () => {
                       onInputChange={(event, newInputValue, reason) => {
                         // Only update as a raw string if typing manually (not clicking an option)
                         if (reason === 'input') {
-                          onChange({ shipperId: null, shipperName: newInputValue });
+                          // onChange({ shipperId: null, shipperName: newInputValue });
+                          console.log('value to api', newInputValue);
                         }
                       }}
 
@@ -4794,7 +4962,7 @@ const ShipmentForm = () => {
                       // Captures custom text changes if user clicks away without selecting/hitting Enter
                       onInputChange={(event, newInputValue, reason) => {
                         if (reason === 'input') {
-                          onChange({ consigneeId: null, consigneeName: newInputValue });
+                          // onChange({ consigneeId: null, consigneeName: newInputValue });
                         }
                       }}
 
@@ -4951,9 +5119,38 @@ const ShipmentForm = () => {
                     )} />
                   </Box>
                   <Box sx={{ flex: '1 1 100px' }}>
-                    <Controller name={`handlingUnits.${huIdx}.unitsCount`} control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Handling Units *" variant="standard" InputLabelProps={{ shrink: true }} />
-                    )} />
+                    <Controller
+                      name={`handlingUnits.${huIdx}.unitsCount`}
+                      control={control}
+                      // 1. Validation rule ensuring only numeric entries are valid
+                      rules={{
+                        required: "Handling units count is required",
+                        pattern: {
+                          value: /^[0-9]+$/,
+                          message: "Please enter a valid number"
+                        }
+                      }}
+                      render={({ field }) => (
+                        <TextField
+                          {...field}
+                          // 2. Overriding the onChange handler to physically block letters/symbols instantly
+                          onChange={(e) => {
+                            const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Strips everything except digits 0-9
+                            field.onChange(cleanValue);
+                          }}
+                          fullWidth
+                          label="Handling Units *"
+                          variant="standard"
+                          InputLabelProps={{ shrink: true }}
+                          // 3. Optional: Tells mobile browsers to display a numeric keypad layout
+                          inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                          // 4. Displays error states if validation fails
+                          error={!!errors?.handlingUnits?.[huIdx]?.unitsCount}
+                          helperText={errors?.handlingUnits?.[huIdx]?.unitsCount?.message || ""}
+                        />
+                      )}
+                    />
+
                   </Box>
                   <Box sx={{ flex: '1 1 80px' }}>
                     <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
@@ -4963,15 +5160,58 @@ const ShipmentForm = () => {
                       </TextField>
                     )} />
                   </Box>
-                  {['Length', 'Width', 'Height'].map((dim) => (
-                    <Box key={dim} sx={{ flex: '1 1 80px', }}>
-                      <Box display={'flex'} alignItems={'flex-end'}>
-                        <Controller name={`handlingUnits.${huIdx}.${dim.toLowerCase()}`} control={control} render={({ field }) => (
-                          <TextField {...field} fullWidth label={`Handling ${dim}`} variant="standard" InputLabelProps={{ shrink: true }} />
-                        )} />
+                  {['Length', 'Width', 'Height'].map((dim) => {
+                    const fieldName = dim.toLowerCase(); // matches 'length', 'width', 'height'
+                    const fieldError = errors?.handlingUnits?.[huIdx]?.[fieldName];
+
+                    return (
+                      <Box key={dim} sx={{ flex: '1 1 80px' }}>
+                        <Box display={'flex'} alignItems={'flex-end'}>
+                          <Controller
+                            name={`handlingUnits.${huIdx}.${fieldName}`}
+                            control={control}
+                            // 1. Validates that the final submitted string is a valid integer or decimal
+                            rules={{
+                              pattern: {
+                                value: /^\d*\.?\d*$/,
+                                message: "Invalid number"
+                              }
+                            }}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                // 2. Instantly strips out alphabets and symbols on keypress
+                                onChange={(e) => {
+                                  let cleanValue = e.target.value;
+
+                                  // Allow only digits and a single decimal point
+                                  cleanValue = cleanValue.replace(/[^0-9.]/g, '');
+
+                                  // Prevent entering multiple decimal points (e.g., 10..5 becomes 10.5)
+                                  const splitValue = cleanValue.split('.');
+                                  if (splitValue.length > 2) {
+                                    cleanValue = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
+                                  }
+
+                                  field.onChange(cleanValue);
+                                }}
+                                fullWidth
+                                label={`Handling ${dim}`}
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                // 3. Hints mobile browsers to show a decimal-friendly numeric pad
+                                inputProps={{ inputMode: 'decimal' }}
+                                // 4. Connects validation state to the UI layout
+                                error={!!fieldError}
+                                helperText={fieldError?.message || ""}
+                              />
+                            )}
+                          />
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
+                    );
+                  })}
+
                   <Box sx={{ flex: '1 1 70px' }}>
                     <Box display={'flex'} alignItems={'flex-end'}>
                       <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
@@ -5079,15 +5319,77 @@ const ShipmentForm = () => {
                 <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
                   <Box sx={{ flex: '1 1 30%' }}>
                     <Controller name="emergencyContactName" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Contact Name *" variant="standard" />
+                      <TextField {...field} fullWidth label="Contact Name" variant="standard" required={isHazmatSelected} />
                     )} />
                   </Box>
                   <Box sx={{ flex: '1 1 30%' }}>
-                    <Controller name="emergencyContactPhone" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Phone Number *" variant="standard"
-                        onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
-                      />
-                    )} />
+
+                    <Controller
+
+                      name={'emergencyContactPhone'}
+
+                      control={control}
+
+                      rules={{
+                        required: 'Phone number is required',
+                        maxLength: {
+                          value: 20,
+                          message: 'Phone number cannot exceed 20 characters'
+                        },
+                        validate: (value) => {
+                          if (!value) return true; // Allow empty
+
+                          // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                          const digitsOnly = value.replace(/\D/g, '');
+                          const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                          if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                          // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                          // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                          return true;
+                        }
+                      }}
+
+                      render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+
+                        <TextField
+
+                          {...field}
+
+                          value={value || ''}
+
+                          variant="standard"
+
+                          fullWidth
+
+                          label={`Phone Number`}
+
+                          inputProps={{ maxLength: 20 }}
+
+                          error={!!error}
+
+                          helperText={error ? error.message : ''}
+
+                          onChange={(e) => {
+                            const val = e.target.value;
+
+                            // 1. Prevent initial empty space
+                            if (val.startsWith(' ')) return;
+
+                            // 2. Format and enforce 20-character string limit
+                            const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                            onChange(formattedValue);
+                          }}
+
+                          required={isHazmatSelected}
+
+                        />
+
+                      )}
+
+                    />
                   </Box>
                 </Box>
               </Paper>

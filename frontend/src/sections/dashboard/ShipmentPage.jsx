@@ -3634,7 +3634,7 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
-          required: 'Zipcode is required',
+          // required: 'Zipcode is required',
           validate: (value) => {
             if (!value) return true;
 
@@ -3727,7 +3727,7 @@ const ShipmentForm = () => {
         control={control}
 
         rules={{
-          required: 'Zipcode is required',
+          // required: 'Zipcode is required',
           validate: (value) => {
             if (!value) return true;
 

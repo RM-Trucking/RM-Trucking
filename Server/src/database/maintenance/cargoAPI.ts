@@ -4,7 +4,7 @@ import { SCHEMA } from "../../config/db2";
 
 export async function createCargoAPI(conn: Connection, api: CreateCargoAPIRequest): Promise<number> {
     const query = `SELECT "apiId" FROM FINAL TABLE (
-        INSERT INTO ${SCHEMA}."CargoAPI"
+        INSERT INTO ${SCHEMA}."Cargo_API"
         ("apiName", "apiEndPoint", "apiKey", "activeStatus")
         VALUES (?, ?, ?, ?)
     )`;
@@ -13,7 +13,7 @@ export async function createCargoAPI(conn: Connection, api: CreateCargoAPIReques
 }
 
 export async function getCargoAPIById(conn: Connection, apiId: number): Promise<CargoAPI | null> {
-    const query = `SELECT "apiId", "apiName", "apiEndPoint", "apiKey", "activeStatus" FROM ${SCHEMA}."CargoAPI" WHERE "apiId" = ?`;
+    const query = `SELECT "apiId", "apiName", "apiEndPoint", "apiKey", "activeStatus" FROM ${SCHEMA}."Cargo_API" WHERE "apiId" = ?`;
     const result = (await conn.query(query, [apiId])) as any[];
     if (result.length === 0) {
         return null;
@@ -35,7 +35,7 @@ export async function listCargoAPIs(
     searchTerm?: string,
     status?: string
 ): Promise<CargoAPI[]> {
-    let query = `SELECT "apiId", "apiName", "apiEndPoint", "apiKey", "activeStatus" FROM ${SCHEMA}."CargoAPI" WHERE 1=1`;
+    let query = `SELECT "apiId", "apiName", "apiEndPoint", "apiKey", "activeStatus" FROM ${SCHEMA}."Cargo_API" WHERE 1=1`;
     const params: any[] = [];
 
     if (searchTerm) {
@@ -66,7 +66,7 @@ export async function countCargoAPIs(
     searchTerm?: string,
     status?: string
 ): Promise<number> {
-    let query = `SELECT COUNT(*) AS TOTAL FROM ${SCHEMA}."CargoAPI" WHERE 1=1`;
+    let query = `SELECT COUNT(*) AS TOTAL FROM ${SCHEMA}."Cargo_API" WHERE 1=1`;
     const params: any[] = [];
 
     if (searchTerm) {
@@ -109,12 +109,12 @@ export async function updateCargoAPI(
     if (fields.length === 0) {
         return;
     }
-    const query = `UPDATE ${SCHEMA}."CargoAPI" SET ${fields.join(', ')} WHERE "apiId" = ?`;
+    const query = `UPDATE ${SCHEMA}."Cargo_API" SET ${fields.join(', ')} WHERE "apiId" = ?`;
     await conn.query(query, [...values, apiId]);
 }
 
 export async function toggleCargoAPIStatus(conn: Connection, apiId: number, status: 'Y' | 'N'): Promise<void> {
-    const query = `UPDATE ${SCHEMA}."CargoAPI" SET "activeStatus" = ? WHERE "apiId" = ?`;
+    const query = `UPDATE ${SCHEMA}."Cargo_API" SET "activeStatus" = ? WHERE "apiId" = ?`;
     await conn.query(query, [status, apiId]);
 }
 

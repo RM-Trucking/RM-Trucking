@@ -28,7 +28,7 @@ export interface AddressUpdateRequest {
     city?: string;
     state?: string;
     zipCode?: string;
-    addressRole?: 'Corporate' | 'Billing' | 'Primary';
+    addressRole: 'Corporate' | 'Billing' | 'Primary';
 }
 
 export interface AddressResponse {

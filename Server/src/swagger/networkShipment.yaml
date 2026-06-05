@@ -1,0 +1,479 @@
+openapi: 3.0.0
+info:
+  title: Network Shipment API
+  version: 1.0.0
+  description: API for managing network shipments
+
+tags:
+  - name: Network Shipment
+    description: Operations related to network shipments
+
+paths:
+  /api/network-shipment:
+    post:
+      tags: [Network Shipment]
+      summary: Create a new network shipment
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentRequest"
+      responses:
+        "201":
+          description: Network shipment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkShipment"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    NetworkShipment:
+      type: object
+      properties:
+        typeOfShipment:
+          type: string
+          example: "Air Import"
+          description: Type of the shipment (e.g., 'LTL', 'FTL')
+        serviceLevel:
+          type: string
+          example: "Regular"
+          description: Service level for the shipment (e.g., 'Standard', 'Expedited')
+        shipmentDate:
+          type: string
+          format: date
+          example: "2023-10-15"
+          description: Date of the shipment
+        shipmentTime:
+          type: string
+          format: time
+          example: "09:00:00"
+          description: Time of the shipment
+    ShipmentDetails:
+      type: object
+      required:
+        - typeOfShipment
+        - serviceLevel
+        - shipmentDate
+        - shipmentTime
+        - shipmentStatus
+      properties:
+        typeOfShipment:
+          type: string
+          example: "Air Import"
+          description: Type of the shipment (e.g., 'LTL', 'FTL')
+        serviceLevel:
+          type: string
+          example: "Regular"
+          description: Service level for the shipment (e.g., 'Standard', 'Expedited')
+        shipmentDate:
+          type: string
+          format: date
+          example: "2023-10-15"
+          description: Date of the shipment
+        shipmentTime:
+          type: string
+          format: time
+          example: "09:00:00"
+          description: Time of the shipment
+        shipmentStatus:
+          type: string
+          example: "Active"
+          description: Status of the shipment
+    CustomerDetails:
+      type: object
+      required:
+        - customerId
+        - stationId
+        - airportPickupService
+        - airportDeliveryService
+        - originAirportCode
+        - destinationAirportCode
+      properties:
+        customerId:
+          type: integer
+          example: 1
+          description: Customer ID
+        stationId:
+          type: integer
+          example: 1
+          description: Station ID
+        airportPickupService:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates if airport pickup service is used (Y) or manual shipper (N)"
+        airportDeliveryService:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates if airport delivery service is used (Y) or manual consignee (N)"
+        originAirportCode:
+          type: string
+          example: "LAX"
+          description: Origin airport code (required)
+        destinationAirportCode:
+          type: string
+          example: "JFK"
+          description: Destination airport code (required)
+        pickupAirlineDetails:
+          $ref: "#/components/schemas/AirlineDetails"
+          description: "Required when airportPickupService = 'Y'. Contains airline information for pickup."
+        shipperDetails:
+          $ref: "#/components/schemas/ShipperDetails"
+          description: "Required when airportPickupService = 'N'. Contains shipper information."
+        deliveryAirlineDetails:
+          $ref: "#/components/schemas/AirlineDetails"
+          description: "Required when airportDeliveryService = 'Y'. Contains airline information for delivery."
+        consigneeDetails:
+          $ref: "#/components/schemas/ConsigneeDetails"
+          description: "Required when airportDeliveryService = 'N'. Contains consignee information."
+    AirlineDetails:
+      type: object
+      required:
+        - airlineNumber
+        - airlineCode
+        - airportCode
+        - airlineName
+        - city
+      properties:
+        airlineId:
+          type: integer
+          example: 0
+          description: "Airline ID (optional - if not provided, a new airline will be created)"
+        airlineNumber:
+          type: integer
+          example: 123
+          description: "Unique number identifying the airline"
+        airlineCode:
+          type: string
+          example: "AA"
+          description: "Airline code (e.g., 'AA', 'DL', 'UA')"
+        airportCode:
+          type: string
+          example: "LAX"
+          description: "Airport code where airline operates"
+        airlineName:
+          type: string
+          example: "American Airlines Inc."
+          description: "Full airline name"
+        addressLine1:
+          type: string
+          example: "123 Airline Way"
+          description: "Primary address line (optional)"
+        addressLine2:
+          type: string
+          example: "Suite 200"
+          description: "Secondary address line (optional)"
+        city:
+          type: string
+          example: "Los Angeles"
+          description: "City name"
+        state:
+          type: string
+          example: "CA"
+          description: "State code (optional)"
+        zipCode:
+          type: string
+          example: "90001"
+          description: "ZIP code (optional)"
+        handler:
+          type: string
+          example: "Ground Services LLC"
+          description: "Airline ground handler (optional)"
+        phoneNumber:
+          type: string
+          example: "+1-800-555-0123"
+          description: "Contact phone number (optional)"
+    ShipperDetails:
+      type: object
+      required:
+        - shipperName
+        - addressLine1
+        - city
+        - state
+        - zipCode
+        - contactPersonName
+        - phoneNumber
+      properties:
+        shipperId:
+          type: integer
+          example: 0
+          description: "Shipper ID (optional - if not provided, a new shipper will be created)"
+        shipperName:
+          type: string
+          example: "ABC Company"
+          description: "Shipper company name"
+        addressLine1:
+          type: string
+          example: "123 Main Street"
+          description: "Primary address line"
+        addressLine2:
+          type: string
+          example: "Suite 100"
+          description: "Secondary address line (optional)"
+        city:
+          type: string
+          example: "Los Angeles"
+          description: "City name"
+        state:
+          type: string
+          example: "CA"
+          description: "State name"
+        zipCode:
+          type: string
+          example: "90001"
+          description: "ZIP code"
+        contactPersonName:
+          type: string
+          example: "John Doe"
+          description: "Contact person name"
+        phoneNumber:
+          type: string
+          example: "+1-555-0123"
+          description: "Contact phone number"
+        entityId:
+          type: integer
+          description: "Entity ID (auto-generated internally)"
+    ConsigneeDetails:
+      type: object
+      required:
+        - consigneeName
+        - addressLine1
+        - city
+        - state
+        - zipCode
+        - contactPersonName
+        - phoneNumber
+      properties:
+        consigneeId:
+          type: integer
+          example: 0
+          description: "Consignee ID (optional - if not provided, a new consignee will be created)"
+        consigneeName:
+          type: string
+          example: "XYZ Corporation"
+          description: "Consignee company name"
+        addressLine1:
+          type: string
+          example: "456 Oak Avenue"
+          description: "Primary address line"
+        addressLine2:
+          type: string
+          example: "Floor 5"
+          description: "Secondary address line (optional)"
+        city:
+          type: string
+          example: "New York"
+          description: "City name"
+        state:
+          type: string
+          example: "NY"
+          description: "State name"
+        zipCode:
+          type: string
+          example: "10001"
+          description: "ZIP code"
+        contactPersonName:
+          type: string
+          example: "Jane Smith"
+          description: "Contact person name"
+        phoneNumber:
+          type: string
+          example: "+1-555-0456"
+          description: "Contact phone number"
+        entityId:
+          type: integer
+          description: "Entity ID (auto-generated internally)"
+
+    CommodityDetails:
+      type: object
+      required:
+        - emergencyContactName
+        - emergencyContactPhone
+        - handlingUnits
+      properties:
+        emergencyContactName:
+          type: string
+          example: "Mike Johnson"
+          description: Emergency contact name for the shipment
+        emergencyContactPhone:
+          type: string
+          example: "+1-555-0789"
+          description: Emergency contact phone number for the shipment
+        handlingUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/HandlingUnitDetails"
+    HandlingUnitDetails:
+      type: object
+      required:
+        - handlingUnitUOM
+        - handlingUnits
+        - unit
+        - handlingLength
+        - handlingWidth
+        - handlingHeight
+        - handlingWeight
+        - handlingWeightUnit
+        - class
+        - palletDetails
+      properties:
+        handlingUnitUOM:
+          type: string
+          example: "Pallet"
+          description: Unit of measure for the handling unit (e.g., 'Pallet', 'Box')
+        handlingUnits:
+          type: integer
+          example: 10
+          description: Number of handling units
+        unit:
+          type: string
+          example: "Pieces"
+          description: Unit of measure for the items (e.g., 'Pieces', 'Boxes')
+        handlingLength:
+          type: number
+          format: float
+          example: 48.0
+          description: Length of the handling unit in inches
+        handlingWidth:
+          type: number
+          format: float
+          example: 40.0
+          description: Width of the handling unit in inches
+        handlingHeight:
+          type: number
+          format: float
+          example: 60.0
+          description: Height of the handling unit in inches
+        handlingWeight:
+          type: number
+          format: float
+          example: 1500.0
+          description: Weight of the handling unit in pounds
+        handlingWeightUnit:
+          type: string
+          example: "LB"
+          description: Unit of measure for weight (e.g., 'LB', 'KG')
+        class:
+          type: string
+          example: "Class 70"
+          description: Freight class for the shipment
+        palletDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/PalletDetails"
+    PalletDetails:
+      type: object
+      required:
+        - pieces
+        - piecesUOM
+        - description
+        - hazmat
+        - hazmatDetails
+      properties:
+        pieces:
+          type: integer
+          example: 100
+          description: Number of pieces on the pallet
+        piecesUOM:
+          type: string
+          example: "Pieces"
+          description: Unit of measure for the pieces (e.g., 'Pieces', 'Boxes')
+        description:
+          type: string
+          example: "Standard pallet with 100 pieces"
+          description: Description of the pallet
+        hazmat:
+          type: boolean
+          example: false
+          description: Indicates if the pallet contains hazardous materials
+        hazmatDetails:
+          type: object
+          properties:
+            unNumber:
+              type: string
+              example: "UN1234"
+              description: UN number for hazardous materials
+            properShippingName:
+              type: string
+              example: "Flammable Liquid"
+              description: Proper shipping name for hazardous materials
+            hazardClass:
+              type: string
+              example: "Class 3"
+              description: Hazard class for the hazardous materials
+            packingGroup:
+              type: string
+              example: "Packing Group II"
+              description: Packing group for the hazardous materials
+            weight:
+              type: number
+              format: float
+              example: 500.0
+              description: Weight of the hazardous materials in pounds
+            technicalName:
+              type: string
+              example: "Technical Name of the Hazardous Material"
+              description: Technical name for the hazardous materials (optional)
+            contactPhoneNumber:
+              type: string
+              example: "+1-555-0000"
+              description: Emergency contact phone number for hazardous materials (optional)
+            hazmatDescription:
+              type: string
+              example: "Detailed description of the hazardous materials"
+              description: Detailed description for the hazardous materials (optional)
+            limitedQuantity:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: Indicates if the hazardous materials are limited quantity
+            marinePollutant:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: Indicates if the hazardous materials are marine pollutants
+            residueLastContained:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: Indicates if the handling unit contains residue of hazardous materials
+            reportableQuantity:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: Indicates if the hazardous materials exceed reportable quantity thresholds
+            dotExemption:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: Indicates if the hazardous materials are exempt from DOT regulations
+
+    CreateShipmentRequest:
+      type: object
+      required:
+        - shipmentDetails
+        - customerDetails
+        - commodityDetails
+      properties:
+        shipmentDetails:
+          $ref: "#/components/schemas/ShipmentDetails"
+        customerDetails:
+          $ref: "#/components/schemas/CustomerDetails"
+        commodityDetails:
+          $ref: "#/components/schemas/CommodityDetails"
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Error message describing the issue

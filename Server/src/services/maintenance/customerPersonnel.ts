@@ -19,12 +19,12 @@ export async function createCustomerPersonnelService(
 ): Promise<CustomerPersonnelResponse> {
 
     // ✅ Validate unique email
-    if (req.email) {
-        const exists = await personnelDB.checkCustomerPersonnelEmailExists(conn, req.email);
-        if (exists) {
-            throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
-        }
-    }
+    // if (req.email) {
+    //     const exists = await personnelDB.checkCustomerPersonnelEmailExists(conn, req.email);
+    //     if (exists) {
+    //         throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
+    //     }
+    // }
 
     const entityId = await entityDB.createEntity(conn, 'CUSTOMER_PERSONNEL', req.name);
     const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);

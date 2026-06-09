@@ -278,7 +278,6 @@ export type pickupDetails = {
     pickupAccessorialDetails?: {};
     pickupAlert: 'Y' | 'N';
     pickupAlertDetails?: {}
-
 }
 
 export interface CreateNetworkShipmentRequest {

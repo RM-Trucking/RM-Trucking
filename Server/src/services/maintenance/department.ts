@@ -20,12 +20,12 @@ export async function createDepartmentService(
     await conn.beginTransaction();
     try {
         // ✅ Validate unique email
-        if (req.email) {
-            const exists = await departmentDB.checkDepartmentEmailExists(conn, req.email);
-            if (exists) {
-                throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
-            }
-        }
+        // if (req.email) {
+        //     const exists = await departmentDB.checkDepartmentEmailExists(conn, req.email);
+        //     if (exists) {
+        //         throw new Error(`Email '${req.email}' is already in use. Please provide a unique email.`);
+        //     }
+        // }
 
         const entityId = await entityDB.createEntity(conn, 'DEPARTMENT', req.departmentName);
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);

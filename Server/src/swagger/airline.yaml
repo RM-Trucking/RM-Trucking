@@ -1,0 +1,38 @@
+openapi: 3.0.0
+info:
+  title: Airline API
+  version: 1.0.0
+  description: API for managing airlines, including dropdown search functionality
+
+tags:
+  - name: Airline
+    description: Operations related to airlines
+paths:
+  /api/maintenance/airline/dropdown:
+    get:
+      tags: [Airline]
+      summary: Get airline information for dropdown search
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: airportCode
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: searchTerm
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of airlines matching the search term and airport code
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Airline"
+        "400":
+          description: Invalid search term or airport code provided

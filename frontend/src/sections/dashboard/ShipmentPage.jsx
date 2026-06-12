@@ -3429,8 +3429,8 @@ const ShipmentForm = () => {
               "customerDetails": {
                 "customerId": currentValues.billingCustomer.customerId,
                 "stationId": currentValues.billingCustomer.stationId,
-                "airportPickupService": currentValues.airportPickupService,
-                "airportDeliveryService": currentValues.airportDeliveryService,
+                "airportPickupService": watchedAirportPickupService ? "Y" : "N",
+                "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
                 "originAirportCode": currentValues.originAirport,
                 "destinationAirportCode": currentValues.destinationAirport,
                 "shipperDetails": {
@@ -3444,6 +3444,20 @@ const ShipmentForm = () => {
                   "contactPersonName": currentValues.shipperContact,
                   "phoneNumber": currentValues.shipperPhone
                 },
+                "pickupAirlineDetails": {
+                  "airlineId": currentValues?.shipperName?.shipperId,
+                  "airlineNumber": currentValues?.shipperName?.airlineNumber,
+                  "airlineCode": currentValues?.shipperName?.airlineCode,
+                  "airportCode": currentValues?.shipperName?.airportCode,
+                  "airlineName": currentValues?.shipperName?.airlineName,
+                  "addressLine1": currentValues?.shipperName?.addressLine1,
+                  "addressLine2": currentValues?.shipperName?.addressLine2,
+                  "city": currentValues.shipperCity,
+                  "state": currentValues.shipperState,
+                  "zipCode": currentValues.shipperZip,
+                  "handler": currentValues?.shipperContact,
+                  "phoneNumber": currentValues.shipperPhone,
+                },
                 "consigneeDetails": {
                   "consigneeId": currentValues?.consigneeName?.consigneeId,
                   "consigneeName": currentValues?.consigneeName?.consigneeName,
@@ -3454,7 +3468,21 @@ const ShipmentForm = () => {
                   "zipCode": currentValues.consigneeZip,
                   "contactPersonName": currentValues.consigneeContact,
                   "phoneNumber": currentValues.consigneePhone
-                }
+                },
+                "deliveryAirlineDetails": {
+                  "airlineId": currentValues?.consigneeName?.consigneeId,
+                  "airlineNumber": currentValues?.consigneeName?.airlineNumber,
+                  "airlineCode": currentValues?.consigneeName?.airlineCode,
+                  "airportCode": currentValues?.consigneeName?.airportCode,
+                  "airlineName": currentValues?.consigneeName?.airlineName,
+                  "addressLine1": currentValues.consigneeAddr1,
+                  "addressLine2": currentValues.consigneeAddr2,
+                  "city": currentValues.consigneeCity,
+                  "state": currentValues.consigneeState,
+                  "zipCode": currentValues.consigneeZip,
+                  "handler": currentValues?.consigneeContact,
+                  "phoneNumber": currentValues.consigneePhone
+                },
               },
               "commodityDetails": {
                 emergencyContactName: currentValues.emergencyContactName,
@@ -3515,8 +3543,8 @@ const ShipmentForm = () => {
             "customerDetails": {
               "customerId": currentValues.billingCustomer.customerId,
               "stationId": currentValues.billingCustomer.stationId,
-              "airportPickupService": currentValues.airportPickupService,
-              "airportDeliveryService": currentValues.airportDeliveryService,
+              "airportPickupService": watchedAirportPickupService ? "Y" : "N",
+              "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
               "originAirportCode": currentValues.originAirport,
               "destinationAirportCode": currentValues.destinationAirport,
               "shipperDetails": {

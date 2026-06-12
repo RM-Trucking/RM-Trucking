@@ -165,39 +165,39 @@ export function getFuelSurchargeData({ pageNo, pageSize, searchStr }) {
     };
 }
 export function postFuelSurchargeData(obj) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.post(`maintenance/general-fuel-surcharge`, obj);
-      dispatch(slice.actions.postFuelSurchargeDataSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/general-fuel-surcharge`, obj);
+            dispatch(slice.actions.postFuelSurchargeDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
 }
 export function putFuelSurchargeData(id, obj) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.put(`maintenance/general-fuel-surcharge/${id}`, obj);
-      dispatch(slice.actions.putFuelSurchargeDataSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/general-fuel-surcharge/${id}`, obj);
+            dispatch(slice.actions.putFuelSurchargeDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
 }
 export function deleteFuelSurcharge(id) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.delete(`maintenance/general-fuel-surcharge/${id}`);
-      dispatch(slice.actions.deleteFuelSurchargeDataSuccess({
-        id, message: response.data
-      }));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/general-fuel-surcharge/${id}`);
+            dispatch(slice.actions.deleteFuelSurchargeDataSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
 }
 
 // customer fuel surcharge related api calls
@@ -214,58 +214,58 @@ export function getCustomerFuelSurchargeData({ pageNo, pageSize, searchStr }) {
     };
 }
 export function postCustomerFuelSurchargeData(obj) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.post(`maintenance/customer-fuel-surcharge`, obj);
-      dispatch(slice.actions.postCustomerFuelSurchargeDataSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
-}
-export function putCustomerFuelSurchargeData(id, obj) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.put(`maintenance/customer-fuel-surcharge/${id}`, obj);
-      dispatch(slice.actions.putCustomerFuelSurchargeDataSuccess(response.data));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
-}
-export function deleteCustomerFuelSurcharge(id) {
-  return async () => {
-    dispatch(slice.actions.startLoading());
-    try {
-      const response = await axios.delete(`maintenance/customer-fuel-surcharge/${id}`);
-      dispatch(slice.actions.deleteCustomerFuelSurchargeDataSuccess({
-        id, message: response.data
-      }));
-    } catch (error) {
-      dispatch(slice.actions.hasError(error))
-    }
-  };
-}
-
-export function getCustomerList() {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/general-fuel-surcharge?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getCustomerListSuccess([]));
+            const response = await axios.post(`maintenance/customer-fuel-surcharge`, obj);
+            dispatch(slice.actions.postCustomerFuelSurchargeDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function putCustomerFuelSurchargeData(id, obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/customer-fuel-surcharge/${id}`, obj);
+            dispatch(slice.actions.putCustomerFuelSurchargeDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+export function deleteCustomerFuelSurcharge(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/customer-fuel-surcharge/${id}`);
+            dispatch(slice.actions.deleteCustomerFuelSurchargeDataSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+export function getCustomerList(searchStr) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`maintenance/customer/customer-dropdown?${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getCustomerListSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }
     };
 }
-export function getStationList() {
+export function getStationList(customerId, searchStr) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            // const response = await axios.get(`maintenance/general-fuel-surcharge?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
-            dispatch(slice.actions.getStationListSuccess([]));
+            const response = await axios.get(`maintenance/customer/station-dropdown?customerId=${customerId}${searchStr ? `&search=${searchStr}` : ''}`);
+            dispatch(slice.actions.getStationListSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

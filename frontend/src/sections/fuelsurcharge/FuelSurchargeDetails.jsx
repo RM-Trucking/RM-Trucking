@@ -16,7 +16,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
-import { postFuelSurchargeData, putFuelSurchargeData } from '../../redux/slices/fuel';
+import {
+    postFuelSurchargeData, putFuelSurchargeData, getCustomerList, getStationList,
+    postCustomerFuelSurchargeData,
+    putCustomerFuelSurchargeData
+} from '../../redux/slices/fuel';
 
 FuelSurchargeDetails.propTypes = {
     type: PropTypes.string,
@@ -37,6 +41,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
         handleSubmit,
         formState: { errors },
         setValue,
+        getValues,
     } = useForm({
         defaultValues: {
             customer: '',
@@ -48,18 +53,37 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
     });
 
     const onSubmit = (data) => {
-        console.log('Form Submitted:', data);
-        let obj = {
-            "fuelPercentage": data.fuelsurchargePercentage,
-            "effectiveDate": data.effectiveDate,
-            "effectiveTime": data.effectiveTime,
-            // "expireDate": data.expireDate,
-            // "expireTime": data.expireTime
-        };
-        if (type === 'Add') {
-            dispatch(postFuelSurchargeData(obj));
-        } else if (type === 'Edit') {
-            dispatch(putFuelSurchargeData(selectedFuelSurchargeRowDetails.fuelSurchargeId, obj));
+        if (currentFuelSurchargeTab === 'active') {
+            console.log('Form Submitted:', data);
+            let obj = {
+                "fuelPercentage": data.fuelsurchargePercentage,
+                "effectiveDate": data.effectiveDate,
+                "effectiveTime": data.effectiveTime,
+                "expireDate": data.expireDate,
+                "expireTime": data.expireTime
+            };
+            if (type === 'Add') {
+                dispatch(postFuelSurchargeData(obj));
+            } else if (type === 'Edit') {
+                dispatch(putFuelSurchargeData(selectedFuelSurchargeRowDetails.fuelSurchargeId, obj));
+            }
+        } else if (currentFuelSurchargeTab === 'customer') {
+            console.log('Form Submitted:', data);
+            let obj = {
+                "customerId": data.customer.customerId,
+                "customerName": data.customer.customerName,
+                "fuelPercentage": data.fuelsurchargePercentage,
+                "effectiveDate": data.effectiveDate,
+                "effectiveTime": data.effectiveTime,
+                "expireDate": data.expireDate,
+                "expireTime": data.expireTime,
+                "stations": data.stationList
+            }
+            if (type === 'Add') {
+                dispatch(postCustomerFuelSurchargeData(obj));
+            } else if (type === 'Edit') {
+                dispatch(putCustomerFuelSurchargeData(selectedFuelSurchargeRowDetails.customerFuelSurchargeId, obj));
+            }
         }
     };
     useEffect(() => {
@@ -70,8 +94,12 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
     useEffect(() => {
         if (selectedFuelSurchargeRowDetails) {
             setValue('fuelsurchargePercentage', selectedFuelSurchargeRowDetails?.fuelPercentage || '');
-            setValue('effectiveDate', selectedFuelSurchargeRowDetails?.effectiveDate || '');
-            setValue('effectiveTime', selectedFuelSurchargeRowDetails?.effectiveTime || '');
+            setValue('effectiveDate', selectedFuelSurchargeRowDetails?.effectiveDate || null);
+            setValue('effectiveTime', selectedFuelSurchargeRowDetails?.effectiveTime || null);
+            setValue('expireDate', selectedFuelSurchargeRowDetails?.expireDate || null);
+            setValue('expireTime', selectedFuelSurchargeRowDetails?.expireTime || null);
+            setValue('customer', customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId) || null);
+            setValue('stationList', selectedFuelSurchargeRowDetails?.stations || null);
         }
     }, [selectedFuelSurchargeRowDetails]);
 
@@ -103,14 +131,13 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
 
                                             onChange={(event, newValue) => {
                                                 onChange(newValue);
-                                                // if (!newValue) {
-                                                // dispatch(searchCustomerStationDropdown(''));
-                                                // }
+                                                console.log('Selected Customer:', newValue);
+                                                dispatch(getStationList(newValue?.customerId, ""));
                                             }}
 
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
-                                                    // dispatch(searchCustomerStationDropdown(newInputValue));
+                                                    dispatch(getCustomerList(newInputValue));
                                                     onChange(newInputValue);
                                                 }
                                             }}
@@ -151,7 +178,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                     helperText={errors['customer'] ? 'This field is required' : ''}
                                                 />
                                             )}
-                                            sx={{ width: '50%', mb: 2 }}
+                                            sx={{ width: '100%', mb: 2 }}
                                         />
                                     )}
                                 />
@@ -159,40 +186,36 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     name="stationList"
                                     control={control}
                                     rules={{ required: true }}
+                                    // Initialize standard value to an empty array for multi-select
+                                    defaultValue={[]}
                                     render={({ field: { onChange, value, ref } }) => (
                                         <Autocomplete
+                                            multiple // 1. Added: Enables multi-select behavior
                                             freeSolo
-                                            options={stationList}
-                                            value={value || null}
+                                            options={stationList || []}
+                                            // 2. Updated: Multi-select value must always resolve to an array
+                                            value={Array.isArray(value) ? value : []}
 
                                             onChange={(event, newValue) => {
-                                                onChange(newValue);
-                                                // if (!newValue) {
-                                                // dispatch(searchCustomerStationDropdown(''));
-                                                // }
+                                                onChange(newValue); // newValue is now an array of selected objects
                                             }}
 
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
-                                                    // dispatch(searchCustomerStationDropdown(newInputValue));
-                                                    onChange(newInputValue);
+                                                    dispatch(getStationList(getValues('customer')?.customerId, newInputValue));
+                                                    // 3. Removed: Do NOT call onChange(newInputValue) here. 
+                                                    // Typing in the box shouldn't overwrite your selected array state.
                                                 }
                                             }}
 
-                                            // 1. Updated: Ensures the input field displays both names when a selection is active
                                             getOptionLabel={(option) => {
                                                 if (typeof option === 'string') return option;
                                                 if (option.inputValue) return option.inputValue;
-
-                                                const name = option.stationName || '';
-                                                return `${name}`;
+                                                return option.stationName || '';
                                             }}
 
-                                            // 2. Added: Customizes how options look inside the popup dropdown list
                                             renderOption={(props, option) => {
-                                                // Safe destructuring of key to prevent React list warnings
                                                 const { key, ...optionProps } = props;
-
                                                 return (
                                                     <Box component="li" key={key} {...optionProps}>
                                                         {option.stationName}
@@ -211,14 +234,16 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                     fullWidth
                                                     label={`Station List *`}
                                                     variant="standard"
-                                                    error={!!errors['stationList']}
-                                                    helperText={errors['stationList'] ? 'This field is required' : ''}
+                                                    // 4. Updated: Multi-select validation error handling
+                                                    error={!!errors.stationList}
+                                                    helperText={errors.stationList ? 'This field is required' : ''}
                                                 />
                                             )}
-                                            sx={{ width: '50%', mb: 2 }}
+                                            sx={{ width: '100%', mb: 2 }}
                                         />
                                     )}
                                 />
+
                             </Stack>
                         }
                         <Controller
@@ -295,6 +320,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                             helperText: errors.effectiveDate?.message || ''
                                         }
                                     }}
+                                    sx={{ width: '50%' }}
                                 />
                             )}
                         />
@@ -323,6 +349,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                             helperText: errors.effectiveTime?.message || ''
                                         }
                                     }}
+                                    sx={{ width: '50%' }}
                                 />
                             )}
                         />

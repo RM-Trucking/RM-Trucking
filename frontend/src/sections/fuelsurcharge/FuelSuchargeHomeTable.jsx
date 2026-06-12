@@ -17,7 +17,8 @@ import {
     getFuelSurchargeData,
     deleteFuelSurcharge,
     getCustomerFuelSurchargeData,
-    deleteCustomerFuelSurcharge,
+    deleteCustomerFuelSurcharge, setOperationalMessage,
+    setError, getCustomerList,
 } from '../../redux/slices/fuel';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import FuelSurchargeDetails from './FuelSurchargeDetails';
@@ -28,7 +29,7 @@ export default function FuelSurchargeHomeTable() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
 
-    const { isLoading, error, fuelSuccess, fuelSurchargeData, operationalMessage, fuelSurchargeSearchStr, pagination, currentFuelSurchargeTab, selectedFuelSurchargeRowDetails } = useSelector((state) => state.carrierdata);
+    const { isLoading, error, fuelSuccess, fuelSurchargeData, operationalMessage, fuelSurchargeSearchStr, pagination, currentFuelSurchargeTab, selectedFuelSurchargeRowDetails } = useSelector((state) => state.fueldata);
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
     const [openEditDialog, setOpenEditDialog] = useState(false);
     const [actionType, setActionType] = useState('');
@@ -187,30 +188,31 @@ export default function FuelSurchargeHomeTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box>
-                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
-                            <IconButton onClick={(e) => {
-                                e.stopPropagation();
-                                dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
-                                setOpenEditDialog(true);
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('Edit');
-                            }}>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>
+                    <>
+                        {params.row.expireDate === null && params.row.expireTime === null && <Box>
+                            <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                                <IconButton onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
+                                    setOpenEditDialog(true);
+                                    setActionType('Edit');
+                                }}>
+                                    <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
+                            </Tooltip>
 
-                        {<Tooltip title={'Delete'} arrow>
-                            <IconButton
-                                onClick={() => {
-                                    setActionType('Delete');
-                                    dispatch(deleteFuelSurcharge(params?.row?.fuelSurchargeId));
-                                }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>}
-                    </Box>
+                            <Tooltip title={'Delete'} arrow>
+                                <IconButton
+                                    onClick={() => {
+                                        setActionType('Delete');
+                                        dispatch(deleteFuelSurcharge(params?.row?.fuelSurchargeId));
+                                    }}
+                                    sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                    <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>}
+                    </>
                 );
                 return element;
             },
@@ -289,7 +291,7 @@ export default function FuelSurchargeHomeTable() {
             filterable: false,
         },
         {
-            field: 'stationCount',
+            field: 'stations',
             headerName: 'Staion',
             width: 150,
             align: 'center',
@@ -299,14 +301,14 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 // have to add customer list 
                 const element = (<>
-                    {(params?.row?.stationCount && params?.row?.stationCount > 0)
+                    {(params?.row?.stations?.length && params?.row?.stations?.length > 1)
                         ?
                         <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
                             <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
-                            <Typography variant='normal'>{params?.row?.stationCount}</Typography>
+                            <Typography variant='normal'>{params?.row?.stations?.length}</Typography>
                         </Stack>
                         :
-                        <Typography variant='normal'>{params?.row?.stationName}</Typography>
+                        <Typography variant='normal'>{params?.row?.stations?.[0]?.stationName}</Typography>
                     }
                 </>);
                 return element;
@@ -387,30 +389,31 @@ export default function FuelSurchargeHomeTable() {
             filterable: false,
             renderCell: (params) => {
                 const element = (
-                    <Box>
-                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
-                            <IconButton onClick={(e) => {
-                                e.stopPropagation();
-                                dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
-                                setOpenEditDialog(true);
-                                localStorage.setItem('carrierId', params?.row?.carrierId);
-                                setActionType('Edit');
-                            }}>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>
+                    <>
+                        {params.row.expireDate === null && params.row.expireTime === null && <Box>
+                            <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
+                                <IconButton onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
+                                    setOpenEditDialog(true);
+                                    setActionType('Edit');
+                                }}>
+                                    <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
+                            </Tooltip>
 
-                        {<Tooltip title={'Delete'} arrow>
-                            <IconButton
-                                onClick={() => {
-                                    setActionType('Delete');
-                                    dispatch(deleteFuelSurcharge(params?.row?.fuelSurchargeId));
-                                }}
-                                sx={{ display: 'inline-flex', cursor: 'pointer' }}>
-                                <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>}
-                    </Box>
+                            <Tooltip title={'Delete'} arrow>
+                                <IconButton
+                                    onClick={() => {
+                                        setActionType('Delete');
+                                        dispatch(deleteCustomerFuelSurcharge(params?.row?.customerFuelSurchargeId));
+                                    }}
+                                    sx={{ display: 'inline-flex', cursor: 'pointer' }}>
+                                    <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
+                            </Tooltip>
+                        </Box>}
+                    </>
                 );
                 return element;
             },
@@ -420,8 +423,9 @@ export default function FuelSurchargeHomeTable() {
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data
         dispatch(setTableBeingViewed('fuel'));
+        dispatch(getCustomerList(""));
         // if (currentFuelSurchargeTab === 'active') {
-            dispatch(getFuelSurchargeData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: fuelSurchargeSearchStr, }));
+        dispatch(getFuelSurchargeData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: fuelSurchargeSearchStr, }));
         // }
     }, []);
     useEffect(() => {
@@ -467,6 +471,9 @@ export default function FuelSurchargeHomeTable() {
         setActionType("");
         dispatch(setSelectedFuelSurchargeRowDetails({}));
     };
+    useEffect(() => {
+        console.log('rows', fuelSurchargeData);
+    }, [fuelSurchargeData])
 
     return (
         <>
@@ -517,10 +524,10 @@ export default function FuelSurchargeHomeTable() {
                         }}
                         onPageSizeChange={(newPageSize) => {
                             if (currentFuelSurchargeTab === 'active') {
-                                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr,  }));
+                                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr, }));
                             }
                             if (currentFuelSurchargeTab === 'customer') {
-                                dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr,  }));
+                                dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr, }));
                             }
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}

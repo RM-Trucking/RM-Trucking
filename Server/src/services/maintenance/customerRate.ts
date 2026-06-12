@@ -313,22 +313,45 @@ export async function assignRateToStationService(
     req: AssignRateToStationRequest[],
     assignedBy: string
 ): Promise<StationRateMapResponse[]> {
+
     await conn.beginTransaction();
+
     try {
+        // ✅ 🚨 Rule 1: Only ONE WAREHOUSE in request
+        const warehouseCount = req.filter(r => r.rateType === 'WAREHOUSE').length;
+
+        if (warehouseCount > 1) {
+            throw new Error('Only one warehouse rate can be assigned per request');
+        }
+
+        // Fetch existing mappings once
+        const existingMaps = await rateDB.getStationRates(conn, req[0].stationId);
+
+        // ✅ 🚨 Rule 2: Station already has WAREHOUSE
+        if (warehouseCount === 1) {
+            const existingWarehouse = existingMaps.find(
+                m => m.rateType === 'WAREHOUSE'
+            );
+
+            if (existingWarehouse) {
+                throw new Error(
+                    `Station already has a warehouse rate.`
+                );
+            }
+        }
+
         const stationRateIds: number[] = [];
 
         for (const r of req) {
-            // First check if mapping already exists
-            const existingMaps = await rateDB.getStationRates(conn, r.stationId);
+
+            // ✅ Existing duplicate check
             const alreadyMapped = existingMaps.find(
                 m => m.rateId === r.rateId && m.rateType === r.rateType
             );
 
             if (alreadyMapped) {
-                // If already mapped, just reuse the existing ID
                 stationRateIds.push(alreadyMapped.stationRateId);
             } else {
-                // Otherwise insert new mapping
                 const stationRateId = await rateDB.assignRateToStation(
                     conn,
                     r.stationId,
@@ -340,18 +363,17 @@ export async function assignRateToStationService(
             }
         }
 
-        // Fetch all maps for the station (or stations if multiple)
         const maps = await rateDB.getStationRates(conn, req[0].stationId);
 
         await conn.commit();
 
-        // Return only the ones we just inserted or reused
         return maps
-            .filter(m => stationRateIds.includes(m.terminalRateId))
+            .filter(m => stationRateIds.includes(m.stationRateId)) // ✅ fixed field
             .map(m => ({
                 ...m,
                 assignedAt: m.assignedAt ? toUtcDate(m.assignedAt) : null
             }));
+
     } catch (error) {
         await conn.rollback();
         throw error;

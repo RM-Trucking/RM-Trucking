@@ -115,6 +115,10 @@ export async function updateCarrierService(
 ): Promise<CarrierResponse> {
     await conn.beginTransaction();
     try {
+        // Fetch carrier first to get entityId
+        const carrier = await carrierDB.getCarrierById(conn, updateReq.carrierId);
+        if (!carrier) throw new Error("Carrier not found");
+
         await carrierDB.updateCarrier(conn, updateReq.carrierId, {
             ...updateReq,
             insuranceExpiry: updateReq.insuranceExpiry ? new Date(updateReq.insuranceExpiry) : undefined,
@@ -125,33 +129,48 @@ export async function updateCarrierService(
         // update addresses if provided
         if (updateReq.addresses) {
             for (const addr of updateReq.addresses) {
-                await addressDB.updateAddress(
-                    conn,
-                    addr.addressId,
-                    addr.line1 ?? '',
-                    addr.line2 ?? null,
-                    addr.city ?? '',
-                    addr.state ?? '',
-                    addr.zipCode ?? '',
-                    adminId,
-                    addr.addressRole ?? ''
-                );
+                if (addr.addressId) {
+                    // Update existing address
+                    await addressDB.updateAddress(
+                        conn,
+                        addr.addressId,
+                        addr.line1 ?? '',
+                        addr.line2 ?? null,
+                        addr.city ?? '',
+                        addr.state ?? '',
+                        addr.zipCode ?? '',
+                        adminId,
+                        addr.addressRole ?? ''
+                    );
+                } else {
+                    // Create new address
+                    const newAddressId = await addressDB.createAddress(
+                        conn,
+                        addr.line1 ?? '',
+                        addr.line2 || null,
+                        addr.city ?? '',
+                        addr.state ?? '',
+                        addr.zipCode ?? '',
+                        adminId
+                    );
+                    await addressDB.createEntityAddressMap(conn, carrier.entityId, newAddressId, addr.addressRole);
+                }
             }
         }
 
-        const carrier = await carrierDB.getCarrierById(conn, updateReq.carrierId);
-        if (!carrier) throw new Error("Carrier not found");
+        const updatedCarrier = await carrierDB.getCarrierById(conn, updateReq.carrierId);
+        if (!updatedCarrier) throw new Error("Carrier not found");
 
-        const addresses = await addressDB.getAddressesForEntity(conn, carrier.entityId);
-        const notes = carrier.noteThreadId != null
-            ? await noteDB.getMessagesByThread(conn, carrier.noteThreadId)
+        const addresses = await addressDB.getAddressesForEntity(conn, updatedCarrier.entityId);
+        const notes = updatedCarrier.noteThreadId != null
+            ? await noteDB.getMessagesByThread(conn, updatedCarrier.noteThreadId)
             : [];
 
         await conn.commit();
         return {
-            ...carrier,
-            createdAt: carrier.createdAt ? toUtcDate(carrier.createdAt) : null,
-            updatedAt: carrier.updatedAt ? toUtcDate(carrier.updatedAt) : null,
+            ...updatedCarrier,
+            createdAt: updatedCarrier.createdAt ? toUtcDate(updatedCarrier.createdAt) : null,
+            updatedAt: updatedCarrier.updatedAt ? toUtcDate(updatedCarrier.updatedAt) : null,
             addresses,
             notes
         };

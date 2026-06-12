@@ -28,7 +28,6 @@ router.get('/dropdown', authenticateJWT, async (req: Request, res: Response) => 
     if (conn) conn.close();
 });
 
-
 /**
  * GET /api/customers/:customerId
  * Get customer details

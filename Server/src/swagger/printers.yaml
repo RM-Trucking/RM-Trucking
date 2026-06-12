@@ -246,10 +246,10 @@ components:
           enum: [Y, N]
 
   securitySchemes:
-    BearerAuth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
 
 security:
-  - BearerAuth: []
+  - bearerAuth: []

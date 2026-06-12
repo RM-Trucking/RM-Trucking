@@ -13,4 +13,5 @@ export * from './station';
 export * from './customer';
 export * from './accessorial';
 export * from './zone';
+export * from './entity';
 

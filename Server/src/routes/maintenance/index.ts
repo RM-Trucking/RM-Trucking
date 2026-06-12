@@ -20,6 +20,9 @@ import generalFuelSurchargeRouter from './generalFuelSurcharge';
 import customerFuelSurchargeRouter from './customerFuelSurcharge';
 import printersRouter from './printers';
 import cargoAPIRouter from './cargoAPI';
+import shipperRouter from "./shipper";
+import consigneeRouter from "./consignee";
+import airlineRouter from "./airline";
 
 const router = Router();
 
@@ -65,5 +68,10 @@ router.use('/printers', printersRouter);
 
 router.use('/cargo-api', cargoAPIRouter);
 
+router.use('/shipper', shipperRouter);
+
+router.use('/consignee', consigneeRouter);
+
+router.use('/airline', airlineRouter);
 
 export default router;

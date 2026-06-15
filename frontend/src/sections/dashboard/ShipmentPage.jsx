@@ -7,11 +7,11 @@ import {
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
   DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
   AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions
-
+  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions,
+  ToggleButton, ToggleButtonGroup,
 
 } from '@mui/material';
-
+import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -20,6 +20,7 @@ import dayjs from 'dayjs';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import NotesTable from '../customer/NotesTable';
+import ErrorFallback from '../shared/ErrorBoundary';
 import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -2946,6 +2947,9 @@ const ShipmentForm = () => {
       }], selected: true
     },
   ]);
+  // for select carrier selection
+  const [carrierTerminalSelectError, setCarrierTerminalSelectError] = useState(false);
+
   const filter = createFilterOptions();
 
   const {
@@ -3108,6 +3112,8 @@ const ShipmentForm = () => {
           selectRouting: 'linehaul_only',
           carrier: '',
           billNumber: "",
+          disableLineHaulFromCarrier: false,
+          toggleAddress: 'linehaul',
           fromLocation: '',
           manualFromLocation: false,
           manualFromLocationDetails: {
@@ -3129,7 +3135,8 @@ const ShipmentForm = () => {
           },
           etaDate: null,
           etaTime: null,
-          pcsWeight: '',
+          pcs: '',
+          weight: '',
           linehaulAddAcc: false,
           linehaulAccessorials: [],
           lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
@@ -3142,6 +3149,7 @@ const ShipmentForm = () => {
         },
         deliveryDetails: {
           carrier: '',
+          disableDeliveryFromCarrier: false,
           billNumber: "",
           fromLocation: '',
           manualFromLocation: false,
@@ -3165,9 +3173,10 @@ const ShipmentForm = () => {
           // agent: '',
           etaDate: null,
           etaTime: null,
-          pcsWeight: '',
+          pcs: '',
+          weight: '',
           deliveryAddAcc: false,
-          deliveryAlert: false,
+          deliveryAlert: true,
           deliveryAccessorials: [],
           lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
             'Setup for pickup today ____ ',
@@ -3221,12 +3230,19 @@ const ShipmentForm = () => {
 
   });
 
+  const logError = (error, info) => {
+    // Use an error reporting service here
+    console.error("Error caught:", info);
+    console.log(error);
+  };
+
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
+
   const showEmergencyContact = watchedHandlingUnits.some(hu =>
     hu?.items?.some(item => item.hazmatInfo)
   );
@@ -4302,12 +4318,17 @@ const ShipmentForm = () => {
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
         }
       }
+      if (selectedRouting === 'pickup_only') {
+        setValue('carrierInfo.lineHaul.selectRouting', 'linehaul_only');
+        setValue('carrierInfo.lineHaul.toggleAddress', 'linehaul');
+      }
     }
   }, [selectedRouting]);
 
   // watching pickup agent terminal
   const watchedPickupAgentTerminal = useWatch({ control, name: "carrierInfo.pickupAgentTerminal" });
   const watchedLinehaulSelectRouting = useWatch({ control, name: "carrierInfo.lineHaul.selectRouting" });
+  const watchedLineHaulToggledAddress = useWatch({ control, name: "carrierInfo.lineHaul.toggleAddress" });
   const watchedAddPickupAccessorial = useWatch({ control, name: "carrierInfo.addPickupAccessorial" });
   const watchedPickupAlert = useWatch({ control, name: "carrierInfo.pickupAlert" });
   const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
@@ -4322,6 +4343,7 @@ const ShipmentForm = () => {
   useEffect(() => {
     if (watchedLinehaulSelectRouting) {
       if ((watchedLinehaulSelectRouting === 'linehaul_only')) {
+        setValue('carrierInfo.lineHaul.toggleAddress', 'linehaul');
         setValue('carrierInfo.lineHaul.toLocationType', 'Carrier');
         setValue('carrierInfo.lineHaul.toLocation', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', '');
@@ -4331,6 +4353,7 @@ const ShipmentForm = () => {
         setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', '');
       }
       if (watchedLinehaulSelectRouting === 'linehaul_delivery') {
+        setValue('carrierInfo.lineHaul.toggleAddress', 'pickup');
         setValue('carrierInfo.lineHaul.toLocationType', 'Consignee');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', watchedConsigneeAddr1 ?? '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', watchedConsigneeAddr2 ?? '');
@@ -4340,325 +4363,403 @@ const ShipmentForm = () => {
       }
     }
   }, [watchedLinehaulSelectRouting]);
+  // call use effect when there is change in select carrier of pickup and linehaul to update the address details in linehaul
+  const watchedSelectedPickupCarrier = useWatch({ control, name: "carrierInfo.selectCarrier" });
+  const watchedSelectedLineHaulCarrier = useWatch({ control, name: "carrierInfo.lineHaul.carrier" });
+
+  useEffect(() => {
+    if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress) {
+      if (watchedLineHaulToggledAddress === 'pickup') {
+        const [terminalId, carrierId] = getValues('carrierInfo.selectCarrier').split('-');
+        if (terminalId && carrierId) {
+          const selectedObject = carrierTerminalDropdown.find(
+            (item) => item.terminalId === terminalId && item.carrierId === carrierId
+          );
+          setCarrierTerminalSelectError(false);
+          console.log(selectedObject);
+          setValue('carrierInfo.lineHaul.carrier', getValues('carrierInfo.selectCarrier'));
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+        } else {
+          setCarrierTerminalSelectError(true);
+          setValue('carrierInfo.lineHaul.carrier', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+        }
+      }
+      if (watchedLineHaulToggledAddress === 'linehaul') {
+        const [terminalId, carrierId] = getValues('carrierInfo.lineHaul.carrier').split('-');
+        if (terminalId && carrierId) {
+          const selectedObject = carrierTerminalDropdown.find(
+            (item) => item.terminalId === terminalId && item.carrierId === carrierId
+          );
+          setCarrierTerminalSelectError(false);
+          console.log(selectedObject);
+          setValue('carrierInfo.lineHaul.carrier', getValues('carrierInfo.lineHaul.carrier'));
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+        } else {
+          setCarrierTerminalSelectError(true);
+          setValue('carrierInfo.lineHaul.carrier', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+        }
+      }
+    }
+    if (watchedSelectedPickupCarrier) {
+      const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
+      if (terminalId && carrierId) {
+        const selectedObject = carrierTerminalDropdown.find(
+          (item) => item.terminalId === terminalId && item.carrierId === carrierId
+        );
+        if (selectedObject.carrierName.includes('R&M')) {
+          setValue('carrierInfo.pickupAlert', false);
+        } else {
+          setValue('carrierInfo.pickupAlert', true);
+        }
+      }
+
+    }
+  }, [watchedLineHaulToggledAddress, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier]);
+
 
   return (
+    <ErrorBoundary
+      FallbackComponent={ErrorFallback}
+      onError={logError}
+      onReset={() => {
+        // Optional: reset app state here if necessary before retry
+        console.log("Error boundary reset triggered");
+      }}
+    >
+      <LocalizationProvider dateAdapter={AdapterDayjs}>
 
-    <LocalizationProvider dateAdapter={AdapterDayjs}>
+        <Box sx={{ p: 2, mt: 2 }}>
 
-      <Box sx={{ p: 2, mt: 2 }}>
+          {/* HEADER & STEPPER */}
 
-        {/* HEADER & STEPPER */}
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
+            <Box display={'flex'} alignItems={'center'}>
 
-          <Box display={'flex'} alignItems={'center'}>
+              <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
 
-            <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
+              <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
 
-            <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
-
-          </Box>
-
-
-
-          <Stepper
-            activeStep={activeStep}
-            alternativeLabel
-            connector={<CustomConnector />} // Optional: for the thick red/black line
-          >
-            {STEPS.map((label, index) => (
-              <Step key={label}>
-                <StepLabel
-                  StepIconComponent={CustomStepIcon}
-                  sx={{
-                    '& .MuiStepLabel-label': {
-                      mt: 1,
-                      fontSize: '0.70rem',
-                      fontWeight: activeStep === index ? 'bold' : 'normal',
-                      color: '#000',
-                    },
-                  }}
-                >
-                  {label}
-                </StepLabel>
-              </Step>
-            ))}
-          </Stepper>
+            </Box>
 
 
 
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button variant="outlined" onClick={() => { reset(); setActiveStep(0); }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
+            <Stepper
+              activeStep={activeStep}
+              alternativeLabel
+              connector={<CustomConnector />} // Optional: for the thick red/black line
+            >
+              {STEPS.map((label, index) => (
+                <Step key={label}>
+                  <StepLabel
+                    StepIconComponent={CustomStepIcon}
+                    sx={{
+                      '& .MuiStepLabel-label': {
+                        mt: 1,
+                        fontSize: '0.70rem',
+                        fontWeight: activeStep === index ? 'bold' : 'normal',
+                        color: '#000',
+                      },
+                    }}
+                  >
+                    {label}
+                  </StepLabel>
+                </Step>
+              ))}
+            </Stepper>
 
-            {activeStep > 0 && (
 
-              <Button variant="outlined" onClick={handleBack} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Back</Button>
 
-            )}
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button variant="outlined" onClick={() => { reset(); setActiveStep(0); }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
 
-            {/* Conditional Submit Button for Step 3 */}
-            {activeStep === 3 && isPickupPending ? (
-              <Button
-                variant="contained"
-                onClick={handleSubmit(onFormSubmit)} // Your final submit function
-                sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-              >
-                Submit
-              </Button>
-            ) : (
-              <Button
-                variant="contained"
-                onClick={handleNext}
-                sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-              >
-                {activeStep === STEPS.length - 1 ? 'Finish' : 'Next'}
-              </Button>
-            )}
+              {activeStep > 0 && (
 
-          </Box>
+                <Button variant="outlined" onClick={handleBack} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Back</Button>
 
-        </Box>
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            p: 1.5,
-            borderRadius: '4px',
-            position: 'relative'
-          }}
-        >
-          {/* LEFT SECTION */}
-          <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p: 1, borderRadius: '8px' }}>
-            <Stack spacing={0.5}>
-              <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
-                <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
-                <Typography sx={valueStyle}>CPRO9289280207</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
-                <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
-                <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
+              )}
+
+              {/* Conditional Submit Button for Step 3 */}
+              {activeStep === 3 && isPickupPending ? (
                 <Button
                   variant="contained"
-                  size="small"
-                  sx={{
-                    ml: 2,
-                    bgcolor: '#a22',
-                    height: 20,
-                    fontSize: '0.65rem',
-                    textTransform: 'none'
-                  }}
-                  onClick={() => setShipmentStatusModal(true)}
+                  onClick={handleSubmit(onFormSubmit)} // Your final submit function
+                  sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
                 >
-                  Update
+                  Submit
                 </Button>
-              </Box>
-              <Box sx={{ display: 'flex' }}>
-                <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
-                <Typography sx={valueStyle}>Air Import</Typography>
-              </Box>
-            </Stack>
-          </Box>
-
-          {/* RIGHT SECTION */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-            {/* Service Details Box */}
-            <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
-              <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
-                <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
-                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
-              </Box>
-              <Box sx={{ display: 'flex' }}>
-                <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
-                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
-              </Box>
-            </Box>
-
-            {/* Action Buttons Row */}
-            <Stack direction="row" spacing={1} alignItems="center">
-              {activeStep === 2 && <Button
-                variant="contained"
-                size="small"
-                // startIcon={<Iconify icon="solar:document-bold" />}
-                sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
-                onClick={() => setDoDetailsModal(true)}
-              >
-                DO Details
-              </Button>}
-              {activeStep === 4 && <Button
-                variant="contained"
-                size="small"
-                sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
-                onClick={() => {
-                  setCustomerRateModal(true);
-                }}
-              >
-                Customer Rate
-              </Button>}
-
-              <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
-                setOpenNotesDialog(true);
-                notesRef.current = {};
-              }}>
-                <Iconify icon="streamline-ultimate:notes-book-bold" />
-              </IconButton>
-            </Stack>
-          </Box>
-        </Box>
-
-        {/* dialog for update shipment status  */}
-        <ShipmentStatusUpdateDialog
-          open={shipmentStatusModal}
-          onClose={() => setShipmentStatusModal(false)}
-          setValue={setValue}
-          getValues={getValues}
-          control={control}
-          errors={errors}
-          liveShipmentStatus={liveShipmentStatus}
-        />
-
-        {/* dialog for DO details */}
-        <DoDetailsDialog
-          open={doDetailsModal}
-          onClose={() => setDoDetailsModal(false)}
-          getValues={getValues}
-          setValue={setValue}
-          control={control}
-          doDetailsFields={doDetailsFields}
-          isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
-        />
-
-        {/* dialog for customer rate  */}
-        <CustomerRateDialog
-          open={custommerRateModal}
-          onClose={() => setCustomerRateModal(false)}
-          getValues={getValues}
-          setValue={setValue}
-          control={control}
-          totals={totals}
-          customerRateAccFields={customerRateAccFields}
-          appendCustomerRateAccFields={appendCustomerRateAccFields}
-          watchedHU={watchedHU}
-          masterAccessorials={MASTER_ACCESSORIALS}
-        />
-
-        {/* STEP 0 */}
-
-        {activeStep === 0 && (
-
-          <Paper variant="outlined" sx={{ p: 3, mt: 2, borderRadius: 2 }}>
-
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Shipment Details</Typography>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-
-              <Box sx={{ flex: '1 1 22%' }}>
-
-                <Controller
-
-                  name="shipmentType"
-
-                  control={control}
-
-                  rules={{ required: true }}
-
-                  render={({ field }) => (
-
-                    <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentType}>
-
-                      {shipmentTypes.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-
-                    </TextField>
-
-                  )}
-
-                />
-
-              </Box>
-
-              <Box sx={{ flex: '1 1 22%' }}>
-
-                <Controller
-
-                  name="serviceLevel"
-
-                  control={control}
-
-                  rules={{ required: true }}
-
-                  render={({ field }) => (
-
-                    <TextField {...field} select fullWidth label="Service Level *" variant="standard" error={!!errors.serviceLevel}>
-
-                      {serviceLevels.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-
-                    </TextField>
-
-                  )}
-
-                />
-
-              </Box>
-
-              <Box sx={{ flex: '1 1 22%' }}>
-
-                <Controller
-
-                  name="date"
-
-                  control={control}
-
-                  rules={{ required: true }}
-
-                  render={({ field }) => (
-
-                    <DatePicker {...field} label="Select Date *" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
-
-                  )}
-
-                />
-
-              </Box>
-
-              <Box sx={{ flex: '1 1 22%' }}>
-
-                <Controller
-
-                  name="time"
-
-                  control={control}
-
-                  rules={{ required: true }}
-
-                  render={({ field }) => (
-
-                    <TimePicker {...field} label="Select Time *" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
-
-                  )}
-
-                />
-
-              </Box>
+              ) : (
+                <Button
+                  variant="contained"
+                  onClick={handleNext}
+                  sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                >
+                  {activeStep === STEPS.length - 1 ? 'Finish' : 'Next'}
+                </Button>
+              )}
 
             </Box>
 
-          </Paper>
+          </Box>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              p: 1.5,
+              borderRadius: '4px',
+              position: 'relative'
+            }}
+          >
+            {/* LEFT SECTION */}
+            <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p: 1, borderRadius: '8px' }}>
+              <Stack spacing={0.5}>
+                <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                  <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
+                  <Typography sx={valueStyle}>CPRO9289280207</Typography>
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                  <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
+                  <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{
+                      ml: 2,
+                      bgcolor: '#a22',
+                      height: 20,
+                      fontSize: '0.65rem',
+                      textTransform: 'none'
+                    }}
+                    onClick={() => setShipmentStatusModal(true)}
+                  >
+                    Update
+                  </Button>
+                </Box>
+                <Box sx={{ display: 'flex' }}>
+                  <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
+                  <Typography sx={valueStyle}>Air Import</Typography>
+                </Box>
+              </Stack>
+            </Box>
 
-        )}
+            {/* RIGHT SECTION */}
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+              {/* Service Details Box */}
+              <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
+                <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
+                  <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
+                  <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
+                </Box>
+                <Box sx={{ display: 'flex' }}>
+                  <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
+                  <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
+                </Box>
+              </Box>
+
+              {/* Action Buttons Row */}
+              <Stack direction="row" spacing={1} alignItems="center">
+                {activeStep === 2 && <Button
+                  variant="contained"
+                  size="small"
+                  // startIcon={<Iconify icon="solar:document-bold" />}
+                  sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                  onClick={() => setDoDetailsModal(true)}
+                >
+                  DO Details
+                </Button>}
+                {activeStep === 4 && <Button
+                  variant="contained"
+                  size="small"
+                  sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                  onClick={() => {
+                    setCustomerRateModal(true);
+                  }}
+                >
+                  Customer Rate
+                </Button>}
+
+                <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
+                  setOpenNotesDialog(true);
+                  notesRef.current = {};
+                }}>
+                  <Iconify icon="streamline-ultimate:notes-book-bold" />
+                </IconButton>
+              </Stack>
+            </Box>
+          </Box>
+
+          {/* dialog for update shipment status  */}
+          <ShipmentStatusUpdateDialog
+            open={shipmentStatusModal}
+            onClose={() => setShipmentStatusModal(false)}
+            setValue={setValue}
+            getValues={getValues}
+            control={control}
+            errors={errors}
+            liveShipmentStatus={liveShipmentStatus}
+          />
+
+          {/* dialog for DO details */}
+          <DoDetailsDialog
+            open={doDetailsModal}
+            onClose={() => setDoDetailsModal(false)}
+            getValues={getValues}
+            setValue={setValue}
+            control={control}
+            doDetailsFields={doDetailsFields}
+            isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
+          />
+
+          {/* dialog for customer rate  */}
+          <CustomerRateDialog
+            open={custommerRateModal}
+            onClose={() => setCustomerRateModal(false)}
+            getValues={getValues}
+            setValue={setValue}
+            control={control}
+            totals={totals}
+            customerRateAccFields={customerRateAccFields}
+            appendCustomerRateAccFields={appendCustomerRateAccFields}
+            watchedHU={watchedHU}
+            masterAccessorials={MASTER_ACCESSORIALS}
+          />
+
+          {/* STEP 0 */}
+
+          {activeStep === 0 && (
+
+            <Paper variant="outlined" sx={{ p: 3, mt: 2, borderRadius: 2 }}>
+
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Shipment Details</Typography>
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+
+                <Box sx={{ flex: '1 1 22%' }}>
+
+                  <Controller
+
+                    name="shipmentType"
+
+                    control={control}
+
+                    rules={{ required: true }}
+
+                    render={({ field }) => (
+
+                      <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentType}>
+
+                        {shipmentTypes.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+
+                      </TextField>
+
+                    )}
+
+                  />
+
+                </Box>
+
+                <Box sx={{ flex: '1 1 22%' }}>
+
+                  <Controller
+
+                    name="serviceLevel"
+
+                    control={control}
+
+                    rules={{ required: true }}
+
+                    render={({ field }) => (
+
+                      <TextField {...field} select fullWidth label="Service Level *" variant="standard" error={!!errors.serviceLevel}>
+
+                        {serviceLevels.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+
+                      </TextField>
+
+                    )}
+
+                  />
+
+                </Box>
+
+                <Box sx={{ flex: '1 1 22%' }}>
+
+                  <Controller
+
+                    name="date"
+
+                    control={control}
+
+                    rules={{ required: true }}
+
+                    render={({ field }) => (
+
+                      <DatePicker {...field} label="Select Date *" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
+
+                    )}
+
+                  />
+
+                </Box>
+
+                <Box sx={{ flex: '1 1 22%' }}>
+
+                  <Controller
+
+                    name="time"
+
+                    control={control}
+
+                    rules={{ required: true }}
+
+                    render={({ field }) => (
+
+                      <TimePicker {...field} label="Select Time *" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
+
+                    )}
+
+                  />
+
+                </Box>
+
+              </Box>
+
+            </Paper>
+
+          )}
 
 
 
-        {/* STEP 1 */}
+          {/* STEP 1 */}
 
-        {activeStep === 1 && (
+          {activeStep === 1 && (
 
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
 
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
 
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
 
-              {/* <Controller
+                {/* <Controller
                 name="billingCustomer" // This field will hold the chosen object structure
                 control={control}
                 rules={{ required: true }}
@@ -4721,363 +4822,176 @@ const ShipmentForm = () => {
                   />
                 )}
               /> */}
-              <Controller
-                name="billingCustomer"
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { onChange, value, ref } }) => (
-                  <Autocomplete
-                    freeSolo
-                    options={customerStationDropdown}
-                    value={value || null}
-
-                    onChange={(event, newValue) => {
-                      onChange(newValue);
-                      if (!newValue) {
-                        dispatch(searchCustomerStationDropdown(''));
-                      }
-                    }}
-
-                    onInputChange={(event, newInputValue, reason) => {
-                      if (reason === 'input') {
-                        dispatch(searchCustomerStationDropdown(newInputValue));
-                        onChange(newInputValue);
-                      }
-                    }}
-
-                    // 1. Updated: Ensures the input field displays both names when a selection is active
-                    getOptionLabel={(option) => {
-                      if (typeof option === 'string') return option;
-                      if (option.inputValue) return option.inputValue;
-
-                      const name = option.customerName || '';
-                      const station = option.stationName ? ` | ${option.stationName}` : '';
-                      return `${name}${station}`;
-                    }}
-
-                    // 2. Added: Customizes how options look inside the popup dropdown list
-                    renderOption={(props, option) => {
-                      // Safe destructuring of key to prevent React list warnings
-                      const { key, ...optionProps } = props;
-
-                      return (
-                        <Box component="li" key={key} {...optionProps}>
-                          {option.customerName} {option.stationName ? ` | ${option.stationName}` : ''}
-                        </Box>
-                      );
-                    }}
-
-                    isOptionEqualToValue={(option, val) =>
-                      option.customerId === val?.customerId || option.customerName === val?.customerName
-                    }
-
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        inputRef={ref}
-                        fullWidth
-                        label={`Billing Customer *`}
-                        variant="standard"
-                        error={!!errors['billingCustomer']}
-                        helperText={errors['billingCustomer'] ? 'This field is required' : ''}
-                      />
-                    )}
-                    sx={{ width: '30%', mb: 2 }}
-                  />
-                )}
-              />
-
-
-            </Box>
-
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 6 }}>
-
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Controller
-                      name="carrierInfo.airportPickupService"
-                      control={control}
-                      render={({ field }) => (
-                        <Checkbox
-                          {...field}
-                          checked={field.value}
-                          size="small"
-                          sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                        />
-                      )}
-                    />
-                  }
-                  label={<Typography variant="body2">Airport Pickup Service</Typography>}
-                />
-              </Box>
-
-              {renderTextField('originAirport', 'Origin Airport Code', watchedAirportPickupService)}
-
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                <FormControlLabel
-                  control={
-                    <Controller
-                      name="carrierInfo.airportDeliveryService"
-                      control={control}
-                      render={({ field }) => (
-                        <Checkbox
-                          {...field}
-                          checked={field.value}
-                          size="small"
-                          sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                        />
-                      )}
-                    />
-                  }
-                  label={<Typography variant="body2">Airport Delivery Service</Typography>}
-                />
-              </Box>
-
-              {renderTextField('destinationAirport', 'Destination Airport Code', watchedAirportDeliveryService)}
-
-            </Box>
-
-
-            {/* Shipper Section */}
-
-            <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, mb: 4, position: 'relative' }}>
-
-              <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Shipper Details</Typography>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
-
-                {!watchedAirportPickupService && <Controller
-                  name="shipperName" // Note: This field will now hold an object: { shipperId, shipperName }
+                <Controller
+                  name="billingCustomer"
                   control={control}
-                  rules={{ required: watchedAirportPickupService }}
+                  rules={{ required: true }}
                   render={({ field: { onChange, value, ref } }) => (
                     <Autocomplete
                       freeSolo
-                      options={shipperDropdown}
-
-                      // Map the current form state to the Autocomplete value
+                      options={customerStationDropdown}
                       value={value || null}
 
-                      // Update React Hook Form state when a choice is made
                       onChange={(event, newValue) => {
-                        if (typeof newValue === 'string') {
-                          // User typed text and pressed Enter
-                          onChange({ shipperId: null, shipperName: newValue });
-                          console.log('value to api', newValue);
-                        } else if (newValue && newValue.inputValue) {
-                          // User clicked the "Add [Custom Text]" option
-                          onChange({ shipperId: null, shipperName: newValue.inputValue });
-                          console.log('value to api', newValue.inputValue);
-                        } else {
-                          // User selected an existing shipper object
-                          onChange(newValue);
+                        onChange(newValue);
+                        if (!newValue) {
+                          dispatch(searchCustomerStationDropdown(''));
                         }
                       }}
 
-                      // Fallback fallback mechanism for typing text freely without selecting dropdown choices
                       onInputChange={(event, newInputValue, reason) => {
-                        // Only update as a raw string if typing manually (not clicking an option)
                         if (reason === 'input') {
-                          // onChange({ shipperId: null, shipperName: newInputValue });
-                          console.log('value to api', newInputValue);
+                          dispatch(searchCustomerStationDropdown(newInputValue));
+                          onChange(newInputValue);
                         }
                       }}
 
-                      // Generates the dynamic "Add..." option if it does not match anything
-                      filterOptions={(options, params) => {
-                        const filtered = filter(options, params);
-                        const { inputValue } = params;
-
-                        const isExisting = options.some(
-                          (option) => inputValue.toLowerCase() === option.shipperName.toLowerCase()
-                        );
-
-                        if (inputValue !== '' && !isExisting) {
-                          filtered.unshift({
-                            inputValue,
-                            shipperName: `${inputValue}`,
-                          });
-                        }
-
-                        return filtered;
-                      }}
-
-                      // Tells MUI how to read the text label out of your objects
+                      // 1. Updated: Ensures the input field displays both names when a selection is active
                       getOptionLabel={(option) => {
-                        if (typeof option === 'string') {
-                          return option;
-                        }
-                        if (option.inputValue) {
-                          return option.inputValue;
-                        }
-                        return option.shipperName || '';
+                        if (typeof option === 'string') return option;
+                        if (option.inputValue) return option.inputValue;
+
+                        const name = option.customerName || '';
+                        const station = option.stationName ? ` | ${option.stationName}` : '';
+                        return `${name}${station}`;
                       }}
 
-                      // Useful for object comparisons to determine selection highlighting
+                      // 2. Added: Customizes how options look inside the popup dropdown list
+                      renderOption={(props, option) => {
+                        // Safe destructuring of key to prevent React list warnings
+                        const { key, ...optionProps } = props;
+
+                        return (
+                          <Box component="li" key={key} {...optionProps}>
+                            {option.customerName} {option.stationName ? ` | ${option.stationName}` : ''}
+                          </Box>
+                        );
+                      }}
+
                       isOptionEqualToValue={(option, val) =>
-                        option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
+                        option.customerId === val?.customerId || option.customerName === val?.customerName
                       }
 
                       renderInput={(params) => (
                         <TextField
                           {...params}
-                          inputRef={ref} // Forwards validation focus back to React Hook Form
+                          inputRef={ref}
                           fullWidth
-                          label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                          label={`Billing Customer *`}
                           variant="standard"
-                          error={!!errors['shipperName']}
-                          helperText={errors['shipperName'] ? 'This field is required' : ''}
+                          error={!!errors['billingCustomer']}
+                          helperText={errors['billingCustomer'] ? 'This field is required' : ''}
                         />
                       )}
-                      sx={{ width: '25%' }}
+                      sx={{ width: '30%', mb: 2 }}
                     />
                   )}
-                />}
-                {
-                  watchedAirportPickupService &&
-                  <Controller
-                    name="shipperName"
+                />
+
+
+              </Box>
+
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 6 }}>
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Controller
+                        name="carrierInfo.airportPickupService"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            {...field}
+                            checked={field.value}
+                            size="small"
+                            sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                          />
+                        )}
+                      />
+                    }
+                    label={<Typography variant="body2">Airport Pickup Service</Typography>}
+                  />
+                </Box>
+
+                {renderTextField('originAirport', 'Origin Airport Code', watchedAirportPickupService)}
+
+                <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                  <FormControlLabel
+                    control={
+                      <Controller
+                        name="carrierInfo.airportDeliveryService"
+                        control={control}
+                        render={({ field }) => (
+                          <Checkbox
+                            {...field}
+                            checked={field.value}
+                            size="small"
+                            sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                          />
+                        )}
+                      />
+                    }
+                    label={<Typography variant="body2">Airport Delivery Service</Typography>}
+                  />
+                </Box>
+
+                {renderTextField('destinationAirport', 'Destination Airport Code', watchedAirportDeliveryService)}
+
+              </Box>
+
+
+              {/* Shipper Section */}
+
+              <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, mb: 4, position: 'relative' }}>
+
+                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Shipper Details</Typography>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
+
+                  {!watchedAirportPickupService && <Controller
+                    name="shipperName" // Note: This field will now hold an object: { shipperId, shipperName }
                     control={control}
-                    rules={{
-                      required: watchedAirportPickupService ? 'This field is required' : false,
-                      validate: (value) => {
-                        if (!value) return true; // Handled by 'required' if empty
-
-                        // 1. Skip custom text check if a valid selection was chosen from the dropdown list
-                        if (typeof value === 'object' && value.airlineNumber) {
-                          return true;
-                        }
-
-                        // 2. Fallback check for manually typed custom text strings
-                        const textToValidate = typeof value === 'string' ? value : (value.shipperName || '');
-
-                        // Double-check if the typed text matches any option's code/number to prevent false positives
-                        const isPreExisting = shipperDropdown.some(
-                          (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
-                        );
-                        if (isPreExisting) return true;
-
-                        // 3. Strict component checks for completely custom text entries
-                        const parts = textToValidate.split('-').map(p => p.trim());
-
-                        const numPart = parts[0] || '';
-                        const codePart = parts[1] || '';
-                        const namePart = parts[2] || '';
-
-                        // Validate Airline Number (Exactly 3 digits)
-                        if (!/^\d{3}$/.test(numPart)) {
-                          return 'Airline Number must be exactly 3 digits (Ex: 678)';
-                        }
-
-                        // Validate Airline Code (Exactly 2 letters)
-                        if (!/^[A-Za-z]{2}$/.test(codePart)) {
-                          return 'Airline Code must be exactly 2 letters (Ex: AA)';
-                        }
-
-                        // Validate Airline Name exists
-                        if (!namePart) {
-                          return 'Please provide the Airline Name at the end';
-                        }
-
-                        // Final structural confirmation (Digits - 2 Letters - Name)
-                        const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
-                        if (!formatRegex.test(textToValidate.trim())) {
-                          return 'Format error. Use: Airline Number - Airline Code - Airline Name';
-                        }
-
-                        return true;
-                      }
-                    }}
-
+                    rules={{ required: watchedAirportPickupService }}
                     render={({ field: { onChange, value, ref } }) => (
                       <Autocomplete
                         freeSolo
-                        options={
-                          watchedOriginAirport ? shipperDropdown.filter(
-                            (item) => item.airportCode === watchedOriginAirport
-                          ) : shipperDropdown
-                        }
+                        options={shipperDropdown}
+
+                        // Map the current form state to the Autocomplete value
                         value={value || null}
 
+                        // Update React Hook Form state when a choice is made
                         onChange={(event, newValue) => {
                           if (typeof newValue === 'string') {
+                            // User typed text and pressed Enter
                             onChange({ shipperId: null, shipperName: newValue });
+                            console.log('value to api', newValue);
                           } else if (newValue && newValue.inputValue) {
+                            // User clicked the "Add [Custom Text]" option
                             onChange({ shipperId: null, shipperName: newValue.inputValue });
+                            console.log('value to api', newValue.inputValue);
                           } else {
+                            // User selected an existing shipper object
                             onChange(newValue);
                           }
                         }}
 
-                        // 4. User-friendly typing mask handler matching the strict validation rules
+                        // Fallback fallback mechanism for typing text freely without selecting dropdown choices
                         onInputChange={(event, newInputValue, reason) => {
+                          // Only update as a raw string if typing manually (not clicking an option)
                           if (reason === 'input') {
-                            const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
-                            let formatted = newInputValue;
-
-                            if (!isDeleting) {
-                              // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
-                              let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
-
-                              // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
-                              if (/^\d{3}$/.test(clean)) {
-                                formatted = `${clean} - `;
-                              }
-
-                              // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                              const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
-                              if (match) {
-                                formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
-                              }
-                            }
-
-                            onChange({ shipperId: null, shipperName: formatted });
+                            // onChange({ shipperId: null, shipperName: newInputValue });
+                            console.log('value to api', newInputValue);
                           }
                         }}
 
-                        renderOption={(props, option) => {
-                          const { key, ...optionProps } = props;
-
-                          if (option.inputValue) {
-                            return (
-                              <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                Add :  "{option.inputValue}"
-                              </Box>
-                            );
-                          }
-
-                          const num = option.airlineNumber || '';
-                          const code = option.airlineCode || '';
-                          const name = option.airlineName || '';
-
-                          const city = option.city || '';
-                          const airCode = option.airportCode || '';
-
-                          return (
-                            <Box component="li" key={key} {...optionProps}>
-                              {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
-                            </Box>
-                          );
-                        }}
-
+                        // Generates the dynamic "Add..." option if it does not match anything
                         filterOptions={(options, params) => {
+                          const filtered = filter(options, params);
                           const { inputValue } = params;
-                          const searchStr = inputValue.toLowerCase().trim();
-
-                          const filtered = options.filter((option) => {
-                            return (
-                              (option.shipperName || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                              (option.city || '').toLowerCase().includes(searchStr) ||
-                              (option.airportCode || '').toLowerCase().includes(searchStr)
-                            );
-                          });
 
                           const isExisting = options.some(
-                            (option) => searchStr === (option.shipperName || '').toLowerCase()
+                            (option) => inputValue.toLowerCase() === option.shipperName.toLowerCase()
                           );
 
                           if (inputValue !== '' && !isExisting) {
@@ -5090,22 +5004,18 @@ const ShipmentForm = () => {
                           return filtered;
                         }}
 
+                        // Tells MUI how to read the text label out of your objects
                         getOptionLabel={(option) => {
-                          if (typeof option === 'string') return option;
-                          if (option.inputValue) return option.inputValue;
-
-                          if (option.airlineNumber) {
-                            const num = option.airlineNumber || '';
-                            const code = option.airlineCode || '';
-                            const name = option.airlineName || '';
-                            const city = option.city || '';
-                            const airCode = option.airportCode || '';
-                            return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                          if (typeof option === 'string') {
+                            return option;
                           }
-
+                          if (option.inputValue) {
+                            return option.inputValue;
+                          }
                           return option.shipperName || '';
                         }}
 
+                        // Useful for object comparisons to determine selection highlighting
                         isOptionEqualToValue={(option, val) =>
                           option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
                         }
@@ -5113,274 +5023,281 @@ const ShipmentForm = () => {
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            inputRef={ref}
+                            inputRef={ref} // Forwards validation focus back to React Hook Form
                             fullWidth
                             label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
                             variant="standard"
                             error={!!errors['shipperName']}
-                            helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+                            helperText={errors['shipperName'] ? 'This field is required' : ''}
                           />
                         )}
                         sx={{ width: '25%' }}
                       />
                     )}
-                  />
+                  />}
+                  {
+                    watchedAirportPickupService &&
+                    <Controller
+                      name="shipperName"
+                      control={control}
+                      rules={{
+                        required: watchedAirportPickupService ? 'This field is required' : false,
+                        validate: (value) => {
+                          if (!value) return true; // Handled by 'required' if empty
 
-                }
+                          // 1. Skip custom text check if a valid selection was chosen from the dropdown list
+                          if (typeof value === 'object' && value.airlineNumber) {
+                            return true;
+                          }
 
-                {renderTextField('shipperAddr1', 'Address Line 1')}
+                          // 2. Fallback check for manually typed custom text strings
+                          const textToValidate = typeof value === 'string' ? value : (value.shipperName || '');
 
-                {renderTextField('shipperAddr2', 'Address Line 2')}
+                          // Double-check if the typed text matches any option's code/number to prevent false positives
+                          const isPreExisting = shipperDropdown.some(
+                            (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
+                          );
+                          if (isPreExisting) return true;
 
-                {renderTextField('shipperCity', 'City')}
+                          // 3. Strict component checks for completely custom text entries
+                          const parts = textToValidate.split('-').map(p => p.trim());
 
-                {renderTextField('shipperState', 'State')}
+                          const numPart = parts[0] || '';
+                          const codePart = parts[1] || '';
+                          const namePart = parts[2] || '';
 
-                {renderZipCodeField('shipperZip')}
+                          // Validate Airline Number (Exactly 3 digits)
+                          if (!/^\d{3}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                          }
 
-                {renderTextField('shipperContact', 'Contact Person Name')}
+                          // Validate Airline Code (Exactly 2 letters)
+                          if (!/^[A-Za-z]{2}$/.test(codePart)) {
+                            return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                          }
 
-                {renderPhoneField('shipperPhone', 'Phone Number')}
+                          // Validate Airline Name exists
+                          if (!namePart) {
+                            return 'Please provide the Airline Name at the end';
+                          }
+
+                          // Final structural confirmation (Digits - 2 Letters - Name)
+                          const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                          if (!formatRegex.test(textToValidate.trim())) {
+                            return 'Format error. Use: Airline Number - Airline Code - Airline Name';
+                          }
+
+                          return true;
+                        }
+                      }}
+
+                      render={({ field: { onChange, value, ref } }) => (
+                        <Autocomplete
+                          freeSolo
+                          options={
+                            watchedOriginAirport ? shipperDropdown.filter(
+                              (item) => item.airportCode === watchedOriginAirport
+                            ) : shipperDropdown
+                          }
+                          value={value || null}
+
+                          onChange={(event, newValue) => {
+                            if (typeof newValue === 'string') {
+                              onChange({ shipperId: null, shipperName: newValue });
+                            } else if (newValue && newValue.inputValue) {
+                              onChange({ shipperId: null, shipperName: newValue.inputValue });
+                            } else {
+                              onChange(newValue);
+                            }
+                          }}
+
+                          // 4. User-friendly typing mask handler matching the strict validation rules
+                          onInputChange={(event, newInputValue, reason) => {
+                            if (reason === 'input') {
+                              const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                              let formatted = newInputValue;
+
+                              if (!isDeleting) {
+                                // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
+                                let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                                // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
+                                if (/^\d{3}$/.test(clean)) {
+                                  formatted = `${clean} - `;
+                                }
+
+                                // Rule B: Auto-format the airline code portion to uppercase and append " - "
+                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                                if (match) {
+                                  formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                                }
+                              }
+
+                              onChange({ shipperId: null, shipperName: formatted });
+                            }
+                          }}
+
+                          renderOption={(props, option) => {
+                            const { key, ...optionProps } = props;
+
+                            if (option.inputValue) {
+                              return (
+                                <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                  Add :  "{option.inputValue}"
+                                </Box>
+                              );
+                            }
+
+                            const num = option.airlineNumber || '';
+                            const code = option.airlineCode || '';
+                            const name = option.airlineName || '';
+
+                            const city = option.city || '';
+                            const airCode = option.airportCode || '';
+
+                            return (
+                              <Box component="li" key={key} {...optionProps}>
+                                {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
+                              </Box>
+                            );
+                          }}
+
+                          filterOptions={(options, params) => {
+                            const { inputValue } = params;
+                            const searchStr = inputValue.toLowerCase().trim();
+
+                            const filtered = options.filter((option) => {
+                              return (
+                                (option.shipperName || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                (option.city || '').toLowerCase().includes(searchStr) ||
+                                (option.airportCode || '').toLowerCase().includes(searchStr)
+                              );
+                            });
+
+                            const isExisting = options.some(
+                              (option) => searchStr === (option.shipperName || '').toLowerCase()
+                            );
+
+                            if (inputValue !== '' && !isExisting) {
+                              filtered.unshift({
+                                inputValue,
+                                shipperName: `${inputValue}`,
+                              });
+                            }
+
+                            return filtered;
+                          }}
+
+                          getOptionLabel={(option) => {
+                            if (typeof option === 'string') return option;
+                            if (option.inputValue) return option.inputValue;
+
+                            if (option.airlineNumber) {
+                              const num = option.airlineNumber || '';
+                              const code = option.airlineCode || '';
+                              const name = option.airlineName || '';
+                              const city = option.city || '';
+                              const airCode = option.airportCode || '';
+                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                            }
+
+                            return option.shipperName || '';
+                          }}
+
+                          isOptionEqualToValue={(option, val) =>
+                            option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
+                          }
+
+                          renderInput={(params) => (
+                            <TextField
+                              {...params}
+                              inputRef={ref}
+                              fullWidth
+                              label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                              variant="standard"
+                              error={!!errors['shipperName']}
+                              helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+                            />
+                          )}
+                          sx={{ width: '25%' }}
+                        />
+                      )}
+                    />
+
+                  }
+
+                  {renderTextField('shipperAddr1', 'Address Line 1')}
+
+                  {renderTextField('shipperAddr2', 'Address Line 2')}
+
+                  {renderTextField('shipperCity', 'City')}
+
+                  {renderTextField('shipperState', 'State')}
+
+                  {renderZipCodeField('shipperZip')}
+
+                  {renderTextField('shipperContact', 'Contact Person Name')}
+
+                  {renderPhoneField('shipperPhone', 'Phone Number')}
+
+                </Box>
 
               </Box>
 
-            </Box>
 
 
+              {/* Consignee Section */}
 
-            {/* Consignee Section */}
+              <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, position: 'relative' }}>
 
-            <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, position: 'relative' }}>
+                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Consignee Details</Typography>
 
-              <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Consignee Details</Typography>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
 
-                {!watchedAirportDeliveryService && <Controller
-                  name="consigneeName" // This field will hold the chosen object structure
-                  control={control}
-                  rules={{ required: watchedAirportDeliveryService }}
-                  render={({ field: { onChange, value, ref } }) => (
-                    <Autocomplete
-                      freeSolo
-                      options={consigneeDropdown}
-
-                      // Bind form state object or fallback to null
-                      value={value || null}
-
-                      // Handles selection clicks or pressing 'Enter'
-                      onChange={(event, newValue) => {
-                        if (typeof newValue === 'string') {
-                          // User typed text and manually hit Enter
-                          onChange({ consigneeId: null, consigneeName: newValue });
-                        } else if (newValue && newValue.inputValue) {
-                          // User clicked the custom dynamic 'Add "..."' option
-                          onChange({ consigneeId: null, consigneeName: newValue.inputValue });
-                        } else {
-                          // User selected an existing item from the dropdown
-                          onChange(newValue);
-                        }
-                      }}
-
-                      // Captures custom text changes if user clicks away without selecting/hitting Enter
-                      onInputChange={(event, newInputValue, reason) => {
-                        if (reason === 'input') {
-                          // onChange({ consigneeId: null, consigneeName: newInputValue });
-                        }
-                      }}
-
-                      // Generates the "Add [Custom Text]" selection item if it is not in the array
-                      filterOptions={(options, params) => {
-                        const filtered = filter(options, params);
-                        const { inputValue } = params;
-
-                        const isExisting = options.some(
-                          (option) => inputValue.toLowerCase() === option.consigneeName.toLowerCase()
-                        );
-
-                        if (inputValue !== '' && !isExisting) {
-                          filtered.unshift({
-                            inputValue,
-                            consigneeName: `${inputValue}`,
-                          });
-                        }
-
-                        return filtered;
-                      }}
-
-                      // Tells MUI how to display text from your specific object structure
-                      getOptionLabel={(option) => {
-                        if (typeof option === 'string') {
-                          return option;
-                        }
-                        if (option.inputValue) {
-                          return option.inputValue;
-                        }
-                        return option.consigneeName || '';
-                      }}
-
-                      // Ensures proper matching for active highlighted selections
-                      isOptionEqualToValue={(option, val) =>
-                        option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
-                      }
-
-                      renderInput={(params) => (
-                        <TextField
-                          {...params}
-                          inputRef={ref} // Keeps form validation ref focus working properly
-                          fullWidth
-                          label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
-                          variant="standard"
-                          error={!!errors['consigneeName']}
-                          helperText={errors['consigneeName'] ? 'This field is required' : ''}
-                        />
-                      )}
-                      sx={{ width: '25%' }}
-                    />
-                  )}
-                />}
-                {
-                  watchedAirportDeliveryService &&
-                  <Controller
-                    name="consigneeName"
+                  {!watchedAirportDeliveryService && <Controller
+                    name="consigneeName" // This field will hold the chosen object structure
                     control={control}
-                    rules={{
-                      required: watchedAirportDeliveryService ? 'This field is required' : false,
-                      validate: (value) => {
-                        if (!value) return true;
-
-                        // 1. Skip custom text check if a valid selection was chosen from the dropdown list
-                        if (typeof value === 'object' && value.airlineNumber) {
-                          return true;
-                        }
-
-                        const textToValidate = typeof value === 'string' ? value : (value.consigneeName || '');
-
-                        // Double check dropdown option list match to prevent false-positives
-                        const isPreExisting = consigneeDropdown.some(
-                          (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
-                        );
-                        if (isPreExisting) return true;
-
-                        // 2. Strict component checks for completely custom text entries
-                        const parts = textToValidate.split('-').map(p => p.trim());
-
-                        const numPart = parts[0] || '';
-                        const codePart = parts[1] || '';
-                        const namePart = parts[2] || '';
-
-                        // Validate Airline Number (Exactly 3 digits)
-                        if (!/^\d{3}$/.test(numPart)) {
-                          return 'Airline Number must be exactly 3 digits (Ex: 678)';
-                        }
-
-                        // Validate Airline Code (Exactly 2 letters)
-                        if (!/^[A-Za-z]{2}$/.test(codePart)) {
-                          return 'Airline Code must be exactly 2 letters (Ex: AA)';
-                        }
-
-                        // Validate Airline Name exists
-                        if (!namePart) {
-                          return 'Please provide the Airline Name at the end';
-                        }
-
-                        // Final structural confirmation (Digits - 2 Letters - Name)
-                        const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
-                        if (!formatRegex.test(textToValidate.trim())) {
-                          return 'Format error. Use: Airline Number - Airline Code - Airline Name';
-                        }
-
-                        return true;
-                      }
-                    }}
+                    rules={{ required: watchedAirportDeliveryService }}
                     render={({ field: { onChange, value, ref } }) => (
                       <Autocomplete
                         freeSolo
-                        options={
-                          watchedDestinationAirport ? consigneeDropdown.filter(
-                            (item) => item.airportCode === watchedDestinationAirport
-                          ) : consigneeDropdown
-                        }
+                        options={consigneeDropdown}
+
+                        // Bind form state object or fallback to null
                         value={value || null}
 
+                        // Handles selection clicks or pressing 'Enter'
                         onChange={(event, newValue) => {
                           if (typeof newValue === 'string') {
+                            // User typed text and manually hit Enter
                             onChange({ consigneeId: null, consigneeName: newValue });
                           } else if (newValue && newValue.inputValue) {
+                            // User clicked the custom dynamic 'Add "..."' option
                             onChange({ consigneeId: null, consigneeName: newValue.inputValue });
                           } else {
+                            // User selected an existing item from the dropdown
                             onChange(newValue);
                           }
                         }}
 
-                        // 3. User-friendly typing mask handler matching the strict validation rules
+                        // Captures custom text changes if user clicks away without selecting/hitting Enter
                         onInputChange={(event, newInputValue, reason) => {
                           if (reason === 'input') {
-                            const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
-                            let formatted = newInputValue;
-
-                            if (!isDeleting) {
-                              // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
-                              let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
-
-                              // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
-                              if (/^\d{3}$/.test(clean)) {
-                                formatted = `${clean} - `;
-                              }
-
-                              // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                              const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
-                              if (match) {
-                                formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
-                              }
-                            }
-
-                            onChange({ consigneeId: null, consigneeName: formatted });
+                            // onChange({ consigneeId: null, consigneeName: newInputValue });
                           }
                         }}
 
-                        renderOption={(props, option) => {
-                          const { key, ...optionProps } = props;
-
-                          if (option.inputValue) {
-                            return (
-                              <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                Add: "{option.inputValue}"
-                              </Box>
-                            );
-                          }
-
-                          const num = option.airlineNumber || '';
-                          const code = option.airlineCode || '';
-                          const name = option.airlineName || '';
-                          const city = option.city || '';
-                          const airCode = option.airportCode || '';
-
-                          return (
-                            <Box component="li" key={key} {...optionProps}>
-                              {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
-                            </Box>
-                          );
-                        }}
-
+                        // Generates the "Add [Custom Text]" selection item if it is not in the array
                         filterOptions={(options, params) => {
+                          const filtered = filter(options, params);
                           const { inputValue } = params;
-                          const searchStr = inputValue.toLowerCase().trim();
-
-                          const filtered = options.filter((option) => {
-                            return (
-                              (option.consigneeName || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                              (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                              (option.city || '').toLowerCase().includes(searchStr) ||
-                              (option.airportCode || '').toLowerCase().includes(searchStr)
-                            );
-                          });
 
                           const isExisting = options.some(
-                            (option) => searchStr === (option.consigneeName || '').toLowerCase()
+                            (option) => inputValue.toLowerCase() === option.consigneeName.toLowerCase()
                           );
 
                           if (inputValue !== '' && !isExisting) {
@@ -5393,22 +5310,18 @@ const ShipmentForm = () => {
                           return filtered;
                         }}
 
+                        // Tells MUI how to display text from your specific object structure
                         getOptionLabel={(option) => {
-                          if (typeof option === 'string') return option;
-                          if (option.inputValue) return option.inputValue;
-
-                          if (option.airlineNumber) {
-                            const num = option.airlineNumber || '';
-                            const code = option.airlineCode || '';
-                            const name = option.airlineName || '';
-                            const city = option.city || '';
-                            const airCode = option.airportCode || '';
-                            return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                          if (typeof option === 'string') {
+                            return option;
                           }
-
+                          if (option.inputValue) {
+                            return option.inputValue;
+                          }
                           return option.consigneeName || '';
                         }}
 
+                        // Ensures proper matching for active highlighted selections
                         isOptionEqualToValue={(option, val) =>
                           option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
                         }
@@ -5416,638 +5329,684 @@ const ShipmentForm = () => {
                         renderInput={(params) => (
                           <TextField
                             {...params}
-                            inputRef={ref}
+                            inputRef={ref} // Keeps form validation ref focus working properly
                             fullWidth
                             label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
                             variant="standard"
                             error={!!errors['consigneeName']}
-                            helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+                            helperText={errors['consigneeName'] ? 'This field is required' : ''}
                           />
                         )}
                         sx={{ width: '25%' }}
                       />
                     )}
-                  />
-
-
-                }
-
-                {renderTextField('consigneeAddr1', 'Address Line 1')}
-
-                {renderTextField('consigneeAddr2', 'Address Line 2')}
-
-                {renderTextField('consigneeCity', 'City')}
-
-                {renderTextField('consigneeState', 'State')}
-
-                {renderZipCodeField('consigneeZip')}
-
-                {renderTextField('consigneeContact', 'Contact Person Name')}
-
-                {renderPhoneField('consigneePhone', 'Phone Number')}
-
-              </Box>
-
-            </Box>
-
-          </Paper>
-
-        )}
-
-        {/* STEP 2 */}
-
-        {activeStep === 2 && (
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
-              Commodities Details
-            </Typography>
-
-            {huFields.map((hu, huIdx) => (
-              <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
-                {/* Label on Border */}
-                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                  Handling Unit {huIdx + 1}
-                </Typography>
-
-
-
-                {/* Clear/Remove Logic */}
-                <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                  {huIdx === 0 ? (
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      onClick={() => setValue(`handlingUnits.0`, {
-                        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
-                        items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
-                      })}
-                      sx={{ height: 20, fontSize: '0.65rem', color: '#000', borderColor: '#000', textTransform: 'none' }}
-                    >
-                      Clear
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => removeHU(huIdx)}
-                      sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none' }}
-                    >
-                      Remove
-                    </Button>
-                  )}
-                </Box>
-
-
-
-                {/* Handling Unit Dimensions Row */}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
-                  <Box sx={{ flex: '1 1 120px' }}>
-                    <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
-                        SelectProps={{
-                          displayEmpty: true,
-                          MenuProps: {
-                            // Crucial: disables internal centering logic so origins work
-                            getContentAnchorEl: null,
-                            // Prevents layout shifts and menu misplacement on scroll
-                            disableScrollLock: true,
-                            anchorOrigin: {
-                              vertical: 'bottom',
-                              horizontal: 'left',
-                            },
-                            transformOrigin: {
-                              vertical: 'top',
-                              horizontal: 'left',
-                            },
-                            PaperProps: {
-                              sx: {
-                                marginTop: '4px', // Your custom gap
-                                maxHeight: 300,
-                                maxWidth: 300    // Recommended to prevent long lists from going off-screen
-                              }
-                            }
-                          },
-                        }}
-                      >
-                        {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
-                      </TextField>
-                    )} />
-                  </Box>
-                  <Box sx={{ flex: '1 1 100px' }}>
+                  />}
+                  {
+                    watchedAirportDeliveryService &&
                     <Controller
-                      name={`handlingUnits.${huIdx}.unitsCount`}
+                      name="consigneeName"
                       control={control}
-                      // 1. Validation rule ensuring only numeric entries are valid
                       rules={{
-                        required: "Handling units count is required",
-                        pattern: {
-                          value: /^[0-9]+$/,
-                          message: "Please enter a valid number"
-                        }
-                      }}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          // 2. Overriding the onChange handler to physically block letters/symbols instantly
-                          onChange={(e) => {
-                            const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Strips everything except digits 0-9
-                            field.onChange(cleanValue);
-                          }}
-                          fullWidth
-                          label="Handling Units *"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                          // 3. Optional: Tells mobile browsers to display a numeric keypad layout
-                          inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                          // 4. Displays error states if validation fails
-                          error={!!errors?.handlingUnits?.[huIdx]?.unitsCount}
-                          helperText={errors?.handlingUnits?.[huIdx]?.unitsCount?.message || ""}
-                        />
-                      )}
-                    />
-
-                  </Box>
-                  <Box sx={{ flex: '1 1 80px' }}>
-                    <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
-                      <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
-                        <MenuItem value="in">in</MenuItem>
-                        <MenuItem value="cm">cm</MenuItem>
-                      </TextField>
-                    )} />
-                  </Box>
-                  {['Length', 'Width', 'Height'].map((dim) => {
-                    const fieldName = dim.toLowerCase(); // matches 'length', 'width', 'height'
-                    const fieldError = errors?.handlingUnits?.[huIdx]?.[fieldName];
-
-                    return (
-                      <Box key={dim} sx={{ flex: '1 1 80px' }}>
-                        <Box display={'flex'} alignItems={'flex-end'}>
-                          <Controller
-                            name={`handlingUnits.${huIdx}.${fieldName}`}
-                            control={control}
-                            // 1. Validates that the final submitted string is a valid integer or decimal
-                            rules={{
-                              pattern: {
-                                value: /^\d*\.?\d*$/,
-                                message: "Invalid number"
-                              }
-                            }}
-                            render={({ field }) => (
-                              <TextField
-                                {...field}
-                                // 2. Instantly strips out alphabets and symbols on keypress
-                                onChange={(e) => {
-                                  let cleanValue = e.target.value;
-
-                                  // Allow only digits and a single decimal point
-                                  cleanValue = cleanValue.replace(/[^0-9.]/g, '');
-
-                                  // Prevent entering multiple decimal points (e.g., 10..5 becomes 10.5)
-                                  const splitValue = cleanValue.split('.');
-                                  if (splitValue.length > 2) {
-                                    cleanValue = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
-                                  }
-
-                                  field.onChange(cleanValue);
-                                }}
-                                fullWidth
-                                label={`Handling ${dim}`}
-                                variant="standard"
-                                InputLabelProps={{ shrink: true }}
-                                // 3. Hints mobile browsers to show a decimal-friendly numeric pad
-                                inputProps={{ inputMode: 'decimal' }}
-                                // 4. Connects validation state to the UI layout
-                                error={!!fieldError}
-                                helperText={fieldError?.message || ""}
-                              />
-                            )}
-                          />
-                        </Box>
-                      </Box>
-                    );
-                  })}
-
-                  <Box sx={{ flex: '1 1 70px' }}>
-                    <Box display={'flex'} alignItems={'flex-end'}>
-                      <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
-                      )} />
-                      <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
-                        <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
-                          <MenuItem value="lbs">lbs</MenuItem>
-                          <MenuItem value="kgs">kgs</MenuItem>
-                        </TextField>
-                      )} />
-                    </Box>
-                  </Box>
-                  <Box sx={{ flex: '1 1 120px' }}>
-                    <Controller
-                      name={`handlingUnits.${huIdx}.class`}
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          select
-                          fullWidth
-                          label="Class"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                          SelectProps={{
-                            displayEmpty: true,
-                            // This ensures the input only shows the value, not the "(Recommended)" text
-                            renderValue: (selected) => selected || <em>Select Class</em>,
-                            MenuProps: {
-                              getContentAnchorEl: null,
-                              disableScrollLock: true,
-                              anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
-                              transformOrigin: { vertical: 'top', horizontal: 'left' },
-                              PaperProps: {
-                                sx: { marginTop: '4px', maxHeight: 200, maxWidth: 350 }
-                              }
-                            },
-                            inputProps: { maxLength: 255 },
-                          }}
-                        >
-                          {watchedHU[huIdx]?.freightClass?.length > 0 ? (
-                            watchedHU[huIdx]?.freightClass?.map((fc) => {
-                              const isCalculated = fc === watchedHU[huIdx]?.calculatedFC;
-
-                              return (
-                                <MenuItem
-                                  key={fc}
-                                  value={fc}
-                                  sx={{
-                                    backgroundColor: isCalculated ? '#e3f2fd !important' : 'transparent',
-                                    fontWeight: isCalculated ? 'bold' : 'normal',
-                                    borderLeft: isCalculated ? '4px solid #1976d2' : 'none',
-                                    '&:hover': { backgroundColor: isCalculated ? '#bbdefb !important' : '' }
-                                  }}
-                                >
-                                  {/* This text is what appears in the DROPDOWN list */}
-                                  {fc} {isCalculated && "(Recommended)"}
-                                </MenuItem>
-                              );
-                            })
-                          ) : (
-                            <MenuItem value="" disabled>No freight classes available</MenuItem>
-                          )}
-                        </TextField>
-                      )}
-                    />
-
-                  </Box>
-                </Box>
-
-
-
-                {/* Dynamic Items List */}
-                <ItemsSection
-                  huIndex={huIdx}
-                  control={control}
-                  watchedHU={watchedHU}
-                  openHazmat={(hu, itm) => setHazmatModal({ open: true, huIdx: hu, itemIdx: itm })}
-                />
-              </Paper>
-            ))}
-
-
-
-            {/* Add Handling Unit Button */}
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
-              <Button
-                variant="contained"
-                onClick={handleAddHU}
-                sx={{ bgcolor: '#a22', fontSize: '0.75rem', textTransform: 'none' }}
-              >
-                Add Handling Unit
-              </Button>
-            </Box>
-
-
-
-            {/* Emergency Contact: Conditional Render */}
-            {isHazmatSelected && (
-              <Paper variant="outlined" sx={{ p: 3, mt: 4, borderRadius: 2, position: 'relative' }}>
-                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                  Emergency Contact
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
-                  <Box sx={{ flex: '1 1 30%' }}>
-                    <Controller name="emergencyContactName" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="Contact Name" variant="standard" required={isHazmatSelected} />
-                    )} />
-                  </Box>
-                  <Box sx={{ flex: '1 1 30%' }}>
-
-                    <Controller
-
-                      name={'emergencyContactPhone'}
-
-                      control={control}
-
-                      rules={{
-                        required: 'Phone number is required',
-                        maxLength: {
-                          value: 20,
-                          message: 'Phone number cannot exceed 20 characters'
-                        },
+                        required: watchedAirportDeliveryService ? 'This field is required' : false,
                         validate: (value) => {
-                          if (!value) return true; // Allow empty
+                          if (!value) return true;
 
-                          // 1. Check for all zeros (strips formatting and checks if only 0s remain)
-                          const digitsOnly = value.replace(/\D/g, '');
-                          const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+                          // 1. Skip custom text check if a valid selection was chosen from the dropdown list
+                          if (typeof value === 'object' && value.airlineNumber) {
+                            return true;
+                          }
 
-                          if (isAllZeros) return 'Phone number cannot be all zeros';
+                          const textToValidate = typeof value === 'string' ? value : (value.consigneeName || '');
 
-                          // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
-                          // If you just want to allow any 20 chars, the maxLength rule above handles it.
+                          // Double check dropdown option list match to prevent false-positives
+                          const isPreExisting = consigneeDropdown.some(
+                            (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
+                          );
+                          if (isPreExisting) return true;
+
+                          // 2. Strict component checks for completely custom text entries
+                          const parts = textToValidate.split('-').map(p => p.trim());
+
+                          const numPart = parts[0] || '';
+                          const codePart = parts[1] || '';
+                          const namePart = parts[2] || '';
+
+                          // Validate Airline Number (Exactly 3 digits)
+                          if (!/^\d{3}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                          }
+
+                          // Validate Airline Code (Exactly 2 letters)
+                          if (!/^[A-Za-z]{2}$/.test(codePart)) {
+                            return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                          }
+
+                          // Validate Airline Name exists
+                          if (!namePart) {
+                            return 'Please provide the Airline Name at the end';
+                          }
+
+                          // Final structural confirmation (Digits - 2 Letters - Name)
+                          const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                          if (!formatRegex.test(textToValidate.trim())) {
+                            return 'Format error. Use: Airline Number - Airline Code - Airline Name';
+                          }
 
                           return true;
                         }
                       }}
-
-                      render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-
-                        <TextField
-
-                          {...field}
-
-                          value={value || ''}
-
-                          variant="standard"
-
-                          fullWidth
-
-                          label={`Phone Number`}
-
-                          inputProps={{ maxLength: 20 }}
-
-                          error={!!error}
-
-                          helperText={error ? error.message : ''}
-
-                          onChange={(e) => {
-                            const val = e.target.value;
-
-                            // 1. Prevent initial empty space
-                            if (val.startsWith(' ')) return;
-
-                            // 2. Format and enforce 20-character string limit
-                            const formattedValue = formatPhoneNumber(val).slice(0, 20);
-                            onChange(formattedValue);
-                          }}
-
-                          required={isHazmatSelected}
-
-                        />
-
-                      )}
-
-                    />
-                  </Box>
-                </Box>
-              </Paper>
-            )}
-
-            {/* Commodities List Table */}
-            <CommoditiesList watchedHU={watchedHU} />
-          </Paper>
-        )}
-
-
-        {/* STEP 3 */}
-
-        {activeStep === 3 && (
-          <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            {/* Top Level Checkbox */}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
-                Carrier Information
-              </Typography>
-              <FormControlLabel
-                control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
-              />
-            </Box>
-            {isPickupPending === false && <>
-
-              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>
-                <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                  Pickup Details
-                </Typography>
-
-                {/* Routing and Conditional Airport Transfer */}
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1, mb: 3 }}>
-                  <Box sx={{ flex: '0 1 250px' }}>
-                    <Controller
-                      name="carrierInfo.selectRouting"
-                      control={control}
-                      render={({ field }) => (
-                        <TextField
-                          select
-                          fullWidth
-                          label="Select Routing *"
-                          variant="standard"
-                          {...field}
-                          InputLabelProps={{ shrink: true }}
-                        >
-                          <MenuItem value="pickup_only">Pickup only</MenuItem>
-                          <MenuItem value="pickup_linehaul">Pickup & Line haul</MenuItem>
-                          <MenuItem value="pickup_linehaul_delivery">Pickup, Line haul & Delivery</MenuItem>
-                        </TextField>
-                      )}
-                    />
-                  </Box>
-
-                  {/* Conditional Checkbox */}
-                  {/* {selectedRouting === "pickup_linehaul_delivery" && ( */}
-                  <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
-                    <FormControlLabel
-                      control={
-                        <Controller
-                          name="carrierInfo.airportTransfer"
-                          control={control}
-                          render={({ field }) => (
-                            <Checkbox
-                              {...field}
-                              checked={field.value}
-                              size="small"
-                              sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                            />
-                          )}
-                        />
-                      }
-                      label={<Typography variant="body2">Airport Transfer</Typography>}
-                    />
-                  </Box>
-                  {/* )} */}
-                </Box>
-
-                {/* Row 1: Airport Pickup, Carrier, From Location, Manual Toggle */}
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                  {/* <Box sx={{ flex: '0 1 150px' }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.airportPickup" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Airport Pickup</Typography>}
-                    />
-                  </Box> */}
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller
-                      name="carrierInfo.selectCarrier"
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { onChange, value, ...fieldProps } }) => (
+                      render={({ field: { onChange, value, ref } }) => (
                         <Autocomplete
-                          {...fieldProps} // Spreads ref and name from React Hook Form
-                          fullWidth
-                          options={carrierTerminalDropdown || []}
+                          freeSolo
+                          options={
+                            watchedDestinationAirport ? consigneeDropdown.filter(
+                              (item) => item.airportCode === watchedDestinationAirport
+                            ) : consigneeDropdown
+                          }
+                          value={value || null}
 
-                          // Matches the combined string value logic from your previous MenuItem setup
-                          getOptionLabel={(option) => {
-                            if (option && option.carrierName && option.terminalName) {
-                              return `${option.carrierName} | ${option.terminalName}`;
-                            }
-                            return "";
-                          }}
-
-                          // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                          value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                          // Updates React Hook Form state on change
                           onChange={(event, newValue) => {
-                            isSelectingCarrierPickupRef.current = true;
-
-                            // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                            const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                            onChange(formValue);
-                          }}
-
-                          onInputChange={(event, newInputValue, reason) => {
-                            if (reason !== "reset") {
-                              setSelectCarrierPickupSearchValue(newInputValue);
-                              // if (!newInputValue || newInputValue.trim() === "") {
-                              //   dispatch(searchCarriers(""));
-                              // }
+                            if (typeof newValue === 'string') {
+                              onChange({ consigneeId: null, consigneeName: newValue });
+                            } else if (newValue && newValue.inputValue) {
+                              onChange({ consigneeId: null, consigneeName: newValue.inputValue });
+                            } else {
+                              onChange(newValue);
                             }
                           }}
-                          loading={isLoading}
-                          loadingText="Searching carriers..."
-                          noOptionsText={selectCarrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                          // 3. User-friendly typing mask handler matching the strict validation rules
+                          onInputChange={(event, newInputValue, reason) => {
+                            if (reason === 'input') {
+                              const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                              let formatted = newInputValue;
+
+                              if (!isDeleting) {
+                                // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
+                                let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                                // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
+                                if (/^\d{3}$/.test(clean)) {
+                                  formatted = `${clean} - `;
+                                }
+
+                                // Rule B: Auto-format the airline code portion to uppercase and append " - "
+                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                                if (match) {
+                                  formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                                }
+                              }
+
+                              onChange({ consigneeId: null, consigneeName: formatted });
+                            }
+                          }}
+
+                          renderOption={(props, option) => {
+                            const { key, ...optionProps } = props;
+
+                            if (option.inputValue) {
+                              return (
+                                <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                  Add: "{option.inputValue}"
+                                </Box>
+                              );
+                            }
+
+                            const num = option.airlineNumber || '';
+                            const code = option.airlineCode || '';
+                            const name = option.airlineName || '';
+                            const city = option.city || '';
+                            const airCode = option.airportCode || '';
+
+                            return (
+                              <Box component="li" key={key} {...optionProps}>
+                                {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
+                              </Box>
+                            );
+                          }}
+
+                          filterOptions={(options, params) => {
+                            const { inputValue } = params;
+                            const searchStr = inputValue.toLowerCase().trim();
+
+                            const filtered = options.filter((option) => {
+                              return (
+                                (option.consigneeName || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                (option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                (option.city || '').toLowerCase().includes(searchStr) ||
+                                (option.airportCode || '').toLowerCase().includes(searchStr)
+                              );
+                            });
+
+                            const isExisting = options.some(
+                              (option) => searchStr === (option.consigneeName || '').toLowerCase()
+                            );
+
+                            if (inputValue !== '' && !isExisting) {
+                              filtered.unshift({
+                                inputValue,
+                                consigneeName: `${inputValue}`,
+                              });
+                            }
+
+                            return filtered;
+                          }}
+
+                          getOptionLabel={(option) => {
+                            if (typeof option === 'string') return option;
+                            if (option.inputValue) return option.inputValue;
+
+                            if (option.airlineNumber) {
+                              const num = option.airlineNumber || '';
+                              const code = option.airlineCode || '';
+                              const name = option.airlineName || '';
+                              const city = option.city || '';
+                              const airCode = option.airportCode || '';
+                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                            }
+
+                            return option.consigneeName || '';
+                          }}
+
+                          isOptionEqualToValue={(option, val) =>
+                            option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
+                          }
 
                           renderInput={(params) => (
                             <TextField
                               {...params}
+                              inputRef={ref}
+                              fullWidth
+                              label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
                               variant="standard"
-                              label="Select Carrier *"
-                              error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                              helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                              InputLabelProps={{ shrink: true }}
-                              sx={{
-                                '& .MuiInputBase-input:disabled': {
-                                  color: '#000',
-                                  WebkitTextFillColor: '#000'
-                                }
-                              }}
-                              InputProps={{
-                                ...params.InputProps,
-                                endAdornment: (
-                                  <>
-                                    {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                    {params.InputProps.endAdornment}
-                                  </>
-                                ),
-                              }}
+                              error={!!errors['consigneeName']}
+                              helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
                             />
                           )}
-                          sx={{ width: '100% !important', mt: 2 }}
+                          sx={{ width: '25%' }}
                         />
                       )}
                     />
-                  </Box>
-                  <Box sx={{ flex: '1 1 200px' }}>
-                    <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
-                      <TextField {...field} fullWidth label="From Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                    )} />
-                  </Box>
-                  <Box sx={{ flex: '0 1 200px' }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Edit From Location</Typography>}
-                    />
-                  </Box>
+
+
+                  }
+
+                  {renderTextField('consigneeAddr1', 'Address Line 1')}
+
+                  {renderTextField('consigneeAddr2', 'Address Line 2')}
+
+                  {renderTextField('consigneeCity', 'City')}
+
+                  {renderTextField('consigneeState', 'State')}
+
+                  {renderZipCodeField('consigneeZip')}
+
+                  {renderTextField('consigneeContact', 'Contact Person Name')}
+
+                  {renderPhoneField('consigneePhone', 'Phone Number')}
+
                 </Box>
 
-                {/* Nested Manual From Location Section */}
+              </Box>
 
-                <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+            </Paper>
+
+          )}
+
+          {/* STEP 2 */}
+
+          {activeStep === 2 && (
+            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
+                Commodities Details
+              </Typography>
+
+              {huFields.map((hu, huIdx) => (
+                <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
+                  {/* Label on Border */}
                   <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                    Manual From Location
+                    Handling Unit {huIdx + 1}
                   </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
-                    </Box>
-                    <Box sx={{ flex: '1 1 18%' }}>
-                      {renderZipCodeFieldCarrierInfo('carrierInfo.manualAddress.zip', !watchedFromLocationFlag)}
-                    </Box>
+
+
+
+                  {/* Clear/Remove Logic */}
+                  <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                    {huIdx === 0 ? (
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => setValue(`handlingUnits.0`, {
+                          uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
+                          items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
+                        })}
+                        sx={{ height: 20, fontSize: '0.65rem', color: '#000', borderColor: '#000', textTransform: 'none' }}
+                      >
+                        Clear
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => removeHU(huIdx)}
+                        sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none' }}
+                      >
+                        Remove
+                      </Button>
+                    )}
                   </Box>
-                </Paper>
 
-                {/*  adding pickup agent terminal check box */}
 
-                <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
-                  <Box sx={{ flex: '0 1 200px' }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
-                    />
-                  </Box>
-                </Box>
 
-                {/* adding a condition such that when pickup agent terminal was checked we will not show location type  */}
-                {watchedPickupAgentTerminal === false && <>
-                  {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                    <Box sx={{ flex: '1 1 200px' }}>
+                  {/* Handling Unit Dimensions Row */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                    <Box sx={{ flex: '1 1 120px' }}>
+                      <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
+                        <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
+                          SelectProps={{
+                            displayEmpty: true,
+                            MenuProps: {
+                              // Crucial: disables internal centering logic so origins work
+                              getContentAnchorEl: null,
+                              // Prevents layout shifts and menu misplacement on scroll
+                              disableScrollLock: true,
+                              anchorOrigin: {
+                                vertical: 'bottom',
+                                horizontal: 'left',
+                              },
+                              transformOrigin: {
+                                vertical: 'top',
+                                horizontal: 'left',
+                              },
+                              PaperProps: {
+                                sx: {
+                                  marginTop: '4px', // Your custom gap
+                                  maxHeight: 300,
+                                  maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                                }
+                              }
+                            },
+                          }}
+                        >
+                          {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
+                        </TextField>
+                      )} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 100px' }}>
                       <Controller
-                        name="carrierInfo.toLocationType"
+                        name={`handlingUnits.${huIdx}.unitsCount`}
                         control={control}
-                        defaultValue={[]}
+                        // 1. Validation rule ensuring only numeric entries are valid
+                        rules={{
+                          required: "Handling units count is required",
+                          pattern: {
+                            value: /^[0-9]+$/,
+                            message: "Please enter a valid number"
+                          }
+                        }}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            // 2. Overriding the onChange handler to physically block letters/symbols instantly
+                            onChange={(e) => {
+                              const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Strips everything except digits 0-9
+                              field.onChange(cleanValue);
+                            }}
+                            fullWidth
+                            label="Handling Units *"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            // 3. Optional: Tells mobile browsers to display a numeric keypad layout
+                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
+                            // 4. Displays error states if validation fails
+                            error={!!errors?.handlingUnits?.[huIdx]?.unitsCount}
+                            helperText={errors?.handlingUnits?.[huIdx]?.unitsCount?.message || ""}
+                          />
+                        )}
+                      />
+
+                    </Box>
+                    <Box sx={{ flex: '1 1 80px' }}>
+                      <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
+                        <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
+                          <MenuItem value="in">in</MenuItem>
+                          <MenuItem value="cm">cm</MenuItem>
+                        </TextField>
+                      )} />
+                    </Box>
+                    {['Length', 'Width', 'Height'].map((dim) => {
+                      const fieldName = dim.toLowerCase(); // matches 'length', 'width', 'height'
+                      const fieldError = errors?.handlingUnits?.[huIdx]?.[fieldName];
+
+                      return (
+                        <Box key={dim} sx={{ flex: '1 1 80px' }}>
+                          <Box display={'flex'} alignItems={'flex-end'}>
+                            <Controller
+                              name={`handlingUnits.${huIdx}.${fieldName}`}
+                              control={control}
+                              // 1. Validates that the final submitted string is a valid integer or decimal
+                              rules={{
+                                pattern: {
+                                  value: /^\d*\.?\d*$/,
+                                  message: "Invalid number"
+                                }
+                              }}
+                              render={({ field }) => (
+                                <TextField
+                                  {...field}
+                                  // 2. Instantly strips out alphabets and symbols on keypress
+                                  onChange={(e) => {
+                                    let cleanValue = e.target.value;
+
+                                    // Allow only digits and a single decimal point
+                                    cleanValue = cleanValue.replace(/[^0-9.]/g, '');
+
+                                    // Prevent entering multiple decimal points (e.g., 10..5 becomes 10.5)
+                                    const splitValue = cleanValue.split('.');
+                                    if (splitValue.length > 2) {
+                                      cleanValue = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
+                                    }
+
+                                    field.onChange(cleanValue);
+                                  }}
+                                  fullWidth
+                                  label={`Handling ${dim}`}
+                                  variant="standard"
+                                  InputLabelProps={{ shrink: true }}
+                                  // 3. Hints mobile browsers to show a decimal-friendly numeric pad
+                                  inputProps={{ inputMode: 'decimal' }}
+                                  // 4. Connects validation state to the UI layout
+                                  error={!!fieldError}
+                                  helperText={fieldError?.message || ""}
+                                />
+                              )}
+                            />
+                          </Box>
+                        </Box>
+                      );
+                    })}
+
+                    <Box sx={{ flex: '1 1 70px' }}>
+                      <Box display={'flex'} alignItems={'flex-end'}>
+                        <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
+                          <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
+                        )} />
+                        <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
+                          <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
+                            <MenuItem value="lbs">lbs</MenuItem>
+                            <MenuItem value="kgs">kgs</MenuItem>
+                          </TextField>
+                        )} />
+                      </Box>
+                    </Box>
+                    <Box sx={{ flex: '1 1 120px' }}>
+                      <Controller
+                        name={`handlingUnits.${huIdx}.class`}
+                        control={control}
                         render={({ field }) => (
                           <TextField
                             {...field}
                             select
                             fullWidth
-                            label="Select To Location Type *"
+                            label="Class"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              displayEmpty: true,
+                              // This ensures the input only shows the value, not the "(Recommended)" text
+                              renderValue: (selected) => selected || <em>Select Class</em>,
+                              MenuProps: {
+                                getContentAnchorEl: null,
+                                disableScrollLock: true,
+                                anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                                transformOrigin: { vertical: 'top', horizontal: 'left' },
+                                PaperProps: {
+                                  sx: { marginTop: '4px', maxHeight: 200, maxWidth: 350 }
+                                }
+                              },
+                              inputProps: { maxLength: 255 },
+                            }}
                           >
-                            {(selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && <MenuItem value="Carrier">
-                              Carrier
-                            </MenuItem>}
+                            {watchedHU[huIdx]?.freightClass?.length > 0 ? (
+                              watchedHU[huIdx]?.freightClass?.map((fc) => {
+                                const isCalculated = fc === watchedHU[huIdx]?.calculatedFC;
 
-                            {selectedRouting === 'pickup_linehaul_delivery' && <MenuItem value="Consignee">
-                              Consignee
-                            </MenuItem>}
+                                return (
+                                  <MenuItem
+                                    key={fc}
+                                    value={fc}
+                                    sx={{
+                                      backgroundColor: isCalculated ? '#e3f2fd !important' : 'transparent',
+                                      fontWeight: isCalculated ? 'bold' : 'normal',
+                                      borderLeft: isCalculated ? '4px solid #1976d2' : 'none',
+                                      '&:hover': { backgroundColor: isCalculated ? '#bbdefb !important' : '' }
+                                    }}
+                                  >
+                                    {/* This text is what appears in the DROPDOWN list */}
+                                    {fc} {isCalculated && "(Recommended)"}
+                                  </MenuItem>
+                                );
+                              })
+                            ) : (
+                              <MenuItem value="" disabled>No freight classes available</MenuItem>
+                            )}
                           </TextField>
                         )}
                       />
 
                     </Box>
-                    <Box sx={{ flex: '1 1 200px', }}>
+                  </Box>
 
-                      {(watchedToLocationType === 'Carrier' || watchedToLocationType === '') && <Controller
-                        name="carrierInfo.toLocation"
+
+
+                  {/* Dynamic Items List */}
+                  <ItemsSection
+                    huIndex={huIdx}
+                    control={control}
+                    watchedHU={watchedHU}
+                    openHazmat={(hu, itm) => setHazmatModal({ open: true, huIdx: hu, itemIdx: itm })}
+                  />
+                </Paper>
+              ))}
+
+
+
+              {/* Add Handling Unit Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
+                <Button
+                  variant="contained"
+                  onClick={handleAddHU}
+                  sx={{ bgcolor: '#a22', fontSize: '0.75rem', textTransform: 'none' }}
+                >
+                  Add Handling Unit
+                </Button>
+              </Box>
+
+
+
+              {/* Emergency Contact: Conditional Render */}
+              {isHazmatSelected && (
+                <Paper variant="outlined" sx={{ p: 3, mt: 4, borderRadius: 2, position: 'relative' }}>
+                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                    Emergency Contact
+                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
+                    <Box sx={{ flex: '1 1 30%' }}>
+                      <Controller name="emergencyContactName" control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label="Contact Name" variant="standard" required={isHazmatSelected} />
+                      )} />
+                    </Box>
+                    <Box sx={{ flex: '1 1 30%' }}>
+
+                      <Controller
+
+                        name={'emergencyContactPhone'}
+
+                        control={control}
+
+                        rules={{
+                          required: 'Phone number is required',
+                          maxLength: {
+                            value: 20,
+                            message: 'Phone number cannot exceed 20 characters'
+                          },
+                          validate: (value) => {
+                            if (!value) return true; // Allow empty
+
+                            // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+                            const digitsOnly = value.replace(/\D/g, '');
+                            const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+
+                            if (isAllZeros) return 'Phone number cannot be all zeros';
+
+                            // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
+                            // If you just want to allow any 20 chars, the maxLength rule above handles it.
+
+                            return true;
+                          }
+                        }}
+
+                        render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+
+                          <TextField
+
+                            {...field}
+
+                            value={value || ''}
+
+                            variant="standard"
+
+                            fullWidth
+
+                            label={`Phone Number`}
+
+                            inputProps={{ maxLength: 20 }}
+
+                            error={!!error}
+
+                            helperText={error ? error.message : ''}
+
+                            onChange={(e) => {
+                              const val = e.target.value;
+
+                              // 1. Prevent initial empty space
+                              if (val.startsWith(' ')) return;
+
+                              // 2. Format and enforce 20-character string limit
+                              const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                              onChange(formattedValue);
+                            }}
+
+                            required={isHazmatSelected}
+
+                          />
+
+                        )}
+
+                      />
+                    </Box>
+                  </Box>
+                </Paper>
+              )}
+
+              {/* Commodities List Table */}
+              <CommoditiesList watchedHU={watchedHU} />
+            </Paper>
+          )}
+
+
+          {/* STEP 3 */}
+
+          {activeStep === 3 && (
+            <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+              {/* Top Level Checkbox */}
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
+                  Carrier Information
+                </Typography>
+                <FormControlLabel
+                  control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                  label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
+                />
+              </Box>
+              {isPickupPending === false && <>
+
+                <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>
+                  <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                    Pickup Details
+                  </Typography>
+
+                  {/* Routing and Conditional Airport Transfer */}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1, mb: 3 }}>
+                    <Box sx={{ flex: '0 1 250px' }}>
+                      <Controller
+                        name="carrierInfo.selectRouting"
+                        control={control}
+                        render={({ field: { onChange, value, ...restField } }) => (
+                          <TextField
+                            select
+                            fullWidth
+                            label="Select Routing *"
+                            variant="standard"
+                            value={value || ""} // Prevents MUI out-of-range warnings if value is undefined
+                            {...restField} // Passes remaining properties like ref, name, and onBlur safely
+                            onChange={(e) => {
+                              const selectedValue = e.target.value;
+
+                              setValue('carrierInfo.lineHaul.selectRouting', '');
+                              setValue('carrierInfo.lineHaul.toggleAddress', '');
+
+                              // 2. Crucial: Update React Hook Form's state
+                              onChange(e);
+                            }}
+                            InputLabelProps={{ shrink: true }}
+                          >
+                            <MenuItem value="pickup_only">Pickup only</MenuItem>
+                            <MenuItem value="pickup_linehaul">Pickup & Line haul</MenuItem>
+                            <MenuItem value="pickup_linehaul_delivery">Pickup, Line haul & Delivery</MenuItem>
+                          </TextField>
+                        )}
+                      />
+
+                    </Box>
+
+                    {/* Conditional Checkbox */}
+                    {/* {selectedRouting === "pickup_linehaul_delivery" && ( */}
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 2 }}>
+                      <FormControlLabel
+                        control={
+                          <Controller
+                            name="carrierInfo.airportTransfer"
+                            control={control}
+                            render={({ field }) => (
+                              <Checkbox
+                                {...field}
+                                checked={field.value}
+                                size="small"
+                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                              />
+                            )}
+                          />
+                        }
+                        label={<Typography variant="body2">Airport Transfer</Typography>}
+                      />
+                    </Box>
+                    {/* )} */}
+                  </Box>
+
+                  {/* Row 1: Airport Pickup, Carrier, From Location, Manual Toggle */}
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                    {/* <Box sx={{ flex: '0 1 150px' }}>
+                    <FormControlLabel
+                      control={<Controller name="carrierInfo.airportPickup" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                      label={<Typography variant="body2">Airport Pickup</Typography>}
+                    />
+                  </Box> */}
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller
+                        name="carrierInfo.selectCarrier"
                         control={control}
                         rules={{ required: true }}
                         render={({ field: { onChange, value, ...fieldProps } }) => (
@@ -6069,7 +6028,7 @@ const ShipmentForm = () => {
 
                             // Updates React Hook Form state on change
                             onChange={(event, newValue) => {
-                              isSelectingToCarrierPickupRef.current = true;
+                              isSelectingCarrierPickupRef.current = true;
 
                               // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
                               const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
@@ -6078,7 +6037,7 @@ const ShipmentForm = () => {
 
                             onInputChange={(event, newInputValue, reason) => {
                               if (reason !== "reset") {
-                                setCarrierPickupSearchValue(newInputValue);
+                                setSelectCarrierPickupSearchValue(newInputValue);
                                 // if (!newInputValue || newInputValue.trim() === "") {
                                 //   dispatch(searchCarriers(""));
                                 // }
@@ -6086,13 +6045,13 @@ const ShipmentForm = () => {
                             }}
                             loading={isLoading}
                             loadingText="Searching carriers..."
-                            noOptionsText={carrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
+                            noOptionsText={selectCarrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                             renderInput={(params) => (
                               <TextField
                                 {...params}
                                 variant="standard"
-                                label="To Location *"
+                                label="Select Carrier *"
                                 error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
                                 helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
                                 InputLabelProps={{ shrink: true }}
@@ -6116,231 +6075,384 @@ const ShipmentForm = () => {
                             sx={{ width: '100% !important', mt: 2 }}
                           />
                         )}
-                      />}
-                      {watchedToLocationType === 'Consignee' && <Controller
-                        name="carrierInfo.toLocation"
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { onChange, value, ...fieldProps } }) => (
-                          <TextField
-                            fullWidth
-                            variant="standard"
-                            label="To Location *"
-                            value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
-                            disabled // Visual indicator showing the user it cannot be changed manually
-                            InputLabelProps={{ shrink: true }}
-                            sx={{
-                              '& .MuiInputBase-input:disabled': {
-                                color: '#000', // Ensures high contrast visibility even when disabled
-                                WebkitTextFillColor: '#000'
-                              }
-                            }}
-                          />
-                        )}
-                      />}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '1 1 200px' }}>
+                      <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label="From Location *" variant="standard" InputLabelProps={{ shrink: true }} />
+                      )} />
                     </Box>
                     <Box sx={{ flex: '0 1 200px' }}>
                       <FormControlLabel
-                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                        label={<Typography variant="body2">Edit To Location</Typography>}
+                        control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Edit From Location</Typography>}
                       />
                     </Box>
-
                   </Box>
-                  {/* Nested Manual To Location Section */}
+
+                  {/* Nested Manual From Location Section */}
 
                   <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
                     <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Manual To Location
+                      Manual From Location
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        {renderZipCodeFieldCarrierInfo('carrierInfo.manualToAddress.zip', !watchedToLocationFlag)}
+                        {renderZipCodeFieldCarrierInfo('carrierInfo.manualAddress.zip', !watchedFromLocationFlag)}
                       </Box>
                     </Box>
                   </Paper>
-                </>}
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                  <Box sx={{ flex: '0 1 200px' }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
-                    />
-                  </Box>
-                  <Box sx={{ flex: '0 1 150px' }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Pickup Alert</Typography>}
-                    />
-                  </Box>
-                </Box>
+                  {/*  adding pickup agent terminal check box */}
 
-              </Paper>
-
-              {/* pickup accessorials section  */}
-
-              {watchedAddPickupAccessorial && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-                <AccordionSummary
-                  expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                  sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                >
-                  <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
-                </AccordionSummary>
-                <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                    <Button
-                      variant="contained"
-                      size="small"
-                      onClick={() => setPickupAccModal(true)} // Opens the Dialog
-                      sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                    >
-                      Add Pickup Accessorial
-                    </Button>
+                  <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+                    <Box sx={{ flex: '0 1 200px' }}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
+                      />
+                    </Box>
                   </Box>
 
-                  <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                    <Table size="small">
-                      <TableHead sx={{ bgcolor: '#eee' }}>
-                        <TableRow>
-                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                          <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                          <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {pickupAccFields.map((field, index) => (
-                          <TableRow key={field.id}>
-                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                            <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                            <TableCell>
-                              <IconButton onClick={() => {
-                                setActiveAccType('Pickup');
-                                notesRefArray.current = field.notes;
-                                notesRefArrayIndex.current = index;
-                                notesRefArrayObj.current = field;
-                                setOpenNotesDialogForShipmentAccs(true);
-                              }}>
-                                <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                              </IconButton>
-                            </TableCell>
-                            <TableCell align="right">
-                              <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                {/* <IconButton size="small" onClick={() => {
+                  {/* adding a condition such that when pickup agent terminal was checked we will not show location type  */}
+                  {watchedPickupAgentTerminal === false && <>
+                    {/* Row 3: To Location Type, To Location, Accessorial, Alert */}
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller
+                          name="carrierInfo.toLocationType"
+                          control={control}
+                          defaultValue={[]}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              select
+                              fullWidth
+                              label="Select To Location Type *"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                            >
+                              {(selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && <MenuItem value="Carrier">
+                                Carrier
+                              </MenuItem>}
+
+                              {selectedRouting === 'pickup_linehaul_delivery' && <MenuItem value="Consignee">
+                                Consignee
+                              </MenuItem>}
+                            </TextField>
+                          )}
+                        />
+
+                      </Box>
+                      <Box sx={{ flex: '1 1 200px', }}>
+
+                        {(watchedToLocationType === 'Carrier' || watchedToLocationType === '') && <Controller
+                          name="carrierInfo.toLocation"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { onChange, value, ...fieldProps } }) => (
+                            <Autocomplete
+                              {...fieldProps} // Spreads ref and name from React Hook Form
+                              fullWidth
+                              options={carrierTerminalDropdown || []}
+
+                              // Matches the combined string value logic from your previous MenuItem setup
+                              getOptionLabel={(option) => {
+                                if (option && option.carrierName && option.terminalName) {
+                                  return `${option.carrierName} | ${option.terminalName}`;
+                                }
+                                return "";
+                              }}
+
+                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                              // Updates React Hook Form state on change
+                              onChange={(event, newValue) => {
+                                isSelectingToCarrierPickupRef.current = true;
+
+                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                onChange(formValue);
+                              }}
+
+                              onInputChange={(event, newInputValue, reason) => {
+                                if (reason !== "reset") {
+                                  setCarrierPickupSearchValue(newInputValue);
+                                  // if (!newInputValue || newInputValue.trim() === "") {
+                                  //   dispatch(searchCarriers(""));
+                                  // }
+                                }
+                              }}
+                              loading={isLoading}
+                              loadingText="Searching carriers..."
+                              noOptionsText={carrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                              renderInput={(params) => (
+                                <TextField
+                                  {...params}
+                                  variant="standard"
+                                  label="To Location *"
+                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                  InputLabelProps={{ shrink: true }}
+                                  sx={{
+                                    '& .MuiInputBase-input:disabled': {
+                                      color: '#000',
+                                      WebkitTextFillColor: '#000'
+                                    }
+                                  }}
+                                  InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                      <>
+                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                      </>
+                                    ),
+                                  }}
+                                />
+                              )}
+                              sx={{ width: '100% !important', mt: 2 }}
+                            />
+                          )}
+                        />}
+                        {watchedToLocationType === 'Consignee' && <Controller
+                          name="carrierInfo.toLocation"
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { onChange, value, ...fieldProps } }) => (
+                            <TextField
+                              fullWidth
+                              variant="standard"
+                              label="To Location *"
+                              value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                              disabled // Visual indicator showing the user it cannot be changed manually
+                              InputLabelProps={{ shrink: true }}
+                              sx={{
+                                '& .MuiInputBase-input:disabled': {
+                                  color: '#000', // Ensures high contrast visibility even when disabled
+                                  WebkitTextFillColor: '#000'
+                                }
+                              }}
+                            />
+                          )}
+                        />}
+                      </Box>
+                      <Box sx={{ flex: '0 1 200px' }}>
+                        <FormControlLabel
+                          control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                          label={<Typography variant="body2">Edit To Location</Typography>}
+                        />
+                      </Box>
+
+                    </Box>
+                    {/* Nested Manual To Location Section */}
+
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual To Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeFieldCarrierInfo('carrierInfo.manualToAddress.zip', !watchedToLocationFlag)}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  </>}
+
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                    <Box sx={{ flex: '0 1 200px' }}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
+                      />
+                    </Box>
+                    <Box sx={{ flex: '0 1 150px' }}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Pickup Alert</Typography>}
+                      />
+                    </Box>
+                  </Box>
+
+                </Paper>
+
+                {/* pickup accessorials section  */}
+
+                {watchedAddPickupAccessorial && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                  <AccordionSummary
+                    expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                    sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
+                  </AccordionSummary>
+                  <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => setPickupAccModal(true)} // Opens the Dialog
+                        sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                      >
+                        Add Pickup Accessorial
+                      </Button>
+                    </Box>
+
+                    <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                      <Table size="small">
+                        <TableHead sx={{ bgcolor: '#eee' }}>
+                          <TableRow>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                            <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                            <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {pickupAccFields.map((field, index) => (
+                            <TableRow key={field.id}>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                              <TableCell>
+                                <IconButton onClick={() => {
+                                  setActiveAccType('Pickup');
+                                  notesRefArray.current = field.notes;
+                                  notesRefArrayIndex.current = index;
+                                  notesRefArrayObj.current = field;
+                                  setOpenNotesDialogForShipmentAccs(true);
+                                }}>
+                                  <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                </IconButton>
+                              </TableCell>
+                              <TableCell align="right">
+                                <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                  {/* <IconButton size="small" onClick={() => {
                                   setActionType('View');
                                   setAddAccModal(true);
                                 }}><Iconify icon="carbon:view-filled" /></IconButton> */}
-                                <IconButton size="small" onClick={() => {
-                                  setEditAccIndex(index);
-                                  setActiveNotesIndex(index);
-                                  setActiveAccType('Pickup');
-                                  setActionType('Edit');
-                                  setAddPickUpAccModal(true);
-                                }}><Iconify icon="tabler:edit" /></IconButton>
-                                <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                              </Stack>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </AccordionDetails>
-              </Accordion>}
+                                  <IconButton size="small" onClick={() => {
+                                    setEditAccIndex(index);
+                                    setActiveNotesIndex(index);
+                                    setActiveAccType('Pickup');
+                                    setActionType('Edit');
+                                    setAddPickUpAccModal(true);
+                                  }}><Iconify icon="tabler:edit" /></IconButton>
+                                  <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                </Stack>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </AccordionDetails>
+                </Accordion>}
 
 
-              <PickupAccessorialDialog
-                open={pickupAccModal}
-                onClose={() => {
-                  setPickupAccModal(false);
-                  setAddPickUpAccModal(false);
-                  setActionType('');
-                }}
-                onSave={(selectedData) => replacePickupAcc(selectedData)}
-                setActionType={setActionType}
-                setAddAccModal={setAddPickUpAccModal}
-                addAccModal={addPickUpAccModal}
-                actionType={actionType}
-                MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                setMASTER_Accessorials={setMASTER_Accessorials}
-              />
-              <AddAccessorialDialog
-                open={addPickUpAccModal}
-                onClose={() => {
-                  setActionType('');
-                  setEditAccIndex(null);
-                  setAddPickUpAccModal(false);
-                }}
-                onSave={onSaveOfEdit}
-                setActionType={setActionType}
-                setAddAccModal={setAddPickUpAccModal}
-                addAccModal={addPickUpAccModal}
-                actionType={actionType}
-                accFields={pickupAccFields}
-                editAccIndex={editAccIndex}
-                editableObj={pickupAccFields[editAccIndex]}
-                appendAccFields={appendPickupAccFields}
-                MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                setMASTER_Accessorials={setMASTER_Accessorials}
-              />
+                <PickupAccessorialDialog
+                  open={pickupAccModal}
+                  onClose={() => {
+                    setPickupAccModal(false);
+                    setAddPickUpAccModal(false);
+                    setActionType('');
+                  }}
+                  onSave={(selectedData) => replacePickupAcc(selectedData)}
+                  setActionType={setActionType}
+                  setAddAccModal={setAddPickUpAccModal}
+                  addAccModal={addPickUpAccModal}
+                  actionType={actionType}
+                  MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                  setMASTER_Accessorials={setMASTER_Accessorials}
+                />
+                <AddAccessorialDialog
+                  open={addPickUpAccModal}
+                  onClose={() => {
+                    setActionType('');
+                    setEditAccIndex(null);
+                    setAddPickUpAccModal(false);
+                  }}
+                  onSave={onSaveOfEdit}
+                  setActionType={setActionType}
+                  setAddAccModal={setAddPickUpAccModal}
+                  addAccModal={addPickUpAccModal}
+                  actionType={actionType}
+                  accFields={pickupAccFields}
+                  editAccIndex={editAccIndex}
+                  editableObj={pickupAccFields[editAccIndex]}
+                  appendAccFields={appendPickupAccFields}
+                  MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                  setMASTER_Accessorials={setMASTER_Accessorials}
+                />
 
-              {/* pick alert details section */}
-              {watchedPickupAlert && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-                <AccordionSummary
-                  expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                  sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                >
-                  <Typography variant="subtitle1" fontWeight="bold">
-                    Pickup Alert Details
-                  </Typography>
-                </AccordionSummary>
-
-                <AccordionDetails sx={{ pt: 3 }}>
-                  {/* --- INBOUND NOTES SECTION --- */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 4 }}>
-                    <Typography
-                      variant="caption"
-                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                    >
-                      Inbound Notes
+                {/* pick alert details section */}
+                {watchedPickupAlert && <Accordion sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                  <AccordionSummary
+                    expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                    sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                  >
+                    <Typography variant="subtitle1" fontWeight="bold">
+                      Pickup Alert Details
                     </Typography>
+                  </AccordionSummary>
 
-                    {/* Chip Gallery: Renders dynamically from the form array */}
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {inboundNotes.map((note, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            bgcolor: '#e3f2fd',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.65rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            border: '1px solid #bbdefb',
-                          }}
-                          onClick={() => {
-                            setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
-                          }}
-                        >
-                          {note}
-                          {/* <Box
+                  <AccordionDetails sx={{ pt: 3 }}>
+                    {/* --- INBOUND NOTES SECTION --- */}
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 4 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                      >
+                        Inbound Notes
+                      </Typography>
+
+                      {/* Chip Gallery: Renders dynamically from the form array */}
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        {inboundNotes.map((note, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              bgcolor: '#e3f2fd',
+                              borderRadius: '16px',
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.65rem',
+                              display: 'flex',
+                              alignItems: 'center',
+                              border: '1px solid #bbdefb',
+                            }}
+                            onClick={() => {
+                              setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
+                            }}
+                          >
+                            {note}
+                            {/* <Box
                             component="span"
                             onClick={() => {
                               setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
@@ -6355,1336 +6467,39 @@ const ShipmentForm = () => {
                           >
                             &times;
                           </Box> */}
-                        </Box>
-                      ))}
-                      {/* Red "More" button style preserved from your UI design */}
-                      {/* {inboundNotes.length > 0 && (
+                          </Box>
+                        ))}
+                        {/* Red "More" button style preserved from your UI design */}
+                        {/* {inboundNotes.length > 0 && (
                       <Box sx={{ bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
                         More...
                       </Box>
                     )} */}
-                    </Box>
-
-                    {/* Input field captures the "Enter" key */}
-                    <Controller
-                      name="carrierInfo.pickupAlertDetails.pickupNotes"
-                      control={control}
-                      defaultValue=""
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Notes"
-                          variant="standard"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-
-                  {/* --- EMAIL INFO SECTION --- */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative' }}>
-                    <Typography
-                      variant="caption"
-                      sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
-                    >
-                      Email Info
-                    </Typography>
-
-                    <Box sx={{ display: 'flex', gap: 4 }}>
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.pickupAlertDetails.primaryEmail"
-                          control={control}
-                          rules={{
-                            pattern: {
-                              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                              message: "Invalid email address"
-                            }
-                          }}
-                          render={({ field, fieldState: { error } }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Primary Email"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          )}
-                        />
                       </Box>
 
-                      <Box sx={{ flex: 2 }}>
-                        <Controller
-                          name="carrierInfo.pickupAlertDetails.additionalEmail"
-                          control={control}
-                          rules={{
-                            validate: (value) => {
-                              if (!value) return true;
-                              const emails = value.split(',').map(e => e.trim());
-                              const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-                              const allValid = emails.every(email => emailRegex.test(email));
-                              return allValid || "One or more emails are invalid (separate by comma)";
-                            }
-                          }}
-                          render={({ field, fieldState: { error } }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Additional Email"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                              placeholder="email1@test.com, email2@test.com"
-                              error={!!error}
-                              helperText={error?.message}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-                  </Box>
-
-                </AccordionDetails>
-              </Accordion>}
-
-              {/* line haul details section  */}
-              <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
-                </AccordionSummary>
-
-                <AccordionDetails sx={{ pt: 2 }}>
-
-                  {/* linehaul details  */}
-                  {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 4, mt: 1, mb: 3 }}>
-                      <Box sx={{ flex: '0 1 250px' }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.selectRouting"
-                          control={control}
-                          render={({ field }) => (
-                            <TextField
-                              select
-                              fullWidth
-                              label="Select Routing *"
-                              variant="standard"
-                              {...field}
-                              InputLabelProps={{ shrink: true }}
-                            >
-                              <MenuItem value="linehaul_only">Line-haul only</MenuItem>
-                              <MenuItem value="linehaul_delivery">Line haul & Delivery</MenuItem>
-                            </TextField>
-                          )}
-                        />
-                      </Box>
-                    </Box>
-                    {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
-                    <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.carrier"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { onChange, value, ...fieldProps } }) => (
-                            <Autocomplete
-                              {...fieldProps} // Spreads ref and name from React Hook Form
-                              fullWidth
-                              options={carrierTerminalDropdown || []}
-
-                              // Matches the combined string value logic from your previous MenuItem setup
-                              getOptionLabel={(option) => {
-                                if (option && option.carrierName && option.terminalName) {
-                                  return `${option.carrierName} | ${option.terminalName}`;
-                                }
-                                return "";
-                              }}
-
-                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                              // Updates React Hook Form state on change
-                              onChange={(event, newValue) => {
-                                isSelectingCarrierLinehaulRef.current = true;
-
-                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                onChange(formValue);
-                              }}
-
-                              onInputChange={(event, newInputValue, reason) => {
-                                if (reason !== "reset") {
-                                  setSelectCarrierLinehaulSearchValue(newInputValue);
-                                  // if (!newInputValue || newInputValue.trim() === "") {
-                                  //   dispatch(searchCarriers(""));
-                                  // }
-                                }
-                              }}
-                              loading={isLoading}
-                              loadingText="Searching carriers..."
-                              noOptionsText={selectCarrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  label="Select Carrier *"
-                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                  InputLabelProps={{ shrink: true }}
-                                  sx={{
-                                    '& .MuiInputBase-input:disabled': {
-                                      color: '#000',
-                                      WebkitTextFillColor: '#000'
-                                    }
-                                  }}
-                                  InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                      <>
-                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                      </>
-                                    ),
-                                  }}
-                                />
-                              )}
-                              sx={{ width: '100% !important' }}
-                            />
-                          )}
-                        />
-                      </Box>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.billNumber"
-                          control={control}
-                          render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
-                        />
-                      </Box>
-                      <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                        {/* <Controller
-                        name="carrierInfo.lineHaul.fromLocation"
-                        control={control}
-                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                      /> */}
-                        <Controller
-                          name="carrierInfo.lineHaul.manualFromLocation"
-                          control={control}
-                          render={({ field }) => (
-                            <FormControlLabel
-                              sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                              control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-
-                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual From Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualFromLocationDetails.zip', !watchedLinehaulFromLocationFlag)}
-                        </Box>
-                      </Box>
-                    </Paper>
-
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.toLocationType"
-                          control={control}
-                          defaultValue={[]}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              select
-                              fullWidth
-                              label="Select To Type *"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                            >
-                              {watchedLinehaulSelectRouting === 'linehaul_only' && <MenuItem value="Carrier">
-                                Carrier
-                              </MenuItem>}
-
-                              {watchedLinehaulSelectRouting === 'linehaul_delivery' && <MenuItem value="Consignee">
-                                Consignee
-                              </MenuItem>}
-                            </TextField>
-                          )}
-                        />
-                      </Box>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        {(watchedLinehaulToLocationType === 'Carrier' || watchedLinehaulToLocationType === '') && <Controller
-                          name="carrierInfo.lineHaul.toLocation"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { onChange, value, ...fieldProps } }) => (
-                            <Autocomplete
-                              {...fieldProps} // Spreads ref and name from React Hook Form
-                              fullWidth
-                              options={carrierTerminalDropdown || []}
-
-                              // Matches the combined string value logic from your previous MenuItem setup
-                              getOptionLabel={(option) => {
-                                if (option && option.carrierName && option.terminalName) {
-                                  return `${option.carrierName} | ${option.terminalName}`;
-                                }
-                                return "";
-                              }}
-
-                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                              // Updates React Hook Form state on change
-                              onChange={(event, newValue) => {
-                                isSelectingToCarrierLinehaulRef.current = true;
-
-                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                onChange(formValue);
-                              }}
-
-                              onInputChange={(event, newInputValue, reason) => {
-                                if (reason !== "reset") {
-                                  setCarrierLinehaulSearchValue(newInputValue);
-                                  // if (!newInputValue || newInputValue.trim() === "") {
-                                  //   dispatch(searchCarriers(""));
-                                  // }
-                                }
-                              }}
-                              loading={isLoading}
-                              loadingText="Searching carriers..."
-                              noOptionsText={carrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  label="To Location *"
-                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                  InputLabelProps={{ shrink: true }}
-                                  sx={{
-                                    '& .MuiInputBase-input:disabled': {
-                                      color: '#000',
-                                      WebkitTextFillColor: '#000'
-                                    }
-                                  }}
-                                  InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                      <>
-                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                      </>
-                                    ),
-                                  }}
-                                />
-                              )}
-                              sx={{ width: '100% !important', mt: 2 }}
-                            />
-                          )}
-                        />}
-                        {
-                          watchedLinehaulToLocationType === 'Consignee' && <Controller
-                            name="carrierInfo.toLocation"
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { onChange, value, ...fieldProps } }) => (
-                              <TextField
-                                fullWidth
-                                variant="standard"
-                                label="To Location *"
-                                value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
-                                disabled // Visual indicator showing the user it cannot be changed manually
-                                InputLabelProps={{ shrink: true }}
-                                sx={{
-                                  '& .MuiInputBase-input:disabled': {
-                                    color: '#000', // Ensures high contrast visibility even when disabled
-                                    WebkitTextFillColor: '#000'
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        }
-                      </Box>
-                      <Box>
-                        <Controller
-                          name="carrierInfo.lineHaul.manualToLocation"
-                          control={control}
-                          render={({ field }) => (
-                            <FormControlLabel
-                              sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                              control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual To Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualToLocationDetails.zip', !watchedLinehaulToLocationFlag)}
-                        </Box>
-                      </Box>
-                    </Paper>
-
-                    {/* ETA and Weight Section - Flexbox Layout */}
-                    <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
-                      {/* ETA Date */}
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.etaDate"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field, fieldState: { error, isTouched } }) => (
-                            <DatePicker
-                              {...field}
-                              label="ETA Date"
-                              slotProps={{
-                                textField: {
-                                  variant: 'standard',
-                                  fullWidth: true,
-                                  // FIX 1: Uses the exact field error slice from the render arguments
-                                  // FIX 2: (Optional) Only shows error if the user has interacted with it
-                                  error: !!error && isTouched
-                                }
-                              }}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-
-                      {/* ETA time */}
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.etaTime"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field, fieldState: { error, isTouched } }) => (
-                            <TimePicker
-                              {...field}
-                              label="ETA Time"
-                              ampm={false}
-                              slotProps={{
-                                textField: {
-                                  variant: 'standard',
-                                  fullWidth: true,
-                                  // FIX: Automatically extracts the correct field error state 
-                                  // and only displays it after a user interaction (isTouched)
-                                  error: !!error && isTouched
-                                }
-                              }}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-
-
-                      {/* Pcs / Wght */}
-                      <Box sx={{ flex: 1.5 }}>
-                        <Controller
-                          name="carrierInfo.lineHaul.pcsWeight"
-                          control={control}
-                          defaultValue="1 @ 800 lbs"
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Pcs / Wght"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-
-                  </>}
-
-                  <Box sx={{ flex: '0 1 200px', mb: 3 }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Add Accessorial</Typography>}
-                    />
-                  </Box>
-
-                  {/* ACCESSORIALS: Flexbox for header */}
-                  {watchedLinehaulAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 6 }}>
-                    <AccordionSummary
-                      expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                      sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                    >
-                      <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => setLineHaulAccModal(true)} // Opens the Dialog
-                          sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                        >
-                          Add Accessorial
-                        </Button>
-                      </Box>
-
-                      <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                        <Table size="small">
-                          <TableHead sx={{ bgcolor: '#eee' }}>
-                            <TableRow>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                              <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {lineHaulAccFields.map((field, index) => (
-                              <TableRow key={field.id}>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                                <TableCell>
-                                  <IconButton onClick={() => {
-                                    setActiveAccType('LineHaul');
-                                    notesRefArray.current = field.notes;
-                                    notesRefArrayIndex.current = index;
-                                    notesRefArrayObj.current = field;
-                                    setOpenNotesDialogForShipmentAccs(true);
-                                  }}>
-                                    <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                                  </IconButton>
-                                </TableCell>
-                                <TableCell align="right">
-                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    {/* <IconButton size="small" onClick={() => {
-                                      setActionType('View');
-                                      setAddAccModal(true);
-                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
-                                    <IconButton size="small" onClick={() => {
-                                      setActiveAccType('LineHaul');
-                                      setEditAccIndex(index);
-                                      setActionType('Edit');
-                                      setAddLineHaulAccModal(true);
-                                    }}><Iconify icon="tabler:edit" /></IconButton>
-                                    <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                                  </Stack>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </AccordionDetails>
-                  </Accordion>}
-
-                  <PickupAccessorialDialog
-                    open={lineHaulAccModal}
-                    onClose={() => {
-                      setLineHaulAccModal(false);
-                      setAddLineHaulAccModal(false);
-                      setActionType('');
-                    }}
-                    onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
-                    setActionType={setActionType}
-                    setAddAccModal={setAddLineHaulAccModal}
-                    addAccModal={addLineHaulAccModal}
-                    actionType={actionType}
-                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                    setMASTER_Accessorials={setMASTER_Accessorials}
-                  />
-                  <AddAccessorialDialog
-                    open={addLineHaulAccModal}
-                    onClose={() => {
-                      setAddLineHaulAccModal(false);
-                      setActionType('');
-                      setEditAccIndex(null);
-                    }}
-                    onSave={onSaveOfEdit}
-                    setActionType={setActionType}
-                    setAddAccModal={setAddLineHaulAccModal}
-                    addAccModal={addLineHaulAccModal}
-                    actionType={actionType}
-                    accFields={lineHaulAccFields}
-                    editableObj={lineHaulAccFields[editAccIndex]}
-                    appendAccFields={appendLineHaulAccFields}
-                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                    setMASTER_Accessorials={setMASTER_Accessorials}
-                  />
-
-
-                  {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
-                  <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                      Line-haul Notes
-                    </Typography>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                      {lineHaulNotesArr.map((note, idx) => (
-                        <Box
-                          key={idx}
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            bgcolor: '#e3f2fd',
-                            borderRadius: '16px',
-                            px: 1.5,
-                            py: 0.5,
-                            fontSize: '0.65rem',
-                            border: '1px solid #bbdefb'
-                          }}
-                          onClick={() => {
-                            setValue('carrierInfo.lineHaul.lineHaulNotes', note);
-                          }}
-                        >
-                          {note}
-                          {/* <Box
-                            component="span"
-                            onClick={() => {
-                              const updatedNotes = lineHaulNotes.filter((_, i) => i !== idx);
-                              setValue('carrierInfo.lineHaul.lineHaulNotes', updatedNotes);
-                            }}
-                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                          >
-                            &times;
-                          </Box> */}
-                        </Box>
-                      ))}
-                      {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
-                    </Box>
-
-                    <Controller
-                      name="carrierInfo.lineHaul.lineHaulNotes"
-                      control={control}
-                      defaultValue=""
-                      render={({ field }) => (
-                        <TextField
-                          {...field}
-                          fullWidth
-                          label="Notes"
-                          variant="standard"
-                          placeholder="Type and press Enter"
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      )}
-                    />
-                  </Box>
-
-                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-                  {/* <Box sx={{ display: 'flex', gap: 4 }}> */}
-                  {/* <Controller
-                      name="carrierInfo.lineHaul.deliveryIncluded"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Delivery Included</Typography>}
-                        />
-                      )}
-                    /> */}
-                  {/* <Controller
-                      name="carrierInfo.lineHaul.airportTransfer"
-                      control={control}
-                      render={({ field }) => (
-                        <FormControlLabel
-                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                          control={<Checkbox {...field} checked={field.value} size="small" />}
-                          label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
-                        />
-                      )}
-                    /> */}
-
-                  {/* </Box> */}
-                </AccordionDetails>
-              </Accordion>
-
-              {/* delivery details section  */}
-              <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">Delivery Details</Typography>
-                </AccordionSummary>
-
-                <AccordionDetails sx={{ pt: 2 }}>
-                  {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
-                    <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.carrier"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { onChange, value, ...fieldProps } }) => (
-                            <Autocomplete
-                              {...fieldProps} // Spreads ref and name from React Hook Form
-                              fullWidth
-                              options={carrierTerminalDropdown || []}
-
-                              // Matches the combined string value logic from your previous MenuItem setup
-                              getOptionLabel={(option) => {
-                                if (option && option.carrierName && option.terminalName) {
-                                  return `${option.carrierName} | ${option.terminalName}`;
-                                }
-                                return "";
-                              }}
-
-                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                              // Updates React Hook Form state on change
-                              onChange={(event, newValue) => {
-                                isSelectingCarrierDeliveryRef.current = true;
-
-                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                onChange(formValue);
-                              }}
-
-                              onInputChange={(event, newInputValue, reason) => {
-                                if (reason !== "reset") {
-                                  setSelectCarrierDeliverySearchValue(newInputValue);
-                                  // if (!newInputValue || newInputValue.trim() === "") {
-                                  //   dispatch(searchCarriers(""));
-                                  // }
-                                }
-                              }}
-                              loading={isLoading}
-                              loadingText="Searching carriers..."
-                              noOptionsText={selectCarrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  label="Select Carrier *"
-                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                  InputLabelProps={{ shrink: true }}
-                                  sx={{
-                                    '& .MuiInputBase-input:disabled': {
-                                      color: '#000',
-                                      WebkitTextFillColor: '#000'
-                                    }
-                                  }}
-                                  InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                      <>
-                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                      </>
-                                    ),
-                                  }}
-                                />
-                              )}
-                              sx={{ width: '100% !important', }}
-                            />
-                          )}
-                        />
-                      </Box>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.billNumber"
-                          control={control}
-                          render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
-                        />
-                      </Box>
-                      <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                        {/* <Controller
-                          name="carrierInfo.deliveryDetails.fromLocation"
-                          control={control}
-                          render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                        /> */}
-                        <Controller
-                          name="carrierInfo.deliveryDetails.manualFromLocation"
-                          control={control}
-                          render={({ field }) => (
-                            <FormControlLabel
-                              sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                              control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-
-                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual From Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', !watchedDeliveryFromLocationFlag)}
-                        </Box>
-                      </Box>
-                    </Paper>
-
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.toLocationType"
-                          control={control}
-                          defaultValue={[]}
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              select
-                              fullWidth
-                              label="Select To Type *"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                            >
-                              {/* <MenuItem value="Carrier">
-                                Carrier
-                              </MenuItem> */}
-                              <MenuItem value="Consignee">
-                                Consignee
-                              </MenuItem>
-                            </TextField>
-                          )}
-                        />
-
-
-
-                      </Box>
-                      <Box sx={{ flex: '1 1 200px' }}>
-                        {(watchedDeliveryToLocationType === 'Carrier' || watchedDeliveryToLocationType === '') && <Controller
-                          name="carrierInfo.deliveryDetails.toLocation"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { onChange, value, ...fieldProps } }) => (
-                            <Autocomplete
-                              {...fieldProps} // Spreads ref and name from React Hook Form
-                              fullWidth
-                              options={carrierTerminalDropdown || []}
-
-                              // Matches the combined string value logic from your previous MenuItem setup
-                              getOptionLabel={(option) => {
-                                if (option && option.carrierName && option.terminalName) {
-                                  return `${option.carrierName} | ${option.terminalName}`;
-                                }
-                                return "";
-                              }}
-
-                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                              // Updates React Hook Form state on change
-                              onChange={(event, newValue) => {
-                                isSelectingToCarrierDeliveryRef.current = true;
-
-                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                onChange(formValue);
-                              }}
-
-                              onInputChange={(event, newInputValue, reason) => {
-                                if (reason !== "reset") {
-                                  setCarrierDeliverySearchValue(newInputValue);
-                                  // if (!newInputValue || newInputValue.trim() === "") {
-                                  //   dispatch(searchCarriers(""));
-                                  // }
-                                }
-                              }}
-                              loading={isLoading}
-                              loadingText="Searching carriers..."
-                              noOptionsText={carrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                              renderInput={(params) => (
-                                <TextField
-                                  {...params}
-                                  variant="standard"
-                                  label="To Location *"
-                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                  InputLabelProps={{ shrink: true }}
-                                  sx={{
-                                    '& .MuiInputBase-input:disabled': {
-                                      color: '#000',
-                                      WebkitTextFillColor: '#000'
-                                    }
-                                  }}
-                                  InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                      <>
-                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                      </>
-                                    ),
-                                  }}
-                                />
-                              )}
-                              sx={{ width: '100% !important', mt: 2 }}
-                            />
-                          )}
-                        />}
-                        {
-                          watchedDeliveryToLocationType === 'Consignee' && <Controller
-                            name="carrierInfo.toLocation"
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field: { onChange, value, ...fieldProps } }) => (
-                              <TextField
-                                fullWidth
-                                variant="standard"
-                                label="To Location *"
-                                value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
-                                disabled // Visual indicator showing the user it cannot be changed manually
-                                InputLabelProps={{ shrink: true }}
-                                sx={{
-                                  '& .MuiInputBase-input:disabled': {
-                                    color: '#000', // Ensures high contrast visibility even when disabled
-                                    WebkitTextFillColor: '#000'
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        }
-                      </Box>
-                      <Box>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.manualToLocation"
-                          control={control}
-                          render={({ field }) => (
-                            <FormControlLabel
-                              sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                              control={<Checkbox {...field} checked={field.value} size="small" />}
-                              label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
-                            />
-                          )}
-                        />
-                      </Box>
-                    </Box>
-                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-
-                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Manual To Location
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
-                        </Box>
-                        <Box sx={{ flex: '1 1 18%' }}>
-                          {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualToLocationDetails.zip', !watchedDeliveryToLocationFlag)}
-                        </Box>
-                      </Box>
-                    </Paper>
-
-
-                    {/* ETA and Weight Section - Flexbox Layout */}
-                    <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
-                      {/* ETA Date */}
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.etaDate"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field, fieldState: { error, isTouched } }) => (
-                            <DatePicker
-                              {...field}
-                              label="ETA Date"
-                              slotProps={{
-                                textField: {
-                                  variant: 'standard',
-                                  fullWidth: true,
-                                  // FIX: Targets the specific error block for delivery details
-                                  // only after the user interacts with the input (isTouched)
-                                  error: !!error && isTouched
-                                }
-                              }}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-
-                      {/* ETA time  */}
-                      <Box sx={{ flex: 1 }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.etaTime"
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field, fieldState: { error, isTouched } }) => (
-                            <TimePicker
-                              {...field}
-                              label="ETA Time"
-                              ampm={false}
-                              slotProps={{
-                                textField: {
-                                  variant: 'standard',
-                                  fullWidth: true,
-                                  // FIX: Targets the specific error state for delivery details time
-                                  // and suppresses layout red-lines on page load
-                                  error: !!error && isTouched
-                                }
-                              }}
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-
-
-                      {/* Pcs / Wght */}
-                      <Box sx={{ flex: 1.5 }}>
-                        <Controller
-                          name="carrierInfo.deliveryDetails.pcsWeight"
-                          control={control}
-                          defaultValue="1 @ 800 lbs"
-                          render={({ field }) => (
-                            <TextField
-                              {...field}
-                              fullWidth
-                              label="Pcs / Wght"
-                              variant="standard"
-                              InputLabelProps={{ shrink: true }}
-                            />
-                          )}
-                        />
-                      </Box>
-                      {/* <Box sx={{ flex: 1.5 }}>
+                      {/* Input field captures the "Enter" key */}
                       <Controller
-                        name="carrierInfo.deliveryDetails.agent"
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Agent"
-                            variant="standard"
-                            InputLabelProps={{ shrink: true }}
-                          />
-                        )}
-                      />
-                    </Box> */}
-                    </Box>
-                  </>}
-
-                  <Box display={'flex'} alignItems={'center'}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Add Accessorial</Typography>}
-                    />
-                    <Box sx={{ display: 'flex', gap: 4 }}>
-
-                      <Controller
-                        name="carrierInfo.lineHaul.airportTransfer"
-                        control={control}
-                        render={({ field }) => (
-                          <FormControlLabel
-                            sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                            control={<Checkbox {...field} checked={field.value} size="small" />}
-                            label={<Typography variant="body2">Airport Transfer</Typography>}
-                          />
-                        )}
-                      />
-
-                    </Box>
-                  </Box>
-                  {/* BOTTOM OPTIONS: Horizontal Flexbox */}
-
-
-                  {/* ACCESSORIALS: Flexbox for header */}
-                  {watchedDeliveryAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
-                    <AccordionSummary
-                      expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
-                      sx={{ borderBottom: '1px solid #ccc', px: 0 }}
-                    >
-                      <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
-                    </AccordionSummary>
-                    <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-                        <Button
-                          variant="contained"
-                          size="small"
-                          onClick={() => setDeliveryAccModal(true)} // Opens the Dialog
-                          sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                        >
-                          Add Accessorial
-                        </Button>
-                      </Box>
-
-                      <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
-                        <Table size="small">
-                          <TableHead sx={{ bgcolor: '#eee' }}>
-                            <TableRow>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
-                              <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                              <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            {deliveryAccFields.map((field, index) => (
-                              <TableRow key={field.id}>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                                <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
-                                <TableCell>
-                                  <IconButton onClick={() => {
-                                    setActiveAccType('Delivery');
-                                    notesRefArray.current = field.notes;
-                                    notesRefArrayIndex.current = index;
-                                    notesRefArrayObj.current = field;
-                                    setOpenNotesDialogForShipmentAccs(true);
-                                  }}>
-                                    <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
-                                  </IconButton>
-                                </TableCell>
-                                <TableCell align="right">
-                                  <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                    {/* <IconButton size="small" onClick={() => {
-                                      setActionType('View');
-                                      setAddAccModal(true);
-                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
-                                    <IconButton size="small" onClick={() => {
-                                      setActiveAccType('Delivery');
-                                      setEditAccIndex(index);
-                                      setActionType('Edit');
-                                      setAddDeliveryAccModal(true);
-
-                                    }}><Iconify icon="tabler:edit" /></IconButton>
-                                    <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
-                                  </Stack>
-                                </TableCell>
-                              </TableRow>
-                            ))}
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </AccordionDetails>
-                  </Accordion>}
-
-                  <PickupAccessorialDialog
-                    open={deliveryAccModal}
-                    onClose={() => {
-                      setDeliveryAccModal(false);
-                      setAddDeliveryAccModal(false);
-                      setActionType('');
-                    }}
-                    onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
-                    setActionType={setActionType}
-                    setAddAccModal={setAddDeliveryAccModal}
-                    addAccModal={addDeliveryAccModal}
-                    actionType={actionType}
-                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                    setMASTER_Accessorials={setMASTER_Accessorials}
-                  />
-                  <AddAccessorialDialog
-                    open={addDeliveryAccModal}
-                    onClose={() => {
-                      setAddDeliveryAccModal(false);
-                      setActionType('');
-                      setEditAccIndex(null);
-                    }}
-                    onSave={onSaveOfEdit}
-                    setActionType={setActionType}
-                    setAddAccModal={setAddDeliveryAccModal}
-                    addAccModal={addDeliveryAccModal}
-                    actionType={actionType}
-                    accFields={deliveryAccFields}
-                    editableObj={deliveryAccFields[editAccIndex]}
-                    appendAccFields={appendDeliveryAccFields}
-                    MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                    setMASTER_Accessorials={setMASTER_Accessorials}
-                  />
-
-                  <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
-                    <FormControlLabel
-                      control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                      label={<Typography variant="body2">Delivery Alert </Typography>}
-                    />
-                  </Box>
-                  {watchedDeliveryAlert && <>
-                    {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
-                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Line-haul Notes
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                        {deliveryLineHaulNotesArr.map((note, idx) => (
-                          <Box
-                            key={idx}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              bgcolor: '#e3f2fd',
-                              borderRadius: '16px',
-                              px: 1.5,
-                              py: 0.5,
-                              fontSize: '0.65rem',
-                              border: '1px solid #bbdefb'
-                            }}
-                            onClick={() => {
-                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
-                            }}
-                          >
-                            {note}
-                            {/* <Box
-                            component="span"
-                            onClick={() => {
-                              const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
-                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', updatedNotes);
-                            }}
-                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                          >
-                            &times;
-                          </Box> */}
-                          </Box>
-                        ))}
-                        {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
-                      </Box>
-
-                      <Controller
-                        name="carrierInfo.deliveryDetails.lineHaulNotes"
+                        name="carrierInfo.pickupAlertDetails.pickupNotes"
                         control={control}
                         defaultValue=""
+                        rules={{
+                          required: watchedCarrierInfo.pickupAlert ? 'Pickup notes is required' : '',
+                        }}
                         render={({ field }) => (
                           <TextField
                             {...field}
                             fullWidth
                             label="Notes"
                             variant="standard"
-                            placeholder="Type and press Enter"
                             InputLabelProps={{ shrink: true }}
-                          />
-                        )}
-                      />
-                    </Box>
-
-                    {/* delivery notes  */}
-                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
-                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                        Delivery Notes
-                      </Typography>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                        {deliveryNotesArr.map((note, idx) => (
-                          <Box
-                            key={idx}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              bgcolor: '#e3f2fd',
-                              borderRadius: '16px',
-                              px: 1.5,
-                              py: 0.5,
-                              fontSize: '0.65rem',
-                              border: '1px solid #bbdefb'
-                            }}
-                            onClick={() => {
-                              setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
-                            }}
-                          >
-                            {note}
-                            {/* <Box
-                            component="span"
-                            onClick={() => {
-                              const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
-                              setValue('carrierInfo.deliveryDetails.deliveryNotes', updatedNotes);
-                            }}
-                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
-                          >
-                            &times;
-                          </Box> */}
-                          </Box>
-                        ))}
-                        {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
-                      More..
-                    </Box> */}
-                      </Box>
-
-                      <Controller
-                        name="carrierInfo.deliveryDetails.deliveryNotes"
-                        control={control}
-                        defaultValue=""
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            fullWidth
-                            label="Notes"
-                            variant="standard"
-                            placeholder="Type and press Enter"
-                            InputLabelProps={{ shrink: true }}
+                            required={watchedCarrierInfo.pickupAlert}
                           />
                         )}
                       />
                     </Box>
 
                     {/* --- EMAIL INFO SECTION --- */}
-                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative' }}>
                       <Typography
                         variant="caption"
                         sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
@@ -7695,9 +6510,10 @@ const ShipmentForm = () => {
                       <Box sx={{ display: 'flex', gap: 4 }}>
                         <Box sx={{ flex: 1 }}>
                           <Controller
-                            name="carrierInfo.deliveryDetails.primaryEmail"
+                            name="carrierInfo.pickupAlertDetails.primaryEmail"
                             control={control}
                             rules={{
+                              required : watchedCarrierInfo.pickupAlert ? 'Primary mail is required' : '',
                               pattern: {
                                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                 message: "Invalid email address"
@@ -7712,6 +6528,7 @@ const ShipmentForm = () => {
                                 InputLabelProps={{ shrink: true }}
                                 error={!!error}
                                 helperText={error?.message}
+                                required={watchedCarrierInfo.pickupAlert}
                               />
                             )}
                           />
@@ -7719,7 +6536,7 @@ const ShipmentForm = () => {
 
                         <Box sx={{ flex: 2 }}>
                           <Controller
-                            name="carrierInfo.deliveryDetails.additionalEmail"
+                            name="carrierInfo.pickupAlertDetails.additionalEmail"
                             control={control}
                             rules={{
                               validate: (value) => {
@@ -7746,267 +6563,1654 @@ const ShipmentForm = () => {
                         </Box>
                       </Box>
                     </Box>
-                  </>}
-                </AccordionDetails>
-              </Accordion>
 
-            </>}
+                  </AccordionDetails>
+                </Accordion>}
 
-          </Paper>
-        )}
+                {/* line haul details section  */}
+                <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                  <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
+                  </AccordionSummary>
 
-        {/* step 4 */}
+                  <AccordionDetails sx={{ pt: 2 }}>
 
-        {
-          activeStep === 4 && (<Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
-                Carrier Rates
-              </Typography>
-            </Box>
-            <CarrierSection
-              fields={carrierRatesPickUpAccessorials}
-              sectionName={`Pickup Carrier -  ${watchedCarrierRateInfo.pickUp.pickUpCarrier || ''}`}
-              rate={'carrierRates.pickUp.pickUpRate'}
-              totalSubCharges={(
-                parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
-                watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                  const charge = parseFloat(item.charges) || 0;
+                    {/* linehaul details  */}
+                    {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
+                      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 4, mt: 1, mb: 3 }}>
+                        <Box sx={{ flex: '0 1 250px' }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.selectRouting"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                select
+                                fullWidth
+                                label="Select Routing *"
+                                variant="standard"
+                                {...field}
+                                InputLabelProps={{ shrink: true }}
+                              >
+                                <MenuItem value="linehaul_only">Line-haul only</MenuItem>
+                                <MenuItem value="linehaul_delivery">Line haul & Delivery</MenuItem>
+                              </TextField>
+                            )}
+                          />
+                        </Box>
 
-                  // Check if input exists and isn't an empty string
-                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                    const input = parseFloat(item.input) || 0;
-                    return sum + (charge * input);
-                  }
+                        {watchedPickupAgentTerminal && <Box>
+                          <Controller
+                            name="carrierInfo.lineHaul.toggleAddress"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                              <>
+                                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                  Address or From location
+                                </Typography>
+                                <ToggleButtonGroup
+                                  value={value}
+                                  exclusive
+                                  // Strip the event argument and pass only the new string value
+                                  onChange={(event, newValue) => {
+                                    if (newValue !== null) {
+                                      onChange(newValue);
+                                    }
+                                  }}
+                                  color="primary"
+                                  aria-label="Address or From location"
+                                >
+                                  <ToggleButton value="pickup" sx={{ textTransform: 'none', px: 3 }}>
+                                    Pickup agents dock
+                                  </ToggleButton>
+                                  <ToggleButton value="linehaul" sx={{ textTransform: 'none', px: 3, }}>
+                                    Line haul carriers terminal dock
+                                  </ToggleButton>
+                                </ToggleButtonGroup>
+                              </>
+                            )}
+                          />
+                        </Box>}
+                      </Box>
+                      {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
+                      <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.carrier"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { onChange, value, ...fieldProps } }) => (
+                              <Autocomplete
+                                {...fieldProps} // Spreads ref and name from React Hook Form
+                                fullWidth
+                                options={carrierTerminalDropdown || []}
 
-                  // Otherwise, treat as a flat fee
-                  return sum + charge;
-                }, 0)
-              ).toFixed(2)}
-              watchedCarrierRateInfo={watchedCarrierRateInfo}
-              setValue={setValue}
-              path="carrierRates.pickUp.pickupAccessorials"
-              control={control}
-              getValues={getValues}
-              totals={totals}
-              apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
-              invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
-            />
-            <CarrierSection
-              fields={carrierRatesLineHaulAccessorials}
-              sectionName={`Line Haul Carrier -  ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier || ''}`}
-              rate={'carrierRates.lineHaul.lineHaulRate'}
-              totalSubCharges={(
-                parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
-                watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                  const charge = parseFloat(item.charges) || 0;
+                                // Matches the combined string value logic from your previous MenuItem setup
+                                getOptionLabel={(option) => {
+                                  if (option && option.carrierName && option.terminalName) {
+                                    return `${option.carrierName} | ${option.terminalName}`;
+                                  }
+                                  return "";
+                                }}
 
-                  // Check if input exists and isn't an empty string
-                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                    const input = parseFloat(item.input) || 0;
-                    return sum + (charge * input);
-                  }
+                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
 
-                  // Otherwise, treat as a flat fee
-                  return sum + charge;
-                }, 0)
-              ).toFixed(2)}
-              watchedCarrierRateInfo={watchedCarrierRateInfo}
-              setValue={setValue}
-              path="carrierRates.lineHaul.lineHaulAccessorials"
-              control={control}
-              getValues={getValues}
-              totals={totals}
-              apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
-              invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
-            />
-            <CarrierSection
-              fields={carrierRatesDeliveryAccessorials}
-              sectionName={`Delivery Carrier -  ${watchedCarrierRateInfo.delivery.deliveryCarrier || ''}`}
-              rate='carrierRates.delivery.deliveryRate'
-              totalSubCharges={(
-                parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
-                watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                  const charge = parseFloat(item.charges) || 0;
+                                // Updates React Hook Form state on change
+                                onChange={(event, newValue) => {
+                                  isSelectingCarrierLinehaulRef.current = true;
 
-                  // Check if input exists and isn't an empty string
-                  if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                    const input = parseFloat(item.input) || 0;
-                    return sum + (charge * input);
-                  }
+                                  // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                  const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                  onChange(formValue);
+                                }}
 
-                  // Otherwise, treat as a flat fee
-                  return sum + charge;
-                }, 0)
-              ).toFixed(2)}
-              watchedCarrierRateInfo={watchedCarrierRateInfo}
-              setValue={setValue}
-              path="carrierRates.delivery.deliveryAccessorials"
-              control={control}
-              getValues={getValues}
-              totals={totals}
-              apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
-              invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
-            />
+                                onInputChange={(event, newInputValue, reason) => {
+                                  if (reason !== "reset") {
+                                    setSelectCarrierLinehaulSearchValue(newInputValue);
+                                    // if (!newInputValue || newInputValue.trim() === "") {
+                                    //   dispatch(searchCarriers(""));
+                                    // }
+                                  }
+                                }}
+                                loading={isLoading}
+                                loadingText="Searching carriers..."
+                                noOptionsText={selectCarrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
 
-            {/* Grand total  */}
-            <Box sx={{ bgcolor: '#f5f5f5' }}>
-              <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
-                <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
-                  (
-                    // 1. PickUp Section
-                    // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
-                    //   ? 
-                    (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
-                      watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                        const charge = parseFloat(item.charges) || 0;
-                        const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                        return sum + (input !== null ? charge * input : charge);
-                      }, 0))
-                    // : 0) 
-                    +
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    label="Select Carrier *"
+                                    error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{
+                                      '& .MuiInputBase-input:disabled': {
+                                        color: '#000',
+                                        WebkitTextFillColor: '#000'
+                                      }
+                                    }}
+                                    InputProps={{
+                                      ...params.InputProps,
+                                      endAdornment: (
+                                        <>
+                                          {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                          {params.InputProps.endAdornment}
+                                        </>
+                                      ),
+                                    }}
+                                  />
+                                )}
+                                sx={{ width: '100% !important' }}
+                                disabled={!watchedPickupAgentTerminal || watchedLineHaulToggledAddress === 'pickup'}
 
-                    // 2. LineHaul Section
-                    // ((selectedRouting === "None")
-                    //   ? 
-                    (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
-                      watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                        const charge = parseFloat(item.charges) || 0;
-                        const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                        return sum + (input !== null ? charge * input : charge);
-                      }, 0))
-                    // : 0) 
-                    +
+                              />
+                            )}
+                          />
+                        </Box>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.billNumber"
+                            control={control}
+                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                          />
+                        </Box>
+                        <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                          {/* <Controller
+                        name="carrierInfo.lineHaul.fromLocation"
+                        control={control}
+                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                      /> */}
+                          <Controller
+                            name="carrierInfo.lineHaul.manualFromLocation"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControlLabel
+                                sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
+                                control={<Checkbox {...field} checked={field.value} size="small" />}
+                                label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
 
-                    // 3. Delivery Section
-                    // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "None")
-                    //   ?
-                    (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
-                      watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                        const charge = parseFloat(item.charges) || 0;
-                        const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                        return sum + (input !== null ? charge * input : charge);
-                      }, 0))
-                    // : 0)
-                  ).toFixed(2)
-                }
+                      {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual From Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualFromLocationDetails.zip', !watchedLinehaulFromLocationFlag)}
+                          </Box>
+                        </Box>
+                      </Paper>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.toLocationType"
+                            control={control}
+                            defaultValue={[]}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                select
+                                fullWidth
+                                label="Select To Type *"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              >
+                                {watchedLinehaulSelectRouting === 'linehaul_only' && <MenuItem value="Carrier">
+                                  Carrier
+                                </MenuItem>}
+
+                                {watchedLinehaulSelectRouting === 'linehaul_delivery' && <MenuItem value="Consignee">
+                                  Consignee
+                                </MenuItem>}
+                              </TextField>
+                            )}
+                          />
+                        </Box>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          {(watchedLinehaulToLocationType === 'Carrier' || watchedLinehaulToLocationType === '') && <Controller
+                            name="carrierInfo.lineHaul.toLocation"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { onChange, value, ...fieldProps } }) => (
+                              <Autocomplete
+                                {...fieldProps} // Spreads ref and name from React Hook Form
+                                fullWidth
+                                options={carrierTerminalDropdown || []}
+
+                                // Matches the combined string value logic from your previous MenuItem setup
+                                getOptionLabel={(option) => {
+                                  if (option && option.carrierName && option.terminalName) {
+                                    return `${option.carrierName} | ${option.terminalName}`;
+                                  }
+                                  return "";
+                                }}
+
+                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                                // Updates React Hook Form state on change
+                                onChange={(event, newValue) => {
+                                  isSelectingToCarrierLinehaulRef.current = true;
+
+                                  // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                  const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                  onChange(formValue);
+                                }}
+
+                                onInputChange={(event, newInputValue, reason) => {
+                                  if (reason !== "reset") {
+                                    setCarrierLinehaulSearchValue(newInputValue);
+                                    // if (!newInputValue || newInputValue.trim() === "") {
+                                    //   dispatch(searchCarriers(""));
+                                    // }
+                                  }
+                                }}
+                                loading={isLoading}
+                                loadingText="Searching carriers..."
+                                noOptionsText={carrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    label="To Location *"
+                                    error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{
+                                      '& .MuiInputBase-input:disabled': {
+                                        color: '#000',
+                                        WebkitTextFillColor: '#000'
+                                      }
+                                    }}
+                                    InputProps={{
+                                      ...params.InputProps,
+                                      endAdornment: (
+                                        <>
+                                          {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                          {params.InputProps.endAdornment}
+                                        </>
+                                      ),
+                                    }}
+                                  />
+                                )}
+                                sx={{ width: '100% !important', mt: 2 }}
+                              />
+                            )}
+                          />}
+                          {
+                            watchedLinehaulToLocationType === 'Consignee' && <Controller
+                              name="carrierInfo.toLocation"
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { onChange, value, ...fieldProps } }) => (
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  label="To Location *"
+                                  value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                  disabled // Visual indicator showing the user it cannot be changed manually
+                                  InputLabelProps={{ shrink: true }}
+                                  sx={{
+                                    '& .MuiInputBase-input:disabled': {
+                                      color: '#000', // Ensures high contrast visibility even when disabled
+                                      WebkitTextFillColor: '#000'
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+                          }
+                        </Box>
+                        <Box>
+                          <Controller
+                            name="carrierInfo.lineHaul.manualToLocation"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControlLabel
+                                sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                                control={<Checkbox {...field} checked={field.value} size="small" />}
+                                label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
+                      {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual To Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualToLocationDetails.zip', !watchedLinehaulToLocationFlag)}
+                          </Box>
+                        </Box>
+                      </Paper>
+
+                      {/* ETA and Weight Section - Flexbox Layout */}
+                      <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
+                        {/* ETA Date */}
+                        <Box sx={{ flex: 1 }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.etaDate"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error, isTouched } }) => (
+                              <DatePicker
+                                {...field}
+                                label="ETA Date"
+                                slotProps={{
+                                  textField: {
+                                    variant: 'standard',
+                                    fullWidth: true,
+                                    // FIX 1: Uses the exact field error slice from the render arguments
+                                    // FIX 2: (Optional) Only shows error if the user has interacted with it
+                                    error: !!error && isTouched
+                                  }
+                                }}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+
+                        {/* ETA time */}
+                        <Box sx={{ flex: 1 }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.etaTime"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error, isTouched } }) => (
+                              <TimePicker
+                                {...field}
+                                label="ETA Time"
+                                ampm={false}
+                                slotProps={{
+                                  textField: {
+                                    variant: 'standard',
+                                    fullWidth: true,
+                                    // FIX: Automatically extracts the correct field error state 
+                                    // and only displays it after a user interaction (isTouched)
+                                    error: !!error && isTouched
+                                  }
+                                }}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+
+
+                        {/* Pcs / Wght */}
+                        <Box sx={{ flex: 1.5 }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.pcs"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                type="number"
+                                label="Pcs"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+                        <Box sx={{ flex: 1.5 }}>
+                          <Controller
+                            name="carrierInfo.lineHaul.weight"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Weight"
+                                type="number"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
+
+                    </>}
+
+                    <Box sx={{ flex: '0 1 200px', mb: 3 }}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Add Accessorial</Typography>}
+                      />
+                    </Box>
+
+                    {/* ACCESSORIALS: Flexbox for header */}
+                    {watchedLinehaulAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' }, mb: 6 }}>
+                      <AccordionSummary
+                        expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                        sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                      >
+                        <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => setLineHaulAccModal(true)} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                          >
+                            Add Accessorial
+                          </Button>
+                        </Box>
+
+                        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                          <Table size="small">
+                            <TableHead sx={{ bgcolor: '#eee' }}>
+                              <TableRow>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                                <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {lineHaulAccFields.map((field, index) => (
+                                <TableRow key={field.id}>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                  <TableCell>
+                                    <IconButton onClick={() => {
+                                      setActiveAccType('LineHaul');
+                                      notesRefArray.current = field.notes;
+                                      notesRefArrayIndex.current = index;
+                                      notesRefArrayObj.current = field;
+                                      setOpenNotesDialogForShipmentAccs(true);
+                                    }}>
+                                      <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                    </IconButton>
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                      {/* <IconButton size="small" onClick={() => {
+                                      setActionType('View');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
+                                      <IconButton size="small" onClick={() => {
+                                        setActiveAccType('LineHaul');
+                                        setEditAccIndex(index);
+                                        setActionType('Edit');
+                                        setAddLineHaulAccModal(true);
+                                      }}><Iconify icon="tabler:edit" /></IconButton>
+                                      <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                    </Stack>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </AccordionDetails>
+                    </Accordion>}
+
+                    <PickupAccessorialDialog
+                      open={lineHaulAccModal}
+                      onClose={() => {
+                        setLineHaulAccModal(false);
+                        setAddLineHaulAccModal(false);
+                        setActionType('');
+                      }}
+                      onSave={(selectedData) => replaceLineHaulAcc(selectedData)}
+                      setActionType={setActionType}
+                      setAddAccModal={setAddLineHaulAccModal}
+                      addAccModal={addLineHaulAccModal}
+                      actionType={actionType}
+                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setMASTER_Accessorials}
+                    />
+                    <AddAccessorialDialog
+                      open={addLineHaulAccModal}
+                      onClose={() => {
+                        setAddLineHaulAccModal(false);
+                        setActionType('');
+                        setEditAccIndex(null);
+                      }}
+                      onSave={onSaveOfEdit}
+                      setActionType={setActionType}
+                      setAddAccModal={setAddLineHaulAccModal}
+                      addAccModal={addLineHaulAccModal}
+                      actionType={actionType}
+                      accFields={lineHaulAccFields}
+                      editableObj={lineHaulAccFields[editAccIndex]}
+                      appendAccFields={appendLineHaulAccFields}
+                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setMASTER_Accessorials}
+                    />
+
+
+                    {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                    <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Line-haul Notes
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                        {lineHaulNotesArr.map((note, idx) => (
+                          <Box
+                            key={idx}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              bgcolor: '#e3f2fd',
+                              borderRadius: '16px',
+                              px: 1.5,
+                              py: 0.5,
+                              fontSize: '0.65rem',
+                              border: '1px solid #bbdefb'
+                            }}
+                            onClick={() => {
+                              setValue('carrierInfo.lineHaul.lineHaulNotes', note);
+                            }}
+                          >
+                            {note}
+                            {/* <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = lineHaulNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.lineHaul.lineHaulNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box> */}
+                          </Box>
+                        ))}
+                        {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                      </Box>
+
+                      <Controller
+                        name="carrierInfo.lineHaul.lineHaulNotes"
+                        control={control}
+                        defaultValue=""
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Notes"
+                            variant="standard"
+                            placeholder="Type and press Enter"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box>
+
+                    {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+                    {/* <Box sx={{ display: 'flex', gap: 4 }}> */}
+                    {/* <Controller
+                      name="carrierInfo.lineHaul.deliveryIncluded"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Delivery Included</Typography>}
+                        />
+                      )}
+                    /> */}
+                    {/* <Controller
+                      name="carrierInfo.lineHaul.airportTransfer"
+                      control={control}
+                      render={({ field }) => (
+                        <FormControlLabel
+                          sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                          control={<Checkbox {...field} checked={field.value} size="small" />}
+                          label={<Typography sx={{ fontSize: '0.8rem' }}>Airport Transfer</Typography>}
+                        />
+                      )}
+                    /> */}
+
+                    {/* </Box> */}
+                  </AccordionDetails>
+                </Accordion>
+
+                {/* delivery details section  */}
+                <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
+                  <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
+                    <Typography variant="subtitle1" fontWeight="bold">Delivery Details</Typography>
+                  </AccordionSummary>
+
+                  <AccordionDetails sx={{ pt: 2 }}>
+                    {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
+                      <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.carrier"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { onChange, value, ...fieldProps } }) => (
+                              <Autocomplete
+                                {...fieldProps} // Spreads ref and name from React Hook Form
+                                fullWidth
+                                options={carrierTerminalDropdown || []}
+
+                                // Matches the combined string value logic from your previous MenuItem setup
+                                getOptionLabel={(option) => {
+                                  if (option && option.carrierName && option.terminalName) {
+                                    return `${option.carrierName} | ${option.terminalName}`;
+                                  }
+                                  return "";
+                                }}
+
+                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                                // Updates React Hook Form state on change
+                                onChange={(event, newValue) => {
+                                  isSelectingCarrierDeliveryRef.current = true;
+
+                                  // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                  const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                  onChange(formValue);
+                                }}
+
+                                onInputChange={(event, newInputValue, reason) => {
+                                  if (reason !== "reset") {
+                                    setSelectCarrierDeliverySearchValue(newInputValue);
+                                    // if (!newInputValue || newInputValue.trim() === "") {
+                                    //   dispatch(searchCarriers(""));
+                                    // }
+                                  }
+                                }}
+                                loading={isLoading}
+                                loadingText="Searching carriers..."
+                                noOptionsText={selectCarrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    label="Select Carrier *"
+                                    error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{
+                                      '& .MuiInputBase-input:disabled': {
+                                        color: '#000',
+                                        WebkitTextFillColor: '#000'
+                                      }
+                                    }}
+                                    InputProps={{
+                                      ...params.InputProps,
+                                      endAdornment: (
+                                        <>
+                                          {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                          {params.InputProps.endAdornment}
+                                        </>
+                                      ),
+                                    }}
+                                  />
+                                )}
+                                sx={{ width: '100% !important', }}
+                                disabled
+                              />
+                            )}
+                          />
+                        </Box>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.billNumber"
+                            control={control}
+                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                          />
+                        </Box>
+                        <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+                          {/* <Controller
+                          name="carrierInfo.deliveryDetails.fromLocation"
+                          control={control}
+                          render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
+                        /> */}
+                          <Controller
+                            name="carrierInfo.deliveryDetails.manualFromLocation"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControlLabel
+                                sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
+                                control={<Checkbox {...field} checked={field.value} size="small" />}
+                                label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
+
+                      {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual From Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', !watchedDeliveryFromLocationFlag)}
+                          </Box>
+                        </Box>
+                      </Paper>
+
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.toLocationType"
+                            control={control}
+                            defaultValue={[]}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                select
+                                fullWidth
+                                label="Select To Type *"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              >
+                                {/* <MenuItem value="Carrier">
+                                Carrier
+                              </MenuItem> */}
+                                <MenuItem value="Consignee">
+                                  Consignee
+                                </MenuItem>
+                              </TextField>
+                            )}
+                          />
+
+
+
+                        </Box>
+                        <Box sx={{ flex: '1 1 200px' }}>
+                          {(watchedDeliveryToLocationType === 'Carrier' || watchedDeliveryToLocationType === '') && <Controller
+                            name="carrierInfo.deliveryDetails.toLocation"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { onChange, value, ...fieldProps } }) => (
+                              <Autocomplete
+                                {...fieldProps} // Spreads ref and name from React Hook Form
+                                fullWidth
+                                options={carrierTerminalDropdown || []}
+
+                                // Matches the combined string value logic from your previous MenuItem setup
+                                getOptionLabel={(option) => {
+                                  if (option && option.carrierName && option.terminalName) {
+                                    return `${option.carrierName} | ${option.terminalName}`;
+                                  }
+                                  return "";
+                                }}
+
+                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                                // Updates React Hook Form state on change
+                                onChange={(event, newValue) => {
+                                  isSelectingToCarrierDeliveryRef.current = true;
+
+                                  // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                  const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                  onChange(formValue);
+                                }}
+
+                                onInputChange={(event, newInputValue, reason) => {
+                                  if (reason !== "reset") {
+                                    setCarrierDeliverySearchValue(newInputValue);
+                                    // if (!newInputValue || newInputValue.trim() === "") {
+                                    //   dispatch(searchCarriers(""));
+                                    // }
+                                  }
+                                }}
+                                loading={isLoading}
+                                loadingText="Searching carriers..."
+                                noOptionsText={carrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                                renderInput={(params) => (
+                                  <TextField
+                                    {...params}
+                                    variant="standard"
+                                    label="To Location *"
+                                    error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                    InputLabelProps={{ shrink: true }}
+                                    sx={{
+                                      '& .MuiInputBase-input:disabled': {
+                                        color: '#000',
+                                        WebkitTextFillColor: '#000'
+                                      }
+                                    }}
+                                    InputProps={{
+                                      ...params.InputProps,
+                                      endAdornment: (
+                                        <>
+                                          {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                          {params.InputProps.endAdornment}
+                                        </>
+                                      ),
+                                    }}
+                                  />
+                                )}
+                                sx={{ width: '100% !important', mt: 2 }}
+                              />
+                            )}
+                          />}
+                          {
+                            watchedDeliveryToLocationType === 'Consignee' && <Controller
+                              name="carrierInfo.toLocation"
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { onChange, value, ...fieldProps } }) => (
+                                <TextField
+                                  fullWidth
+                                  variant="standard"
+                                  label="To Location *"
+                                  value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                  disabled // Visual indicator showing the user it cannot be changed manually
+                                  InputLabelProps={{ shrink: true }}
+                                  sx={{
+                                    '& .MuiInputBase-input:disabled': {
+                                      color: '#000', // Ensures high contrast visibility even when disabled
+                                      WebkitTextFillColor: '#000'
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+                          }
+                        </Box>
+                        <Box>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.manualToLocation"
+                            control={control}
+                            render={({ field }) => (
+                              <FormControlLabel
+                                sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                                control={<Checkbox {...field} checked={field.value} size="small" />}
+                                label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
+                              />
+                            )}
+                          />
+                        </Box>
+                      </Box>
+                      {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+
+                      <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Manual To Location
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                          </Box>
+                          <Box sx={{ flex: '1 1 18%' }}>
+                            {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualToLocationDetails.zip', !watchedDeliveryToLocationFlag)}
+                          </Box>
+                        </Box>
+                      </Paper>
+
+
+                      {/* ETA and Weight Section - Flexbox Layout */}
+                      <Box sx={{ display: 'flex', gap: 4, mb: 4, mt: 2 }}>
+                        {/* ETA Date */}
+                        <Box sx={{ flex: 1 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.etaDate"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error, isTouched } }) => (
+                              <DatePicker
+                                {...field}
+                                label="ETA Date"
+                                slotProps={{
+                                  textField: {
+                                    variant: 'standard',
+                                    fullWidth: true,
+                                    // FIX: Targets the specific error block for delivery details
+                                    // only after the user interacts with the input (isTouched)
+                                    error: !!error && isTouched
+                                  }
+                                }}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+
+                        {/* ETA time  */}
+                        <Box sx={{ flex: 1 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.etaTime"
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field, fieldState: { error, isTouched } }) => (
+                              <TimePicker
+                                {...field}
+                                label="ETA Time"
+                                ampm={false}
+                                slotProps={{
+                                  textField: {
+                                    variant: 'standard',
+                                    fullWidth: true,
+                                    // FIX: Targets the specific error state for delivery details time
+                                    // and suppresses layout red-lines on page load
+                                    error: !!error && isTouched
+                                  }
+                                }}
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+
+
+                        {/* Pcs / Wght */}
+                        <Box sx={{ flex: 1.5 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.pcs"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                type="number"
+                                label="Pcs"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+                        <Box sx={{ flex: 1.5 }}>
+                          <Controller
+                            name="carrierInfo.deliveryDetails.weight"
+                            control={control}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                type="number"
+                                label="Weight"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                              />
+                            )}
+                          />
+                        </Box>
+                        {/* <Box sx={{ flex: 1.5 }}>
+                      <Controller
+                        name="carrierInfo.deliveryDetails.agent"
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            fullWidth
+                            label="Agent"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                          />
+                        )}
+                      />
+                    </Box> */}
+                      </Box>
+                    </>}
+
+                    <Box display={'flex'} alignItems={'center'}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Add Accessorial</Typography>}
+                      />
+                      <Box sx={{ display: 'flex', gap: 4 }}>
+
+                        <Controller
+                          name="carrierInfo.lineHaul.airportTransfer"
+                          control={control}
+                          render={({ field }) => (
+                            <FormControlLabel
+                              sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
+                              control={<Checkbox {...field} checked={field.value} size="small" />}
+                              label={<Typography variant="body2">Airport Transfer</Typography>}
+                            />
+                          )}
+                        />
+
+                      </Box>
+                    </Box>
+                    {/* BOTTOM OPTIONS: Horizontal Flexbox */}
+
+
+                    {/* ACCESSORIALS: Flexbox for header */}
+                    {watchedDeliveryAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+                      <AccordionSummary
+                        expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
+                        sx={{ borderBottom: '1px solid #ccc', px: 0 }}
+                      >
+                        <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                      </AccordionSummary>
+                      <AccordionDetails sx={{ px: 0, pt: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => setDeliveryAccModal(true)} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                          >
+                            Add Accessorial
+                          </Button>
+                        </Box>
+
+                        <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
+                          <Table size="small">
+                            <TableHead sx={{ bgcolor: '#eee' }}>
+                              <TableRow>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Accessorial Name</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
+                                <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
+                                <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                              </TableRow>
+                            </TableHead>
+                            <TableBody>
+                              {deliveryAccFields.map((field, index) => (
+                                <TableRow key={field.id}>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                  <TableCell>
+                                    <IconButton onClick={() => {
+                                      setActiveAccType('Delivery');
+                                      notesRefArray.current = field.notes;
+                                      notesRefArrayIndex.current = index;
+                                      notesRefArrayObj.current = field;
+                                      setOpenNotesDialogForShipmentAccs(true);
+                                    }}>
+                                      <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
+                                    </IconButton>
+                                  </TableCell>
+                                  <TableCell align="right">
+                                    <Stack direction="row" spacing={1} justifyContent="flex-end">
+                                      {/* <IconButton size="small" onClick={() => {
+                                      setActionType('View');
+                                      setAddAccModal(true);
+                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
+                                      <IconButton size="small" onClick={() => {
+                                        setActiveAccType('Delivery');
+                                        setEditAccIndex(index);
+                                        setActionType('Edit');
+                                        setAddDeliveryAccModal(true);
+
+                                      }}><Iconify icon="tabler:edit" /></IconButton>
+                                      <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                    </Stack>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </TableContainer>
+                      </AccordionDetails>
+                    </Accordion>}
+
+                    <PickupAccessorialDialog
+                      open={deliveryAccModal}
+                      onClose={() => {
+                        setDeliveryAccModal(false);
+                        setAddDeliveryAccModal(false);
+                        setActionType('');
+                      }}
+                      onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
+                      setActionType={setActionType}
+                      setAddAccModal={setAddDeliveryAccModal}
+                      addAccModal={addDeliveryAccModal}
+                      actionType={actionType}
+                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setMASTER_Accessorials}
+                    />
+                    <AddAccessorialDialog
+                      open={addDeliveryAccModal}
+                      onClose={() => {
+                        setAddDeliveryAccModal(false);
+                        setActionType('');
+                        setEditAccIndex(null);
+                      }}
+                      onSave={onSaveOfEdit}
+                      setActionType={setActionType}
+                      setAddAccModal={setAddDeliveryAccModal}
+                      addAccModal={addDeliveryAccModal}
+                      actionType={actionType}
+                      accFields={deliveryAccFields}
+                      editableObj={deliveryAccFields[editAccIndex]}
+                      appendAccFields={appendDeliveryAccFields}
+                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setMASTER_Accessorials}
+                    />
+
+                    <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
+                      <FormControlLabel
+                        control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        label={<Typography variant="body2">Delivery Alert </Typography>}
+                      />
+                    </Box>
+                    {watchedDeliveryAlert && <>
+                      {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
+                      <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Line-haul Notes
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                          {deliveryLineHaulNotesArr.map((note, idx) => (
+                            <Box
+                              key={idx}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                bgcolor: '#e3f2fd',
+                                borderRadius: '16px',
+                                px: 1.5,
+                                py: 0.5,
+                                fontSize: '0.65rem',
+                                border: '1px solid #bbdefb'
+                              }}
+                              onClick={() => {
+                                setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
+                              }}
+                            >
+                              {note}
+                              {/* <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = deliveryLineHaulNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.deliveryDetails.lineHaulNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box> */}
+                            </Box>
+                          ))}
+                          {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                        </Box>
+
+                        <Controller
+                          name="carrierInfo.deliveryDetails.lineHaulNotes"
+                          control={control}
+                          defaultValue=""
+                          rules = {{
+                            required: watchedDeliveryAlert ? 'Line-haul notes is required' : '',
+                          }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Notes"
+                              variant="standard"
+                              placeholder="Type and press Enter"
+                              InputLabelProps={{ shrink: true }}
+                              required={watchedDeliveryAlert}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      {/* delivery notes  */}
+                      <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                        <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                          Delivery Notes
+                        </Typography>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                          {deliveryNotesArr.map((note, idx) => (
+                            <Box
+                              key={idx}
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                bgcolor: '#e3f2fd',
+                                borderRadius: '16px',
+                                px: 1.5,
+                                py: 0.5,
+                                fontSize: '0.65rem',
+                                border: '1px solid #bbdefb'
+                              }}
+                              onClick={() => {
+                                setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
+                              }}
+                            >
+                              {note}
+                              {/* <Box
+                            component="span"
+                            onClick={() => {
+                              const updatedNotes = deliveryNotes.filter((_, i) => i !== idx);
+                              setValue('carrierInfo.deliveryDetails.deliveryNotes', updatedNotes);
+                            }}
+                            sx={{ ml: 1, cursor: 'pointer', '&:hover': { color: 'red' } }}
+                          >
+                            &times;
+                          </Box> */}
+                            </Box>
+                          ))}
+                          {/* <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#a22', color: '#fff', borderRadius: '16px', px: 1.5, py: 0.5, fontSize: '0.65rem', cursor: 'pointer' }}>
+                      More..
+                    </Box> */}
+                        </Box>
+
+                        <Controller
+                          name="carrierInfo.deliveryDetails.deliveryNotes"
+                          control={control}
+                          defaultValue=""
+                           rules = {{
+                            required: watchedDeliveryAlert ? 'Delivery notes is required' : '',
+                          }}
+                          render={({ field }) => (
+                            <TextField
+                              {...field}
+                              fullWidth
+                              label="Notes"
+                              variant="standard"
+                              placeholder="Type and press Enter"
+                              InputLabelProps={{ shrink: true }}
+                              required={watchedDeliveryAlert}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      {/* --- EMAIL INFO SECTION --- */}
+                      <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
+                        <Typography
+                          variant="caption"
+                          sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}
+                        >
+                          Email Info
+                        </Typography>
+
+                        <Box sx={{ display: 'flex', gap: 4 }}>
+                          <Box sx={{ flex: 1 }}>
+                            <Controller
+                              name="carrierInfo.deliveryDetails.primaryEmail"
+                              control={control}
+                              rules={{
+                                required : watchedDeliveryAlert ? 'Primary email is required' : '',
+                                pattern: {
+                                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                                  message: "Invalid email address"
+                                }
+                              }}
+                              render={({ field, fieldState: { error } }) => (
+                                <TextField
+                                  {...field}
+                                  fullWidth
+                                  label="Primary Email"
+                                  variant="standard"
+                                  InputLabelProps={{ shrink: true }}
+                                  error={!!error}
+                                  helperText={error?.message}
+                                  required={watchedDeliveryAlert}
+                                />
+                              )}
+                            />
+                          </Box>
+
+                          <Box sx={{ flex: 2 }}>
+                            <Controller
+                              name="carrierInfo.deliveryDetails.additionalEmail"
+                              control={control}
+                              rules={{
+                                validate: (value) => {
+                                  if (!value) return true;
+                                  const emails = value.split(',').map(e => e.trim());
+                                  const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                                  const allValid = emails.every(email => emailRegex.test(email));
+                                  return allValid || "One or more emails are invalid (separate by comma)";
+                                }
+                              }}
+                              render={({ field, fieldState: { error } }) => (
+                                <TextField
+                                  {...field}
+                                  fullWidth
+                                  label="Additional Email"
+                                  variant="standard"
+                                  InputLabelProps={{ shrink: true }}
+                                  placeholder="email1@test.com, email2@test.com"
+                                  error={!!error}
+                                  helperText={error?.message}
+                                />
+                              )}
+                            />
+                          </Box>
+                        </Box>
+                      </Box>
+                    </>}
+                  </AccordionDetails>
+                </Accordion>
+
+                <Snackbar open={carrierTerminalSelectError} autoHideDuration={3000} onClose={() => setCarrierTerminalSelectError(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+
+                  <Alert severity="error" variant="filled">Please select a carrier and terminal for {watchedLineHaulToggledAddress}.</Alert>
+
+                </Snackbar>
+
+              </>}
+
+            </Paper>
+          )}
+
+          {/* step 4 */}
+
+          {
+            activeStep === 4 && (<Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
+                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
+                  Carrier Rates
                 </Typography>
               </Box>
-            </Box>
+              <CarrierSection
+                fields={carrierRatesPickUpAccessorials}
+                sectionName={`Pickup Carrier -  ${watchedCarrierRateInfo.pickUp.pickUpCarrier || ''}`}
+                rate={'carrierRates.pickUp.pickUpRate'}
+                totalSubCharges={(
+                  parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                  watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                    const charge = parseFloat(item.charges) || 0;
 
-            {/*  invoice approval section */}
+                    // Check if input exists and isn't an empty string
+                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                      const input = parseFloat(item.input) || 0;
+                      return sum + (charge * input);
+                    }
+
+                    // Otherwise, treat as a flat fee
+                    return sum + charge;
+                  }, 0)
+                ).toFixed(2)}
+                watchedCarrierRateInfo={watchedCarrierRateInfo}
+                setValue={setValue}
+                path="carrierRates.pickUp.pickupAccessorials"
+                control={control}
+                getValues={getValues}
+                totals={totals}
+                apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
+                invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
+              />
+              <CarrierSection
+                fields={carrierRatesLineHaulAccessorials}
+                sectionName={`Line Haul Carrier -  ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier || ''}`}
+                rate={'carrierRates.lineHaul.lineHaulRate'}
+                totalSubCharges={(
+                  parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                  watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                    const charge = parseFloat(item.charges) || 0;
+
+                    // Check if input exists and isn't an empty string
+                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                      const input = parseFloat(item.input) || 0;
+                      return sum + (charge * input);
+                    }
+
+                    // Otherwise, treat as a flat fee
+                    return sum + charge;
+                  }, 0)
+                ).toFixed(2)}
+                watchedCarrierRateInfo={watchedCarrierRateInfo}
+                setValue={setValue}
+                path="carrierRates.lineHaul.lineHaulAccessorials"
+                control={control}
+                getValues={getValues}
+                totals={totals}
+                apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
+                invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
+              />
+              <CarrierSection
+                fields={carrierRatesDeliveryAccessorials}
+                sectionName={`Delivery Carrier -  ${watchedCarrierRateInfo.delivery.deliveryCarrier || ''}`}
+                rate='carrierRates.delivery.deliveryRate'
+                totalSubCharges={(
+                  parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                  watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                    const charge = parseFloat(item.charges) || 0;
+
+                    // Check if input exists and isn't an empty string
+                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                      const input = parseFloat(item.input) || 0;
+                      return sum + (charge * input);
+                    }
+
+                    // Otherwise, treat as a flat fee
+                    return sum + charge;
+                  }, 0)
+                ).toFixed(2)}
+                watchedCarrierRateInfo={watchedCarrierRateInfo}
+                setValue={setValue}
+                path="carrierRates.delivery.deliveryAccessorials"
+                control={control}
+                getValues={getValues}
+                totals={totals}
+                apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
+                invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
+              />
+
+              {/* Grand total  */}
+              <Box sx={{ bgcolor: '#f5f5f5' }}>
+                <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
+                  <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
+                    (
+                      // 1. PickUp Section
+                      // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
+                      //   ? 
+                      (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                        watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      // : 0) 
+                      +
+
+                      // 2. LineHaul Section
+                      // ((selectedRouting === "None")
+                      //   ? 
+                      (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                        watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      // : 0) 
+                      +
+
+                      // 3. Delivery Section
+                      // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "None")
+                      //   ?
+                      (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                        watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                          const charge = parseFloat(item.charges) || 0;
+                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                          return sum + (input !== null ? charge * input : charge);
+                        }, 0))
+                      // : 0)
+                    ).toFixed(2)
+                  }
+                  </Typography>
+                </Box>
+              </Box>
+
+              {/*  invoice approval section */}
 
 
-          </Paper>)
-        }
+            </Paper>)
+          }
 
 
 
-        <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => setErrorVisible(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => setErrorVisible(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
-          <Alert severity="error" variant="filled">Please check required fields.</Alert>
+            <Alert severity="error" variant="filled">Please check required fields.</Alert>
 
-        </Snackbar>
-        <Snackbar
-          open={handlingUnitWtFlag}
-          autoHideDuration={3000}
-          onClose={(event, reason) => {
-            // 1. Close the alert
-            setHandlingUnitWtFlag(false);
+          </Snackbar>
 
-            // 2. Prevent logic if the user clicked away (optional)
-            if (reason === 'clickaway') return;
+          <Snackbar
+            open={handlingUnitWtFlag}
+            autoHideDuration={3000}
+            onClose={(event, reason) => {
+              // 1. Close the alert
+              setHandlingUnitWtFlag(false);
 
-            // 3. Correctly update the state/array
-            const updatedHU = [...watchedHU]; // Create a copy
-            const lastIndex = updatedHU.length - 1;
+              // 2. Prevent logic if the user clicked away (optional)
+              if (reason === 'clickaway') return;
 
-            if (updatedHU[0] && updatedHU[lastIndex]) {
-              updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
-              setValue('handlingUnits', updatedHU); // Update the form state if needed
-            }
-            if (updatedHU[0] && updatedHU[lastIndex]) {
-              updatedHU[lastIndex].unit = updatedHU[0].unit;
-              setValue('handlingUnits', updatedHU); // Update the form state if needed
+              // 3. Correctly update the state/array
+              const updatedHU = [...watchedHU]; // Create a copy
+              const lastIndex = updatedHU.length - 1;
+
+              if (updatedHU[0] && updatedHU[lastIndex]) {
+                updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
+                setValue('handlingUnits', updatedHU); // Update the form state if needed
+              }
+              if (updatedHU[0] && updatedHU[lastIndex]) {
+                updatedHU[lastIndex].unit = updatedHU[0].unit;
+                setValue('handlingUnits', updatedHU); // Update the form state if needed
+              }
+            }}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Alert severity="error" variant="filled">
+              All items must have the same weight unit as the first item
+            </Alert>
+          </Snackbar>
+
+
+        </Box>
+        {/* Place this at the end of your return block */}
+        <HazmatDialog
+          state={hazmatModal}
+          onClose={() => setHazmatModal({ ...hazmatModal, open: false })}
+          setValue={setValue}
+          getValues={getValues}
+        />
+        <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            handleNotesCloseConfirmForShipmentAccs();
+          }
+        }}
+          sx={{
+            '& .MuiDialog-paper': { // Target the paper class
+              width: '1000px',
+              height: '80%',
+              maxHeight: 'none',
+              maxWidth: 'none',
             }
           }}
-          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          <Alert severity="error" variant="filled">
-            All items must have the same weight unit as the first item
-          </Alert>
-        </Snackbar>
-
-
-      </Box>
-      {/* Place this at the end of your return block */}
-      <HazmatDialog
-        state={hazmatModal}
-        onClose={() => setHazmatModal({ ...hazmatModal, open: false })}
-        setValue={setValue}
-        getValues={getValues}
-      />
-      <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          handleNotesCloseConfirmForShipmentAccs();
-        }
-      }}
-        sx={{
-          '& .MuiDialog-paper': { // Target the paper class
-            width: '1000px',
-            height: '80%',
-            maxHeight: 'none',
-            maxWidth: 'none',
+          <DialogContent>
+            <>
+              <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
+                <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirmForShipmentAccs()} sx={{ cursor: 'pointer' }} />
+              </Stack>
+              <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+            </>
+            <Box sx={{ pt: 2 }}>
+              <NotesTableForAccessorials notes={notesRefArray.current} handleCloseConfirm={handleNotesCloseConfirmForShipmentAccs}
+                getValues={getValues} setValue={setValue} index={notesRefArrayIndex.current} updatePickupAcc={updatePickupAcc}
+                updateLineHaulAcc={updateLineHaulAcc}
+                updateDeliveryAcc={updateDeliveryAcc}
+                field={notesRefArrayObj.current} activeAccType={activeAccType} />
+            </Box>
+          </DialogContent>
+        </Dialog>
+        <Dialog open={openNotesDialog} onClose={handleNotesCloseConfirm} onKeyDown={(event) => {
+          if (event.key === 'Escape') {
+            handleNotesCloseConfirm();
           }
         }}
-      >
-        <DialogContent>
-          <>
-            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-              <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
-              <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirmForShipmentAccs()} sx={{ cursor: 'pointer' }} />
-            </Stack>
-            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-          </>
-          <Box sx={{ pt: 2 }}>
-            <NotesTableForAccessorials notes={notesRefArray.current} handleCloseConfirm={handleNotesCloseConfirmForShipmentAccs}
-              getValues={getValues} setValue={setValue} index={notesRefArrayIndex.current} updatePickupAcc={updatePickupAcc}
-              updateLineHaulAcc={updateLineHaulAcc}
-              updateDeliveryAcc={updateDeliveryAcc}
-              field={notesRefArrayObj.current} activeAccType={activeAccType} />
-          </Box>
-        </DialogContent>
-      </Dialog>
-      <Dialog open={openNotesDialog} onClose={handleNotesCloseConfirm} onKeyDown={(event) => {
-        if (event.key === 'Escape') {
-          handleNotesCloseConfirm();
-        }
-      }}
-        sx={{
-          '& .MuiDialog-paper': { // Target the paper class
-            width: '1000px',
-            height: '80%',
-            maxHeight: 'none',
-            maxWidth: 'none',
-          }
-        }}
-      >
-        <DialogContent>
-          <>
-            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-              <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
-              <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirm()} sx={{ cursor: 'pointer' }} />
-            </Stack>
-            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
-          </>
-          <Box sx={{ pt: 2 }}>
-            <NotesTable notes={notesRef.current} handleCloseConfirm={handleNotesCloseConfirm} />
-          </Box>
-        </DialogContent>
-      </Dialog>
+          sx={{
+            '& .MuiDialog-paper': { // Target the paper class
+              width: '1000px',
+              height: '80%',
+              maxHeight: 'none',
+              maxWidth: 'none',
+            }
+          }}
+        >
+          <DialogContent>
+            <>
+              <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Internal Note Section</Typography>
+                <Iconify icon="carbon:close" onClick={() => handleNotesCloseConfirm()} sx={{ cursor: 'pointer' }} />
+              </Stack>
+              <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+            </>
+            <Box sx={{ pt: 2 }}>
+              <NotesTable notes={notesRef.current} handleCloseConfirm={handleNotesCloseConfirm} />
+            </Box>
+          </DialogContent>
+        </Dialog>
 
-    </LocalizationProvider >
+      </LocalizationProvider >
+    </ErrorBoundary>
 
   );
 

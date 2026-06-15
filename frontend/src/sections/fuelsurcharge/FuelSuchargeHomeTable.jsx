@@ -22,6 +22,7 @@ import {
 } from '../../redux/slices/fuel';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import FuelSurchargeDetails from './FuelSurchargeDetails';
+import StationsTable from './StationsTable';
 
 // ----------------------------------------------------------------
 
@@ -42,6 +43,8 @@ export default function FuelSurchargeHomeTable() {
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [tableColumns, setTableColumns] = useState([]);
+    const [showStationList, setShowStationList] = useState(false);
+    const stationsRef = useRef([]);
 
 
     const logError = (error, info) => {
@@ -182,8 +185,6 @@ export default function FuelSurchargeHomeTable() {
             field: 'actions',
             headerName: 'Actions',
             width: 300,
-            align: 'center',
-            cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -303,10 +304,12 @@ export default function FuelSurchargeHomeTable() {
                 const element = (<>
                     {(params?.row?.stations?.length && params?.row?.stations?.length > 1)
                         ?
-                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
-                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
-                            <Typography variant='normal'>{params?.row?.stations?.length}</Typography>
-                        </Stack>
+                        <IconButton onClick={() => { stationsRef.current = params?.row?.stations; setShowStationList(true); }} sx={{ p: 0 }}>
+                            <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
+                                <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                                <Typography variant='body2' sx={{ color: '#000' }}>{params?.row?.stations?.length}</Typography>
+                            </Stack>
+                        </IconButton>
                         :
                         <Typography variant='normal'>{params?.row?.stations?.[0]?.stationName}</Typography>
                     }
@@ -383,8 +386,6 @@ export default function FuelSurchargeHomeTable() {
             field: 'actions',
             headerName: 'Actions',
             width: 300,
-            align: 'center',
-            cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -471,6 +472,10 @@ export default function FuelSurchargeHomeTable() {
         setActionType("");
         dispatch(setSelectedFuelSurchargeRowDetails({}));
     };
+    const handleCloseConfirm = () => {
+        setShowStationList(false);
+        stationsRef.current = [];
+    };
     useEffect(() => {
         console.log('rows', fuelSurchargeData);
     }, [fuelSurchargeData])
@@ -493,7 +498,6 @@ export default function FuelSurchargeHomeTable() {
                         loading={isLoading}
                         getRowId={(row) => row?.fuelSurchargeId || row?.customerFuelSurchargeId}
                         pagination
-                        getRowHeight={() => 'auto'}
                         hideFooterSelectedRowCount
                         paginationMode="server"
                         paginationModel={paginationModel}
@@ -532,7 +536,6 @@ export default function FuelSurchargeHomeTable() {
                         }}
                         pageSizeOptions={[5, 10, 50, 100]}
                         rowCount={parseInt(pagination?.totalRecords || '0', 10)}
-                        autoHeight
                     />
                 </Box>
 
@@ -552,6 +555,34 @@ export default function FuelSurchargeHomeTable() {
                 >
                     <DialogContent>
                         <FuelSurchargeDetails type={actionType} handleCloseConfirm={handleCloseEdit} selectedFuelSurchargeRowDetails={selectedFuelSurchargeRowDetails} />
+                    </DialogContent>
+                </Dialog>
+
+                <Dialog open={showStationList} onClose={handleCloseConfirm} onKeyDown={(event) => {
+                    if (event.key === 'Escape') {
+                        handleCloseConfirm();
+                    }
+                }}
+                    sx={{
+                        '& .MuiDialog-paper': { // Target the paper class
+                            width: '1000px',
+                            height: '80%',
+                            maxHeight: 'none',
+                            maxWidth: 'none',
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <>
+                            <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                                <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Stations</Typography>
+                                <Iconify icon="carbon:close" onClick={() => handleCloseConfirm()} sx={{ cursor: 'pointer' }} />
+                            </Stack>
+                            <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+                        </>
+                        <Box sx={{ pt: 2 }}>
+                            <StationsTable stations={stationsRef.current} handleCloseConfirm={handleCloseConfirm} />
+                        </Box>
                     </DialogContent>
                 </Dialog>
 

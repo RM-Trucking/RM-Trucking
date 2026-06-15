@@ -69,7 +69,20 @@ const slice = createSlice({
         city: 'City - 2',
         state: 'State - 2',
         zip: '99999',
-      }];
+      },
+      {
+        id: '3',
+        terminalId: '3',
+        terminalName: 'R&M Terminal',
+        carrierId: '3',
+        carrierName: 'R&M',
+        addressLine1: 'Address Line 1 - 3',
+        addressLine2: 'Address Line 2 - 3',
+        city: 'City - 3',
+        state: 'State - 3',
+        zip: '99999',
+      },
+    ];
     },
     getShipperDropdownSuccess(state, action) {
       state.isLoading = false;

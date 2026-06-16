@@ -9,7 +9,7 @@ import {
     Stack,
     Typography,
     Divider,
-    CircularProgress, TextField, Checkbox
+    CircularProgress, TextField, Checkbox, Snackbar, Alert,
 } from '@mui/material';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
@@ -22,7 +22,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import {
     postFuelSurchargeData, putFuelSurchargeData, getCustomerList, getStationList, setStationList,
     postCustomerFuelSurchargeData,
-    putCustomerFuelSurchargeData
+    putCustomerFuelSurchargeData,
 } from '../../redux/slices/fuel';
 
 FuelSurchargeDetails.propTypes = {
@@ -38,6 +38,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
     const currentFuelSurchargeTab = useSelector((state) => state?.fueldata?.currentFuelSurchargeTab);
     const customerList = useSelector((state) => state?.fueldata?.customerList);
     const stationList = useSelector((state) => state?.fueldata?.stationList);
+    const [errorVisible, setErrorVisible] = useState(false);
     const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
     const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
@@ -74,20 +75,24 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             }
         } else if (currentFuelSurchargeTab === 'customer') {
             console.log('Form Submitted:', data);
-            let obj = {
-                "customerId": data.customer.customerId,
-                "customerName": data.customer.customerName,
-                "fuelPercentage": data.fuelsurchargePercentage,
-                "effectiveDate": data.effectiveDate,
-                "effectiveTime": data.effectiveTime,
-                "expireDate": data.expireDate,
-                "expireTime": data.expireTime,
-                "stations": data.stationList
-            }
-            if (type === 'Add') {
-                dispatch(postCustomerFuelSurchargeData(obj));
-            } else if (type === 'Edit') {
-                dispatch(putCustomerFuelSurchargeData(selectedFuelSurchargeRowDetails.customerFuelSurchargeId, obj));
+            if (data.customer.customerId) {
+                let obj = {
+                    "customerId": data.customer.customerId,
+                    "customerName": data.customer.customerName,
+                    "fuelPercentage": data.fuelsurchargePercentage,
+                    "effectiveDate": data.effectiveDate,
+                    "effectiveTime": data.effectiveTime,
+                    "expireDate": data.expireDate,
+                    "expireTime": data.expireTime,
+                    "stations": data.stationList
+                }
+                if (type === 'Add') {
+                    dispatch(postCustomerFuelSurchargeData(obj));
+                } else if (type === 'Edit') {
+                    dispatch(putCustomerFuelSurchargeData(selectedFuelSurchargeRowDetails.customerFuelSurchargeId, obj));
+                }
+            } else {
+                setErrorVisible(true);
             }
         }
     };
@@ -143,7 +148,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                 console.log('Selected Customer:', newValue);
                                                 if (newValue?.customerId) {
                                                     dispatch(getStationList(newValue?.customerId, ""));
-                                                    setValue('stationList',[]);
+                                                    setValue('stationList', []);
                                                 } else {
                                                     dispatch(getCustomerList(""));
                                                     dispatch(setStationList([]));
@@ -421,6 +426,9 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                     </Stack>
 
                 </Stack>
+                <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => setErrorVisible(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                    <Alert severity="error" variant="filled">Please select valid customer.</Alert>
+                </Snackbar>
                 {(type === 'Add' || type === 'Edit') && <Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
                     <Button
                         variant="outlined"

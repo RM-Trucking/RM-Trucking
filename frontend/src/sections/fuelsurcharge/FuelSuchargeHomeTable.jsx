@@ -294,7 +294,7 @@ export default function FuelSurchargeHomeTable() {
         },
         {
             field: 'stations',
-            headerName: 'Staion',
+            headerName: 'Station',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',

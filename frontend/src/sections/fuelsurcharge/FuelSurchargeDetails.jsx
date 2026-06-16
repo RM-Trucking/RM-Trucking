@@ -20,7 +20,7 @@ import dayjs from 'dayjs';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
-    postFuelSurchargeData, putFuelSurchargeData, getCustomerList, getStationList,
+    postFuelSurchargeData, putFuelSurchargeData, getCustomerList, getStationList, setStationList,
     postCustomerFuelSurchargeData,
     putCustomerFuelSurchargeData
 } from '../../redux/slices/fuel';
@@ -105,7 +105,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             setValue('expireTime', selectedFuelSurchargeRowDetails?.expireTime || null);
             setValue('customer', customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId) || null);
             setValue('stationList', selectedFuelSurchargeRowDetails?.stations || null);
-            if(type === 'Edit' && selectedFuelSurchargeRowDetails?.customerId){
+            if (type === 'Edit' && selectedFuelSurchargeRowDetails?.customerId) {
                 dispatch(getStationList(customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId)?.customerId, ""));
             }
         }
@@ -141,13 +141,26 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                             onChange={(event, newValue) => {
                                                 onChange(newValue);
                                                 console.log('Selected Customer:', newValue);
-                                                dispatch(getStationList(newValue?.customerId, ""));
+                                                if (newValue?.customerId) {
+                                                    dispatch(getStationList(newValue?.customerId, ""));
+                                                    setValue('stationList',[]);
+                                                } else {
+                                                    dispatch(getCustomerList(""));
+                                                    dispatch(setStationList([]));
+                                                }
                                             }}
 
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
                                                     dispatch(getCustomerList(newInputValue));
                                                     onChange(newInputValue);
+                                                    if (newInputValue === "") {
+                                                        dispatch(getCustomerList(""));
+                                                        dispatch(setStationList([]));
+                                                    }
+                                                }
+                                                if (reason === 'clear') {
+                                                    dispatch(setStationList([]));
                                                 }
                                             }}
 
@@ -288,11 +301,16 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                 validate: (value) => {
                                     if (value === undefined || value === null || value === '') return true;
 
-                                    // Parse numerical value to block negative numbers or impossible percentages
                                     const num = parseFloat(value);
                                     if (isNaN(num)) return "Please enter a valid numeric percentage";
                                     if (num < 0) return "Percentage cannot be negative";
-                                    if (num > 100) return "Percentage cannot exceed 100%"; // Remove if over 100% is allowed
+
+                                    // 1. Updated: Adjusted maximum value bound allowed by 5,2 precision
+                                    if (num > 999.99) return "Percentage cannot exceed 999.99%";
+
+                                    // 2. Added: Explicit structural verification for 5,2 regex constraint
+                                    const is52Format = /^\d{1,3}(\.\d{1,2})?$/.test(String(value));
+                                    if (!is52Format) return "Max 5 total digits and 2 decimal places allowed (e.g., 123.45)";
 
                                     return true;
                                 }
@@ -300,7 +318,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                             render={({ field }) => (
                                 <StyledTextField
                                     {...field}
-                                    value={field.value || ''} // Prevents controlled vs uncontrolled warnings
+                                    value={field.value || ''}
                                     label="Fuel Surcharge Percentage"
                                     variant="standard"
                                     fullWidth
@@ -309,27 +327,35 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     error={!!errors.fuelsurchargePercentage}
                                     helperText={errors.fuelsurchargePercentage?.message || ""}
 
-                                    // Instantly filters keystrokes as the user types
                                     onChange={(e) => {
                                         let val = e.target.value;
 
                                         // Strip everything that isn't a digit or a single decimal point
                                         val = val.replace(/[^0-9.]/g, '');
 
-                                        // Prevent typing multiple decimal points (e.g., '12.5.5' becomes '12.55')
+                                        // Prevent typing multiple decimal points
                                         const splitValue = val.split('.');
                                         if (splitValue.length > 2) {
                                             val = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
                                         }
 
+                                        // 3. Added: Proactive input restriction to physically block typing past 5,2 limits
+                                        if (val.includes('.')) {
+                                            const [integerPart, decimalPart] = val.split('.');
+                                            // Truncate integer to 3 digits and decimal to 2 digits
+                                            val = `${integerPart.slice(0, 3)}.${decimalPart.slice(0, 2)}`;
+                                        } else {
+                                            // Truncate integer to 3 digits if no decimal exists yet
+                                            val = val.slice(0, 3);
+                                        }
+
                                         field.onChange(val);
                                     }}
-
-                                    // Hints mobile devices to pull up a decimal number-pad layout instantly
                                     inputProps={{ inputMode: 'decimal' }}
                                 />
                             )}
                         />
+
 
                         <Controller
                             name="effectiveDate"

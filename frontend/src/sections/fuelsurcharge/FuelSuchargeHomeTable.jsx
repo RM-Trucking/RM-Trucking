@@ -127,7 +127,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 return (
                     <Box>
-                        {params.value}
+                        {params.value}%
                     </Box>
                 );
             }
@@ -330,7 +330,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 return (
                     <Box>
-                        {params.value}
+                        {params.value}%
                     </Box>
                 );
             }

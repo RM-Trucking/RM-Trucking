@@ -3441,6 +3441,7 @@ const ShipmentForm = () => {
                 "shipmentTime": currentValues.time
                   ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
                   : "",
+                "orderReceivedPickupPending": "Y",
                 "shipmentStatus": "Active"
               },
               "customerDetails": {
@@ -6514,7 +6515,7 @@ const ShipmentForm = () => {
                             name="carrierInfo.pickupAlertDetails.primaryEmail"
                             control={control}
                             rules={{
-                              required : watchedCarrierInfo.pickupAlert ? 'Primary mail is required' : '',
+                              required: watchedCarrierInfo.pickupAlert ? 'Primary mail is required' : '',
                               pattern: {
                                 value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                 message: "Invalid email address"
@@ -7799,7 +7800,7 @@ const ShipmentForm = () => {
                           name="carrierInfo.deliveryDetails.lineHaulNotes"
                           control={control}
                           defaultValue=""
-                          rules = {{
+                          rules={{
                             required: watchedDeliveryAlert ? 'Line-haul notes is required' : '',
                           }}
                           render={({ field }) => (
@@ -7861,7 +7862,7 @@ const ShipmentForm = () => {
                           name="carrierInfo.deliveryDetails.deliveryNotes"
                           control={control}
                           defaultValue=""
-                           rules = {{
+                          rules={{
                             required: watchedDeliveryAlert ? 'Delivery notes is required' : '',
                           }}
                           render={({ field }) => (
@@ -7893,7 +7894,7 @@ const ShipmentForm = () => {
                               name="carrierInfo.deliveryDetails.primaryEmail"
                               control={control}
                               rules={{
-                                required : watchedDeliveryAlert ? 'Primary email is required' : '',
+                                required: watchedDeliveryAlert ? 'Primary email is required' : '',
                                 pattern: {
                                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
                                   message: "Invalid email address"

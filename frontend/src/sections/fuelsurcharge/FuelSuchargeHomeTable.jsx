@@ -399,6 +399,7 @@ export default function FuelSurchargeHomeTable() {
                                 <IconButton onClick={(e) => {
                                     e.stopPropagation();
                                     dispatch(setStationList([]));
+                                    dispatch(getCustomerList(""));
                                     dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
                                     setOpenEditDialog(true);
                                     setActionType('Edit');

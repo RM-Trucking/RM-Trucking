@@ -105,6 +105,9 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             setValue('expireTime', selectedFuelSurchargeRowDetails?.expireTime || null);
             setValue('customer', customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId) || null);
             setValue('stationList', selectedFuelSurchargeRowDetails?.stations || null);
+            if(type === 'Edit' && selectedFuelSurchargeRowDetails?.customerId){
+                dispatch(getStationList(customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId)?.customerId, ""));
+            }
         }
     }, [selectedFuelSurchargeRowDetails]);
 

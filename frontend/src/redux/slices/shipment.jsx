@@ -194,7 +194,8 @@ export function getAirlineDropdown() {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      dispatch(slice.actions.getAirlineDropdownSuccess([]));
+      const response = await axios.get('maintenance/airline/dropdown');
+      dispatch(slice.actions.getAirlineDropdownSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

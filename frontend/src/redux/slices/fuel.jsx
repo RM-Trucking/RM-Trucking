@@ -121,6 +121,9 @@ const slice = createSlice({
             state.isLoading = false;
             state.stationList = action.payload.data || [];
         },
+        setStationList(state,action){
+            state.stationList = action.payload;
+        },
         clearFuelSurchargeData(state) {
             state.fuelSurchargeData = [];
         },
@@ -145,6 +148,7 @@ export const {
     setOperationalMessage,
     setError,
     setPaginationObject,
+    setStationList,
 } = slice.actions;
 export default slice.reducer;
 

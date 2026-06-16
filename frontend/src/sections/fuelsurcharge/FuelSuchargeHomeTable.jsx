@@ -18,7 +18,7 @@ import {
     deleteFuelSurcharge,
     getCustomerFuelSurchargeData,
     deleteCustomerFuelSurcharge, setOperationalMessage,
-    setError, getCustomerList,
+    setError, getCustomerList, setStationList,
 } from '../../redux/slices/fuel';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import FuelSurchargeDetails from './FuelSurchargeDetails';
@@ -136,7 +136,7 @@ export default function FuelSurchargeHomeTable() {
             field: 'expireDate',
             headerName: 'Expiry Date',
             width: 100,
-            headerAlign : 'center',
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
@@ -195,6 +195,7 @@ export default function FuelSurchargeHomeTable() {
                             <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
                                 <IconButton onClick={(e) => {
                                     e.stopPropagation();
+                                    dispatch(setStationList([]));
                                     dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
                                     setOpenEditDialog(true);
                                     setActionType('Edit');
@@ -339,7 +340,7 @@ export default function FuelSurchargeHomeTable() {
             headerName: 'Expiry Date',
             width: 100,
             cellClassName: 'center-status-cell',
-            headerAlign : 'center',
+            headerAlign: 'center',
             filterable: false,
             sortable: false,
             renderCell: (params) => {
@@ -397,6 +398,7 @@ export default function FuelSurchargeHomeTable() {
                             <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
                                 <IconButton onClick={(e) => {
                                     e.stopPropagation();
+                                    dispatch(setStationList([]));
                                     dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
                                     setOpenEditDialog(true);
                                     setActionType('Edit');

@@ -9,8 +9,11 @@ import {
     Stack,
     Typography,
     Divider,
-    CircularProgress, TextField
+    CircularProgress, TextField, Checkbox
 } from '@mui/material';
+import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
+import CheckBoxIcon from '@mui/icons-material/CheckBox';
+
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
@@ -35,6 +38,8 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
     const currentFuelSurchargeTab = useSelector((state) => state?.fueldata?.currentFuelSurchargeTab);
     const customerList = useSelector((state) => state?.fueldata?.customerList);
     const stationList = useSelector((state) => state?.fueldata?.stationList);
+    const icon = <CheckBoxOutlineBlankIcon fontSize="small" />;
+    const checkedIcon = <CheckBoxIcon fontSize="small" />;
 
     const {
         control,
@@ -126,6 +131,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     render={({ field: { onChange, value, ref } }) => (
                                         <Autocomplete
                                             freeSolo
+                                            forcePopupIcon={true} // 💡 CRUCIAL: This forces the dropdown arrow icon to show up with freeSolo
                                             options={customerList}
                                             value={value || null}
 
@@ -142,7 +148,6 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                 }
                                             }}
 
-                                            // 1. Updated: Ensures the input field displays both names when a selection is active
                                             getOptionLabel={(option) => {
                                                 if (typeof option === 'string') return option;
                                                 if (option.inputValue) return option.inputValue;
@@ -151,11 +156,8 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                 return `${name}`;
                                             }}
 
-                                            // 2. Added: Customizes how options look inside the popup dropdown list
                                             renderOption={(props, option) => {
-                                                // Safe destructuring of key to prevent React list warnings
                                                 const { key, ...optionProps } = props;
-
                                                 return (
                                                     <Box component="li" key={key} {...optionProps}>
                                                         {option.customerName}
@@ -182,67 +184,96 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                         />
                                     )}
                                 />
+
                                 <Controller
                                     name="stationList"
                                     control={control}
                                     rules={{ required: true }}
-                                    // Initialize standard value to an empty array for multi-select
                                     defaultValue={[]}
-                                    render={({ field: { onChange, value, ref } }) => (
-                                        <Autocomplete
-                                            multiple // 1. Added: Enables multi-select behavior
-                                            freeSolo
-                                            options={stationList || []}
-                                            // 2. Updated: Multi-select value must always resolve to an array
-                                            value={Array.isArray(value) ? value : []}
+                                    render={({ field: { onChange, value, ref } }) => {
+                                        const selectedArray = Array.isArray(value) ? value : [];
 
-                                            onChange={(event, newValue) => {
-                                                onChange(newValue); // newValue is now an array of selected objects
-                                            }}
+                                        // Convert selected array objects into a clean comma-separated text string
+                                        const displayValue = selectedArray
+                                            .map((opt) => (typeof opt === 'string' ? opt : opt.stationName || ''))
+                                            .filter(Boolean)
+                                            .join(', ');
 
-                                            onInputChange={(event, newInputValue, reason) => {
-                                                if (reason === 'input') {
-                                                    dispatch(getStationList(getValues('customer')?.customerId, newInputValue));
-                                                    // 3. Removed: Do NOT call onChange(newInputValue) here. 
-                                                    // Typing in the box shouldn't overwrite your selected array state.
+                                        return (
+                                            <Autocomplete
+                                                multiple
+                                                freeSolo
+                                                disableCloseOnSelect
+                                                forcePopupIcon={true}
+                                                options={stationList || []}
+                                                value={selectedArray}
+
+                                                onChange={(event, newValue) => {
+                                                    onChange(newValue);
+                                                }}
+
+                                                onInputChange={(event, newInputValue, reason) => {
+                                                    if (reason === 'input') {
+                                                        dispatch(getStationList(getValues('customer')?.customerId, newInputValue));
+                                                    }
+                                                }}
+
+                                                // 1. Added: Overrides the default layout to hide the standard MUI chips
+                                                renderTags={() => null}
+
+                                                getOptionLabel={(option) => {
+                                                    if (typeof option === 'string') return option;
+                                                    if (option.inputValue) return option.inputValue;
+                                                    return option.stationName || '';
+                                                }}
+
+                                                renderOption={(props, option, { selected }) => {
+                                                    const { key, ...optionProps } = props;
+                                                    return (
+                                                        <Box component="li" key={key} {...optionProps}>
+                                                            <Checkbox
+                                                                icon={icon}
+                                                                checkedIcon={checkedIcon}
+                                                                style={{ marginRight: 8 }}
+                                                                checked={selected}
+                                                            />
+                                                            {option.stationName}
+                                                        </Box>
+                                                    );
+                                                }}
+
+                                                isOptionEqualToValue={(option, val) =>
+                                                    option.stationId === val?.stationId || option.stationName === val?.stationName
                                                 }
-                                            }}
 
-                                            getOptionLabel={(option) => {
-                                                if (typeof option === 'string') return option;
-                                                if (option.inputValue) return option.inputValue;
-                                                return option.stationName || '';
-                                            }}
+                                                renderInput={(params) => {
+                                                    // 2. Extracted: Capture input props safely to override value presentation
+                                                    const { inputProps, ...restParams } = params;
 
-                                            renderOption={(props, option) => {
-                                                const { key, ...optionProps } = props;
-                                                return (
-                                                    <Box component="li" key={key} {...optionProps}>
-                                                        {option.stationName}
-                                                    </Box>
-                                                );
-                                            }}
-
-                                            isOptionEqualToValue={(option, val) =>
-                                                option.stationId === val?.stationId || option.stationName === val?.stationName
-                                            }
-
-                                            renderInput={(params) => (
-                                                <TextField
-                                                    {...params}
-                                                    inputRef={ref}
-                                                    fullWidth
-                                                    label={`Station List *`}
-                                                    variant="standard"
-                                                    // 4. Updated: Multi-select validation error handling
-                                                    error={!!errors.stationList}
-                                                    helperText={errors.stationList ? 'This field is required' : ''}
-                                                />
-                                            )}
-                                            sx={{ width: '100%', mb: 2 }}
-                                        />
-                                    )}
+                                                    return (
+                                                        <TextField
+                                                            {...restParams}
+                                                            inputRef={ref}
+                                                            fullWidth
+                                                            label={`Station List *`}
+                                                            variant="standard"
+                                                            error={!!errors.stationList}
+                                                            helperText={errors.stationList ? 'This field is required' : ''}
+                                                            // 3. Injected: Display comma-separated text string directly in the input box
+                                                            inputProps={{
+                                                                ...inputProps,
+                                                                value: inputProps.value ? displayValue : displayValue,
+                                                                readOnly: true // Optional: Makes input read-only to preserve the comma format smoothly
+                                                            }}
+                                                        />
+                                                    );
+                                                }}
+                                                sx={{ width: '100%', mb: 2 }}
+                                            />
+                                        );
+                                    }}
                                 />
+
 
                             </Stack>
                         }
@@ -271,7 +302,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     variant="standard"
                                     fullWidth
                                     required
-                                    sx={{ width: '70%' }}
+                                    sx={{ width: '50%' }}
                                     error={!!errors.fuelsurchargePercentage}
                                     helperText={errors.fuelsurchargePercentage?.message || ""}
 
@@ -334,11 +365,13 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     {...field}
                                     label="Effective Time"
                                     ampm={false}
-                                    // 3. Convert time string (e.g. "14:30") into a Day.js object for the picker [cite: 1.3.19]
+                                    // 1. Added: Limits the user interface to pick Hours and Minutes only
+                                    views={['hours', 'minutes']}
                                     value={value ? dayjs(value, 'HH:mm') : null}
-                                    // 4. Format it back to 24-hour time format string ("HH:mm") for your API payload [cite: 1.3.19]
                                     onChange={(newValue) => {
-                                        onChange(newValue && dayjs(newValue).isValid() ? dayjs(newValue).format('HH:mm') : null);
+                                        // 2. Updated: Hardcodes ':00' for seconds or formats as 'HH:mm:00'
+                                        const isValid = newValue && dayjs(newValue).isValid();
+                                        onChange(isValid ? dayjs(newValue).format('HH:mm:00') : null);
                                     }}
                                     slotProps={{
                                         textField: {
@@ -353,6 +386,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />
+
 
 
                     </Stack>

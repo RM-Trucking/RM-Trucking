@@ -445,7 +445,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpZipCode"
                                 control={control}
                                 rules={{
-                                    required: 'Zipcode is required',
+                                    // required: 'Zipcode is required',
                                     validate: (value) => {
                                         if (!value) return true;
 
@@ -510,7 +510,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={(type === 'View') ? readOnly : false}
-                                        required
+                                        // required
                                     />
                                 )}
                             />
@@ -686,7 +686,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billZipCode"
                                 control={control}
                                 rules={{
-                                    required: 'Zipcode is required',
+                                    // required: 'Zipcode is required',
                                     validate: (value) => {
                                         if (!value) return true;
 
@@ -751,7 +751,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={readOnly}
-                                        required
+                                        // required
                                     />
                                 )}
                             />

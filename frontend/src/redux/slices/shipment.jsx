@@ -16,6 +16,7 @@ const initialState = {
   carrierTerminalDropdown: [],
   shipperDropdown: [],
   consigneeDropdown: [],
+  airlineDropdown: [],
 };
 
 const slice = createSlice({
@@ -107,6 +108,10 @@ const slice = createSlice({
         { consigneeId: null, consigneeName: 'Consignee 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 3', addressLine2: 'Address Line 3', city: 'City3', state: 'State3', zip: '99999', airportCode : 'LAX' },
       ];
     },
+    getAirlineDropdownSuccess(state, action) {
+      state.isLoading = false;
+      state.airlineDropdown = action.payload.data;
+    },
   },
 });
 
@@ -180,6 +185,16 @@ export function getConsigneeDropdown() {
     dispatch(slice.actions.startLoading());
     try {
       dispatch(slice.actions.getConsigneeDropdownSuccess([]));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getAirlineDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      dispatch(slice.actions.getAirlineDropdownSuccess([]));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

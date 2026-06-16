@@ -56,7 +56,7 @@ export default function FuelSurchargeHomeTable() {
     const activeFuelColumns = [
         {
             field: 'createdAt',
-            headerName: 'Created At',
+            headerName: 'Created Date',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
@@ -118,7 +118,7 @@ export default function FuelSurchargeHomeTable() {
         },
         {
             field: 'fuelPercentage',
-            headerName: 'Fuel Percentage',
+            headerName: 'Fuel Surcharge %',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
@@ -136,6 +136,7 @@ export default function FuelSurchargeHomeTable() {
             field: 'expireDate',
             headerName: 'Expiry Date',
             width: 100,
+            headerAlign : 'center',
             cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
@@ -172,7 +173,7 @@ export default function FuelSurchargeHomeTable() {
             },
         },
         {
-            field: "updatedBy",
+            field: "createdByName",
             headerName: "User",
             minWidth: 100,
             flex: 1,
@@ -222,7 +223,7 @@ export default function FuelSurchargeHomeTable() {
     const customerFuelColumns = [
         {
             field: 'createdAt',
-            headerName: 'Created At',
+            headerName: 'Created Date',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
@@ -286,7 +287,7 @@ export default function FuelSurchargeHomeTable() {
             field: 'customerName',
             headerName: 'Customer',
             width: 150,
-            align: 'center',
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
@@ -295,7 +296,7 @@ export default function FuelSurchargeHomeTable() {
             field: 'stations',
             headerName: 'Staion',
             width: 150,
-            align: 'center',
+            headerAlign: 'center',
             cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
@@ -319,7 +320,7 @@ export default function FuelSurchargeHomeTable() {
         },
         {
             field: 'fuelPercentage',
-            headerName: 'Fuel Percentage',
+            headerName: 'Fuel Surcharge %',
             width: 150,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
@@ -338,6 +339,7 @@ export default function FuelSurchargeHomeTable() {
             headerName: 'Expiry Date',
             width: 100,
             cellClassName: 'center-status-cell',
+            headerAlign : 'center',
             filterable: false,
             sortable: false,
             renderCell: (params) => {
@@ -373,7 +375,7 @@ export default function FuelSurchargeHomeTable() {
             },
         },
         {
-            field: "updatedBy",
+            field: "createdByName",
             headerName: "User",
             minWidth: 100,
             flex: 1,

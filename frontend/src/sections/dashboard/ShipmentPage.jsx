@@ -2880,6 +2880,7 @@ const ShipmentForm = () => {
   const carrierTerminalDropdown = useSelector((state) => state?.shipmentdata?.carrierTerminalDropdown);
   const shipperDropdown = useSelector((state) => state?.shipmentdata?.shipperDropdown);
   const consigneeDropdown = useSelector((state) => state?.shipmentdata?.consigneeDropdown);
+  const airlineDropdown = useSelector((state) => state?.shipmentdata?.airlineDropdown);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');

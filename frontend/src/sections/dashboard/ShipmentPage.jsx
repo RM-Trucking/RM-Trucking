@@ -4379,7 +4379,6 @@ const ShipmentForm = () => {
           );
           setCarrierTerminalSelectError(false);
           console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.carrier', getValues('carrierInfo.selectCarrier'));
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
@@ -4387,7 +4386,6 @@ const ShipmentForm = () => {
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
         } else {
           setCarrierTerminalSelectError(true);
-          setValue('carrierInfo.lineHaul.carrier', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
@@ -4403,7 +4401,6 @@ const ShipmentForm = () => {
           );
           setCarrierTerminalSelectError(false);
           console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.carrier', getValues('carrierInfo.lineHaul.carrier'));
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
@@ -4411,7 +4408,6 @@ const ShipmentForm = () => {
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
         } else {
           setCarrierTerminalSelectError(true);
-          setValue('carrierInfo.lineHaul.carrier', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
@@ -6599,42 +6595,9 @@ const ShipmentForm = () => {
                             )}
                           />
                         </Box>
-
-                        {watchedPickupAgentTerminal && <Box>
-                          <Controller
-                            name="carrierInfo.lineHaul.toggleAddress"
-                            control={control}
-                            render={({ field: { onChange, value } }) => (
-                              <>
-                                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
-                                  Address or From location
-                                </Typography>
-                                <ToggleButtonGroup
-                                  value={value}
-                                  exclusive
-                                  // Strip the event argument and pass only the new string value
-                                  onChange={(event, newValue) => {
-                                    if (newValue !== null) {
-                                      onChange(newValue);
-                                    }
-                                  }}
-                                  color="primary"
-                                  aria-label="Address or From location"
-                                >
-                                  <ToggleButton value="pickup" sx={{ textTransform: 'none', px: 3 }}>
-                                    Pickup agents dock
-                                  </ToggleButton>
-                                  <ToggleButton value="linehaul" sx={{ textTransform: 'none', px: 3, }}>
-                                    Line haul carriers terminal dock
-                                  </ToggleButton>
-                                </ToggleButtonGroup>
-                              </>
-                            )}
-                          />
-                        </Box>}
                       </Box>
                       {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
-                      <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                         <Box sx={{ flex: '1 1 200px' }}>
                           <Controller
                             name="carrierInfo.lineHaul.carrier"
@@ -6704,7 +6667,7 @@ const ShipmentForm = () => {
                                   />
                                 )}
                                 sx={{ width: '100% !important' }}
-                                disabled={!watchedPickupAgentTerminal || watchedLineHaulToggledAddress === 'pickup'}
+                                disabled={!watchedPickupAgentTerminal}
 
                               />
                             )}
@@ -6717,18 +6680,48 @@ const ShipmentForm = () => {
                             render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
                           />
                         </Box>
-                        <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                          {/* <Controller
-                        name="carrierInfo.lineHaul.fromLocation"
-                        control={control}
-                        render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                      /> */}
+
+                      </Box>
+                      <Box sx={{ display: 'flex', gap: 3, mb: 4, flexWrap: 'wrap' }}>
+                        {watchedPickupAgentTerminal && <Box>
+                          <Controller
+                            name="carrierInfo.lineHaul.toggleAddress"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                              <>
+                                <Typography variant="body2" sx={{ mb: 1, fontWeight: 'bold' }}>
+                                  Address or From location
+                                </Typography>
+                                <ToggleButtonGroup
+                                  value={value}
+                                  exclusive
+                                  // Strip the event argument and pass only the new string value
+                                  onChange={(event, newValue) => {
+                                    if (newValue !== null) {
+                                      onChange(newValue);
+                                    }
+                                  }}
+                                  color="primary"
+                                  aria-label="Address or From location"
+                                >
+                                  <ToggleButton value="pickup" sx={{ textTransform: 'none', px: 3 }}>
+                                    Pickup agents dock
+                                  </ToggleButton>
+                                  <ToggleButton value="linehaul" sx={{ textTransform: 'none', px: 3, }}>
+                                    Line haul carriers terminal dock
+                                  </ToggleButton>
+                                </ToggleButtonGroup>
+                              </>
+                            )}
+                          />
+                        </Box>}
+                        <Box sx={{ flex: '2 1 300px', display: 'flex', gap: 1 }}>
                           <Controller
                             name="carrierInfo.lineHaul.manualFromLocation"
                             control={control}
                             render={({ field }) => (
                               <FormControlLabel
-                                sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
+                                sx={{mt:'3%', whiteSpace: 'nowrap' }}
                                 control={<Checkbox {...field} checked={field.value} size="small" />}
                                 label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                               />

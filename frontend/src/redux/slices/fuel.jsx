@@ -210,7 +210,7 @@ export function getCustomerFuelSurchargeData({ pageNo, pageSize, searchStr }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            const response = await axios.get(`maintenance/customer-fuel-surcharge?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&search=${searchStr}` : ''}`);
+            const response = await axios.get(`maintenance/customer-fuel-surcharge?page=${pageNo}&pageSize=${pageSize}${searchStr ? `&searchTerm=${searchStr}` : ''}`);
             dispatch(slice.actions.getCustomerFuelSurchargeDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));

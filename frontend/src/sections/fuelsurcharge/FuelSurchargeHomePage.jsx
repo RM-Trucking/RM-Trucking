@@ -23,6 +23,7 @@ import FuelSurchargeDetails from './FuelSurchargeDetails';
 export default function CustomerhomePage() {
     const dispatch = useDispatch();
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+    const { currentFuelSurchargeTab } = useSelector((state) => state.fueldata);
 
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -52,7 +53,7 @@ export default function CustomerhomePage() {
                 <SharedHomePageHeader title="Fuel Surcharge Maintenance" buttonText='New Fuel Surcharge' onButtonClick={onClickOfNewFuelCharge} />
                 {/* tabs */}
                 <FuelSurchargeTabs />
-                <SharedSearchField page="fuelSurcharge" />
+                {currentFuelSurchargeTab === 'customer' && <SharedSearchField page="fuelSurcharge" />}                
                 {/* fuel surcharge table */}
                 <FuelSurchargeHomeTable />
 
@@ -72,7 +73,7 @@ export default function CustomerhomePage() {
                 >
                     <DialogContent>
                         {/* fuel surcharge details form */}
-                        <FuelSurchargeDetails type={'Add'} handleCloseConfirm={handleCloseConfirm} selectedFuelSurchargeRowDetails={{}}/>
+                        <FuelSurchargeDetails type={'Add'} handleCloseConfirm={handleCloseConfirm} selectedFuelSurchargeRowDetails={{}} />
                     </DialogContent>
                 </Dialog>
             </ErrorBoundary>

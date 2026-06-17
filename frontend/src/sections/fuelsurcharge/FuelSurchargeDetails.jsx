@@ -102,17 +102,23 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
         }
     }, [operationalMessage]);
     useEffect(() => {
-        if (selectedFuelSurchargeRowDetails) {
+        if (customerList && selectedFuelSurchargeRowDetails && Object.keys(selectedFuelSurchargeRowDetails).length > 0) {
+
+            setValue('customer', customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId) || null);
+
+            if (type === 'Edit' && selectedFuelSurchargeRowDetails?.customerId) {
+                dispatch(getStationList(customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId)?.customerId, ""));
+            }
+        }
+    }, [customerList]);
+    useEffect(() => {
+        if (selectedFuelSurchargeRowDetails && Object.keys(selectedFuelSurchargeRowDetails).length > 0) {
             setValue('fuelsurchargePercentage', selectedFuelSurchargeRowDetails?.fuelPercentage || '');
             setValue('effectiveDate', selectedFuelSurchargeRowDetails?.effectiveDate || null);
             setValue('effectiveTime', selectedFuelSurchargeRowDetails?.effectiveTime || null);
             setValue('expireDate', selectedFuelSurchargeRowDetails?.expireDate || null);
             setValue('expireTime', selectedFuelSurchargeRowDetails?.expireTime || null);
-            setValue('customer', customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId) || null);
             setValue('stationList', selectedFuelSurchargeRowDetails?.stations || null);
-            if (type === 'Edit' && selectedFuelSurchargeRowDetails?.customerId) {
-                dispatch(getStationList(customerList.find(customer => customer.customerId === selectedFuelSurchargeRowDetails?.customerId)?.customerId, ""));
-            }
         }
     }, [selectedFuelSurchargeRowDetails]);
 

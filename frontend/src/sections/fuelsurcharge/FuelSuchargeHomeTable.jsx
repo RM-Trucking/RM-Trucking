@@ -18,7 +18,7 @@ import {
     deleteFuelSurcharge,
     getCustomerFuelSurchargeData,
     deleteCustomerFuelSurcharge, setOperationalMessage,
-    setError, getCustomerList, setStationList,
+    setError, getCustomerList, setStationList, setCustomerList,
 } from '../../redux/slices/fuel';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import FuelSurchargeDetails from './FuelSurchargeDetails';
@@ -399,6 +399,7 @@ export default function FuelSurchargeHomeTable() {
                                 <IconButton onClick={(e) => {
                                     e.stopPropagation();
                                     dispatch(setStationList([]));
+                                    dispatch(setCustomerList([]));
                                     dispatch(getCustomerList(""));
                                     dispatch(setSelectedFuelSurchargeRowDetails(params?.row));
                                     setOpenEditDialog(true);

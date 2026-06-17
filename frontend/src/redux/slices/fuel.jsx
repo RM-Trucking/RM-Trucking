@@ -136,7 +136,9 @@ const slice = createSlice({
         setPaginationObject(state, action) {
             state.pagination = action.payload;
         },
-
+        setCustomerList(state,action){
+            state.customerList = action.payload;
+        },
     },
 });
 
@@ -149,6 +151,7 @@ export const {
     setError,
     setPaginationObject,
     setStationList,
+    setCustomerList,
 } = slice.actions;
 export default slice.reducer;
 

@@ -6666,7 +6666,6 @@ const ShipmentForm = () => {
                                     }}
                                   />
                                 )}
-                                sx={{ width: '100% !important' }}
                                 disabled={!watchedPickupAgentTerminal}
 
                               />
@@ -6721,7 +6720,7 @@ const ShipmentForm = () => {
                             control={control}
                             render={({ field }) => (
                               <FormControlLabel
-                                sx={{mt:'3%', whiteSpace: 'nowrap' }}
+                                sx={{ mt: '3%', whiteSpace: 'nowrap' }}
                                 control={<Checkbox {...field} checked={field.value} size="small" />}
                                 label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                               />
@@ -6755,8 +6754,8 @@ const ShipmentForm = () => {
                         </Box>
                       </Paper>
 
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
-                        <Box sx={{ flex: '1 1 200px' }}>
+                      <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'stretch' }}>
+                        <Box sx={{width : '20%'}}>
                           <Controller
                             name="carrierInfo.lineHaul.toLocationType"
                             control={control}
@@ -6781,7 +6780,8 @@ const ShipmentForm = () => {
                             )}
                           />
                         </Box>
-                        <Box sx={{ flex: '1 1 200px' }}>
+
+                        <Box sx={{ width: '50%' }}>
                           {(watchedLinehaulToLocationType === 'Carrier' || watchedLinehaulToLocationType === '') && <Controller
                             name="carrierInfo.lineHaul.toLocation"
                             control={control}
@@ -6789,7 +6789,7 @@ const ShipmentForm = () => {
                             render={({ field: { onChange, value, ...fieldProps } }) => (
                               <Autocomplete
                                 {...fieldProps} // Spreads ref and name from React Hook Form
-                                fullWidth
+
                                 options={carrierTerminalDropdown || []}
 
                                 // Matches the combined string value logic from your previous MenuItem setup
@@ -6849,7 +6849,6 @@ const ShipmentForm = () => {
                                     }}
                                   />
                                 )}
-                                sx={{ width: '100% !important', mt: 2 }}
                               />
                             )}
                           />}

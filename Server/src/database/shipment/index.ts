@@ -1,10 +1,11 @@
 import { Connection } from "odbc";
 import { SCHEMA } from "../../config/db2";
-import { NetworkShipment, CreateNetworkShipmentRequest, NetworkShipmentCustomerInfo, NetworkShipmentShipperInfo, NetworkCommodityInfo, NetworkShipmentConsigneeInfo, NetworkHandlingUnitInfo, NetworkHandlingUnitItemInfo, NetworkHandlingUnitItemHazmatInfo, CreateItemHazmatDetails, CreateItemDetails, CreateHandlingUnitDetails, CreateCommodityDetails, CreateShipperDetails, CreateConsigneeDetails, CreateCustomerDetails, CreateShipmentDetails, NetworkShipmentShipperConsigneeAirlineMapping } from "../../entities/shipment";
+import { NetworkShipment, NetworkShipmentCustomerInfo, NetworkShipmentShipperInfo, NetworkCommodityInfo, NetworkShipmentConsigneeInfo, NetworkHandlingUnitInfo, NetworkHandlingUnitItemInfo, NetworkHandlingUnitItemHazmatInfo, NetworkShipmentShipperConsigneeAirlineMapping } from "../../entities/shipment";
+import { AddressDetail, AirlineDetails, CommodityDetails, ConsigneeDetails, CustomerDetails, HandlingUnitDetails, HazmatDetails, PalletDetails, PickupDetails, ShipmentDetails, ShipperDetails, Accessorial, LinehaulDetails, LinehaulPrimaryInfo, LinehaulCommonInfo, DeliveryPrimaryInfo, DeliveryCommonInfo } from "../../entities/shipment/shipmentTypes";
 
 export async function createNetworkShipment(
   conn: Connection,
-  shipmentDetails: CreateShipmentDetails,
+  shipmentDetails: ShipmentDetails,
   userId: number
 ): Promise<NetworkShipment> {
   const query = `
@@ -26,7 +27,7 @@ export async function createNetworkShipment(
   return result[0];
 }
 
-export async function createCustomerInfo(conn: Connection, customerDetails: CreateCustomerDetails, shipmentId: number): Promise<NetworkShipmentCustomerInfo> {
+export async function createCustomerInfo(conn: Connection, customerDetails: CustomerDetails, shipmentId: number): Promise<NetworkShipmentCustomerInfo> {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Customer_Info"
@@ -48,7 +49,7 @@ export async function createCustomerInfo(conn: Connection, customerDetails: Crea
 
 }
 
-export async function createShipperInfo(conn: Connection, shipperDetails: CreateShipperDetails) {
+export async function createShipperInfo(conn: Connection, shipperDetails: ShipperDetails): Promise<NetworkShipmentShipperInfo> {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Shipper_Info"
@@ -70,7 +71,7 @@ export async function createShipperInfo(conn: Connection, shipperDetails: Create
   return result[0];
 }
 
-export async function getShipperById(conn: Connection, shipperId: number) {
+export async function getShipperById(conn: Connection, shipperId: number): Promise<NetworkShipmentShipperInfo> {
   const query = `
         SELECT * FROM ${SCHEMA}."Network_Shipment_Shipper_Info"
         WHERE "shipperId" = ?
@@ -94,7 +95,7 @@ export async function createShipperConsigneeAirlineMapping(conn: Connection, shi
   return result[0];
 }
 
-export async function createConsigneeInfo(conn: Connection, consigneeDetails: CreateConsigneeDetails) {
+export async function createConsigneeInfo(conn: Connection, consigneeDetails: ConsigneeDetails) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Consignee_Info"
@@ -125,7 +126,7 @@ export async function getConsigneeById(conn: Connection, consigneeId: number) {
   return result[0];
 }
 
-export async function createAirlineInfo(conn: Connection, airlineDetails: any) {
+export async function createAirlineInfo(conn: Connection, airlineDetails: AirlineDetails) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Airline"
@@ -150,7 +151,7 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: any) {
   return result[0];
 }
 
-export async function createCommodityInfo(conn: Connection, commodityDetails: CreateCommodityDetails, shipmentId: number) {
+export async function createCommodityInfo(conn: Connection, commodityDetails: CommodityDetails, shipmentId: number) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Commodity_Info"
@@ -166,7 +167,7 @@ export async function createCommodityInfo(conn: Connection, commodityDetails: Cr
   return result[0];
 }
 
-export async function createHandlingUnitInfo(conn: Connection, handlingUnitDetails: CreateHandlingUnitDetails, shipmentId: number) {
+export async function createHandlingUnitInfo(conn: Connection, handlingUnitDetails: HandlingUnitDetails, shipmentId: number) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Handling_Unit"
@@ -189,7 +190,7 @@ export async function createHandlingUnitInfo(conn: Connection, handlingUnitDetai
   return result[0];
 }
 
-export async function createHandlingUnitItemInfo(conn: Connection, itemDetails: CreateItemDetails, handlingUnitId: number) {
+export async function createHandlingUnitItemInfo(conn: Connection, itemDetails: PalletDetails, handlingUnitId: number) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Handling_Unit_Item"
@@ -207,7 +208,7 @@ export async function createHandlingUnitItemInfo(conn: Connection, itemDetails: 
   return result[0];
 }
 
-export async function createHandlingUnitItemHazmatInfo(conn: Connection, hazmatDetails: CreateItemHazmatDetails, itemId: number) {
+export async function createHandlingUnitItemHazmatInfo(conn: Connection, hazmatDetails: HazmatDetails, itemId: number) {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Network_Shipment_Handling_Unit_Item_Hazmat_Info"
@@ -231,5 +232,375 @@ export async function createHandlingUnitItemHazmatInfo(conn: Connection, hazmatD
     hazmatDetails.reportableQuantity,
     hazmatDetails.dotExemption
   ] as any) as unknown as NetworkHandlingUnitItemHazmatInfo[];
+  return result[0];
+}
+
+
+export async function createNetworkShipmentAddress(conn: Connection, addressDetails: AddressDetail) {
+  const query = `
+       SELECT * FROM FINAL TABLE (
+        INSERT INTO ${SCHEMA}."Network_Shipment_Address"
+          ( "line1", "line2", "city", "state", "zipCode")
+        VALUES (?, ?, ?, ?, ?)
+       )
+    `;
+  const result = await conn.query(query, [
+    addressDetails.addressLine1,
+    addressDetails.addressLine2 ?? '',
+    addressDetails.city,
+    addressDetails.state,
+    addressDetails.zipCode
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentEntityAddressMapping(conn: Connection, entityId: number, addressId: number, addressType: 'FROM' | 'TO', locationType: 'Pickup' | 'Linehaul' | 'Delivery') {
+  const query = `
+       SELECT * FROM FINAL TABLE (
+        INSERT INTO ${SCHEMA}."Entity_Network_Shipment_Address_Map"
+          ( "entityId", "addressId", "addressType", "locationType")
+        VALUES (?, ?, ?, ?)
+       )
+    `;
+  const result = await conn.query(query, [
+    entityId,
+    addressId,
+    addressType,
+    locationType
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentPickupInfo(conn: Connection, pickupDetails: PickupDetails & { entityId: number }, shipmentId: number) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Pickup_Info"
+      (
+        "shipmentId",
+        "entityId",
+        "pickupRouting",
+        "airportTransfer",
+        "carrierId",
+        "terminalId",
+        "fromLocationType",
+        "fromLocation",
+        "fromLocationEntityId",
+        "editFromLocation",
+        "pickupAgentTerminal",
+        "pickupAccessorial",
+        "pickupAlert"
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  )`
+
+  const result = await conn.query(query, [
+    shipmentId,
+    pickupDetails.entityId,
+    pickupDetails.pickupRouting,
+    pickupDetails.airportTransfer,
+    pickupDetails.carrierId,
+    pickupDetails.terminalId,
+    pickupDetails.fromLocationType,
+    pickupDetails.fromLocation,
+    pickupDetails.fromLocationEntityId ?? null,
+    pickupDetails.editFromLocation,
+    pickupDetails.pickupAgentTerminal,
+    pickupDetails.pickupAccessorial,
+    pickupDetails.pickupAlert
+  ] as any) as unknown as any[];
+
+  return result[0];
+}
+
+export async function createNetworkShipmentPickupAgentTerminalInfo(conn: Connection, shipmentId: number, pickupAgentTerminalDetails: PickupDetails['pickupAgentTerminalDetails']) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Pickup_Agent_Terminal_Info"
+      (
+        "shipmentId",
+        "toLocationType",
+        "toLocation",
+        "toLocationEntityId",
+        "editToLocation"
+      )
+    VALUES (?, ?, ?, ?, ?)
+  )`
+  const result = await conn.query(query, [
+    shipmentId,
+    pickupAgentTerminalDetails?.toLocationType ?? null,
+    pickupAgentTerminalDetails?.toLocation ?? null,
+    pickupAgentTerminalDetails?.toLocationEntityId ?? null,
+    pickupAgentTerminalDetails?.editToLocation ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentPickupAlertInfo(conn: Connection, shipmentId: number, pickupAlertDetails: PickupDetails['pickupAlertDetails']) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Pickup_Alert_Info"
+      (
+        "shipmentId",
+        "inboundNotes",
+        "primaryEmail",
+        "additionalEmail"
+      )
+    VALUES (?, ?, ?, ?)
+  )`
+  const result = await conn.query(query, [
+    shipmentId,
+    pickupAlertDetails?.inboundNotes ?? null,
+    pickupAlertDetails?.emailInfo?.primaryEmail ?? null,
+    pickupAlertDetails?.emailInfo?.additionalEmails ? JSON.stringify(pickupAlertDetails.emailInfo.additionalEmails) : null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentPickupAccessorial(conn: Connection, shipmentId: number, accessorial: Accessorial & { entityId: number, noteThreadId?: number | null }) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Pickup_Accessorial"
+      (
+        "shipmentId",
+        "accessorialId",
+        "chargeType",
+        "chargeValue",
+        "entityId",
+        "noteThreadId"
+      )
+    VALUES (?, ?, ?, ?, ?, ?)
+  )`
+  const result = await conn.query(query, [
+    shipmentId,
+    accessorial?.accessorialId ?? null,
+    accessorial?.chargeType ?? null,
+    accessorial?.chargeValue ?? null,
+    accessorial?.entityId ?? null,
+    accessorial?.noteThreadId ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentLinehaulPrimaryInfo(
+  conn: Connection,
+  shipmentId: number,
+  linehaulInfo: LinehaulPrimaryInfo & { entityId: number }
+) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Linehaul_Info"
+      (
+        "shipmentId",
+        "entityId",
+        "linehaulRouting",
+        "carrierId",
+        "terminalId",
+        "carrierBillNumber",
+        "editFromLocation",
+        "fromLocationType",
+        "fromLocation",
+        "fromLocationEntityId",
+        "editToLocation",
+        "toLocationType",
+        "toLocation",
+        "toLocationEntityId",
+        "etaDate",
+        "etaTime",
+        "pieces",
+        "weight"
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  )`;
+
+  const result = await conn.query(query, [
+    shipmentId,
+    linehaulInfo?.entityId ?? null,
+    linehaulInfo?.linehaulRouting ?? null,
+    linehaulInfo?.carrierId ?? null,
+    linehaulInfo?.terminalId ?? null,
+    linehaulInfo?.carrierBillNumber ?? null,
+    linehaulInfo?.editFromLocation ?? null,
+    linehaulInfo?.fromLocationType ?? null,
+    linehaulInfo?.fromLocation ?? null,
+    linehaulInfo?.fromLocationEntityId ?? null,
+    linehaulInfo?.editToLocation ?? null,
+    linehaulInfo?.toLocationType ?? null,
+    linehaulInfo?.toLocation ?? null,
+    linehaulInfo?.toLocationEntityId ?? null,
+    linehaulInfo?.etaDate ?? null,
+    linehaulInfo?.etaTime ?? null,
+    linehaulInfo?.pieces ?? null,
+    linehaulInfo?.weight ?? null
+  ] as any) as unknown as any[];
+
+  return result[0];
+}
+
+
+export async function createNetworkLinehaulCommonInfo(conn: Connection, shipmentId: number, linehaulCommonInfo: LinehaulCommonInfo) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Linehaul_Common_Info"
+      (
+        "shipmentId",
+        "linehaulAccessorial",
+        "linehaulNotes"
+      )
+    VALUES (?, ?, ?)
+  )`;
+
+  const result = await conn.query(query, [
+    shipmentId,
+    linehaulCommonInfo?.linehaulAccessorial ?? null,
+    linehaulCommonInfo?.linehaulNotes ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentLinehaulAccessorial(conn: Connection, shipmentId: number, accessorial: Accessorial & { entityId: number, noteThreadId?: number | null }) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Linehaul_Accessorial"
+      (
+        "shipmentId",
+        "accessorialId",
+        "chargeType",
+        "chargeValue",
+        "entityId",
+        "noteThreadId"
+      )
+    VALUES (?, ?, ?, ?, ?, ?)
+  )`
+  const result = await conn.query(query, [
+    shipmentId,
+    accessorial?.accessorialId ?? null,
+    accessorial?.chargeType ?? null,
+    accessorial?.chargeValue ?? null,
+    accessorial?.entityId ?? null,
+    accessorial?.noteThreadId ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentDeliveryPrimaryInfo(
+  conn: Connection,
+  shipmentId: number,
+  deliveryInfo: DeliveryPrimaryInfo & { entityId: number }
+) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Delivery_Info"
+      (
+        "shipmentId",
+        "entityId",
+        "carrierId",
+        "terminalId",
+        "carrierBillNumber",
+        "editFromLocation",
+        "fromLocationType",
+        "fromLocation",
+        "fromLocationEntityId",
+        "editToLocation",
+        "toLocationType",
+        "toLocation",
+        "toLocationEntityId",
+        "etaDate",
+        "etaTime",
+        "pieces",
+        "weight"
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  )`;
+
+  const result = await conn.query(query, [
+    shipmentId,
+    deliveryInfo?.entityId ?? null,
+    deliveryInfo?.carrierId ?? null,
+    deliveryInfo?.terminalId ?? null,
+    deliveryInfo?.carrierBillNumber ?? null,
+    deliveryInfo?.editFromLocation ?? null,
+    deliveryInfo?.fromLocationType ?? null,
+    deliveryInfo?.fromLocation ?? null,
+    deliveryInfo?.fromLocationEntityId ?? null,
+    deliveryInfo?.editToLocation ?? null,
+    deliveryInfo?.toLocationType ?? null,
+    deliveryInfo?.toLocation ?? null,
+    deliveryInfo?.toLocationEntityId ?? null,
+    deliveryInfo?.etaDate ?? null,
+    deliveryInfo?.etaTime ?? null,
+    deliveryInfo?.pieces ?? null,
+    deliveryInfo?.weight ?? null
+  ] as any) as unknown as any[];
+
+  return result[0];
+}
+
+export async function createNetworkShipmentDeliveryCommonInfo(conn: Connection, shipmentId: number, deliveryCommonInfo: DeliveryCommonInfo) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Delivery_Common_Info"
+      (
+        "shipmentId",
+        "deliveryAccessorial",
+        "airportTransfer",
+        "deliveryAlert"
+      )
+    VALUES (?, ?, ?, ?)
+  )`;
+  const result = await conn.query(query, [
+    shipmentId,
+    deliveryCommonInfo?.deliveryAccessorial ?? null,
+    deliveryCommonInfo?.airportTransfer ?? null,
+    deliveryCommonInfo?.deliveryAlert ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+
+export async function createNetworkShipmentDeliveryAccessorial(conn: Connection, shipmentId: number, accessorial: Accessorial & { entityId: number, noteThreadId?: number | null }) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Delivery_Accessorial"
+      (
+        "shipmentId",
+        "accessorialId",
+        "chargeType",
+        "chargeValue",
+        "entityId",
+        "noteThreadId"
+      )
+    VALUES (?, ?, ?, ?, ?, ?)
+  )`
+  const result = await conn.query(query, [
+    shipmentId,
+    accessorial?.accessorialId ?? null,
+    accessorial?.chargeType ?? null,
+    accessorial?.chargeValue ?? null,
+    accessorial?.entityId ?? null,
+    accessorial?.noteThreadId ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipementDeliveryAlertInfo(conn: Connection, shipmentId: number, deliveryAlertDetails: DeliveryCommonInfo['deliveryAlertDetails']) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Delivery_Alert_Info"
+      (
+        "shipmentId",
+        "linehaulNotes",
+        "deliveryNotes",
+        "primaryEmail",
+        "additionalEmail"
+      )
+    VALUES (?, ?, ?, ?, ?)
+  )`;
+  const result = await conn.query(query, [
+    shipmentId,
+    deliveryAlertDetails?.linehaulNotes ?? null,
+    deliveryAlertDetails?.deliveryNotes ?? null,
+    deliveryAlertDetails?.emailInfo?.primaryEmail ?? null,
+    deliveryAlertDetails?.emailInfo?.additionalEmails ? JSON.stringify(deliveryAlertDetails.emailInfo.additionalEmails) : null
+  ] as any) as unknown as any[];
   return result[0];
 }

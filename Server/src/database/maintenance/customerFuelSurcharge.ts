@@ -70,10 +70,30 @@ export async function selectLatestCustomerFuelSurcharge(
     SELECT *
     FROM ${SCHEMA}."Fuel_Surcharge_Customer"
     WHERE "customerId" = ?
+      AND "expireDate" IS NULL
     ORDER BY "effectiveDate" DESC, "effectiveTime" DESC
     FETCH FIRST 1 ROWS ONLY
   `;
     const result = await conn.query(query, [customerId]) as CustomerFuelSurchargeResponse[];
+    return result.length ? result[0] : null;
+}
+
+// ✅ Select latest active surcharge by station
+export async function selectLatestCustomerFuelSurchargeByStation(
+    conn: Connection,
+    stationId: number
+): Promise<CustomerFuelSurchargeResponse | null> {
+    const query = `
+    SELECT c.*
+    FROM ${SCHEMA}."Fuel_Surcharge_Customer" AS c
+    JOIN ${SCHEMA}."Fuel_Surcharge_Customer_Station" AS s
+      ON c."customerFuelSurchargeId" = s."customerFuelSurchargeId"
+    WHERE s."stationId" = ?
+      AND c."expireDate" IS NULL
+    ORDER BY c."effectiveDate" DESC, c."effectiveTime" DESC
+    FETCH FIRST 1 ROWS ONLY
+  `;
+    const result = await conn.query(query, [stationId]) as CustomerFuelSurchargeResponse[];
     return result.length ? result[0] : null;
 }
 
@@ -103,12 +123,13 @@ export async function selectAllCustomerFuelSurcharges(
     const offset = (page - 1) * pageSize;
 
     const query = `
-    SELECT *
-    FROM ${SCHEMA}."Fuel_Surcharge_Customer"
-    ORDER BY "effectiveDate" DESC
+    SELECT "fsc".*, "u"."userName" AS "createdByName"
+    FROM ${SCHEMA}."Fuel_Surcharge_Customer" "fsc"
+    LEFT JOIN ${SCHEMA}."User" "u" ON "fsc"."createdBy" = "u"."userId"
+    ORDER BY "customerFuelSurchargeId" DESC
     OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
   `;
-    const totalQuery = `SELECT COUNT(*) AS total FROM ${SCHEMA}."Fuel_Surcharge_Customer"`;
+    const totalQuery = `SELECT COUNT(*) AS "total" FROM ${SCHEMA}."Fuel_Surcharge_Customer"`
 
     const surcharges = await conn.query(query, [offset, pageSize]) as CustomerFuelSurchargeResponse[];
     const totalResult = await conn.query(totalQuery) as any[];

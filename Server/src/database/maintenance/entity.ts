@@ -12,7 +12,7 @@ export interface Entity {
  */
 export async function createEntity(
     conn: Connection,
-    entityType: 'CUSTOMER' | 'CARRIER' | 'STATION' | 'TERMINAL' | 'DEPARTMENT' | 'CUSTOMER_PERSONNEL' | 'ACCESSORIAL' | 'ZONE' | 'CUSTOMER_TRANSPORT_RATE' | 'CARRIER_TRANSPORT_RATE' | 'CARRIER_PERSONNEL' | 'SHIPPER' | 'CONSIGNEE' | 'AIRLINE',
+    entityType: 'CUSTOMER' | 'CARRIER' | 'STATION' | 'TERMINAL' | 'DEPARTMENT' | 'CUSTOMER_PERSONNEL' | 'ACCESSORIAL' | 'ZONE' | 'CUSTOMER_TRANSPORT_RATE' | 'CARRIER_TRANSPORT_RATE' | 'CARRIER_PERSONNEL' | 'SHIPPER' | 'CONSIGNEE' | 'AIRLINE' | 'PICKUP' | 'LINEHAUL' | 'DELIVERY',
     entityName: string
 ): Promise<number> {
     const query = `

@@ -42,6 +42,36 @@ export async function insertGeneralFuelSurcharge(
     return row;
 }
 
+// ✅ Select latest general fuel surcharge
+export async function selectLatestGeneralFuelSurcharge(
+    conn: Connection
+): Promise<GeneralFuelSurchargeResponse | null> {
+    const query = `
+    SELECT *
+    FROM ${SCHEMA}."Fuel_Surcharge_General"
+    WHERE "expireDate" IS NULL
+    ORDER BY "fuelSurchargeId" DESC
+    FETCH FIRST 1 ROWS ONLY
+  `;
+    const result = await conn.query(query) as GeneralFuelSurchargeResponse[];
+    return result.length ? result[0] : null;
+}
+
+// ✅ Expire an existing general fuel surcharge
+export async function expireGeneralFuelSurcharge(
+    conn: Connection,
+    fuelSurchargeId: number,
+    expireDate: Date,
+    expireTime: string
+): Promise<void> {
+    const query = `
+    UPDATE ${SCHEMA}."Fuel_Surcharge_General"
+    SET "expireDate" = ?, "expireTime" = ?
+    WHERE "fuelSurchargeId" = ?
+  `;
+    await conn.query(query, [expireDate, expireTime, fuelSurchargeId] as any[]);
+}
+
 // ✅ Select All General Fuel Surcharges (with pagination)
 export async function selectAllGeneralFuelSurcharges(
     conn: Connection,
@@ -51,13 +81,14 @@ export async function selectAllGeneralFuelSurcharges(
     const offset = (page - 1) * pageSize;
 
     const query = `
-    SELECT *
-    FROM ${SCHEMA}."Fuel_Surcharge_General"
-    ORDER BY "effectiveDate" DESC
+    SELECT "fsg".*, "u"."userName" AS "createdByName"
+    FROM ${SCHEMA}."Fuel_Surcharge_General" "fsg"
+    LEFT JOIN ${SCHEMA}."User" "u" ON "fsg"."createdBy" = "u"."userId"
+    ORDER BY "fuelSurchargeId" DESC
     OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
   `;
 
-    const totalQuery = `SELECT COUNT(*) AS total FROM ${SCHEMA}."Fuel_Surcharge_General"`;
+    const totalQuery = `SELECT COUNT(*) AS "total" FROM ${SCHEMA}."Fuel_Surcharge_General"`;
 
     const surcharges = await conn.query(query, [offset, pageSize]) as GeneralFuelSurchargeResponse[];
     const totalResult = await conn.query(totalQuery) as any[];

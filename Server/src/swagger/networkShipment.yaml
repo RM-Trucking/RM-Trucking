@@ -21,6 +21,621 @@ paths:
           application/json:
             schema:
               $ref: "#/components/schemas/CreateShipmentRequest"
+            examples:
+              PickupOnlyLineHaul:
+                summary: "PICKUP_ONLY + LINE_HAUL: Full details with all accessories, alerts, and agent terminal (DEFAULT)"
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "Air Import"
+                    serviceLevel: "Regular"
+                    shipmentDate: "2024-07-01"
+                    shipmentTime: "09:00:00"
+                    orderReceivedPickupPending: "N"
+                    shipmentStatus: "Active"
+                  customerDetails:
+                    customerId: 110
+                    stationId: 183
+                    airportPickupService: "N"
+                    originAirportCode: "LAX"
+                    airportDeliveryService: "N"
+                    destinationAirportCode: "JFK"
+                    shipperDetails:
+                      shipperName: "ABC Shipper"
+                      addressLine1: "123 Shipper Way"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90001"
+                      contactPersonName: "John Shipper"
+                      phoneNumber: "+1-555-0123"
+                    consigneeDetails:
+                      consigneeName: "XYZ Consignee"
+                      addressLine1: "456 Consignee Lane"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "10001"
+                      contactPersonName: "Jane Consignee"
+                      phoneNumber: "+1-555-0456"
+                  commodityDetails:
+                    emergencyContactName: "Mike Johnson"
+                    emergencyContactPhone: "+1-555-0789"
+                    handlingUnits:
+                      - handlingUnitUOM: "Pallet"
+                        handlingUnits: 10
+                        unit: "Pieces"
+                        handlingLength: 48.0
+                        handlingWidth: 40.0
+                        handlingHeight: 60.0
+                        handlingWeight: 1500.0
+                        handlingWeightUnit: "LB"
+                        class: "Class 70"
+                        palletDetails:
+                          - pieces: 100
+                            piecesUOM: "Pieces"
+                            description: "Standard cargo"
+                            hazmat: "N"
+                            hazmatDetails:
+                              unNumber: "UN1234"
+                              properShippingName: "General Cargo"
+                              hazardClass: "Class 9"
+                              packingGroup: "Packing Group III"
+                              weight: 500.0
+                              technicalName: "General"
+                              contactPhoneNumber: "+1-555-0000"
+                              hazmatDescription: "Standard shipment"
+                              limitedQuantity: "N"
+                              marinePollutant: "N"
+                              residueLastContained: "N"
+                              reportableQuantity: "N"
+                              dotExemption: "N"
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_ONLY"
+                      fromLocationType: "Shipper"
+                      fromLocation: "ABC Shipper Warehouse"
+                      airportTransfer: "N"
+                      carrierId: 146
+                      terminalId: 148
+                      editFromLocation: "Y"
+                      editFromLocationDetails:
+                        addressLine1: "123 Shipper Way - Dock 2"
+                        city: "Los Angeles"
+                        state: "CA"
+                        zipCode: "90001"
+                      pickupAgentTerminal: "Y"
+                      pickupAgentTerminalDetails:
+                        toLocationType: "Carrier"
+                        toLocation: "ABC Carrier Hub"
+                        toLocationEntityId: 1730
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "100 Carrier Drive"
+                          city: "Los Angeles"
+                          state: "CA"
+                          zipCode: "90002"
+                      pickupAccessorial: "Y"
+                      pickupAccessorialDetails:
+                        accessorials:
+                          - accessorialId: 44
+                            chargeType: "FLAT_VALUE"
+                            chargeValue: 150.00
+                            notes:
+                              - noteMessage: "Lift gate service required"
+                          - accessorialId: 55
+                            chargeType: "PERCENTAGE"
+                            chargeValue: 5.00
+                            notes:
+                              - noteMessage: "Inside delivery surcharge"
+                      pickupAlert: "Y"
+                      pickupAlertDetails:
+                        inboundNotes: "Confirm pickup 24 hours in advance, call supervisor on arrival"
+                        emailInfo:
+                          primaryEmail: "ops@abcshipper.com"
+                          additionalEmails:
+                            - "logistics@abcshipper.com"
+                            - "dock@abcshipper.com"
+                    linehaulDetails:
+                      linehaulPrimaryInfo:
+                        linehaulRouting: "LINE_HAUL"
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "LH-001-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "ABC Shipper Warehouse"
+                        fromLocationEntityId: 1730
+                        toLocationType: "Carrier"
+                        toLocation: "Carrier Hub Terminal NYC"
+                        toLocationEntityId: 1730
+                        etaDate: "2024-07-01"
+                        etaTime: "15:00:00"
+                        pieces: 20
+                        editFromLocation: "Y"
+                        editFromLocationDetails:
+                          addressLine1: "567 Linehaul FROM Way"
+                          line2: "Suite 200"
+                          city: "Chicago"
+                          state: "IL"
+                          zipCode: "60611"
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "890 Carrier Terminal Road"
+                          line2: "Dock 5"
+                          city: "New York"
+                          state: "NY"
+                          zipCode: "10018"
+                      linehaulCommonInfo:
+                        linehaulNotes: "Handle fragile items carefully, keep upright"
+                        linehaulAccessorial: "Y"
+                        linehaulAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 200.00
+                              notes:
+                                - noteMessage: "Special handling for fragile items"
+                            - accessorialId: 55
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 75.00
+                              notes:
+                                - noteMessage: "Climate controlled transport"
+                    deliveryDetails:
+                      deliveryPrimaryInfo:
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "DL-001-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Carrier Hub Terminal NYC"
+                        fromLocationEntityId: 1730
+                        toLocationType: "Consignee"
+                        toLocation: "XYZ Consignee Warehouse"
+                        toLocationEntityId: 1730
+                        etaDate: "2024-07-02"
+                        etaTime: "10:00:00"
+                        pieces: 20
+                        editFromLocation: "Y"
+                        editFromLocationDetails:
+                          addressLine1: "123 Delivery FROM Location"
+                          line2: "Floor 3"
+                          city: "Newark"
+                          state: "NJ"
+                          zipCode: "07102"
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "456 Consignee Street"
+                          line2: "Warehouse Door B"
+                          city: "New York"
+                          state: "NY"
+                          zipCode: "10002"
+                      deliveryCommonInfo:
+                        airportTransfer: "N"
+                        deliveryAccessorial: "Y"
+                        deliveryAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 100.00
+                              notes:
+                                - noteMessage: "Delivery signature required"
+                            - accessorialId: 55
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 50.00
+                              notes:
+                                - noteMessage: "Photo documentation of delivery"
+                        deliveryAlert: "Y"
+                        deliveryAlertDetails:
+                          linehaulNotes: "Ensure proper handling during transit"
+                          deliveryNotes: "Call consignee 1 hour before delivery, require signature"
+                          emailInfo:
+                            primaryEmail: "receive@xyzcons.com"
+                            additionalEmails:
+                              - "logistics@xyzcons.com"
+
+              PickupOnlyLineHaulDelivery:
+                summary: "PICKUP_ONLY + LINE_HAUL_DELIVERY: Full pickup, full linehaul (CONSIGNEE), minimal delivery (accessories + alert)"
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "Air Import"
+                    serviceLevel: "Express"
+                    shipmentDate: "2024-07-01"
+                    shipmentTime: "10:00:00"
+                    orderReceivedPickupPending: "N"
+                    shipmentStatus: "Active"
+                  customerDetails:
+                    customerId: 110
+                    stationId: 183
+                    airportPickupService: "N"
+                    originAirportCode: "LAX"
+                    airportDeliveryService: "N"
+                    destinationAirportCode: "ORD"
+                    shipperDetails:
+                      shipperName: "Tech Corp Shipper"
+                      addressLine1: "789 Tech Boulevard"
+                      city: "San Francisco"
+                      state: "CA"
+                      zipCode: "94102"
+                      contactPersonName: "Bob Smith"
+                      phoneNumber: "+1-555-0789"
+                    consigneeDetails:
+                      consigneeName: "Retail Store Inc"
+                      addressLine1: "321 Market Street"
+                      city: "Chicago"
+                      state: "IL"
+                      zipCode: "60601"
+                      contactPersonName: "Alice Brown"
+                      phoneNumber: "+1-555-0321"
+                  commodityDetails:
+                    emergencyContactName: "Emergency Contact"
+                    emergencyContactPhone: "+1-555-0999"
+                    handlingUnits:
+                      - handlingUnitUOM: "Box"
+                        handlingUnits: 5
+                        unit: "Pieces"
+                        handlingLength: 36.0
+                        handlingWidth: 24.0
+                        handlingHeight: 12.0
+                        handlingWeight: 100.0
+                        handlingWeightUnit: "LB"
+                        class: "Class 50"
+                        palletDetails:
+                          - pieces: 50
+                            piecesUOM: "Units"
+                            description: "Electronics shipment"
+                            hazmat: "N"
+                            hazmatDetails:
+                              unNumber: "UN5678"
+                              properShippingName: "Electronics"
+                              hazardClass: "Class 9"
+                              packingGroup: "Packing Group III"
+                              weight: 100.0
+                              technicalName: "Electronics"
+                              contactPhoneNumber: "+1-555-0001"
+                              hazmatDescription: "Electronic equipment"
+                              limitedQuantity: "N"
+                              marinePollutant: "N"
+                              residueLastContained: "N"
+                              reportableQuantity: "N"
+                              dotExemption: "N"
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_ONLY"
+                      fromLocationType: "Shipper"
+                      fromLocation: "Tech Corp Warehouse"
+                      airportTransfer: "N"
+                      carrierId: 146
+                      terminalId: 148
+                      editFromLocation: "Y"
+                      editFromLocationDetails:
+                        addressLine1: "789-A Tech Boulevard"
+                        city: "San Francisco"
+                        state: "CA"
+                        zipCode: "94102"
+                      pickupAgentTerminal: "N"
+                      pickupAccessorial: "Y"
+                      pickupAccessorialDetails:
+                        accessorials:
+                          - accessorialId: 44
+                            chargeType: "FLAT_VALUE"
+                            chargeValue: 75.50
+                            notes:
+                              - noteMessage: "Requires lift gate service"
+                      pickupAlert: "N"
+                    linehaulDetails:
+                      linehaulPrimaryInfo:
+                        linehaulRouting: "LINE_HAUL_DELIVERY"
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "LH-002-002"
+                        toLocationType: "Consignee"
+                        toLocation: "Retail Store Hub"
+                        toLocationId: 150
+                        etaDate: "2024-07-02"
+                        etaTime: "09:00:00"
+                        pieces: 10
+                        editFromLocation: "Y"
+                        editFromLocationDetails:
+                          addressLine1: "100 Tech Port Lane"
+                          line2: "Building C"
+                          city: "San Francisco"
+                          state: "CA"
+                          zipCode: "94105"
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "200 Retail Plaza"
+                          line2: "Storage Area 2"
+                          city: "Chicago"
+                          state: "IL"
+                          zipCode: "60618"
+                      linehaulCommonInfo:
+                        linehaulNotes: "Direct to consignee, no intermediate stop"
+                        linehaulAccessorial: "N"
+                    deliveryDetails:
+                      deliveryCommonInfo:
+                        airportTransfer: "N"
+                        deliveryAccessorial: "Y"
+                        deliveryAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "PERCENTAGE"
+                              chargeValue: 15.00
+                              notes:
+                                - noteMessage: "Delivery signature required"
+                        deliveryAlert: "Y"
+                        deliveryAlertDetails:
+                          linehaulNotes: "Time-sensitive delivery"
+                          deliveryNotes: "Call 1 hour before arrival"
+                          emailInfo:
+                            primaryEmail: "ops@retailstore.com"
+                            additionalEmails:
+                              - "manager@retailstore.com"
+                              - "logistics@retailstore.com"
+
+              PickupLineHaul:
+                summary: "PICKUP_LINE_HAUL: Full pickup, minimal linehaul (notes + accessories), full delivery (CONSIGNEE)"
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "Air Export"
+                    serviceLevel: "Standard"
+                    shipmentDate: "2024-07-03"
+                    shipmentTime: "08:30:00"
+                    orderReceivedPickupPending: "N"
+                    shipmentStatus: "Active"
+                  customerDetails:
+                    customerId: 110
+                    stationId: 183
+                    airportPickupService: "Y"
+                    originAirportCode: "JFK"
+                    airportDeliveryService: "N"
+                    destinationAirportCode: "LHR"
+                    pickupAirlineDetails:
+                      airlineNumber: 100
+                      airlineCode: "AA"
+                      airportCode: "JFK"
+                      airlineName: "American Airlines"
+                      addressLine1: "JFK Terminal 4"
+                      city: "Queens"
+                      state: "NY"
+                      zipCode: "11430"
+                      contactPersonName: "Cargo Manager"
+                      phoneNumber: "+1-718-0001"
+                    consigneeDetails:
+                      consigneeName: "London Distribution"
+                      addressLine1: "500 Thames Street"
+                      city: "London"
+                      state: "England"
+                      zipCode: "SE1 9RQ"
+                      contactPersonName: "David Miller"
+                      phoneNumber: "+44-20-7946-0958"
+                  commodityDetails:
+                    emergencyContactName: "Sarah Johnson"
+                    emergencyContactPhone: "+1-718-0002"
+                    handlingUnits:
+                      - handlingUnitUOM: "Pallet"
+                        handlingUnits: 15
+                        unit: "Pieces"
+                        handlingLength: 48.0
+                        handlingWidth: 40.0
+                        handlingHeight: 48.0
+                        handlingWeight: 2000.0
+                        handlingWeightUnit: "LB"
+                        class: "Class 85"
+                        palletDetails:
+                          - pieces: 200
+                            piecesUOM: "Units"
+                            description: "Export machinery"
+                            hazmat: "N"
+                            hazmatDetails:
+                              unNumber: "UN9999"
+                              properShippingName: "Machinery Parts"
+                              hazardClass: "Class 9"
+                              packingGroup: "Packing Group III"
+                              weight: 2000.0
+                              technicalName: "Industrial Parts"
+                              contactPhoneNumber: "+1-718-0003"
+                              hazmatDescription: "Manufacturing equipment"
+                              limitedQuantity: "N"
+                              marinePollutant: "N"
+                              residueLastContained: "N"
+                              reportableQuantity: "N"
+                              dotExemption: "N"
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_LINE_HAUL"
+                      fromLocationType: "Carrier"
+                      fromLocation: "Airline Cargo Facility"
+                      fromLocationEntityId: 1730
+                      airportTransfer: "N"
+                      carrierId: 146
+                      terminalId: 148
+                      editFromLocation: "N"
+                      pickupAgentTerminal: "Y"
+                      pickupAgentTerminalDetails:
+                        toLocationType: "Carrier"
+                        toLocation: "Freight Hub Terminal"
+                        toLocationEntityId: 1730
+                        editToLocation: "N"
+                      pickupAccessorial: "N"
+                      pickupAlert: "N"
+                    linehaulDetails:
+                      linehaulCommonInfo:
+                        linehaulNotes: "Ground handling and documentation complete"
+                        linehaulAccessorial: "Y"
+                        linehaulAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 250.00
+                              notes:
+                                - noteMessage: "Customs clearance included"
+                                - noteMessage: "Documentation handling"
+                    deliveryDetails:
+                      deliveryPrimaryInfo:
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "DL-003-003"
+                        toLocationType: "Consignee"
+                        toLocationId: 300
+                        etaDate: "2024-07-04"
+                        etaTime: "18:00:00"
+                        pieces: 40
+                        editFromLocation: "Y"
+                        editFromLocationDetails:
+                          addressLine1: "300 London Heathrow Logistics"
+                          line2: "Cargo Terminal"
+                          city: "London"
+                          state: "England"
+                          zipCode: "UB3 5AP"
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "400 Airport Road"
+                          line2: "Distribution Center"
+                          city: "Los Angeles"
+                          state: "CA"
+                          zipCode: "90045"
+                      deliveryCommonInfo:
+                        airportTransfer: "N"
+                        deliveryAccessorial: "N"
+                        deliveryAlert: "N"
+
+              PickupLineHaulDelivery:
+                summary: "PICKUP_LINE_HAUL_DELIVERY: Full pickup, minimal linehaul (notes + accessories), minimal delivery (accessories + alert)"
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "Air Import"
+                    serviceLevel: "Priority"
+                    shipmentDate: "2024-07-05"
+                    shipmentTime: "11:00:00"
+                    orderReceivedPickupPending: "N"
+                    shipmentStatus: "Active"
+                  customerDetails:
+                    customerId: 110
+                    stationId: 183
+                    airportPickupService: "Y"
+                    originAirportCode: "CDG"
+                    airportDeliveryService: "N"
+                    destinationAirportCode: "LAX"
+                    pickupAirlineDetails:
+                      airlineNumber: 200
+                      airlineCode: "AF"
+                      airportCode: "CDG"
+                      airlineName: "Air France"
+                      addressLine1: "Charles de Gaulle Terminal 1"
+                      city: "Paris"
+                      state: "Île-de-France"
+                      zipCode: "95700"
+                      contactPersonName: "Cargo Operations"
+                      phoneNumber: "+33-1-49-80-0000"
+                    consigneeDetails:
+                      consigneeName: "Pacific Import Ltd"
+                      addressLine1: "888 Wilshire Boulevard"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90017"
+                      contactPersonName: "Patricia Rodriguez"
+                      phoneNumber: "+1-310-5555"
+                  commodityDetails:
+                    emergencyContactName: "Emergency"
+                    emergencyContactPhone: "+1-310-6666"
+                    handlingUnits:
+                      - handlingUnitUOM: "Container"
+                        handlingUnits: 2
+                        unit: "Pieces"
+                        handlingLength: 40.0
+                        handlingWidth: 8.0
+                        handlingHeight: 8.5
+                        handlingWeight: 5000.0
+                        handlingWeightUnit: "LB"
+                        class: "Class 100"
+                        palletDetails:
+                          - pieces: 500
+                            piecesUOM: "Units"
+                            description: "Luxury goods"
+                            hazmat: "N"
+                            hazmatDetails:
+                              unNumber: "UN0000"
+                              properShippingName: "Merchandise"
+                              hazardClass: "Class 9"
+                              packingGroup: "Packing Group III"
+                              weight: 5000.0
+                              technicalName: "Goods"
+                              contactPhoneNumber: "+1-310-7777"
+                              hazmatDescription: "Commercial merchandise"
+                              limitedQuantity: "N"
+                              marinePollutant: "N"
+                              residueLastContained: "N"
+                              reportableQuantity: "N"
+                              dotExemption: "N"
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_LINE_HAUL_DELIVERY"
+                      fromLocationType: "Carrier"
+                      fromLocation: "Air France Cargo"
+                      fromLocationEntityId: 1730
+                      airportTransfer: "Y"
+                      carrierId: 146
+                      terminalId: 148
+                      editFromLocation: "Y"
+                      editFromLocationDetails:
+                        addressLine1: "Charles de Gaulle Terminal 2"
+                        city: "Paris"
+                        state: "Île-de-France"
+                        zipCode: "95700"
+                      pickupAgentTerminal: "Y"
+                      pickupAgentTerminalDetails:
+                        toLocationType: "Consignee"
+                        toLocation: "Pacific Customs Broker"
+                        toLocationEntityId: 1730
+                        editToLocation: "N"
+                      pickupAccessorial: "Y"
+                      pickupAccessorialDetails:
+                        accessorials:
+                          - accessorialId: 44
+                            chargeType: "FLAT_VALUE"
+                            chargeValue: 500.00
+                            notes:
+                              - noteMessage: "International documentation"
+                              - noteMessage: "Hazmat handling fee"
+                      pickupAlert: "Y"
+                      pickupAlertDetails:
+                        inboundNotes: "Confirm receipt 24 hours before pickup"
+                        emailInfo:
+                          primaryEmail: "pickup@pacifiimport.com"
+                          additionalEmails:
+                            - "operations@pacificimport.com"
+                    linehaulDetails:
+                      linehaulCommonInfo:
+                        linehaulNotes: "Consolidated shipment, multiple destinations"
+                        addLinehaulAccessorial: "Y"
+                        linehaulAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "PERCENTAGE"
+                              chargeValue: 5.00
+                              notes:
+                                - noteMessage: "Consolidation handling"
+                            - accessorialId: 55
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 150.00
+                              notes:
+                                - noteMessage: "Tariff/duty handling"
+                    deliveryDetails:
+                      deliveryCommonInfo:
+                        airportTransfer: "N"
+                        addDeliveryAccessorial: "Y"
+                        deliveryAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 44
+                              chargeType: "FLAT_VALUE"
+                              chargeValue: 200.00
+                              notes:
+                                - noteMessage: "Final delivery and warehouse handling"
+                        deliveryAlert: "Y"
+                        deliveryAlertDetails:
+                          linehaulNotes: "International shipment, requires inspection"
+                          deliveryNotes: "Notify customer 2 hours before delivery window"
+                          emailInfo:
+                            primaryEmail: "delivery@pacificimport.com"
+                            additionalEmails:
+                              - "warehouse@pacificimport.com"
+                              - "customs@pacificimport.com"
       responses:
         "201":
           description: Network shipment created successfully
@@ -169,7 +784,7 @@ components:
           type: string
           example: "123 Airline Way"
           description: "Primary address line (optional)"
-        addressLine2:
+        line2:
           type: string
           example: "Suite 200"
           description: "Secondary address line (optional)"
@@ -216,7 +831,7 @@ components:
           type: string
           example: "123 Main Street"
           description: "Primary address line"
-        addressLine2:
+        line2:
           type: string
           example: "Suite 100"
           description: "Secondary address line (optional)"
@@ -266,7 +881,7 @@ components:
           type: string
           example: "456 Oak Avenue"
           description: "Primary address line"
-        addressLine2:
+        line2:
           type: string
           example: "Floor 5"
           description: "Secondary address line (optional)"
@@ -464,6 +1079,7 @@ components:
         - shipmentDetails
         - customerDetails
         - commodityDetails
+        - carrierDetails
       properties:
         shipmentDetails:
           $ref: "#/components/schemas/ShipmentDetails"
@@ -471,6 +1087,544 @@ components:
           $ref: "#/components/schemas/CustomerDetails"
         commodityDetails:
           $ref: "#/components/schemas/CommodityDetails"
+        carrierDetails:
+          $ref: "#/components/schemas/CarrierDetails"
+    CarrierDetails:
+      oneOf:
+        - $ref: "#/components/schemas/CarrierDetailsPickupOnlyLineHaul"
+        - $ref: "#/components/schemas/CarrierDetailsPickupOnlyLineHaulDelivery"
+        - $ref: "#/components/schemas/CarrierDetailsPickupLineHaul"
+        - $ref: "#/components/schemas/CarrierDetailsPickupLineHaulDelivery"
+      discriminator:
+        propertyName: pickupDetails
+        mapping:
+          PICKUP_ONLY_LINE_HAUL: "#/components/schemas/CarrierDetailsPickupOnlyLineHaul"
+          PICKUP_ONLY_LINE_HAUL_DELIVERY: "#/components/schemas/CarrierDetailsPickupOnlyLineHaulDelivery"
+          PICKUP_LINE_HAUL: "#/components/schemas/CarrierDetailsPickupLineHaul"
+          PICKUP_LINE_HAUL_DELIVERY: "#/components/schemas/CarrierDetailsPickupLineHaulDelivery"
+      description: "Carrier routing details - discriminated by pickup routing type and linehaul routing type"
+
+    CarrierDetailsPickupOnlyLineHaul:
+      type: object
+      required:
+        - pickupDetails
+        - linehaulDetails
+        - deliveryDetails
+      properties:
+        pickupDetails:
+          allOf:
+            - $ref: "#/components/schemas/PickupDetails"
+            - type: object
+              properties:
+                pickupRouting:
+                  enum: ["PICKUP_ONLY"]
+        linehaulDetails:
+          type: object
+          required:
+            - linehaulPrimaryInfo
+            - linehaulCommonInfo
+          properties:
+            linehaulPrimaryInfo:
+              allOf:
+                - $ref: "#/components/schemas/LinehaulPrimaryInfo"
+                - type: object
+                  properties:
+                    linehaulRouting:
+                      enum: ["LINE_HAUL"]
+                    toLocationType:
+                      enum: ["Carrier"]
+            linehaulCommonInfo:
+              $ref: "#/components/schemas/LinehaulCommonInfo"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetailsFullInfo"
+      description: "PICKUP_ONLY + LINE_HAUL: Full pickup, full linehaul (CARRIER), full delivery"
+
+    CarrierDetailsPickupOnlyLineHaulDelivery:
+      type: object
+      required:
+        - pickupDetails
+        - linehaulDetails
+        - deliveryDetails
+      properties:
+        pickupDetails:
+          allOf:
+            - $ref: "#/components/schemas/PickupDetails"
+            - type: object
+              properties:
+                pickupRouting:
+                  enum: ["PICKUP_ONLY"]
+        linehaulDetails:
+          type: object
+          required:
+            - linehaulPrimaryInfo
+            - linehaulCommonInfo
+          properties:
+            linehaulPrimaryInfo:
+              allOf:
+                - $ref: "#/components/schemas/LinehaulPrimaryInfo"
+                - type: object
+                  properties:
+                    linehaulRouting:
+                      enum: ["LINE_HAUL_DELIVERY"]
+                    toLocationType:
+                      enum: ["Consignee"]
+            linehaulCommonInfo:
+              $ref: "#/components/schemas/LinehaulCommonInfo"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetailsMinimalInfo"
+      description: "PICKUP_ONLY + LINE_HAUL_DELIVERY: Full pickup, full linehaul (CONSIGNEE embedded), minimal delivery (accessories + alert only)"
+
+    CarrierDetailsPickupLineHaul:
+      type: object
+      required:
+        - pickupDetails
+        - linehaulDetails
+        - deliveryDetails
+      properties:
+        pickupDetails:
+          allOf:
+            - $ref: "#/components/schemas/PickupDetails"
+            - type: object
+              properties:
+                pickupRouting:
+                  enum: ["PICKUP_LINE_HAUL"]
+        linehaulDetails:
+          type: object
+          required:
+            - linehaulCommonInfo
+          properties:
+            linehaulCommonInfo:
+              $ref: "#/components/schemas/LinehaulCommonInfo"
+          description: "Minimal linehaul - only notes and accessories, no routing details"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetailsFullInfo"
+      description: "PICKUP_LINE_HAUL: Full pickup, minimal linehaul (notes + accessories), full delivery (CONSIGNEE)"
+
+    CarrierDetailsPickupLineHaulDelivery:
+      type: object
+      required:
+        - pickupDetails
+        - linehaulDetails
+        - deliveryDetails
+      properties:
+        pickupDetails:
+          allOf:
+            - $ref: "#/components/schemas/PickupDetails"
+            - type: object
+              properties:
+                pickupRouting:
+                  enum: ["PICKUP_LINE_HAUL_DELIVERY"]
+        linehaulDetails:
+          type: object
+          required:
+            - linehaulCommonInfo
+          properties:
+            linehaulCommonInfo:
+              $ref: "#/components/schemas/LinehaulCommonInfo"
+          description: "Minimal linehaul - only notes and accessories, no routing details"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetailsMinimalInfo"
+      description: "PICKUP_LINE_HAUL_DELIVERY: Full pickup, minimal linehaul (notes + accessories), minimal delivery (accessories + alert only)"
+
+    LinehaulPrimaryInfo:
+      type: object
+      required:
+        - linehaulRouting
+        - carrierId
+        - terminalId
+        - carrierBillNumber
+        - toLocationType
+        - toLocation
+        - toLocationId
+        - etaDate
+        - etaTime
+        - pieces
+        - editFromLocation
+        - editToLocation
+      properties:
+        linehaulRouting:
+          type: string
+          enum: ["LINE_HAUL", "LINE_HAUL_DELIVERY"]
+          description: "Linehaul routing type"
+        carrierId:
+          type: integer
+          example: 146
+          description: "Carrier identifier for linehaul"
+        terminalId:
+          type: integer
+          example: 148
+          description: "Terminal identifier for linehaul"
+        carrierBillNumber:
+          type: string
+          example: "LH-12345"
+          description: "Carrier bill number for linehaul"
+        toLocationType:
+          type: string
+          enum: ["Carrier", "Consignee"]
+          description: "Destination type for linehaul routing"
+        toLocation:
+          type: string
+          example: "Carrier Terminal"
+          description: "Name of the linehaul destination"
+        toLocationId:
+          type: integer
+          example: 456
+          description: "ID of the linehaul destination"
+        etaDate:
+          type: string
+          format: date
+          example: "2024-07-01"
+          description: "Estimated arrival date"
+        etaTime:
+          type: string
+          format: time
+          example: "10:00:00"
+          description: "Estimated arrival time"
+        pieces:
+          type: integer
+          example: 20
+          description: "Number of pieces"
+        editFromLocation:
+          type: string
+          enum: ["Y", "N"]
+          description: "Whether from-location is edited"
+        editFromLocationDetails:
+          $ref: "#/components/schemas/AddressDetail"
+          description: "Edited from-location address (required if editFromLocation='Y')"
+        editToLocation:
+          type: string
+          enum: ["Y", "N"]
+          description: "Whether to-location is edited"
+        editToLocationDetails:
+          $ref: "#/components/schemas/AddressDetail"
+          description: "Edited to-location address (required if editToLocation='Y')"
+
+    LinehaulCommonInfo:
+      type: object
+      required:
+        - linehaulNotes
+        - linehaulAccessorial
+      properties:
+        linehaulNotes:
+          type: string
+          example: "Handle with care"
+          description: "Notes for the linehaul segment"
+        linehaulAccessorial:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Whether linehaul accessories are included"
+        linehaulAccessorialDetails:
+          type: object
+          properties:
+            accessorials:
+              type: array
+              items:
+                $ref: "#/components/schemas/AccessorialInfo"
+          description: "Linehaul accessories (required if linehaulAccessorial='Y')"
+
+    DeliveryDetailsFullInfo:
+      type: object
+      required:
+        - deliveryPrimaryInfo
+        - deliveryCommonInfo
+      properties:
+        deliveryPrimaryInfo:
+          $ref: "#/components/schemas/DeliveryPrimaryInfo"
+        deliveryCommonInfo:
+          $ref: "#/components/schemas/DeliveryCommonInfo"
+      description: "Full delivery details with primary info (address mapping, routing)"
+
+    DeliveryDetailsMinimalInfo:
+      type: object
+      required:
+        - deliveryCommonInfo
+      properties:
+        deliveryCommonInfo:
+          $ref: "#/components/schemas/DeliveryCommonInfo"
+      description: "Minimal delivery details - accessories and alerts only, no address mapping"
+
+    DeliveryPrimaryInfo:
+      type: object
+      required:
+        - carrierId
+        - terminalId
+        - carrierBillNumber
+        - toLocationType
+        - toLocationId
+        - etaDate
+        - etaTime
+        - pieces
+        - editFromLocation
+        - editToLocation
+      properties:
+        carrierId:
+          type: integer
+          example: 146
+          description: "Carrier identifier"
+        terminalId:
+          type: integer
+          example: 148
+          description: "Terminal identifier"
+        carrierBillNumber:
+          type: string
+          example: "DL-12345"
+          description: "Delivery bill number"
+        toLocationType:
+          type: string
+          enum: ["Carrier", "Consignee"]
+          example: "Consignee"
+          description: "Destination type"
+        toLocationId:
+          type: integer
+          example: 456
+          description: "Destination location ID"
+        etaDate:
+          type: string
+          format: date
+          example: "2024-07-02"
+          description: "Estimated delivery date"
+        etaTime:
+          type: string
+          format: time
+          example: "14:00:00"
+          description: "Estimated delivery time"
+        pieces:
+          type: integer
+          example: 20
+          description: "Number of pieces"
+        editFromLocation:
+          type: string
+          enum: ["Y", "N"]
+          description: "Whether from-location is edited"
+        editFromLocationDetails:
+          $ref: "#/components/schemas/AddressDetail"
+          description: "Edited from-location address (required if editFromLocation='Y')"
+        editToLocation:
+          type: string
+          enum: ["Y", "N"]
+          description: "Whether to-location is edited"
+        editToLocationDetails:
+          $ref: "#/components/schemas/AddressDetail"
+          description: "Edited to-location address (required if editToLocation='Y')"
+
+    DeliveryCommonInfo:
+      type: object
+      required:
+        - airportTransfer
+        - addDeliveryAccessorial
+        - deliveryAlert
+      properties:
+        airportTransfer:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Whether airport transfer is required"
+        addDeliveryAccessorial:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Whether delivery accessories are included"
+        deliveryAccessorialDetails:
+          type: object
+          properties:
+            accessorials:
+              type: array
+              items:
+                $ref: "#/components/schemas/AccessorialInfo"
+          description: "Delivery accessories (required if addDeliveryAccessorial='Y')"
+        deliveryAlert:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Whether delivery alerts are enabled"
+        deliveryAlertDetails:
+          type: object
+          properties:
+            linehaulNotes:
+              type: string
+              example: "Keep linehaul notes for delivery"
+            deliveryNotes:
+              type: string
+              example: "Call consignee before arrival"
+            emailInfo:
+              $ref: "#/components/schemas/EmailInfo"
+          description: "Delivery alert details (required if deliveryAlert='Y')"
+    AddressDetail:
+      type: object
+      required:
+        - addressLine1
+        - city
+        - state
+        - zipCode
+      properties:
+        addressLine1:
+          type: string
+          example: "123 Main Street"
+          description: "Primary address line"
+        line2:
+          type: string
+          example: "Suite 100"
+          description: "Secondary address line (optional)"
+        city:
+          type: string
+          example: "Los Angeles"
+          description: "City name"
+        state:
+          type: string
+          example: "CA"
+          description: "State or province code"
+        zipCode:
+          type: string
+          example: "90001"
+          description: "ZIP or postal code"
+    AccessorialInfo:
+      type: object
+      required:
+        - accessorialId
+        - chargeType
+        - charges
+        - notes
+      properties:
+        accessorialId:
+          type: integer
+          example: 101
+          description: "Accessorial identifier"
+        chargeType:
+          type: string
+          example: "FLAT_VALUE"
+          description: "Type of accessorial charge"
+        charges:
+          type: number
+          format: float
+          example: 150.0
+          description: "Charge amount for the accessorial"
+        notes:
+          type: string
+          example: "Lift gate required"
+          description: "Notes for the accessorial"
+    EmailInfo:
+      type: object
+      required:
+        - primaryEmail
+        - additionalEmails
+      properties:
+        primaryEmail:
+          type: string
+          format: email
+          example: "ops@example.com"
+          description: "Primary email address for notifications"
+        additionalEmails:
+          type: array
+          items:
+            type: string
+            format: email
+          example: ["logistics@example.com"]
+          description: "Additional email addresses for notifications"
+    PickupDetails:
+      type: object
+      required:
+        - pickupRouting
+        - airportTransfer
+        - carrierId
+        - terminalId
+        - fromLocation
+        - editFromLocation
+        - pickupAgentTerminal
+        - addPickupAccessorial
+        - pickupAlert
+      properties:
+        pickupRouting:
+          type: string
+          enum: ["PICKUP_ONLY", "PICKUP_LINE_HAUL", "PICKUP_LINE_HAUL_DELIVERY"]
+          example: "PICKUP_LINE_HAUL"
+          description: "Pickup routing for the shipment"
+        airportTransfer:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates if airport transfer is required for pickup"
+        carrierId:
+          type: integer
+          example: 146
+          description: "Carrier identifier for pickup"
+        terminalId:
+          type: integer
+          example: 148
+          description: "Terminal identifier for pickup"
+        fromLocation:
+          type: string
+          example: "Shipper Warehouse"
+          description: "Name of the pickup origin location"
+        fromLocationId:
+          type: integer
+          example: 123
+          description: "Optional ID for an existing from-location"
+        editFromLocation:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates whether the from-location address is edited"
+        editFromLocationDetails:
+          $ref: "#/components/schemas/AddressDetail"
+          description: "New from-location address details if editFromLocation is 'Y'"
+        pickupAgentTerminal:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates whether pickup goes through a terminal agent"
+        pickupAgentTerminalDetails:
+          type: object
+          properties:
+            toLocationType:
+              type: string
+              enum: ["CARRIER", "CONSIGNEE"]
+              example: "CARRIER"
+              description: "Type of terminal destination for agent pickup"
+            toLocation:
+              type: string
+              example: "Carrier Terminal"
+              description: "Name of the terminal destination"
+            toLocationId:
+              type: integer
+              example: 200
+              description: "Optional destination location ID"
+            editToLocation:
+              type: string
+              enum: ["Y", "N"]
+              example: "N"
+              description: "Indicates whether the to-location address is edited"
+            editToLocationDetails:
+              $ref: "#/components/schemas/AddressDetail"
+              description: "New to-location address details if editToLocation is 'Y'"
+        addPickupAccessorial:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates whether pickup accessorials are included"
+        pickupAccessorialDetails:
+          type: object
+          properties:
+            accessorials:
+              type: array
+              items:
+                $ref: "#/components/schemas/AccessorialInfo"
+          description: "List of pickup accessorials"
+        pickupAlert:
+          type: string
+          enum: ["Y", "N"]
+          example: "N"
+          description: "Indicates whether pickup alerts are enabled"
+        pickupAlertDetails:
+          type: object
+          properties:
+            inboundNotes:
+              type: string
+              example: "Pickup after 9 AM"
+              description: "Notes for the pickup alert"
+            emailInfo:
+              $ref: "#/components/schemas/EmailInfo"
+          description: "Details for pickup alert notifications"
     Error:
       type: object
       properties:

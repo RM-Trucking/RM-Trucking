@@ -13,22 +13,27 @@ export async function createCustomerFuelSurcharge(
     body: CreateCustomerFuelSurchargeRequest,
     createdBy: number
 ): Promise<CustomerFuelSurchargeResponse> {
-    // 1. Check if customer already has an active surcharge
-    const existing = await customerFuelDb.selectLatestCustomerFuelSurcharge(conn, body.customerId);
+    // 1. Expire any existing active surcharge for the same station(s)
+    const stationIds = Array.from(new Set(body.stations.map(station => station.stationId)));
+    const expiredSurchargeIds = new Set<number>();
 
-    if (existing) {
-        // 2. Expire the old surcharge with new effective date/time
-        await customerFuelDb.expireCustomerFuelSurcharge(
-            conn,
-            existing.customerFuelSurchargeId,
-            body.effectiveDate,
-            body.effectiveTime
-        );
+    for (const stationId of stationIds) {
+        const existing = await customerFuelDb.selectLatestCustomerFuelSurchargeByStation(conn, stationId);
+
+        if (existing && !expiredSurchargeIds.has(existing.customerFuelSurchargeId)) {
+            await customerFuelDb.expireCustomerFuelSurcharge(
+                conn,
+                existing.customerFuelSurchargeId,
+                body.effectiveDate,
+                body.effectiveTime
+            );
+            expiredSurchargeIds.add(existing.customerFuelSurchargeId);
+        }
     }
 
     const data = await customerFuelDb.insertCustomerFuelSurcharge(conn, body, createdBy);
 
-    // 3. Insert new surcharge (expireDate/expireTime will be NULL initially)
+    // 2. Insert new surcharge (expireDate/expireTime will be NULL initially)
     return {
         ...data,
         createdAt: data.createdAt ? toUtcDate(data.createdAt) : null,

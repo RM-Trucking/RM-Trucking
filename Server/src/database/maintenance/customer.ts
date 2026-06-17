@@ -205,7 +205,7 @@ export async function countCustomersByRateId(conn: Connection, rateId: number): 
 }
 
 
-export async function getCustomerDropdown(
+export async function getCustomerWithStationDropdown(
     conn: Connection,
     search: string
 ): Promise<{ stationId: number; stationName: string; customerId: number; customerName: string }[]> {
@@ -227,6 +227,49 @@ export async function getCustomerDropdown(
     const result = await conn.query(query, params) as any[];
     return result;
 }
+
+export async function getCustomerDropdown(conn: Connection, search: string): Promise<{ customerId: number; customerName: string }[]> {
+
+    let query = `
+    SELECT "customerId", "customerName"
+    FROM ${SCHEMA}."Customer"
+    WHERE "activeStatus" = 'Y'
+    `
+    const params: any[] = [];
+
+    if (search && search.trim().length > 0) {
+        query += ` AND LOWER("customerName") LIKE ?`;
+        params.push(`%${search.toLowerCase()}%`);
+    }
+
+    query += ` ORDER BY "customerName" ASC`;
+
+    const result = await conn.query(query, params) as any[];
+    return result;
+
+}
+
+export async function getStationDropdown(conn: Connection, customerId: number, search: string): Promise<{ stationId: number; stationName: string }[]> {
+
+    let query = `
+    SELECT "stationId", "stationName"
+    FROM ${SCHEMA}."Station"
+    WHERE "activeStatus" = 'Y' AND "customerId" = ${customerId}
+    `
+    const params: any[] = [];
+
+    if (search && search.trim().length > 0) {
+        query += ` AND LOWER("stationName") LIKE ?`;
+        params.push(`%${search.toLowerCase()}%`);
+    }
+
+    query += ` ORDER BY "stationName" ASC`;
+
+    const result = await conn.query(query, params) as any[];
+    return result;
+
+}
+
 
 export async function getDepartmentAndPersonnelEmails(
     conn: Connection,

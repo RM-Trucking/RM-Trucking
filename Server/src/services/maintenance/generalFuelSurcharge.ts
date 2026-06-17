@@ -13,6 +13,18 @@ export async function createGeneralFuelSurcharge(
     body: CreateGeneralFuelSurchargeRequest,
     createdBy: number
 ): Promise<GeneralFuelSurchargeResponse> {
+    // 1. If there's an existing active general surcharge, expire it at the new effective date/time
+    const existing = await generalFuelDb.selectLatestGeneralFuelSurcharge(conn);
+
+    if (existing) {
+        await generalFuelDb.expireGeneralFuelSurcharge(
+            conn,
+            existing.fuelSurchargeId,
+            body.effectiveDate,
+            body.effectiveTime
+        );
+    }
+
     const surcharge = await generalFuelDb.insertGeneralFuelSurcharge(conn, body, createdBy);
 
     return {

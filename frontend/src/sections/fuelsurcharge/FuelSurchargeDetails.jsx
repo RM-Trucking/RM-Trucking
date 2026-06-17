@@ -146,6 +146,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                             forcePopupIcon={true} // 💡 CRUCIAL: This forces the dropdown arrow icon to show up with freeSolo
                                             options={customerList}
                                             value={value || null}
+                                            disabled = {type === 'Edit'}
 
                                             onChange={(event, newValue) => {
                                                 onChange(newValue);
@@ -169,6 +170,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                     }
                                                 }
                                                 if (reason === 'clear') {
+                                                    dispatch(getCustomerList(""));
                                                     dispatch(setStationList([]));
                                                 }
                                             }}
@@ -239,6 +241,9 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
 
                                                 onInputChange={(event, newInputValue, reason) => {
                                                     if (reason === 'input') {
+                                                        dispatch(getStationList(getValues('customer')?.customerId, newInputValue));
+                                                    }
+                                                    if (reason === 'clear') {
                                                         dispatch(getStationList(getValues('customer')?.customerId, newInputValue));
                                                     }
                                                 }}

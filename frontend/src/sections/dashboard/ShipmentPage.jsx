@@ -3430,8 +3430,7 @@ const ShipmentForm = () => {
       if (isHazmatSelected) {
         const isValid = await trigger(['emergencyContactName', 'emergencyContactPhone']);
         if (isValid && currentValues?.emergencyContactName && currentValues?.emergencyContactPhone) {
-          dispatch(postStep1(
-            {
+          const obj = {
               "shipmentDetails": {
                 "typeOfShipment": currentValues.shipmentType,
                 "serviceLevel": currentValues.serviceLevel,
@@ -3452,7 +3451,7 @@ const ShipmentForm = () => {
                 "originAirportCode": currentValues.originAirport,
                 "destinationAirportCode": currentValues.destinationAirport,
                 "shipperDetails": {
-                  'shipperId': currentValues?.shipperName?.shipperId,
+                  'shipperId': currentValues?.shipperName?.shipperId || null,
                   "shipperName": currentValues?.shipperName?.shipperName,
                   "addressLine1": currentValues.shipperAddr1,
                   "addressLine2": currentValues.shipperAddr2,
@@ -3463,21 +3462,22 @@ const ShipmentForm = () => {
                   "phoneNumber": currentValues.shipperPhone
                 },
                 "pickupAirlineDetails": {
-                  "airlineId": currentValues?.shipperName?.shipperId,
-                  "airlineNumber": currentValues?.shipperName?.airlineNumber,
-                  "airlineCode": currentValues?.shipperName?.airlineCode,
-                  "airportCode": currentValues?.shipperName?.airportCode,
-                  "airlineName": currentValues?.shipperName?.airlineName,
-                  "addressLine1": currentValues?.shipperName?.addressLine1,
-                  "addressLine2": currentValues?.shipperName?.addressLine2,
+                  "airlineId": currentValues?.shipperName?.shipperId || null,
+                  "airlineNumber": Number(currentValues?.shipperName?.airlineNumber) || Number(currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[0]),
+                  "airlineCode": currentValues?.shipperName?.airlineCode || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[1],
+                  "airportCode": currentValues?.shipperName?.airportCode || watchedOriginAirport ,
+                  "airlineName": currentValues?.shipperName?.airlineName || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[2],
+                  "addressLine1": currentValues?.shipperAddr1,
+                  "addressLine2": currentValues?.shipperAddr2,
                   "city": currentValues.shipperCity,
                   "state": currentValues.shipperState,
                   "zipCode": currentValues.shipperZip,
                   "handler": currentValues?.shipperContact,
                   "phoneNumber": currentValues.shipperPhone,
+                  "entityId" : null,
                 },
                 "consigneeDetails": {
-                  "consigneeId": currentValues?.consigneeName?.consigneeId,
+                  "consigneeId": currentValues?.consigneeName?.consigneeId || null,
                   "consigneeName": currentValues?.consigneeName?.consigneeName,
                   "addressLine1": currentValues.consigneeAddr1,
                   "addressLine2": currentValues.consigneeAddr2,
@@ -3488,18 +3488,19 @@ const ShipmentForm = () => {
                   "phoneNumber": currentValues.consigneePhone
                 },
                 "deliveryAirlineDetails": {
-                  "airlineId": currentValues?.consigneeName?.consigneeId,
-                  "airlineNumber": currentValues?.consigneeName?.airlineNumber,
-                  "airlineCode": currentValues?.consigneeName?.airlineCode,
-                  "airportCode": currentValues?.consigneeName?.airportCode,
-                  "airlineName": currentValues?.consigneeName?.airlineName,
+                  "airlineId": currentValues?.consigneeName?.consigneeId || null,
+                  "airlineNumber": Number(currentValues?.consigneeName?.airlineNumber) || Number(currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[0]),
+                  "airlineCode": currentValues?.consigneeName?.airlineCode || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[1],
+                  "airportCode": currentValues?.consigneeName?.airportCode || watchedDestinationAirport,
+                  "airlineName": currentValues?.consigneeName?.airlineName || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[2],
                   "addressLine1": currentValues.consigneeAddr1,
                   "addressLine2": currentValues.consigneeAddr2,
                   "city": currentValues.consigneeCity,
                   "state": currentValues.consigneeState,
                   "zipCode": currentValues.consigneeZip,
                   "handler": currentValues?.consigneeContact,
-                  "phoneNumber": currentValues.consigneePhone
+                  "phoneNumber": currentValues.consigneePhone,
+                  "entityId": null,
                 },
               },
               "commodityDetails": {
@@ -3539,8 +3540,8 @@ const ShipmentForm = () => {
                   }))
                 }))
               }
-            }
-          ))
+            };
+          dispatch(postStep1(obj))
         } else {
           setErrorVisible(true);
         }

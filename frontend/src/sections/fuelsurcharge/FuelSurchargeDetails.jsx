@@ -126,7 +126,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             {/* header  */}
             <>
                 <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>Fuel Surcharge Details</Typography>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentFuelSurchargeTab === 'active' ? 'Fuel Surcharge Details' : 'Customer Fuel Surcharge Details'}</Typography>
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>

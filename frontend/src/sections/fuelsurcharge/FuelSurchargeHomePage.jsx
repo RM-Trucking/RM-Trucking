@@ -13,7 +13,7 @@ import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
 import ErrorFallback from '../shared/ErrorBoundary';
 import { setSelectedCustomerRowDetails } from '../../redux/slices/customer';
-import { setStationList } from '../../redux/slices/fuel';
+import { setStationList, getCustomerList } from '../../redux/slices/fuel';
 import FuelSurchargeTabs from './FuelSurchargeTabs';
 import FuelSurchargeHomeTable from './FuelSuchargeHomeTable';
 import FuelSurchargeDetails from './FuelSurchargeDetails';
@@ -32,6 +32,7 @@ export default function CustomerhomePage() {
     };
     const onClickOfNewFuelCharge = () => {
         dispatch(setSelectedCustomerRowDetails({}));
+        dispatch(getCustomerList(""));
         dispatch(setStationList([]));
         setOpenConfirmDialog(true);
     }

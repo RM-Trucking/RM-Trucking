@@ -432,17 +432,17 @@ export default function FuelSurchargeHomeTable() {
         dispatch(setTableBeingViewed('fuel'));
         dispatch(getCustomerList(""));
         // if (currentFuelSurchargeTab === 'active') {
-        dispatch(getFuelSurchargeData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: fuelSurchargeSearchStr, }));
+        dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: 10, searchStr: fuelSurchargeSearchStr, }));
         // }
     }, []);
     useEffect(() => {
         if (currentFuelSurchargeTab === 'active') {
             setTableColumns(activeFuelColumns);
-            dispatch(getFuelSurchargeData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: fuelSurchargeSearchStr, }));
+            dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: 10, searchStr: fuelSurchargeSearchStr, }));
         }
         if (currentFuelSurchargeTab === 'customer') {
             setTableColumns(customerFuelColumns);
-            dispatch(getCustomerFuelSurchargeData({ pageNo: pagination.page, pageSize: pagination.pageSize, searchStr: fuelSurchargeSearchStr, }));
+            dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: 10, searchStr: fuelSurchargeSearchStr, }));
         }
     }, [currentFuelSurchargeTab]);
     useEffect(() => {

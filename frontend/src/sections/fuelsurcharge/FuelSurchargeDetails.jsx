@@ -143,17 +143,24 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                     render={({ field: { onChange, value, ref } }) => (
                                         <Autocomplete
                                             freeSolo
-                                            forcePopupIcon={true} // 💡 CRUCIAL: This forces the dropdown arrow icon to show up with freeSolo
-                                            options={customerList}
+                                            forcePopupIcon={true}
+                                            options={customerList || []}
                                             value={value || null}
-                                            disabled = {type === 'Edit'}
+                                            disabled={type === 'Edit'}
 
                                             onChange={(event, newValue) => {
                                                 onChange(newValue);
                                                 console.log('Selected Customer:', newValue);
-                                                if (newValue?.customerId) {
+
+                                                if (newValue && typeof newValue !== 'string' && newValue?.customerId) {
                                                     dispatch(getStationList(newValue?.customerId, ""));
                                                     setValue('stationList', []);
+                                                } else if (typeof newValue === 'string') {
+                                                    // 1. Fixed: Trim the custom typed text before dispatching to the API
+                                                    const trimmedValue = newValue.trim();
+                                                    if (trimmedValue !== "") {
+                                                        dispatch(getCustomerList(trimmedValue));
+                                                    }
                                                 } else {
                                                     dispatch(getCustomerList(""));
                                                     dispatch(setStationList([]));
@@ -162,25 +169,31 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
 
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
-                                                    dispatch(getCustomerList(newInputValue));
+                                                    // 2. Keep the visual input raw so the user can type spaces seamlessly
                                                     onChange(newInputValue);
-                                                    if (newInputValue === "") {
+
+                                                    // 3. Fixed: Trim trailing spaces dynamically for the API call execution
+                                                    const trimmedInput = newInputValue.trim();
+
+                                                    if (trimmedInput === "") {
                                                         dispatch(getCustomerList(""));
                                                         dispatch(setStationList([]));
+                                                    } else {
+                                                        // Sends a clean string without trailing spaces to your backend query lookup
+                                                        dispatch(getCustomerList(trimmedInput));
                                                     }
                                                 }
                                                 if (reason === 'clear') {
                                                     dispatch(getCustomerList(""));
                                                     dispatch(setStationList([]));
+                                                    onChange(null); // Clean out RHF form value cleanly on clear action click
                                                 }
                                             }}
 
                                             getOptionLabel={(option) => {
                                                 if (typeof option === 'string') return option;
                                                 if (option.inputValue) return option.inputValue;
-
-                                                const name = option.customerName || '';
-                                                return `${name}`;
+                                                return option.customerName || '';
                                             }}
 
                                             renderOption={(props, option) => {
@@ -192,9 +205,12 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                 );
                                             }}
 
-                                            isOptionEqualToValue={(option, val) =>
-                                                option.customerId === val?.customerId || option.customerName === val?.customerName
-                                            }
+                                            isOptionEqualToValue={(option, val) => {
+                                                if (!option || !val) return false;
+                                                const optionName = option.customerName || '';
+                                                const valName = typeof val === 'string' ? val.trim() : val?.customerName || '';
+                                                return option.customerId === val?.customerId || optionName.toLowerCase() === valName.toLowerCase();
+                                            }}
 
                                             renderInput={(params) => (
                                                 <TextField
@@ -211,6 +227,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                         />
                                     )}
                                 />
+
 
                                 <Controller
                                     name="stationList"

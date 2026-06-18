@@ -26,7 +26,7 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
   postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
-  getShipperDropdown, getConsigneeDropdown,
+  getShipperDropdown, getConsigneeDropdown, getAirlineDropdown,
 } from '../../redux/slices/shipment';
 
 
@@ -34,19 +34,30 @@ import {
 
 // --- CONSTANTS & LISTS --- 
 const shipmentTypes = [
-
-  'Air Import',
-
-  'Air Export',
-
-  'Ocean Import',
-
-  'Ocean Export',
-
-  'Domestic',
-
-  'Non-Forwarder Domestic',
-
+  {
+    label: 'Air Import',
+    value: 'AIR_IMPORT',
+  },
+  {
+    label: 'Air Export',
+    value: 'AIR_EXPORT',
+  },
+  {
+    label: 'Ocean Import',
+    value: 'OCEAN_IMPORT',
+  },
+  {
+    label: 'Ocean Export',
+    value: 'OCEAN_EXPORT',
+  },
+  {
+    label: 'Domestic',
+    value: 'DOMESTIC',
+  },
+  {
+    label: 'Non-Forwarder Domestic',
+    value: 'NON_FORWARDER_DOMESTIC',
+  },
 ];
 
 const shipmentStatusOptions = ['Order received Pickup Pending',
@@ -3396,249 +3407,6 @@ const ShipmentForm = () => {
 
   const totals = calculateTotals(watchedHU);
 
-  const handleNext = async () => {
-    console.log('Current Form Values:', getValues());
-    const currentValues = getValues();
-
-    let fieldsToValidate = [];
-
-    if (activeStep === 0) {
-      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
-    } else if (activeStep === 1) {
-      fieldsToValidate = [
-        'billingCustomer',
-        'originAirport',
-        'destinationAirport',
-        'shipperZip',
-        'consigneeZip',
-        'shipperPhone',
-        'consigneePhone',
-      ];
-    } else if (activeStep === 2 && isHazmatSelected) {
-      fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
-    }
-
-    const isValid = await trigger(fieldsToValidate);
-
-    // if (isValid) {
-    setActiveStep((prev) => prev + 1);
-    // } else {
-    // setErrorVisible(true);
-    // }
-
-    if (activeStep === 2) {
-      if (isHazmatSelected) {
-        const isValid = await trigger(['emergencyContactName', 'emergencyContactPhone']);
-        if (isValid && currentValues?.emergencyContactName && currentValues?.emergencyContactPhone) {
-          const obj = {
-              "shipmentDetails": {
-                "typeOfShipment": currentValues.shipmentType,
-                "serviceLevel": currentValues.serviceLevel,
-                "shipmentDate": currentValues.date
-                  ? new Date(currentValues.date).toLocaleDateString('en-CA')
-                  : "",
-                "shipmentTime": currentValues.time
-                  ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-                  : "",
-                "orderReceivedPickupPending": "Y",
-                "shipmentStatus": "Active"
-              },
-              "customerDetails": {
-                "customerId": currentValues.billingCustomer.customerId,
-                "stationId": currentValues.billingCustomer.stationId,
-                "airportPickupService": watchedAirportPickupService ? "Y" : "N",
-                "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
-                "originAirportCode": currentValues.originAirport,
-                "destinationAirportCode": currentValues.destinationAirport,
-                "shipperDetails": {
-                  'shipperId': currentValues?.shipperName?.shipperId || null,
-                  "shipperName": currentValues?.shipperName?.shipperName,
-                  "addressLine1": currentValues.shipperAddr1,
-                  "addressLine2": currentValues.shipperAddr2,
-                  "city": currentValues.shipperCity,
-                  "state": currentValues.shipperState,
-                  "zipCode": currentValues.shipperZip,
-                  "contactPersonName": currentValues.shipperContact,
-                  "phoneNumber": currentValues.shipperPhone
-                },
-                "pickupAirlineDetails": {
-                  "airlineId": currentValues?.shipperName?.shipperId || null,
-                  "airlineNumber": Number(currentValues?.shipperName?.airlineNumber) || Number(currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[0]),
-                  "airlineCode": currentValues?.shipperName?.airlineCode || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[1],
-                  "airportCode": currentValues?.shipperName?.airportCode || watchedOriginAirport ,
-                  "airlineName": currentValues?.shipperName?.airlineName || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[2],
-                  "addressLine1": currentValues?.shipperAddr1,
-                  "addressLine2": currentValues?.shipperAddr2,
-                  "city": currentValues.shipperCity,
-                  "state": currentValues.shipperState,
-                  "zipCode": currentValues.shipperZip,
-                  "handler": currentValues?.shipperContact,
-                  "phoneNumber": currentValues.shipperPhone,
-                  "entityId" : null,
-                },
-                "consigneeDetails": {
-                  "consigneeId": currentValues?.consigneeName?.consigneeId || null,
-                  "consigneeName": currentValues?.consigneeName?.consigneeName,
-                  "addressLine1": currentValues.consigneeAddr1,
-                  "addressLine2": currentValues.consigneeAddr2,
-                  "city": currentValues.consigneeCity,
-                  "state": currentValues.consigneeState,
-                  "zipCode": currentValues.consigneeZip,
-                  "contactPersonName": currentValues.consigneeContact,
-                  "phoneNumber": currentValues.consigneePhone
-                },
-                "deliveryAirlineDetails": {
-                  "airlineId": currentValues?.consigneeName?.consigneeId || null,
-                  "airlineNumber": Number(currentValues?.consigneeName?.airlineNumber) || Number(currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[0]),
-                  "airlineCode": currentValues?.consigneeName?.airlineCode || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[1],
-                  "airportCode": currentValues?.consigneeName?.airportCode || watchedDestinationAirport,
-                  "airlineName": currentValues?.consigneeName?.airlineName || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[2],
-                  "addressLine1": currentValues.consigneeAddr1,
-                  "addressLine2": currentValues.consigneeAddr2,
-                  "city": currentValues.consigneeCity,
-                  "state": currentValues.consigneeState,
-                  "zipCode": currentValues.consigneeZip,
-                  "handler": currentValues?.consigneeContact,
-                  "phoneNumber": currentValues.consigneePhone,
-                  "entityId": null,
-                },
-              },
-              "commodityDetails": {
-                emergencyContactName: currentValues.emergencyContactName,
-                emergencyContactPhone: currentValues.emergencyContactPhone,
-                handlingUnits: currentValues.handlingUnits.map(hu => ({
-                  handlingUnitUOM: hu.uom,
-                  handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
-                  unit: hu.unit,
-                  handlingLength: Number(hu.length) || 0,
-                  handlingWidth: Number(hu.width) || 0,
-                  handlingHeight: Number(hu.height) || 0,
-                  handlingWeight: Number(hu.weight) || 0,
-                  handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
-                  class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
-                  palletDetails: hu.items.map(item => ({
-                    pieces: Number(item.pieces) || 0,
-                    piecesUOM: item.piecesUom,
-                    description: item.description,
-                    hazmat: item.hazmatInfo,
-                    hazmatDetails: {
-                      unNumber: item.hazmatData.unNumber,
-                      properShippingName: item.hazmatData.shippingName,
-                      hazardClass: `Class ${item.hazmatData.hazmatClass}`,
-                      packingGroup: `${item.hazmatData.packagingGroup}`,
-                      weight: Number(item.hazmatData.weight) || 0,
-                      technicalName: item.hazmatData.technicalName,
-                      contactPhoneNumber: item.hazmatData.contactPhone,
-                      hazmatDescription: item.hazmatData.description,
-                      // Converts boolean values to API's expected "Y" / "N" string flags
-                      limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
-                      marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
-                      residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
-                      reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
-                      dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
-                    }
-                  }))
-                }))
-              }
-            };
-          dispatch(postStep1(obj))
-        } else {
-          setErrorVisible(true);
-        }
-      } else {
-        dispatch(postStep1(
-          {
-            "shipmentDetails": {
-              "typeOfShipment": currentValues.shipmentType,
-              "serviceLevel": currentValues.serviceLevel,
-              "shipmentDate": currentValues.date
-                ? new Date(currentValues.date).toLocaleDateString('en-CA')
-                : "",
-              "shipmentTime": currentValues.time
-                ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-                : "",
-              "shipmentStatus": "Active"
-            },
-            "customerDetails": {
-              "customerId": currentValues.billingCustomer.customerId,
-              "stationId": currentValues.billingCustomer.stationId,
-              "airportPickupService": watchedAirportPickupService ? "Y" : "N",
-              "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
-              "originAirportCode": currentValues.originAirport,
-              "destinationAirportCode": currentValues.destinationAirport,
-              "shipperDetails": {
-                'shipperId': currentValues?.shipperName?.shipperId,
-                "shipperName": currentValues?.shipperName?.shipperName,
-                "addressLine1": currentValues.shipperAddr1,
-                "addressLine2": currentValues.shipperAddr2,
-                "city": currentValues.shipperCity,
-                "state": currentValues.shipperState,
-                "zipCode": currentValues.shipperZip,
-                "contactPersonName": currentValues.shipperContact,
-                "phoneNumber": currentValues.shipperPhone
-              },
-              "consigneeDetails": {
-                "consigneeId": currentValues?.consigneeName?.consigneeId,
-                "consigneeName": currentValues?.consigneeName?.consigneeName,
-                "addressLine1": currentValues.consigneeAddr1,
-                "addressLine2": currentValues.consigneeAddr2,
-                "city": currentValues.consigneeCity,
-                "state": currentValues.consigneeState,
-                "zipCode": currentValues.consigneeZip,
-                "contactPersonName": currentValues.consigneeContact,
-                "phoneNumber": currentValues.consigneePhone
-              }
-            },
-            "commodityDetails": {
-              emergencyContactName: currentValues.emergencyContactName,
-              emergencyContactPhone: currentValues.emergencyContactPhone,
-              handlingUnits: currentValues.handlingUnits.map(hu => ({
-                handlingUnitUOM: hu.uom,
-                handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
-                unit: hu.unit,
-                handlingLength: Number(hu.length) || 0,
-                handlingWidth: Number(hu.width) || 0,
-                handlingHeight: Number(hu.height) || 0,
-                handlingWeight: Number(hu.weight) || 0,
-                handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
-                class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
-                palletDetails: hu.items.map(item => ({
-                  pieces: Number(item.pieces) || 0,
-                  piecesUOM: item.piecesUom,
-                  description: item.description,
-                  hazmat: item.hazmatInfo,
-                  hazmatDetails: {
-                    unNumber: item.hazmatData.unNumber,
-                    properShippingName: item.hazmatData.shippingName,
-                    hazardClass: `Class ${item.hazmatData.hazmatClass}`,
-                    packingGroup: `${item.hazmatData.packagingGroup}`,
-                    weight: Number(item.hazmatData.weight) || 0,
-                    technicalName: item.hazmatData.technicalName,
-                    contactPhoneNumber: item.hazmatData.contactPhone,
-                    hazmatDescription: item.hazmatData.description,
-                    // Converts boolean values to API's expected "Y" / "N" string flags
-                    limitedQuantity: item.hazmatData.limitedQuality ? "Y" : "N",
-                    marinePollutant: item.hazmatData.marinePollutant ? "Y" : "N",
-                    residueLastContained: item.hazmatData.residueLastContained ? "Y" : "N",
-                    reportableQuantity: item.hazmatData.reportableQuantity ? "Y" : "N",
-                    dotExemption: item.hazmatData.dotExemption ? "Y" : "N"
-                  }
-                }))
-              }))
-            }
-          }
-        ))
-      }
-
-    }
-    if (activeStep === 2 && hasInitialData()) {
-      setValue('doDetails.handlingUnits', currentValues.handlingUnits);
-      setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
-      setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
-    }
-
-  };
-
   const hasInitialData = () => {
     const values = getValues();
 
@@ -4433,6 +4201,178 @@ const ShipmentForm = () => {
     }
   }, [watchedLineHaulToggledAddress, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier]);
 
+  const handleNext = async () => {
+    console.log('Current Form Values:', getValues());
+    const currentValues = getValues();
+
+    let fieldsToValidate = [];
+    const obj = {};
+
+    if (activeStep === 0) {
+      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
+    } else if (activeStep === 1) {
+      fieldsToValidate = [
+        'billingCustomer',
+        'originAirport',
+        'destinationAirport',
+        'shipperZip',
+        'consigneeZip',
+        'shipperPhone',
+        'consigneePhone',
+      ];
+    } else if (activeStep === 2 && isHazmatSelected) {
+      fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
+    }
+
+
+    const isValid = await trigger(fieldsToValidate);
+
+    // if (isValid) {
+    setActiveStep((prev) => prev + 1);
+    // } else {
+    // setErrorVisible(true);
+    // }
+
+    // adding to object
+    // step 0
+    obj.shipmentDetails = {
+      "typeOfShipment": currentValues.shipmentType,
+      "serviceLevel": currentValues.serviceLevel,
+      "shipmentDate": currentValues.date
+        ? new Date(currentValues.date).toLocaleDateString('en-CA')
+        : "",
+      "shipmentTime": currentValues.time
+        ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
+        : "",
+      "orderReceivedPickupPending": "Y",
+      "shipmentStatus": "Active"
+    };
+    // step 1
+    obj.customerDetails = {
+      "customerId": currentValues.billingCustomer.customerId,
+      "stationId": currentValues.billingCustomer.stationId,
+      "airportPickupService": watchedAirportPickupService ? "Y" : "N",
+      "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
+      "originAirportCode": currentValues.originAirport,
+      "destinationAirportCode": currentValues.destinationAirport,
+      // we have to update address when we select shipper details
+      "shipperDetails": {
+        'shipperId': currentValues?.shipperName?.shipperId || null,
+        "shipperName": currentValues?.shipperName?.shipperName,
+        "addressLine1": currentValues.shipperAddr1,
+        "addressLine2": currentValues.shipperAddr2,
+        "city": currentValues.shipperCity,
+        "state": currentValues.shipperState,
+        "zipCode": currentValues.shipperZip,
+        "contactPersonName": currentValues.shipperContact,
+        "phoneNumber": currentValues.shipperPhone
+      },
+      "pickupAirlineDetails": {
+        "airlineId": currentValues?.shipperName?.shipperId || null,
+        "airlineNumber": Number(currentValues?.shipperName?.airlineNumber) || Number(currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[0]),
+        "airlineCode": currentValues?.shipperName?.airlineCode || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[1],
+        "airportCode": currentValues?.shipperName?.airportCode || watchedOriginAirport,
+        "airlineName": currentValues?.shipperName?.airlineName || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[2],
+        "addressLine1": currentValues?.shipperAddr1,
+        "addressLine2": currentValues?.shipperAddr2,
+        "city": currentValues.shipperCity,
+        "state": currentValues.shipperState,
+        "zipCode": currentValues.shipperZip,
+        "contactPersonName": currentValues?.shipperContact,
+        "phoneNumber": currentValues.shipperPhone,
+        "handler": '',
+      },
+      "consigneeDetails": {
+        "consigneeId": currentValues?.consigneeName?.consigneeId || null,
+        "consigneeName": currentValues?.consigneeName?.consigneeName,
+        "addressLine1": currentValues.consigneeAddr1,
+        "addressLine2": currentValues.consigneeAddr2,
+        "city": currentValues.consigneeCity,
+        "state": currentValues.consigneeState,
+        "zipCode": currentValues.consigneeZip,
+        "contactPersonName": currentValues.consigneeContact,
+        "phoneNumber": currentValues.consigneePhone
+      },
+      "deliveryAirlineDetails": {
+        "airlineId": currentValues?.consigneeName?.consigneeId || null,
+        "airlineNumber": Number(currentValues?.consigneeName?.airlineNumber) || Number(currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[0]),
+        "airlineCode": currentValues?.consigneeName?.airlineCode || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[1],
+        "airportCode": currentValues?.consigneeName?.airportCode || watchedDestinationAirport,
+        "airlineName": currentValues?.consigneeName?.airlineName || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[2],
+        "addressLine1": currentValues.consigneeAddr1,
+        "addressLine2": currentValues.consigneeAddr2,
+        "city": currentValues.consigneeCity,
+        "state": currentValues.consigneeState,
+        "zipCode": currentValues.consigneeZip,
+        "contactPersonName": currentValues?.consigneeContact,
+        "phoneNumber": currentValues.consigneePhone,
+        "handler": '',
+      },
+    };
+    if (watchedAirportPickupService) {
+      delete obj.customerDetails.shipperDetails;
+    } else {
+      delete obj.customerDetails.pickupAirlineDetails;
+    }
+
+    if (watchedAirportDeliveryService) {
+      delete obj.customerDetails.consigneeDetails;
+    } else {
+      delete obj.customerDetails.deliveryAirlineDetails;
+    }
+
+    // step 2
+    if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
+      obj.commodityDetails = {
+        emergencyContactName: isHazmatSelected ? currentValues?.emergencyContactName : '',
+        emergencyContactPhone: isHazmatSelected ? currentValues?.emergencyContactPhone : '',
+        handlingUnits: currentValues?.handlingUnits.map(hu => ({
+          handlingUnitUOM: hu.uom,
+          handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
+          unit: hu.unit,
+          handlingLength: Number(hu.length) || 0,
+          handlingWidth: Number(hu.width) || 0,
+          handlingHeight: Number(hu.height) || 0,
+          handlingWeight: Number(hu.weight) || 0,
+          handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
+          class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
+          palletDetails: hu?.items?.map(item => ({
+            pieces: Number(item?.pieces) || 0,
+            piecesUOM: item?.piecesUom,
+            description: item?.description,
+            hazmat: item?.hazmatInfo ? 'Y' : 'N',
+            hazmatDetails: item?.hazmatInfo ? {
+              unNumber: item?.hazmatData?.unNumber,
+              properShippingName: item?.hazmatData?.shippingName,
+              hazardClass: `Class ${item?.hazmatData?.hazmatClass}`,
+              packingGroup: `${item?.hazmatData?.packagingGroup}`,
+              weight: Number(item?.hazmatData?.weight) || 0,
+              technicalName: item?.hazmatData?.technicalName,
+              contactPhoneNumber: item?.hazmatData?.contactPhone,
+              hazmatDescription: item?.hazmatData?.description,
+              // Converts boolean values to API's expected "Y" / "N" string flags
+              limitedQuantity: item?.hazmatData?.limitedQuality ? "Y" : "N",
+              marinePollutant: item?.hazmatData?.marinePollutant ? "Y" : "N",
+              residueLastContained: item?.hazmatData?.residueLastContained ? "Y" : "N",
+              reportableQuantity: item?.hazmatData?.reportableQuantity ? "Y" : "N",
+              dotExemption: item?.hazmatData?.dotExemption ? "Y" : "N"
+            } : null
+          }))
+        }))
+      };
+    }
+
+    if (activeStep === 2) {
+      dispatch(postStep1(obj));
+    }
+
+    if (activeStep === 2 && hasInitialData()) {
+      setValue('doDetails.handlingUnits', currentValues.handlingUnits);
+      setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
+      setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
+    }
+
+  };
 
   return (
     <ErrorBoundary
@@ -4655,24 +4595,31 @@ const ShipmentForm = () => {
                 <Box sx={{ flex: '1 1 22%' }}>
 
                   <Controller
-
                     name="shipmentType"
-
                     control={control}
-
                     rules={{ required: true }}
-
                     render={({ field }) => (
-
-                      <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentType}>
-
-                        {shipmentTypes.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-
+                      <TextField
+                        {...field}
+                        select
+                        fullWidth
+                        label="Type of Shipment *"
+                        variant="standard"
+                        error={!!errors.shipmentType}
+                        // Added: Fallback to an empty string if value is null/undefined to prevent UI errors
+                        value={field.value || ''}
+                        helperText={errors.shipmentType ? 'This field is required' : ''}
+                      >
+                        {shipmentTypes.map((opt) => (
+                          // Fixed: Pass opt.value (the string) instead of the entire object
+                          <MenuItem key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </MenuItem>
+                        ))}
                       </TextField>
-
                     )}
-
                   />
+
 
                 </Box>
 
@@ -4757,70 +4704,6 @@ const ShipmentForm = () => {
               <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: ' 1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Customer Details</Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, }}>
-
-                {/* <Controller
-                name="billingCustomer" // This field will hold the chosen object structure
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { onChange, value, ref } }) => (
-                  <Autocomplete
-                    freeSolo
-                    options={customerStationDropdown}
-
-                    // Bind form state object or fallback to null
-                    value={value || null}
-
-                    // Handles selection clicks or pressing 'Enter'
-                    onChange={(event, newValue) => {
-
-                      onChange(newValue);
-                      if (!newValue) {
-                        dispatch(searchCustomerStationDropdown(''));
-                      }
-
-                    }}
-
-                    // Captures custom text changes if user clicks away without selecting/hitting Enter
-                    onInputChange={(event, newInputValue, reason) => {
-                      if (reason === 'input') {
-                        dispatch(searchCustomerStationDropdown(newInputValue));
-                        onChange(newInputValue);
-                      }
-                    }}
-
-
-
-                    // Tells MUI how to display text from your specific object structure
-                    getOptionLabel={(option) => {
-                      if (typeof option === 'string') {
-                        return option;
-                      }
-                      if (option.inputValue) {
-                        return option.inputValue;
-                      }
-                      return option.customerName || '';
-                    }}
-
-                    // Ensures proper matching for active highlighted selections
-                    isOptionEqualToValue={(option, val) =>
-                      option.customerId === val?.customerId || option.customerName === val?.customerName
-                    }
-
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        inputRef={ref} // Keeps form validation ref focus working properly
-                        fullWidth
-                        label={`Billing Customer *`}
-                        variant="standard"
-                        error={!!errors['billingCustomer']}
-                        helperText={errors['billingCustomer'] ? 'This field is required' : ''}
-                      />
-                    )}
-                    sx={{ width: '30%', mb: 2 }}
-                  />
-                )}
-              /> */}
                 <Controller
                   name="billingCustomer"
                   control={control}
@@ -5050,10 +4933,10 @@ const ShipmentForm = () => {
                           }
 
                           // 2. Fallback check for manually typed custom text strings
-                          const textToValidate = typeof value === 'string' ? value : (value.shipperName || '');
+                          const textToValidate = typeof value === 'string' ? value : (value.airlineName || '');
 
                           // Double-check if the typed text matches any option's code/number to prevent false positives
-                          const isPreExisting = shipperDropdown.some(
+                          const isPreExisting = airlineDropdown.some(
                             (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
                           );
                           if (isPreExisting) return true;
@@ -5066,13 +4949,13 @@ const ShipmentForm = () => {
                           const namePart = parts[2] || '';
 
                           // Validate Airline Number (Exactly 3 digits)
-                          if (!/^\d{3}$/.test(numPart)) {
-                            return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                          if (!/^\d{4}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 4 digits (Ex: 6788)';
                           }
 
                           // Validate Airline Code (Exactly 2 letters)
-                          if (!/^[A-Za-z]{2}$/.test(codePart)) {
-                            return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                          if (!/^[A-Za-z]{3}$/.test(codePart)) {
+                            return 'Airline Code must be exactly 3 letters (Ex: AAA)';
                           }
 
                           // Validate Airline Name exists
@@ -5081,7 +4964,7 @@ const ShipmentForm = () => {
                           }
 
                           // Final structural confirmation (Digits - 2 Letters - Name)
-                          const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
                           }
@@ -5094,17 +4977,17 @@ const ShipmentForm = () => {
                         <Autocomplete
                           freeSolo
                           options={
-                            watchedOriginAirport ? shipperDropdown.filter(
+                            watchedOriginAirport ? airlineDropdown.filter(
                               (item) => item.airportCode === watchedOriginAirport
-                            ) : shipperDropdown
+                            ) : airlineDropdown
                           }
                           value={value || null}
 
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              onChange({ shipperId: null, shipperName: newValue });
+                              onChange({ airlineId: null, airlineName: newValue });
                             } else if (newValue && newValue.inputValue) {
-                              onChange({ shipperId: null, shipperName: newValue.inputValue });
+                              onChange({ airlineId: null, airlineName: newValue.inputValue });
                             } else {
                               onChange(newValue);
                             }
@@ -5132,7 +5015,7 @@ const ShipmentForm = () => {
                                 }
                               }
 
-                              onChange({ shipperId: null, shipperName: formatted });
+                              onChange({ airlineId: null, airlineName: formatted });
                             }
                           }}
 
@@ -5167,7 +5050,6 @@ const ShipmentForm = () => {
 
                             const filtered = options.filter((option) => {
                               return (
-                                (option.shipperName || '').toLowerCase().includes(searchStr) ||
                                 (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
                                 (option.airlineCode || '').toLowerCase().includes(searchStr) ||
                                 (option.airlineName || '').toLowerCase().includes(searchStr) ||
@@ -5177,13 +5059,13 @@ const ShipmentForm = () => {
                             });
 
                             const isExisting = options.some(
-                              (option) => searchStr === (option.shipperName || '').toLowerCase()
+                              (option) => searchStr === (option.airlineName || '').toLowerCase()
                             );
 
                             if (inputValue !== '' && !isExisting) {
                               filtered.unshift({
                                 inputValue,
-                                shipperName: `${inputValue}`,
+                                airlineName: `${inputValue}`,
                               });
                             }
 
@@ -5203,11 +5085,11 @@ const ShipmentForm = () => {
                               return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
                             }
 
-                            return option.shipperName || '';
+                            return option.airlineName || '';
                           }}
 
                           isOptionEqualToValue={(option, val) =>
-                            option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
+                            option.shipperId === val?.airlineId || option.airlineName === val?.airlineName
                           }
 
                           renderInput={(params) => (
@@ -5215,7 +5097,7 @@ const ShipmentForm = () => {
                               {...params}
                               inputRef={ref}
                               fullWidth
-                              label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                              label={`Airline Name ${watchedAirportPickupService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['shipperName']}
                               helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
@@ -6756,7 +6638,7 @@ const ShipmentForm = () => {
                       </Paper>
 
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'stretch' }}>
-                        <Box sx={{width : '20%'}}>
+                        <Box sx={{ width: '20%' }}>
                           <Controller
                             name="carrierInfo.lineHaul.toLocationType"
                             control={control}

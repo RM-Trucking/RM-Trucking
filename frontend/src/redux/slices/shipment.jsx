@@ -16,7 +16,8 @@ const initialState = {
   carrierTerminalDropdown: [],
   shipperDropdown: [],
   consigneeDropdown: [],
-  airlineDropdown: [],
+  shipperAirlineDropdown: [],
+  consigneeAirlineDropdown: [],
 };
 
 const slice = createSlice({
@@ -48,50 +49,11 @@ const slice = createSlice({
     },
     getCarrierTerminalDropdownSuccess(state, action) {
       state.isLoading = false;
-      state.carrierTerminalDropdown = [{
-        id: '1',
-        terminalId: '1',
-        terminalName: 'Terminal 1',
-        carrierId: '1',
-        carrierName: 'Carrier 1',
-        addressLine1: 'Address Line 1 - 1',
-        addressLine2: 'Address Line 2 - 1',
-        city: 'City - 1',
-        state: 'State - 1',
-        zip: '99999',
-      }, {
-        id: '2',
-        terminalId: '2',
-        terminalName: 'Terminal 2',
-        carrierId: '2',
-        carrierName: 'Carrier 2',
-        addressLine1: 'Address Line 1 - 2',
-        addressLine2: 'Address Line 2 - 2',
-        city: 'City - 2',
-        state: 'State - 2',
-        zip: '99999',
-      },
-      {
-        id: '3',
-        terminalId: '3',
-        terminalName: 'R&M Terminal',
-        carrierId: '3',
-        carrierName: 'R&M',
-        addressLine1: 'Address Line 1 - 3',
-        addressLine2: 'Address Line 2 - 3',
-        city: 'City - 3',
-        state: 'State - 3',
-        zip: '99999',
-      },
-    ];
+      state.carrierTerminalDropdown = action.payload.data.data;
     },
     getShipperDropdownSuccess(state, action) {
       state.isLoading = false;
-      state.shipperDropdown = [
-        { shipperId: null, shipperName: 'Shipper 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1', addressLine2: 'Address Line 1', city: 'City1', state: 'State1', zip: '99999', airportCode : 'ORD' },
-        { shipperId: null, shipperName: 'Shipper 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 2', addressLine2: 'Address Line 2', city: 'City2', state: 'State2', zip: '99999', airportCode : 'JFK' },
-        { shipperId: null, shipperName: 'Shipper 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 3', addressLine2: 'Address Line 3', city: 'City3', state: 'State3', zip: '99999', airportCode : 'LAX' },
-      ];
+      state.shipperDropdown = action.payload.data;
     },
 
     setCustomerStationDropdown(state, action) {
@@ -102,15 +64,15 @@ const slice = createSlice({
     },
     getConsigneeDropdownSuccess(state, action) {
       state.isLoading = false;
-      state.consigneeDropdown = [
-        { consigneeId: null, consigneeName: 'Consignee 1', airlineId: null, airlineName: 'Airline 1', airlineNumber: '678', airlineCode: 'AA', addressLine1: 'Address Line 1', addressLine2: 'Address Line 1', city: 'City1', state: 'State1', zip: '99999', airportCode : 'ORD' },
-        { consigneeId: null, consigneeName: 'Consignee 2', airlineId: null, airlineName: 'Airline 2', airlineNumber: '724', airlineCode: 'BA', addressLine1: 'Address Line 2', addressLine2: 'Address Line 2', city: 'City2', state: 'State2', zip: '99999', airportCode : 'JFK' },
-        { consigneeId: null, consigneeName: 'Consignee 3', airlineId: null, airlineName: 'Airline 3', airlineNumber: '558', airlineCode: 'CA', addressLine1: 'Address Line 3', addressLine2: 'Address Line 3', city: 'City3', state: 'State3', zip: '99999', airportCode : 'LAX' },
-      ];
+      state.consigneeDropdown = action.payload.data;
     },
-    getAirlineDropdownSuccess(state, action) {
+    getShipperAirlineDropdownSuccess(state, action) {
       state.isLoading = false;
-      state.airlineDropdown = action.payload.data;
+      state.shipperAirlineDropdown = action.payload.data;
+    },
+    getConsigneeAirlineDropdownSuccess(state, action) {
+      state.isLoading = false;
+      state.consigneeAirlineDropdown = action.payload.data;
     },
   },
 });
@@ -157,45 +119,56 @@ export function searchCustomerStationDropdown(searchValue) {
     }
   };
 }
-export function getCarrierTerminalDropdown() {
+export function getCarrierTerminalDropdown(searchTerm) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      // const response = await axios.get('maintenance/carrier/dropdown');
-      // dispatch(slice.actions.getCarrierTerminalDropdownSuccess(response));
-      dispatch(slice.actions.getCarrierTerminalDropdownSuccess([]));
+      const response = await axios.get(`maintenance/carrier/dropdown${searchTerm ? `?search=${searchTerm}` : ''}`);
+      dispatch(slice.actions.getCarrierTerminalDropdownSuccess(response));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
-export function getShipperDropdown() {
+export function getShipperDropdown(searchTerm) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      dispatch(slice.actions.getShipperDropdownSuccess([]));
+      const response = await axios.get(`maintenance/shipper/dropdown${searchTerm ? `?searchTerm=${searchTerm}` : ''}`);
+      dispatch(slice.actions.getShipperDropdownSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
-
-export function getConsigneeDropdown() {
+export function getConsigneeDropdown(searchTerm) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      dispatch(slice.actions.getConsigneeDropdownSuccess([]));
+      const response = await axios.get(`maintenance/consignee/dropdown${searchTerm ? `?searchTerm=${searchTerm}` : ''}`);
+      dispatch(slice.actions.getConsigneeDropdownSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }
   };
 }
-export function getAirlineDropdown() {
+export function getShipperAirlineDropdown(airportCode, searchTerm) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.get('maintenance/airline/dropdown');
-      dispatch(slice.actions.getAirlineDropdownSuccess(response.data));
+      const response = await axios.get(`maintenance/airline/dropdown?airportCode=${airportCode}${searchTerm ? `&searchTerm=${searchTerm}` : ''}`);
+      dispatch(slice.actions.getShipperAirlineDropdownSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getConsigneeAirlineDropdown(airportCode, searchTerm) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/airline/dropdown?airportCode=${airportCode}${searchTerm ? `&searchTerm=${searchTerm}` : ''}`);
+      dispatch(slice.actions.getConsigneeAirlineDropdownSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

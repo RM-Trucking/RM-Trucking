@@ -26,7 +26,8 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import {
   postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
-  getShipperDropdown, getConsigneeDropdown, getAirlineDropdown,
+  getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
+  getConsigneeAirlineDropdown,
 } from '../../redux/slices/shipment';
 
 
@@ -2891,7 +2892,8 @@ const ShipmentForm = () => {
   const carrierTerminalDropdown = useSelector((state) => state?.shipmentdata?.carrierTerminalDropdown);
   const shipperDropdown = useSelector((state) => state?.shipmentdata?.shipperDropdown);
   const consigneeDropdown = useSelector((state) => state?.shipmentdata?.consigneeDropdown);
-  const airlineDropdown = useSelector((state) => state?.shipmentdata?.airlineDropdown);
+  const shipperAirlineDropdown = useSelector((state) => state?.shipmentdata?.shipperAirlineDropdown);
+  const consigneeAirlineDropdown = useSelector((state) => state?.shipmentdata?.consigneeAirlineDropdown);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -3119,12 +3121,12 @@ const ShipmentForm = () => {
           pickupNotes: '',
           primaryEmail: '',
           additionalEmail: '',
+          additionalEmailsArray: [],
         },
         lineHaul: {
           selectRouting: 'linehaul_only',
           carrier: '',
           billNumber: "",
-          disableLineHaulFromCarrier: false,
           toggleAddress: 'linehaul',
           fromLocation: '',
           manualFromLocation: false,
@@ -3200,6 +3202,7 @@ const ShipmentForm = () => {
           deliveryNotes: '',
           primaryEmail: '',
           additionalEmail: '',
+          additionalEmailsArray: [],
           airportTransfer: false,
         }
       },
@@ -3401,9 +3404,6 @@ const ShipmentForm = () => {
       totalWeight: totalWeight === 0 ? "" : totalWeight
     };
   };
-
-
-
 
   const totals = calculateTotals(watchedHU);
 
@@ -3827,8 +3827,6 @@ const ShipmentForm = () => {
     });
   }, [dimensionsSync, setValue])
 
-
-
   // useEffect(() => {
   //   // apply accessorial details
   //   if (custommerRateModal && MASTER_ACCESSORIALS.length > 0) {
@@ -3985,28 +3983,28 @@ const ShipmentForm = () => {
     if (watchedToLocationType === 'Carrier' && watchedToLocation) {
       const [terminalId, carrierId] = watchedToLocation.split('-');
       const selectedObject = carrierTerminalDropdown.find(
-        (item) => item.terminalId === terminalId && item.carrierId === carrierId
+        (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
       );
       if (selectedObject) {
-        setValue('carrierInfo.manualToAddress.line1', selectedObject.addressLine1);
-        setValue('carrierInfo.manualToAddress.line2', selectedObject.addressLine2);
-        setValue('carrierInfo.manualToAddress.city', selectedObject.city);
-        setValue('carrierInfo.manualToAddress.state', selectedObject.state);
-        setValue('carrierInfo.manualToAddress.zip', selectedObject.zip);
+        setValue('carrierInfo.manualToAddress.line1', selectedObject?.address?.addressLine1);
+        setValue('carrierInfo.manualToAddress.line2', selectedObject?.address?.addressLine2);
+        setValue('carrierInfo.manualToAddress.city', selectedObject?.address?.city);
+        setValue('carrierInfo.manualToAddress.state', selectedObject?.address?.state);
+        setValue('carrierInfo.manualToAddress.zip', selectedObject?.address?.zip);
         setValue('carrierInfo.lineHaul.carrier', watchedToLocation);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
       if (selectedRouting === 'pickup_linehaul' && selectedObject) {
         setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
     }
   }, [watchedToLocation,]);
@@ -4016,20 +4014,20 @@ const ShipmentForm = () => {
     if (watchedLinehaulToLocationType === 'Carrier' && watchedLinehaulToLocation) {
       const [terminalId, carrierId] = watchedLinehaulToLocation.split('-');
       const selectedObject = carrierTerminalDropdown.find(
-        (item) => item.terminalId === terminalId && item.carrierId === carrierId
+        (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
       );
       if (selectedObject) {
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject.addressLine1);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject.addressLine2);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject.city);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject.zip);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject.state);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject?.address?.addressLine1);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject?.address?.addressLine2);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject?.address?.city);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject?.address?.state);
         setValue('carrierInfo.deliveryDetails.carrier', watchedLinehaulToLocation);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
     }
   }, [watchedLinehaulToLocation]);
@@ -4078,15 +4076,15 @@ const ShipmentForm = () => {
       if (selectedRouting === 'pickup_linehaul') {
         const [terminalId, carrierId] = watchedToLocation.split('-');
         const selectedObject = carrierTerminalDropdown.find(
-          (item) => item.terminalId === terminalId && item.carrierId === carrierId
+          (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
         );
         if (selectedObject) {
           setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject.addressLine1);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject.addressLine2);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject.city);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject.zip);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject.state);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
         }
       }
       if (selectedRouting === 'pickup_only') {
@@ -4137,6 +4135,9 @@ const ShipmentForm = () => {
   // call use effect when there is change in select carrier of pickup and linehaul to update the address details in linehaul
   const watchedSelectedPickupCarrier = useWatch({ control, name: "carrierInfo.selectCarrier" });
   const watchedSelectedLineHaulCarrier = useWatch({ control, name: "carrierInfo.lineHaul.carrier" });
+  const watchedSelectedDeliveryCarrier = useWatch({ control, name: "carrierInfo.deliveryDetails.carrier" });
+  const watchedPickupAdditionalMails = useWatch({ control, name: "carrierInfo.pickupAlertDetails.additionalEmailsArray" });
+  const watchedDeliveryAdditionalMails = useWatch({ control, name: "carrierInfo.deliveryDetails.additionalEmailsArray" });
 
   useEffect(() => {
     if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress) {
@@ -4144,15 +4145,15 @@ const ShipmentForm = () => {
         const [terminalId, carrierId] = getValues('carrierInfo.selectCarrier').split('-');
         if (terminalId && carrierId) {
           const selectedObject = carrierTerminalDropdown.find(
-            (item) => item.terminalId === terminalId && item.carrierId === carrierId
+            (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
           );
           setCarrierTerminalSelectError(false);
           console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
         } else {
           setCarrierTerminalSelectError(true);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
@@ -4166,15 +4167,15 @@ const ShipmentForm = () => {
         const [terminalId, carrierId] = getValues('carrierInfo.lineHaul.carrier').split('-');
         if (terminalId && carrierId) {
           const selectedObject = carrierTerminalDropdown.find(
-            (item) => item.terminalId === terminalId && item.carrierId === carrierId
+            (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
           );
           setCarrierTerminalSelectError(false);
           console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject.addressLine1);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject.addressLine2);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject.zip);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject.state);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
         } else {
           setCarrierTerminalSelectError(true);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
@@ -4189,9 +4190,9 @@ const ShipmentForm = () => {
       const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
       if (terminalId && carrierId) {
         const selectedObject = carrierTerminalDropdown.find(
-          (item) => item.terminalId === terminalId && item.carrierId === carrierId
+          (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
         );
-        if (selectedObject.carrierName.includes('R&M')) {
+        if (selectedObject?.carrierName?.includes('R&M')) {
           setValue('carrierInfo.pickupAlert', false);
         } else {
           setValue('carrierInfo.pickupAlert', true);
@@ -4200,6 +4201,46 @@ const ShipmentForm = () => {
 
     }
   }, [watchedLineHaulToggledAddress, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier]);
+  // useeffect for updating primary mail and additional mails
+  useEffect(() => {
+    // updating primary mail
+    if (watchedSelectedPickupCarrier) {
+      const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
+      if (terminalId && carrierId) {
+        const selectedObject = carrierTerminalDropdown.find(
+          (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
+        );
+        if (selectedObject && Object.keys(selectedObject).length > 0) {
+          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedObject?.terminalEmail);
+          setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedObject?.emails);
+        }
+      }
+    }
+
+    if (watchedSelectedDeliveryCarrier) {
+      const [terminalId, carrierId] = watchedSelectedDeliveryCarrier.split('-');
+      if (terminalId && carrierId) {
+        const selectedObject = carrierTerminalDropdown.find(
+          (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
+        );
+        if (selectedObject && Object.keys(selectedObject).length > 0) {
+          setValue('carrierInfo.deliveryDetails.primaryEmail', selectedObject?.terminalEmail);
+          setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedObject?.emails);
+        }
+      }
+    }
+
+  }, [watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier])
+
+  useEffect(() => {
+    if (watchedOriginAirport.length > 2) {
+      dispatch(getShipperAirlineDropdown(watchedOriginAirport, ''));
+    }
+  }, [watchedOriginAirport])
+  useEffect(() => {
+    if (watchedDestinationAirport.length > 2)
+      dispatch(getConsigneeAirlineDropdown(watchedDestinationAirport, ''));
+  }, [watchedDestinationAirport])
 
   const handleNext = async () => {
     console.log('Current Form Values:', getValues());
@@ -4265,7 +4306,8 @@ const ShipmentForm = () => {
         "state": currentValues.shipperState,
         "zipCode": currentValues.shipperZip,
         "contactPersonName": currentValues.shipperContact,
-        "phoneNumber": currentValues.shipperPhone
+        "phoneNumber": currentValues.shipperPhone,
+        'entityId': currentValues?.shipperName?.entityId,
       },
       "pickupAirlineDetails": {
         "airlineId": currentValues?.shipperName?.shipperId || null,
@@ -4281,6 +4323,7 @@ const ShipmentForm = () => {
         "contactPersonName": currentValues?.shipperContact,
         "phoneNumber": currentValues.shipperPhone,
         "handler": '',
+        'entityId': currentValues?.shipperName?.entityId || null,
       },
       "consigneeDetails": {
         "consigneeId": currentValues?.consigneeName?.consigneeId || null,
@@ -4291,7 +4334,8 @@ const ShipmentForm = () => {
         "state": currentValues.consigneeState,
         "zipCode": currentValues.consigneeZip,
         "contactPersonName": currentValues.consigneeContact,
-        "phoneNumber": currentValues.consigneePhone
+        "phoneNumber": currentValues.consigneePhone,
+        'entityId': currentValues?.consigneeName?.entityId,
       },
       "deliveryAirlineDetails": {
         "airlineId": currentValues?.consigneeName?.consigneeId || null,
@@ -4307,6 +4351,7 @@ const ShipmentForm = () => {
         "contactPersonName": currentValues?.consigneeContact,
         "phoneNumber": currentValues.consigneePhone,
         "handler": '',
+        'entityId': currentValues?.consigneeName?.entityId || null,
       },
     };
     if (watchedAirportPickupService) {
@@ -4362,9 +4407,475 @@ const ShipmentForm = () => {
       };
     }
 
-    if (activeStep === 2) {
-      dispatch(postStep1(obj));
+    // step 3
+    console.log(selectedRouting, watchedLinehaulSelectRouting);
+    const [pickupTerminalId, pickupCarrierId] = watchedSelectedPickupCarrier.split('-');
+    const [linehaulTerminalId, linehaulCarrierId] = watchedSelectedLineHaulCarrier.split('-');
+    const [deliveryTerminalId, deliveryCarrierId] = watchedSelectedDeliveryCarrier.split('-');
+
+    const [pickupToLocTerminalId, pickupToLocCarrierId] = watchedToLocation.split('-');
+    const [linehaulToLocTerminalId, linehaulToLocCarrierId] = watchedLinehaulToLocation.split('-');
+    const [deliveryToLocTerminalId, deliveryToLocCarrierId] = watchedDeliveryToLocation.split('-');
+
+    // From Location
+    const selectedPickupCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(pickupTerminalId) && item.carrierId === Number(pickupCarrierId)
+    );
+    const selectedLinehaulCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(linehaulTerminalId) && item.carrierId === Number(linehaulCarrierId)
+    );
+    const selectedDeliveryCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(deliveryTerminalId) && item.carrierId === Number(deliveryCarrierId)
+    );
+    // To Location
+    const selectedPickupToCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(pickupToLocTerminalId) && item.carrierId === Number(pickupToLocCarrierId)
+    );
+    const selectedLinehaulToCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(linehaulToLocTerminalId) && item.carrierId === Number(linehaulToLocCarrierId)
+    );
+    const selectedDeliveryToCarrierObject = carrierTerminalDropdown.find(
+      (item) => item.terminalId === Number(deliveryToLocTerminalId) && item.carrierId === Number(deliveryToLocCarrierId)
+    );
+
+
+    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+      // obj to send
+      // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
+      // fromLocationEntityId not there in from location
+      obj.carrierDetails = {
+        "carrierDetails": {
+          "pickupDetails": {
+            "pickupRouting": "PICKUP_ONLY",
+            "fromLocationType": "Shipper",
+            "fromLocation": currentValues?.carrierInfo?.fromLocation,
+            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+            "carrierId": Number(pickupCarrierId),
+            "terminalId": Number(pickupTerminalId),
+            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualAddress?.city,
+              "state": currentValues?.carrierInfo?.manualAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+            },
+            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+            "pickupAgentTerminalDetails": {
+              "toLocationType": "Carrier",
+              "toLocation": currentValues?.carrierInfo?.toLocation,
+              "toLocationEntityId": selectedPickupToCarrierObject.entityId || null,
+              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+              }
+            },
+            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+            "pickupAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            },
+            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+            "pickupAlertDetails": {
+              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "emailInfo": {
+                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+              }
+            }
+          },
+          "linehaulDetails": {
+            "linehaulPrimaryInfo": {
+              "linehaulRouting": "LINE_HAUL",
+              "carrierId": Number(linehaulCarrierId),
+              "terminalId": Number(linehaulTerminalId),
+              "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
+              "fromLocationType": "Carrier",
+              "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
+              "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
+              "toLocationType": "Carrier",
+              "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
+              // still to get
+              "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+              "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
+              "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
+              "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
+              'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+              "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
+              "editFromLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
+              },
+              "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
+              }
+            },
+            "linehaulCommonInfo": {
+              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+              "linehaulAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+              }
+            }
+          },
+          "deliveryDetails": {
+            "deliveryPrimaryInfo": {
+              "carrierId": Number(deliveryCarrierId),
+              "terminalId": Number(deliveryTerminalId),
+              "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
+              "fromLocationType": "Carrier",
+              "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
+              "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+              "toLocationType": "Consignee",
+              "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
+              "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+              "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
+              "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
+              "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
+              'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+              "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
+              "editFromLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
+              },
+              "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
+              }
+            },
+            "deliveryCommonInfo": {
+              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+              "deliveryAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
+              },
+              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+              "deliveryAlertDetails": {
+                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
+                "emailInfo": {
+                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
+                }
+              }
+            }
+          }
+        }
+      }
     }
+    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
+      obj.carrierDetails = {
+        "carrierDetails": {
+          "pickupDetails": {
+            "pickupRouting": "PICKUP_ONLY",
+            "fromLocationType": "Shipper",
+            "fromLocation": currentValues?.carrierInfo?.fromLocation,
+            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+            "carrierId": Number(pickupCarrierId),
+            "terminalId": Number(pickupTerminalId),
+            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualAddress?.city,
+              "state": currentValues?.carrierInfo?.manualAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+            },
+            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+            "pickupAgentTerminalDetails": {
+              "toLocationType": "Carrier",
+              "toLocation": currentValues?.carrierInfo?.toLocation,
+              "toLocationEntityId": selectedPickupCarrierObject?.entityId,
+              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+              }
+            },
+            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+            "pickupAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            },
+            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+            "pickupAlertDetails": {
+              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "emailInfo": {
+                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+              }
+            }
+          },
+          "linehaulDetails": {
+            "linehaulPrimaryInfo": {
+              "linehaulRouting": "LINE_HAUL_DELIVERY",
+              "carrierId": Number(linehaulCarrierId),
+              "terminalId": Number(linehaulTerminalId),
+              "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
+              "fromLocationType": "Carrier",
+              "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
+              "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
+              "toLocationType": "Carrier",
+              "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
+              "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+              "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
+              "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
+              "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
+              'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+              "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
+              "editFromLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
+              },
+              "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
+              }
+            },
+            "linehaulCommonInfo": {
+              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+              "linehaulAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+              }
+            }
+          },
+          "deliveryDetails": {
+
+            "deliveryCommonInfo": {
+              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+              "deliveryAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
+              },
+              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+              "deliveryAlertDetails": {
+                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
+                "emailInfo": {
+                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (selectedRouting === 'pickup_linehaul') {
+      obj.carrierDetails = {
+        "carrierDetails": {
+          "pickupDetails": {
+            "pickupRouting": "PICKUP_LINE_HAUL",
+            "fromLocationType": "Carrier",
+            "fromLocation": currentValues?.carrierInfo?.fromLocation,
+            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+            "carrierId": Number(pickupCarrierId),
+            "terminalId": Number(pickupTerminalId),
+            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualAddress?.city,
+              "state": currentValues?.carrierInfo?.manualAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+            },
+            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+            "pickupAgentTerminalDetails": {
+              "toLocationType": "Carrier",
+              "toLocation": currentValues?.carrierInfo?.toLocation,
+              "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+              }
+            },
+            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+            "pickupAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            },
+            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+            "pickupAlertDetails": {
+              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "emailInfo": {
+                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+              }
+            }
+          },
+          "linehaulDetails": {
+            "linehaulCommonInfo": {
+              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+              "linehaulAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+              }
+            }
+          },
+          "deliveryDetails": {
+            "deliveryPrimaryInfo": {
+              "carrierId": Number(deliveryCarrierId),
+              "terminalId": Number(deliveryTerminalId),
+              "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
+              "fromLocationType": "Consignee",
+              "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
+              "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+              "toLocationType": "Consignee",
+              "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
+              "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+              "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
+              "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
+              "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
+              'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+              "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
+              "editFromLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
+              },
+              "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
+                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
+              }
+            },
+            "deliveryCommonInfo": {
+              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+              "deliveryAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
+              },
+              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+              "deliveryAlertDetails": {
+                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
+                "emailInfo": {
+                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    if (selectedRouting === 'pickup_linehaul_delivery') {
+      obj.carrierDetails = {
+        "carrierDetails": {
+          "pickupDetails": {
+            "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
+            "fromLocationType": "Carrier",
+            "fromLocation": currentValues?.carrierInfo?.fromLocation,
+            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+            "carrierId": Number(pickupCarrierId),
+            "terminalId": Number(pickupTerminalId),
+            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualAddress?.city,
+              "state": currentValues?.carrierInfo?.manualAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+            },
+            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+            "pickupAgentTerminalDetails": {
+              "toLocationType": "Consignee",
+              "toLocation": currentValues?.carrierInfo?.toLocation,
+              "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+              "editToLocationDetails": {
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+              }
+            },
+            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+            "pickupAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            },
+            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+            "pickupAlertDetails": {
+              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "emailInfo": {
+                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+              }
+            }
+          },
+          "linehaulDetails": {
+            "linehaulCommonInfo": {
+              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+              "linehaulAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+              }
+            }
+          },
+          "deliveryDetails": {
+            "deliveryCommonInfo": {
+              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+              "deliveryAccessorialDetails": {
+                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
+              },
+              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+              "deliveryAlertDetails": {
+                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
+                "emailInfo": {
+                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+
+
+    // if (activeStep === 2) {
+    //   dispatch(postStep1(obj));
+    // }
 
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
@@ -4373,6 +4884,35 @@ const ShipmentForm = () => {
     }
 
   };
+
+  useEffect(() => {
+    console.log(shipperAirlineDropdown);
+  }, [shipperAirlineDropdown])
+
+  useEffect(() => {
+    // if (watchedAirportPickupService) {
+    // if they check or uncheck the values have to be empty for the new select
+    setValue('shipperAddr1', '');
+    setValue('shipperAddr2', '');
+    setValue('shipperCity', '');
+    setValue('shipperState', '');
+    setValue('shipperZip', '');
+    setValue('shipperContact', '');
+    setValue('shipperPhone', '');
+    // }
+  }, [watchedAirportPickupService])
+  useEffect(() => {
+    // if (watchedAirportDeliveryService) {
+    // if they check or uncheck the values have to be empty for the new select
+    setValue('consigneeAddr1', '');
+    setValue('consigneeAddr2', '');
+    setValue('consigneeCity', '');
+    setValue('consigneeState', '');
+    setValue('consigneeZip', '');
+    setValue('consigneeContact', '');
+    setValue('consigneePhone', '');
+    // }
+  }, [watchedAirportDeliveryService])
 
   return (
     <ErrorBoundary
@@ -4855,6 +5395,15 @@ const ShipmentForm = () => {
                           } else {
                             // User selected an existing shipper object
                             onChange(newValue);
+                            if (Object.keys(newValue).length > 0) {
+                              setValue('shipperAddr1', newValue.addressLine1 || '');
+                              setValue('shipperAddr2', newValue.addressLine2 || '');
+                              setValue('shipperCity', newValue.city || '');
+                              setValue('shipperState', newValue.state || '');
+                              setValue('shipperZip', newValue.zipCode || '');
+                              setValue('shipperContact', newValue.contactPersonName || '');
+                              setValue('shipperPhone', newValue.phoneNumber || '');
+                            }
                           }
                         }}
 
@@ -4928,17 +5477,18 @@ const ShipmentForm = () => {
                           if (!value) return true; // Handled by 'required' if empty
 
                           // 1. Skip custom text check if a valid selection was chosen from the dropdown list
-                          if (typeof value === 'object' && value.airlineNumber) {
+                          if (typeof value === 'object' && value.airlineId) {
                             return true;
                           }
 
                           // 2. Fallback check for manually typed custom text strings
                           const textToValidate = typeof value === 'string' ? value : (value.airlineName || '');
 
-                          // Double-check if the typed text matches any option's code/number to prevent false positives
-                          const isPreExisting = airlineDropdown.some(
-                            (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
-                          );
+                          // Check if the exact full string matches an existing option's formatted text
+                          const isPreExisting = shipperAirlineDropdown.some((opt) => {
+                            const fullString = `${opt.airlineNumber} - ${opt.airlineCode} - ${opt.airlineName}`;
+                            return textToValidate.trim().toLowerCase() === fullString.toLowerCase();
+                          });
                           if (isPreExisting) return true;
 
                           // 3. Strict component checks for completely custom text entries
@@ -4948,12 +5498,12 @@ const ShipmentForm = () => {
                           const codePart = parts[1] || '';
                           const namePart = parts[2] || '';
 
-                          // Validate Airline Number (Exactly 3 digits)
+                          // Validate Airline Number (Matches the 4-digit requirement)
                           if (!/^\d{4}$/.test(numPart)) {
                             return 'Airline Number must be exactly 4 digits (Ex: 6788)';
                           }
 
-                          // Validate Airline Code (Exactly 2 letters)
+                          // Validate Airline Code (Exactly 3 letters)
                           if (!/^[A-Za-z]{3}$/.test(codePart)) {
                             return 'Airline Code must be exactly 3 letters (Ex: AAA)';
                           }
@@ -4963,8 +5513,8 @@ const ShipmentForm = () => {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // Final structural confirmation (Digits - 2 Letters - Name)
-                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/;
+                          // Final structural confirmation (Digits - 3 Letters - Name)
+                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
                           }
@@ -4977,9 +5527,9 @@ const ShipmentForm = () => {
                         <Autocomplete
                           freeSolo
                           options={
-                            watchedOriginAirport ? airlineDropdown.filter(
+                            watchedOriginAirport ? shipperAirlineDropdown.filter(
                               (item) => item.airportCode === watchedOriginAirport
-                            ) : airlineDropdown
+                            ) : shipperAirlineDropdown
                           }
                           value={value || null}
 
@@ -4993,7 +5543,7 @@ const ShipmentForm = () => {
                             }
                           }}
 
-                          // 4. User-friendly typing mask handler matching the strict validation rules
+                          // User-friendly typing mask handler matching the strict 4-digit/3-letter validation rules
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
                               const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
@@ -5003,13 +5553,13 @@ const ShipmentForm = () => {
                                 // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
                                 let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
 
-                                // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
-                                if (/^\d{3}$/.test(clean)) {
+                                // Rule A: Auto-append " - " ONLY when exactly 4 digits are reached
+                                if (/^\d{4}$/.test(clean)) {
                                   formatted = `${clean} - `;
                                 }
 
                                 // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                                const match = clean.match(/^(\d{4})\s*-\s*([A-Za-z]{3})$/);
                                 if (match) {
                                   formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
                                 }
@@ -5018,6 +5568,26 @@ const ShipmentForm = () => {
                               onChange({ airlineId: null, airlineName: formatted });
                             }
                           }}
+
+                          getOptionLabel={(option) => {
+                            if (typeof option === 'string') return option;
+                            if (option.inputValue) return option.inputValue;
+
+                            if (option.airlineId) {
+                              const num = option.airlineNumber || '';
+                              const code = option.airlineCode || '';
+                              const name = option.airlineName || '';
+                              const city = option.city || '';
+                              const airCode = option.airportCode || '';
+                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                            }
+
+                            return option.airlineName || '';
+                          }}
+
+                          isOptionEqualToValue={(option, val) =>
+                            option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
+                          }
 
                           renderOption={(props, option) => {
                             const { key, ...optionProps } = props;
@@ -5033,7 +5603,6 @@ const ShipmentForm = () => {
                             const num = option.airlineNumber || '';
                             const code = option.airlineCode || '';
                             const name = option.airlineName || '';
-
                             const city = option.city || '';
                             const airCode = option.airportCode || '';
 
@@ -5046,20 +5615,20 @@ const ShipmentForm = () => {
 
                           filterOptions={(options, params) => {
                             const { inputValue } = params;
-                            const searchStr = inputValue.toLowerCase().trim();
+                            const searchStr = (inputValue || '').toLowerCase().trim();
 
                             const filtered = options.filter((option) => {
                               return (
-                                (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                                (option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                                (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                                (option.city || '').toLowerCase().includes(searchStr) ||
-                                (option.airportCode || '').toLowerCase().includes(searchStr)
+                                String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                String(option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                String(option.city || '').toLowerCase().includes(searchStr) ||
+                                String(option.airportCode || '').toLowerCase().includes(searchStr)
                               );
                             });
 
                             const isExisting = options.some(
-                              (option) => searchStr === (option.airlineName || '').toLowerCase()
+                              (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
                             );
 
                             if (inputValue !== '' && !isExisting) {
@@ -5071,26 +5640,6 @@ const ShipmentForm = () => {
 
                             return filtered;
                           }}
-
-                          getOptionLabel={(option) => {
-                            if (typeof option === 'string') return option;
-                            if (option.inputValue) return option.inputValue;
-
-                            if (option.airlineNumber) {
-                              const num = option.airlineNumber || '';
-                              const code = option.airlineCode || '';
-                              const name = option.airlineName || '';
-                              const city = option.city || '';
-                              const airCode = option.airportCode || '';
-                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
-                            }
-
-                            return option.airlineName || '';
-                          }}
-
-                          isOptionEqualToValue={(option, val) =>
-                            option.shipperId === val?.airlineId || option.airlineName === val?.airlineName
-                          }
 
                           renderInput={(params) => (
                             <TextField
@@ -5107,6 +5656,7 @@ const ShipmentForm = () => {
                         />
                       )}
                     />
+
 
                   }
 
@@ -5162,6 +5712,15 @@ const ShipmentForm = () => {
                           } else {
                             // User selected an existing item from the dropdown
                             onChange(newValue);
+                            if (Object.keys(newValue).length > 0) {
+                              setValue('consigneeAddr1', newValue.addressLine1 || '');
+                              setValue('consigneeAddr2', newValue.addressLine2 || '');
+                              setValue('consigneeCity', newValue.city || '');
+                              setValue('consigneeState', newValue.state || '');
+                              setValue('consigneeZip', newValue.zipCode || '');
+                              setValue('consigneeContact', newValue.contactPersonName || '');
+                              setValue('consigneePhone', newValue.phoneNumber || '');
+                            }
                           }
                         }}
 
@@ -5224,42 +5783,45 @@ const ShipmentForm = () => {
                   />}
                   {
                     watchedAirportDeliveryService &&
+
                     <Controller
                       name="consigneeName"
                       control={control}
                       rules={{
                         required: watchedAirportDeliveryService ? 'This field is required' : false,
                         validate: (value) => {
-                          if (!value) return true;
+                          if (!value) return true; // Handled by 'required' if empty
 
                           // 1. Skip custom text check if a valid selection was chosen from the dropdown list
-                          if (typeof value === 'object' && value.airlineNumber) {
+                          if (typeof value === 'object' && value.airlineId) {
                             return true;
                           }
 
-                          const textToValidate = typeof value === 'string' ? value : (value.consigneeName || '');
+                          // 2. Fallback check for manually typed custom text strings
+                          const textToValidate = typeof value === 'string' ? value : (value.airlineName || '');
 
-                          // Double check dropdown option list match to prevent false-positives
-                          const isPreExisting = consigneeDropdown.some(
-                            (opt) => opt.airlineNumber && textToValidate.includes(opt.airlineNumber)
-                          );
+                          // Check if the exact full string matches an existing option's formatted text
+                          const isPreExisting = consigneeAirlineDropdown.some((opt) => {
+                            const fullString = `${opt.airlineNumber} - ${opt.airlineCode} - ${opt.airlineName}`;
+                            return textToValidate.trim().toLowerCase() === fullString.toLowerCase();
+                          });
                           if (isPreExisting) return true;
 
-                          // 2. Strict component checks for completely custom text entries
+                          // 3. Strict component checks for completely custom text entries
                           const parts = textToValidate.split('-').map(p => p.trim());
 
                           const numPart = parts[0] || '';
                           const codePart = parts[1] || '';
                           const namePart = parts[2] || '';
 
-                          // Validate Airline Number (Exactly 3 digits)
-                          if (!/^\d{3}$/.test(numPart)) {
-                            return 'Airline Number must be exactly 3 digits (Ex: 678)';
+                          // Validate Airline Number (Matches the 4-digit requirement)
+                          if (!/^\d{4}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 4 digits (Ex: 6788)';
                           }
 
-                          // Validate Airline Code (Exactly 2 letters)
-                          if (!/^[A-Za-z]{2}$/.test(codePart)) {
-                            return 'Airline Code must be exactly 2 letters (Ex: AA)';
+                          // Validate Airline Code (Exactly 3 letters)
+                          if (!/^[A-Za-z]{3}$/.test(codePart)) {
+                            return 'Airline Code must be exactly 3 letters (Ex: AAA)';
                           }
 
                           // Validate Airline Name exists
@@ -5267,8 +5829,8 @@ const ShipmentForm = () => {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // Final structural confirmation (Digits - 2 Letters - Name)
-                          const formatRegex = /^\d{3} - [A-Z]{2} - .+$/;
+                          // Final structural confirmation (Digits - 3 Letters - Name)
+                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
                           }
@@ -5276,27 +5838,28 @@ const ShipmentForm = () => {
                           return true;
                         }
                       }}
+
                       render={({ field: { onChange, value, ref } }) => (
                         <Autocomplete
                           freeSolo
                           options={
-                            watchedDestinationAirport ? consigneeDropdown.filter(
+                            watchedDestinationAirport ? consigneeAirlineDropdown.filter(
                               (item) => item.airportCode === watchedDestinationAirport
-                            ) : consigneeDropdown
+                            ) : consigneeAirlineDropdown
                           }
                           value={value || null}
 
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              onChange({ consigneeId: null, consigneeName: newValue });
+                              onChange({ airlineId: null, airlineName: newValue });
                             } else if (newValue && newValue.inputValue) {
-                              onChange({ consigneeId: null, consigneeName: newValue.inputValue });
+                              onChange({ airlineId: null, airlineName: newValue.inputValue });
                             } else {
                               onChange(newValue);
                             }
                           }}
 
-                          // 3. User-friendly typing mask handler matching the strict validation rules
+                          // User-friendly typing mask handler matching the strict 4-digit/3-letter validation rules
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
                               const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
@@ -5306,21 +5869,41 @@ const ShipmentForm = () => {
                                 // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
                                 let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
 
-                                // Rule A: Auto-append " - " ONLY when exactly 3 digits are reached
-                                if (/^\d{3}$/.test(clean)) {
+                                // Rule A: Auto-append " - " ONLY when exactly 4 digits are reached
+                                if (/^\d{4}$/.test(clean)) {
                                   formatted = `${clean} - `;
                                 }
 
                                 // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2})$/);
+                                const match = clean.match(/^(\d{4})\s*-\s*([A-Za-z]{3})$/);
                                 if (match) {
                                   formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
                                 }
                               }
 
-                              onChange({ consigneeId: null, consigneeName: formatted });
+                              onChange({ airlineId: null, airlineName: formatted });
                             }
                           }}
+
+                          getOptionLabel={(option) => {
+                            if (typeof option === 'string') return option;
+                            if (option.inputValue) return option.inputValue;
+
+                            if (option.airlineId) {
+                              const num = option.airlineNumber || '';
+                              const code = option.airlineCode || '';
+                              const name = option.airlineName || '';
+                              const city = option.city || '';
+                              const airCode = option.airportCode || '';
+                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                            }
+
+                            return option.airlineName || '';
+                          }}
+
+                          isOptionEqualToValue={(option, val) =>
+                            option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
+                          }
 
                           renderOption={(props, option) => {
                             const { key, ...optionProps } = props;
@@ -5328,7 +5911,7 @@ const ShipmentForm = () => {
                             if (option.inputValue) {
                               return (
                                 <Box component="li" key={key} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                  Add: "{option.inputValue}"
+                                  Add :  "{option.inputValue}"
                                 </Box>
                               );
                             }
@@ -5348,59 +5931,38 @@ const ShipmentForm = () => {
 
                           filterOptions={(options, params) => {
                             const { inputValue } = params;
-                            const searchStr = inputValue.toLowerCase().trim();
+                            const searchStr = (inputValue || '').toLowerCase().trim();
 
                             const filtered = options.filter((option) => {
                               return (
-                                (option.consigneeName || '').toLowerCase().includes(searchStr) ||
-                                (option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                                (option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                                (option.airlineName || '').toLowerCase().includes(searchStr) ||
-                                (option.city || '').toLowerCase().includes(searchStr) ||
-                                (option.airportCode || '').toLowerCase().includes(searchStr)
+                                String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                String(option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                String(option.city || '').toLowerCase().includes(searchStr) ||
+                                String(option.airportCode || '').toLowerCase().includes(searchStr)
                               );
                             });
 
                             const isExisting = options.some(
-                              (option) => searchStr === (option.consigneeName || '').toLowerCase()
+                              (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
                             );
 
                             if (inputValue !== '' && !isExisting) {
                               filtered.unshift({
                                 inputValue,
-                                consigneeName: `${inputValue}`,
+                                airlineName: `${inputValue}`,
                               });
                             }
 
                             return filtered;
                           }}
 
-                          getOptionLabel={(option) => {
-                            if (typeof option === 'string') return option;
-                            if (option.inputValue) return option.inputValue;
-
-                            if (option.airlineNumber) {
-                              const num = option.airlineNumber || '';
-                              const code = option.airlineCode || '';
-                              const name = option.airlineName || '';
-                              const city = option.city || '';
-                              const airCode = option.airportCode || '';
-                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
-                            }
-
-                            return option.consigneeName || '';
-                          }}
-
-                          isOptionEqualToValue={(option, val) =>
-                            option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
-                          }
-
                           renderInput={(params) => (
                             <TextField
                               {...params}
                               inputRef={ref}
                               fullWidth
-                              label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
+                              label={`Airline Name ${watchedAirportDeliveryService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['consigneeName']}
                               helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
@@ -5892,48 +6454,62 @@ const ShipmentForm = () => {
                         rules={{ required: true }}
                         render={({ field: { onChange, value, ...fieldProps } }) => (
                           <Autocomplete
-                            {...fieldProps} // Spreads ref and name from React Hook Form
+                            {...fieldProps}
                             fullWidth
                             options={carrierTerminalDropdown || []}
 
-                            // Matches the combined string value logic from your previous MenuItem setup
+                            // --- PLUG IN FILTER OPTION HERE ---
+                            filterOptions={(options, state) => {
+                              const inputValue = state.inputValue.trim().toLowerCase();
+                              if (!inputValue) return options;
+
+                              return options.filter((option) => {
+                                const carrierName = (option.carrierName || '').toLowerCase();
+                                const terminalName = (option.terminalName || '').toLowerCase();
+                                const carrierId = String(option.carrierId || '');
+                                const terminalId = String(option.terminalId || '');
+                                const stateName = (option.address?.state || '').toLowerCase();
+                                const mainEmail = (option.terminalEmail || '').toLowerCase();
+                                const personnelEmails = (option.emails || []).map(e => (e.email || '').toLowerCase());
+
+                                return (
+                                  carrierName.includes(inputValue) ||
+                                  terminalName.includes(inputValue) ||
+                                  carrierId.includes(inputValue) ||
+                                  terminalId.includes(inputValue) ||
+                                  stateName.includes(inputValue) ||
+                                  mainEmail.includes(inputValue) ||
+                                  personnelEmails.some(email => email.includes(inputValue))
+                                );
+                              });
+                            }}
+
                             getOptionLabel={(option) => {
                               if (option && option.carrierName && option.terminalName) {
                                 return `${option.carrierName} | ${option.terminalName}`;
                               }
                               return "";
                             }}
-
-                            // Finds the matching option object from carrierTerminalDropdown array based on the stored value
                             value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                            // Updates React Hook Form state on change
                             onChange={(event, newValue) => {
                               isSelectingCarrierPickupRef.current = true;
-
-                              // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
                               const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
                               onChange(formValue);
                             }}
-
                             onInputChange={(event, newInputValue, reason) => {
                               if (reason !== "reset") {
                                 setSelectCarrierPickupSearchValue(newInputValue);
-                                // if (!newInputValue || newInputValue.trim() === "") {
-                                //   dispatch(searchCarriers(""));
-                                // }
                               }
                             }}
                             loading={isLoading}
                             loadingText="Searching carriers..."
                             noOptionsText={selectCarrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
-
                             renderInput={(params) => (
                               <TextField
                                 {...params}
                                 variant="standard"
                                 label="Select Carrier *"
-                                error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                error={!!errors.carrierInfo?.toLocation}
                                 helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
                                 InputLabelProps={{ shrink: true }}
                                 sx={{
@@ -5957,6 +6533,7 @@ const ShipmentForm = () => {
                           />
                         )}
                       />
+
                     </Box>
                     <Box sx={{ flex: '1 1 200px' }}>
                       <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
@@ -6388,7 +6965,7 @@ const ShipmentForm = () => {
                         Email Info
                       </Typography>
 
-                      <Box sx={{ display: 'flex', gap: 4 }}>
+                      <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                         <Box sx={{ flex: 1 }}>
                           <Controller
                             name="carrierInfo.pickupAlertDetails.primaryEmail"
@@ -6422,25 +6999,74 @@ const ShipmentForm = () => {
                             rules={{
                               validate: (value) => {
                                 if (!value) return true;
-                                const emails = value.split(',').map(e => e.trim());
+                                // Split the comma-separated string back into an array to validate each item
+                                const emails = value.split(',').map(e => e.trim()).filter(Boolean);
                                 const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
                                 const allValid = emails.every(email => emailRegex.test(email));
-                                return allValid || "One or more emails are invalid (separate by comma)";
+                                return allValid || "One or more emails are invalid";
                               }
                             }}
-                            render={({ field, fieldState: { error } }) => (
-                              <TextField
-                                {...field}
-                                fullWidth
-                                label="Additional Email"
-                                variant="standard"
-                                InputLabelProps={{ shrink: true }}
-                                placeholder="email1@test.com, email2@test.com"
-                                error={!!error}
-                                helperText={error?.message}
-                              />
-                            )}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => {
+                              // Transform the comma-separated string from RHF state into an array for MUI Autocomplete
+                              const selectedEmailsArray = value ? value.split(',').map(e => e.trim()).filter(Boolean) : [];
+
+                              // Assuming your data array is available in a variable (e.g., watchedPickupAdditionalMails)
+                              // Extract just the email strings to match the Autocomplete's options format
+                              const emailOptions = (watchedPickupAdditionalMails || []).map(item => item.email);
+
+                              return (
+                                <Autocomplete
+                                  multiple
+                                  freeSolo
+                                  options={emailOptions}
+                                  value={selectedEmailsArray}
+
+                                  // Triggers whenever options are clicked OR custom text is committed with Enter/Comma
+                                  onChange={(event, newValue) => {
+                                    // Flatten any pasted or comma-separated strings inside the array
+                                    const processedEmails = newValue
+                                      .flatMap(item => item.split(','))
+                                      .map(e => e.trim())
+                                      .filter(Boolean);
+
+                                    // Save back to React Hook Form as a comma-separated string
+                                    onChange(processedEmails.join(', '));
+                                  }}
+
+                                  // Handles local lookup matching
+                                  filterOptions={(options, params) => {
+                                    const filtered = options.filter(option =>
+                                      option.toLowerCase().includes(params.inputValue.toLowerCase())
+                                    );
+
+                                    const { inputValue } = params;
+                                    const isExisting = options.some((option) => inputValue === option);
+
+                                    // Suggest adding the custom typed email if it doesn't exist and isn't blank
+                                    if (inputValue !== '' && !isExisting) {
+                                      filtered.push(inputValue);
+                                    }
+
+                                    return filtered;
+                                  }}
+
+                                  renderInput={(params) => (
+                                    <TextField
+                                      {...params}
+                                      variant="standard"
+                                      label="Additional Email"
+                                      placeholder={selectedEmailsArray.length === 0 ? "Select or type emails..." : ""}
+                                      InputLabelProps={{ shrink: true }}
+                                      error={!!error}
+                                      helperText={error ? error.message : "Separate custom entries by pressing Enter"}
+                                    />
+                                  )}
+                                  sx={{ mt: 2 }}
+                                />
+                              );
+                            }}
                           />
+
                         </Box>
                       </Box>
                     </Box>
@@ -7763,7 +8389,7 @@ const ShipmentForm = () => {
                           Email Info
                         </Typography>
 
-                        <Box sx={{ display: 'flex', gap: 4 }}>
+                        <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
                           <Box sx={{ flex: 1 }}>
                             <Controller
                               name="carrierInfo.deliveryDetails.primaryEmail"
@@ -7797,25 +8423,74 @@ const ShipmentForm = () => {
                               rules={{
                                 validate: (value) => {
                                   if (!value) return true;
-                                  const emails = value.split(',').map(e => e.trim());
+                                  // Split the comma-separated string back into an array to validate each item
+                                  const emails = value.split(',').map(e => e.trim()).filter(Boolean);
                                   const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
                                   const allValid = emails.every(email => emailRegex.test(email));
-                                  return allValid || "One or more emails are invalid (separate by comma)";
+                                  return allValid || "One or more emails are invalid";
                                 }
                               }}
-                              render={({ field, fieldState: { error } }) => (
-                                <TextField
-                                  {...field}
-                                  fullWidth
-                                  label="Additional Email"
-                                  variant="standard"
-                                  InputLabelProps={{ shrink: true }}
-                                  placeholder="email1@test.com, email2@test.com"
-                                  error={!!error}
-                                  helperText={error?.message}
-                                />
-                              )}
+                              render={({ field: { onChange, value }, fieldState: { error } }) => {
+                                // Transform the comma-separated string from form state into an array for MUI Autocomplete
+                                const selectedEmailsArray = value ? value.split(',').map(e => e.trim()).filter(Boolean) : [];
+
+                                // Map your personnel array down to a flat array of email strings
+                                // Replace 'deliveryDropdownEmails' with your actual data source variable name
+                                const emailOptions = (watchedDeliveryAdditionalMails || []).map(item => item.email);
+
+                                return (
+                                  <Autocomplete
+                                    multiple
+                                    freeSolo
+                                    options={emailOptions}
+                                    value={selectedEmailsArray}
+
+                                    // Triggers whenever options are clicked OR custom text is committed with Enter
+                                    onChange={(event, newValue) => {
+                                      // Flatten any typed, comma-separated strings inside the array
+                                      const processedEmails = newValue
+                                        .flatMap(item => item.split(','))
+                                        .map(e => e.trim())
+                                        .filter(Boolean);
+
+                                      // Save back to React Hook Form as a clean comma-separated string
+                                      onChange(processedEmails.join(', '));
+                                    }}
+
+                                    // Handles matching local choices and supporting custom raw text inputs
+                                    filterOptions={(options, params) => {
+                                      const filtered = options.filter(option =>
+                                        option.toLowerCase().includes(params.inputValue.toLowerCase())
+                                      );
+
+                                      const { inputValue } = params;
+                                      const isExisting = options.some((option) => inputValue === option);
+
+                                      // Suggest adding the custom typed email if it doesn't exist and isn't empty
+                                      if (inputValue !== '' && !isExisting) {
+                                        filtered.push(inputValue);
+                                      }
+
+                                      return filtered;
+                                    }}
+
+                                    renderInput={(params) => (
+                                      <TextField
+                                        {...params}
+                                        variant="standard"
+                                        label="Additional Email"
+                                        placeholder={selectedEmailsArray.length === 0 ? "Select or type emails..." : ""}
+                                        InputLabelProps={{ shrink: true }}
+                                        error={!!error}
+                                        helperText={error ? error.message : "Separate custom entries by pressing Enter"}
+                                      />
+                                    )}
+                                    sx={{ mt: 2 }}
+                                  />
+                                );
+                              }}
                             />
+
                           </Box>
                         </Box>
                       </Box>

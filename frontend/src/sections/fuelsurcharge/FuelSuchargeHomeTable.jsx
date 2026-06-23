@@ -93,7 +93,11 @@ export default function FuelSurchargeHomeTable() {
                 if (!rawValue) return '';
 
                 const dateObj = new Date(rawValue);
-                const formatted = dateObj.toLocaleDateString('en-CA');
+                const formatted = dateObj.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
 
                 return (
                     <Box sx={{ color: 'inherit', fontWeight: 'normal' }}>
@@ -150,7 +154,11 @@ export default function FuelSurchargeHomeTable() {
                 if (!rawValue) return '';
 
                 const dateObj = new Date(rawValue);
-                const formatted = dateObj.toLocaleDateString('en-CA');
+                const formatted = dateObj.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
 
                 return (
                     <Box sx={{ color: 'inherit', fontWeight: 'normal' }}>
@@ -267,7 +275,11 @@ export default function FuelSurchargeHomeTable() {
                 if (!rawValue) return '';
 
                 const dateObj = new Date(rawValue);
-                const formatted = dateObj.toLocaleDateString('en-CA');
+                const formatted = dateObj.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
 
                 return (
                     <Box sx={{ color: 'inherit', fontWeight: 'normal' }}>
@@ -359,7 +371,11 @@ export default function FuelSurchargeHomeTable() {
                 if (!rawValue) return '';
 
                 const dateObj = new Date(rawValue);
-                const formatted = dateObj.toLocaleDateString('en-CA');
+                const formatted = dateObj.toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                });
 
                 return (
                     <Box sx={{ color: 'inherit', fontWeight: 'normal' }}>

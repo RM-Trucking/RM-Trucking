@@ -102,6 +102,8 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
                 "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
+                "isLTLCarrier": (data.carrierType.includes('LTL Carrier') || data.carrierType.includes('Truck Load Carriers') || data.carrierType.includes('LTL Truck Load Carriers') || data.carrierType.includes('Dedicated Carriers') || data.carrierType.includes('Parcel Carriers')) ? "Y" : "N",
+                "isAirportCarrier": (data.carrierType.includes('Airport Carrier') || data.carrierType.includes('Airport Agent')) ? "Y" : "N",
                 "corporatePhoneNumber": data.corporatePhoneNumber,
                 "carrierStatus": "Active",
                 "tsaCertified": data.tsa ? 'Y' : 'N',
@@ -143,6 +145,8 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                 "carrierName": data.carrierName,
                 "carrierType": data.carrierType.join(", "),
                 "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
+                "isLTLCarrier": (data.carrierType.includes('LTL Carrier') || data.carrierType.includes('Truck Load Carriers') || data.carrierType.includes('LTL Truck Load Carriers') || data.carrierType.includes('Dedicated Carriers') || data.carrierType.includes('Parcel Carriers')) ? "Y" : "N",
+                "isAirportCarrier": (data.carrierType.includes('Airport Carrier') || data.carrierType.includes('Airport Agent')) ? "Y" : "N",
                 "carrierStatus": data.carrierStatus ? data.carrierStatus.charAt(0).toUpperCase() + data.carrierStatus.slice(1) : '',
                 "corporatePhoneNumber": data.corporatePhoneNumber,
                 "tsaCertified": data.tsa ? 'Y' : 'N',
@@ -638,7 +642,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={(type === 'View') ? readOnly : false}
-                                        // required
+                                    // required
                                     />
                                 )}
                             />
@@ -879,7 +883,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={readOnly}
-                                        // required
+                                    // required
                                     />
                                 )}
                             />

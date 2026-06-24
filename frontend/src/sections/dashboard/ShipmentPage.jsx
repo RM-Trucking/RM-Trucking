@@ -1478,7 +1478,8 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
           id: prev.length + 1,
           accessorial: data.accessorial,
           type: data.chargesType,
-          charges: data.charges
+          charges: data.charges,
+          notes : data.notes
         }
       ]);
       reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
@@ -2939,28 +2940,7 @@ const ShipmentForm = () => {
   const [custommerRateModal, setCustomerRateModal] = useState(false);
   const [editAccIndex, setEditAccIndex] = useState(null);
   const [activeAccType, setActiveAccType] = useState('');
-  const [MASTER_ACCESSORIALS, setMASTER_Accessorials] = useState([
-    { id: 1, accessorial: 'Residential', type: 'Hourly', charges: '1.00', notes: 'Notes for Residential', selected: false },
-    { id: 2, accessorial: 'EXPO/Shows', type: 'Hourly', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
-    { id: 3, accessorial: 'EXPO/Shows', type: 'Flat Rate', charges: '1.00', notes: 'Notes for EXPO/Shows', selected: false },
-    { id: 4, accessorial: '24 hours service', type: 'Hourly', charges: '1.00', notes: 'Notes for 24 hours service', selected: false },
-    { id: 5, accessorial: 'Pickup at Warehouse', type: 'Per Pound', charges: '1.00', notes: 'Notes for Pickup at Warehouse', selected: false },
-    { id: 6, accessorial: 'Pickup at airport', type: 'Per Pound', charges: '1.24', notes: 'Notes for Pickup at airport', selected: false },
-    { id: 7, accessorial: 'Customs Duties and Taxes', type: 'Per Pound', charges: '1.24', notes: 'Notes for Customs Duties and Taxes', selected: false },
-    { id: 8, accessorial: 'Lift Gate', type: 'Per Pound', charges: '1.24', notes: 'Notes for Lift Gate', selected: false },
-    { id: 9, accessorial: 'Documentation Fees', type: 'Per Pound', charges: '1.24', notes: 'Notes for Documentation Fees', selected: false },
-    { id: 10, accessorial: 'Terminal Handling Charges', type: 'Hourly', charges: '1.00', notes: 'Notes for Terminal Handling Charges', selected: false },
-    {
-      id: 11, accessorial: 'Accessorial 1', type: 'HOURLY', charges: '1', notes: [{
-        "createdAt": "2026-05-18 06:54:25.287159",
-        "createdBy": 46,
-        "createdByName": "Admin",
-        "messageText": "Testing in progress!",
-        "noteMessageId": 1330,
-        "noteThreadId": 1690,
-      }], selected: true
-    },
-  ]);
+  const [MASTER_ACCESSORIALS, setMASTER_Accessorials] = useState([]);
   // for select carrier selection
   const [carrierTerminalSelectError, setCarrierTerminalSelectError] = useState(false);
 
@@ -5065,7 +5045,7 @@ const ShipmentForm = () => {
                 >
                   DO Details
                 </Button>}
-                {activeStep === 4 && <Button
+                {(activeStep === 3 || activeStep === 4) && <Button
                   variant="contained"
                   size="small"
                   sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
@@ -7175,7 +7155,7 @@ const ShipmentForm = () => {
                                     }}
                                   />
                                 )}
-                                disabled={!watchedPickupAgentTerminal}
+                                // disabled={!watchedPickupAgentTerminal}
 
                               />
                             )}
@@ -7793,7 +7773,7 @@ const ShipmentForm = () => {
                                   />
                                 )}
                                 sx={{ width: '100% !important', }}
-                                disabled
+                                // disabled
                               />
                             )}
                           />

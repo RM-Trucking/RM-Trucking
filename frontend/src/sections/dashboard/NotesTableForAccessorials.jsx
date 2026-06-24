@@ -34,44 +34,10 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
     const [notesData, setNotesData] = useState([]);
     const notesColumns = [
         {
-            field: "createdAt",
-            headerName: "Date",
-            minWidth: 200,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            filterable: false,
-            sortable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Typography variant='normal'>{convertLocalToET(new Date(params.row.createdAt))}</Typography>
-                );
-                return element;
-            }
-        },
-        {
-            field: "createdByName",
-            headerName: "User",
-            minWidth: 200,
-            flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            filterable: false,
-            sortable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Typography>{params?.row?.createdByName}</Typography>
-                );
-                return element;
-            },
-        },
-        {
             field: "messageText",
             headerName: "Note",
             minWidth: 200,
             flex: 1,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
             filterable: false,
             sortable: false,
             autoHeight: true,
@@ -216,7 +182,6 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     hideFooterSelectedRowCount
-                    getRowHeight={() => 'auto'}
                 />
             </Box>
             <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mt: 2 }}>

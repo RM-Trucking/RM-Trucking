@@ -1479,7 +1479,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
           accessorial: data.accessorial,
           type: data.chargesType,
           charges: data.charges,
-          notes : data.notes
+          notes: data.notes
         }
       ]);
       reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
@@ -2425,6 +2425,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
   const [isRateEditing, setIsRateEditing] = useState(false);
   const [isFuelSurchargeEditing, setIsFuelSurchargeEditing] = useState(false);
   const [addFlag, setAddFlag] = useState(false);
+  const [spotRateFlag, setSpotRateFlag] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
 
   const addAccessorial = () => {
@@ -2512,12 +2513,33 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                   </IconButton>
                 ) : (
-                  <IconButton
-                    size="small"
-                    onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
-                  >
-                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                  </IconButton>
+                  // <IconButton
+                  //   size="small"
+                  //   onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
+                  // >
+                  //   <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                  // </IconButton>
+                  <FormControlLabel
+                    label="Spot Rate"
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={spotRateFlag}
+                        onChange={(event) => {setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked);}}
+                        sx={{
+                          color: '#a22',
+                          '&.Mui-checked': {
+                            color: '#a22', // Keeps the color consistent when checked
+                          },
+                        }}
+                      />
+                    }
+                    sx={{
+                      '& .MuiFormControlLabel-label': {
+                        fontSize: '0.875rem', // Adjust font size to match row scale if needed
+                      },
+                    }}
+                  />
                 )}
               </Box>
               <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
@@ -7155,7 +7177,7 @@ const ShipmentForm = () => {
                                     }}
                                   />
                                 )}
-                                // disabled={!watchedPickupAgentTerminal}
+                              // disabled={!watchedPickupAgentTerminal}
 
                               />
                             )}
@@ -7773,7 +7795,7 @@ const ShipmentForm = () => {
                                   />
                                 )}
                                 sx={{ width: '100% !important', }}
-                                // disabled
+                              // disabled
                               />
                             )}
                           />

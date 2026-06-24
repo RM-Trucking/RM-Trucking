@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
@@ -31,7 +32,7 @@ import {
 } from '../../redux/slices/shipment';
 
 
-
+// --------------------------------------------------------------
 
 // --- CONSTANTS & LISTS --- 
 const shipmentTypes = [
@@ -2513,19 +2514,13 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                   </IconButton>
                 ) : (
-                  // <IconButton
-                  //   size="small"
-                  //   onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
-                  // >
-                  //   <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                  // </IconButton>
                   <FormControlLabel
                     label="Spot Rate"
                     control={
                       <Checkbox
                         size="small"
                         checked={spotRateFlag}
-                        onChange={(event) => {setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked);}}
+                        onChange={(event) => { setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked); }}
                         sx={{
                           color: '#a22',
                           '&.Mui-checked': {
@@ -2908,7 +2903,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 };
 
 
-const ShipmentForm = () => {
+const ShipmentForm = ({ type }) => {
   const dispatch = useDispatch();
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const customerStationDropdown = useSelector((state) => state?.shipmentdata?.customerStationDropdown);
@@ -4930,132 +4925,89 @@ const ShipmentForm = () => {
         <Box sx={{ p: 2, mt: 2 }}>
 
           {/* HEADER & STEPPER */}
-
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
-
-            <Box display={'flex'} alignItems={'center'}>
-
-              <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
-
-              <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
-
-            </Box>
-
-
-
-            <Stepper
-              activeStep={activeStep}
-              alternativeLabel
-              connector={<CustomConnector />} // Optional: for the thick red/black line
-            >
-              {STEPS.map((label, index) => (
-                <Step key={label}>
-                  <StepLabel
-                    StepIconComponent={CustomStepIcon}
-                    sx={{
-                      '& .MuiStepLabel-label': {
-                        mt: 1,
-                        fontSize: '0.70rem',
-                        fontWeight: activeStep === index ? 'bold' : 'normal',
-                        color: '#000',
-                      },
-                    }}
-                  >
-                    {label}
-                  </StepLabel>
-                </Step>
-              ))}
-            </Stepper>
-
-
-
-            <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button variant="outlined" onClick={() => { reset(); setActiveStep(0); }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
-
-              {activeStep > 0 && (
-
-                <Button variant="outlined" onClick={handleBack} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Back</Button>
-
-              )}
-
-              {/* Conditional Submit Button for Step 3 */}
-              {activeStep === 3 && isPickupPending ? (
-                <Button
-                  variant="contained"
-                  onClick={handleSubmit(onFormSubmit)} // Your final submit function
-                  sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-                >
-                  Submit
-                </Button>
-              ) : (
-                <Button
-                  variant="contained"
-                  onClick={handleNext}
-                  sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-                >
-                  {activeStep === STEPS.length - 1 ? 'Finish' : 'Next'}
-                </Button>
-              )}
-
-            </Box>
-
-          </Box>
           <Box
             sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-start',
-              p: 1.5,
-              borderRadius: '4px',
-              position: 'relative'
+              position: 'sticky',
+              top: 60,
+              zIndex: 1100,
+              // No solid background color assigned here
+              bgcolor: 'rgb(229, 229, 229)',
+              backdropFilter: 'blur(8px)', // Blurs underlying text cleanly during scroll
+              WebkitBackdropFilter: 'blur(8px)', // Ensures cross-browser Safari support
+              p: 1,
+              pb: 1,
             }}
           >
-            {/* LEFT SECTION */}
-            <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p: 1, borderRadius: '8px' }}>
-              <Stack spacing={0.5}>
-                <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
-                  <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
-                  <Typography sx={valueStyle}>CPRO9289280207</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
-                  <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
-                  <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
-                  <Button
-                    variant="contained"
-                    size="small"
-                    sx={{
-                      ml: 2,
-                      bgcolor: '#a22',
-                      height: 20,
-                      fontSize: '0.65rem',
-                      textTransform: 'none'
-                    }}
-                    onClick={() => setShipmentStatusModal(true)}
-                  >
-                    Update
-                  </Button>
-                </Box>
-                <Box sx={{ display: 'flex' }}>
-                  <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
-                  <Typography sx={valueStyle}>Air Import</Typography>
-                </Box>
-              </Stack>
-            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
 
-            {/* RIGHT SECTION */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
-              {/* Service Details Box */}
-              <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
-                <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
-                  <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
-                  <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
-                </Box>
-                <Box sx={{ display: 'flex' }}>
-                  <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
-                  <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
-                </Box>
+              <Box display={'flex'} alignItems={'center'}>
+
+                <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
+
+                <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
+
               </Box>
 
+
+
+              <Stepper
+                activeStep={activeStep}
+                alternativeLabel
+                connector={<CustomConnector />} // Optional: for the thick red/black line
+              >
+                {STEPS.map((label, index) => (
+                  <Step key={label}>
+                    <StepLabel
+                      StepIconComponent={CustomStepIcon}
+                      sx={{
+                        '& .MuiStepLabel-label': {
+                          mt: 1,
+                          fontSize: '0.70rem',
+                          fontWeight: activeStep === index ? 'bold' : 'normal',
+                          color: '#000',
+                        },
+                      }}
+                    >
+                      {label}
+                    </StepLabel>
+                  </Step>
+                ))}
+              </Stepper>
+
+
+
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                <Button variant="outlined" onClick={() => { reset(); setActiveStep(0); }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
+
+                {activeStep > 0 && (
+
+                  <Button variant="outlined" onClick={handleBack} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Back</Button>
+
+                )}
+
+                {/* Conditional Submit Button for Step 3 */}
+                {activeStep === 3 && isPickupPending ? (
+                  <Button
+                    variant="contained"
+                    onClick={handleSubmit(onFormSubmit)} // Your final submit function
+                    sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                  >
+                    Submit
+                  </Button>
+                ) : (
+                  <Button
+                    variant="contained"
+                    onClick={handleNext}
+                    sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                  >
+                    {activeStep === STEPS.length - 1 ? 'Finish' : 'Next'}
+                  </Button>
+                )}
+
+              </Box>
+
+            </Box>
+            {type !== 'Edit' && <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, mb: 2 }}>
               {/* Action Buttons Row */}
               <Stack direction="row" spacing={1} alignItems="center">
                 {activeStep === 2 && <Button
@@ -5085,7 +5037,94 @@ const ShipmentForm = () => {
                   <Iconify icon="streamline-ultimate:notes-book-bold" />
                 </IconButton>
               </Stack>
-            </Box>
+            </Box>}
+            {type === 'Edit' && <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-start',
+                p: 1.5,
+                borderRadius: '4px',
+                position: 'relative'
+              }}
+            >
+              {/* LEFT SECTION */}
+              <Box sx={{ flex: '0 1 300px', bgcolor: '#cdcdcd', p: 1, borderRadius: '8px' }}>
+                <Stack spacing={0.5}>
+                  <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                    <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
+                    <Typography sx={valueStyle}>CPRO9289280207</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
+                    <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
+                    <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
+                    <Button
+                      variant="contained"
+                      size="small"
+                      sx={{
+                        ml: 2,
+                        bgcolor: '#a22',
+                        height: 20,
+                        fontSize: '0.65rem',
+                        textTransform: 'none'
+                      }}
+                      onClick={() => setShipmentStatusModal(true)}
+                    >
+                      Update
+                    </Button>
+                  </Box>
+                  <Box sx={{ display: 'flex' }}>
+                    <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
+                    <Typography sx={valueStyle}>Air Import</Typography>
+                  </Box>
+                </Stack>
+              </Box>
+
+              {/* RIGHT SECTION */}
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1 }}>
+                {/* Service Details Box */}
+                <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
+                  <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
+                    <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
+                    <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex' }}>
+                    <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
+                    <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
+                  </Box>
+                </Box>
+
+                {/* Action Buttons Row */}
+                <Stack direction="row" spacing={1} alignItems="center">
+                  {activeStep === 2 && <Button
+                    variant="contained"
+                    size="small"
+                    // startIcon={<Iconify icon="solar:document-bold" />}
+                    sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                    onClick={() => setDoDetailsModal(true)}
+                  >
+                    DO Details
+                  </Button>}
+                  {(activeStep === 3 || activeStep === 4) && <Button
+                    variant="contained"
+                    size="small"
+                    sx={{ bgcolor: '#a22', textTransform: 'none', height: 26, fontSize: '0.7rem' }}
+                    onClick={() => {
+                      setCustomerRateModal(true);
+                    }}
+                  >
+                    Customer Rate
+                  </Button>}
+
+                  <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
+                    setOpenNotesDialog(true);
+                    notesRef.current = {};
+                  }}>
+                    <Iconify icon="streamline-ultimate:notes-book-bold" />
+                  </IconButton>
+                </Stack>
+              </Box>
+            </Box>}
           </Box>
 
           {/* dialog for update shipment status  */}

@@ -3987,12 +3987,12 @@ const ShipmentForm = ({ type }) => {
         setValue('carrierInfo.manualToAddress.line2', selectedObject?.address?.addressLine2);
         setValue('carrierInfo.manualToAddress.city', selectedObject?.address?.city);
         setValue('carrierInfo.manualToAddress.state', selectedObject?.address?.state);
-        setValue('carrierInfo.manualToAddress.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.manualToAddress.zip', selectedObject?.address?.zipCode);
         setValue('carrierInfo.lineHaul.carrier', watchedToLocation);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
       if (selectedRouting === 'pickup_linehaul' && selectedObject) {
@@ -4000,7 +4000,7 @@ const ShipmentForm = ({ type }) => {
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
     }
@@ -4017,13 +4017,13 @@ const ShipmentForm = ({ type }) => {
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject?.address?.addressLine1);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject?.address?.addressLine2);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject?.address?.zipCode);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject?.address?.state);
         setValue('carrierInfo.deliveryDetails.carrier', watchedLinehaulToLocation);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
       }
     }
@@ -4080,7 +4080,7 @@ const ShipmentForm = ({ type }) => {
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
         }
       }
@@ -4149,7 +4149,7 @@ const ShipmentForm = ({ type }) => {
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
         } else {
           setCarrierTerminalSelectError(true);
@@ -4171,7 +4171,7 @@ const ShipmentForm = ({ type }) => {
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zip);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
           setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
         } else {
           setCarrierTerminalSelectError(true);
@@ -7216,7 +7216,8 @@ const ShipmentForm = ({ type }) => {
                                     }}
                                   />
                                 )}
-                              // disabled={!watchedPickupAgentTerminal}
+                                // disabled={!watchedPickupAgentTerminal}
+                                disabled={!watchedPickupAgentTerminal && (watchedSelectedPickupCarrier?.split('-')[1] !== watchedToLocation?.split('-')[1])}
 
                               />
                             )}
@@ -7834,7 +7835,7 @@ const ShipmentForm = ({ type }) => {
                                   />
                                 )}
                                 sx={{ width: '100% !important', }}
-                              // disabled
+                                disabled={(watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1])}
                               />
                             )}
                           />

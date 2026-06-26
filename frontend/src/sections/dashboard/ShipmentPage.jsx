@@ -28,7 +28,14 @@ import { useDispatch, useSelector } from '../../redux/store';
 import {
   postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
   getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
-  getConsigneeAirlineDropdown,
+  getConsigneeAirlineDropdown, setPickupAccessorials,
+  setLinehaulAccessorials,
+  setDeliveryAccessorials,
+  getPickupAccessorials,
+  getLinehaulAccessorials,
+  getDeliveryAccessorials,
+  setAccessorialDropdown,
+  getAccessorialDropdown,
 } from '../../redux/slices/shipment';
 
 
@@ -1332,6 +1339,7 @@ const CustomConnector = styled(StepConnector)(({ theme }) => ({
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
   actionType, MASTER_ACCESSORIALS, setMASTER_Accessorials }) => {
+  const dispatch = useDispatch();
   // const [list, setList] = useState(MASTER_ACCESSORIALS);
   // const [editAccIndex, setEditAccIndex] = useState(null);
 
@@ -1358,6 +1366,8 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
               size="small"
               // on click of add accessorial previous dialog have to be added for add accessorial details
               onClick={() => {
+                dispatch(setAccessorialDropdown([]));
+                dispatch(getAccessorialDropdown());
                 setActionType('Add');
                 // open the add accessorial dialog here
                 setAddAccModal(true);
@@ -1385,14 +1395,14 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
                     <TableCell padding="checkbox">
                       <Checkbox
                         size="small"
-                        checked={item.selected}
+                        checked={item?.selected || false}
                         onChange={() => handleToggle(index)}
                         sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
                       />
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.accessorial}</TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.type}</TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.charges}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.accessorialName}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.chargeType}</TableCell>
+                    <TableCell sx={{ fontSize: '0.8rem' }}>{item.chargeValue}</TableCell>
                     {/* <TableCell>
                       {item.notes && <Iconify icon="solar:file-text-bold" sx={{ color: '#90caf9' }} />}
                     </TableCell> */}
@@ -1436,6 +1446,9 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
 const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType, setAddAccModal, addAccModal, accFields, editAccIndex, editableObj, appendAccFields, MASTER_ACCESSORIALS,
   setMASTER_Accessorials }) => {
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
+
+  const accessorialDropdown = useSelector((state) => state?.shipmentdata?.accessorialDropdown);
+
   const [chargeValue, setChargeValue] = useState(null);
 
   const {
@@ -1446,9 +1459,9 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     getValues, reset
   } = useForm({
     values: {
-      accessorial: editableObj?.accessorial || '',
-      chargesType: editableObj?.type || '',
-      charges: editableObj?.charges || '',
+      accessorial: editableObj?.accessorialName || '',
+      chargesType: editableObj?.chargeType || '',
+      charges: editableObj?.chargeValue || '',
       notes: editableObj?.notes || '',
     }
   });
@@ -1460,34 +1473,41 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
       if (!editableObj || !editableObj.accessorial) return;
 
       reset({
-        accessorial: editableObj.accessorial,
-        chargesType: editableObj.type,
-        charges: editableObj.charges,
+        accessorial: editableObj?.accessorialName,
+        chargesType: editableObj?.chargeType,
+        charges: editableObj?.chargeValue,
       });
     }
   }, [editableObj]);
 
-
-
-
   const onSubmit = (data) => {
     console.log('Form Submitted:', data);
     if (actionType === 'Add') {
+      const [accessorialId, accessorialName] = data?.accessorial?.split('-');
       setMASTER_Accessorials((prev) => [
         ...prev,
         {
-          id: prev.length + 1,
-          accessorial: data.accessorial,
-          type: data.chargesType,
-          charges: data.charges,
-          notes: data.notes
+          accessorialId: accessorialId,
+          accessorialName: accessorialName,
+          chargeType: data.chargesType,
+          chargeValue: data.charges,
+          notes: [{
+            noteMessageId: Date.now(),
+            messageText: data.notes,
+          }]
         }
       ]);
       reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
       onClose();
     }
     else if (actionType === 'Edit') {
-      onSave(data);
+      const dataObj = {
+        accessorialId: editableObj.accessorialId,
+        accessorialName: editableObj.accessorialName,
+        chargeType: data.chargesType,
+        chargeValue: data.charges,
+      }
+      onSave(dataObj);
     }
   };
 
@@ -1562,26 +1582,17 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                       }}
                       InputLabelProps={{ shrink: true }}
                     >
-                      {/* {accessorialData && accessorialData.length > 0 ? (
-                                        accessorialData.map((data, index) => (
-                                            <MenuItem key={`${data.accessorialId}-${index}`} value={data.accessorialId}>
-                                                {data.accessorialName}
-                                            </MenuItem>
-                                        ))
-                                    ) : ( */}
-                      {/* <MenuItem disabled value="">
-                        <em>No accessorials available.</em>
-                      </MenuItem> */}
-                      <MenuItem value="Accessorial 1">
-                        Accessorial 1
-                      </MenuItem>
-                      <MenuItem value="Accessorial 2">
-                        Accessorial 2
-                      </MenuItem>
-                      <MenuItem value="Accessorial 3">
-                        Accessorial 3
-                      </MenuItem>
-                      {/* )} */}
+                      {accessorialDropdown && accessorialDropdown.length > 0 ? (
+                        accessorialDropdown.map((data, index) => (
+                          <MenuItem key={`${data.accessorialId}-${index}`} value={`${data.accessorialId}-${data.accessorialName}`}>
+                            {data.accessorialName}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled value="">
+                          <em>No accessorials available.</em>
+                        </MenuItem>
+                      )}
                     </StyledTextField>
                   )}
                 />
@@ -1991,7 +2002,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
                 {
-                  item.type.toLowerCase() === 'hourly' && (
+                  item?.type?.toLowerCase() === 'hourly' && (
                     <>
                       <Controller
                         name={`${path}[${index}].input`}
@@ -2038,7 +2049,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item.type.toLowerCase() === 'per pound' && (
+                  item?.type?.toLowerCase() === 'per pound' && (
                     <>
                       <Controller
                         name={`${path}[${index}].input`}
@@ -2066,7 +2077,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item.type.toLowerCase() === 'flat rate' && (
+                  item?.type?.toLowerCase() === 'flat rate' && (
                     <Typography variant="body2">-</Typography>
                   )
                 }
@@ -2128,7 +2139,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
               </Box>
               <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
                 {
-                  item.type.toLowerCase() === 'hourly' && (
+                  item?.type?.toLowerCase() === 'hourly' && (
                     <Typography variant="body2">
                       {(() => {
                         const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
@@ -2147,7 +2158,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item.type.toLowerCase() === 'per pound' && (
+                  item?.type?.toLowerCase() === 'per pound' && (
                     <Typography variant="body2">
                       {(() => {
                         const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
@@ -2167,7 +2178,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 }
 
                 {
-                  item.type.toLowerCase() === 'flat rate' && (
+                  item?.type?.toLowerCase() === 'flat rate' && (
                     <Typography variant="body2">{getValues(`${path}[${index}].charges`)}</Typography>
                   )
                 }
@@ -2912,6 +2923,9 @@ const ShipmentForm = ({ type }) => {
   const consigneeDropdown = useSelector((state) => state?.shipmentdata?.consigneeDropdown);
   const shipperAirlineDropdown = useSelector((state) => state?.shipmentdata?.shipperAirlineDropdown);
   const consigneeAirlineDropdown = useSelector((state) => state?.shipmentdata?.consigneeAirlineDropdown);
+  const pickupAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.pickupAccessorials);
+  const linehaulAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.linehaulAccessorials);
+  const deliveryAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.deliveryAccessorials);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -2957,7 +2971,11 @@ const ShipmentForm = ({ type }) => {
   const [custommerRateModal, setCustomerRateModal] = useState(false);
   const [editAccIndex, setEditAccIndex] = useState(null);
   const [activeAccType, setActiveAccType] = useState('');
-  const [MASTER_ACCESSORIALS, setMASTER_Accessorials] = useState([]);
+  const [PICKUP_MASTER_ACCESSORIALS, setPICKUP_MASTER_Accessorials] = useState([]);
+  const [LINEHAUL_MASTER_ACCESSORIALS, setLINEHAUL_MASTER_Accessorials] = useState([]);
+  const [DELIVERY_MASTER_ACCESSORIALS, setDELIVERY_MASTER_Accessorials] = useState([]);
+  const [CUSTOMER_MASTER_ACCESSORIALS, setCUSTOMER_MASTER_ACCESSORIALS] = useState([]);
+
   // for select carrier selection
   const [carrierTerminalSelectError, setCarrierTerminalSelectError] = useState(false);
 
@@ -3550,7 +3568,7 @@ const ShipmentForm = ({ type }) => {
             // 2. Strict Length/Format check
             // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
             const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
-            if (!zipRegex.test(value)) {
+            if (!zipRegex?.test(value)) {
               return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
             }
 
@@ -3880,30 +3898,30 @@ const ShipmentForm = ({ type }) => {
     // alert('Saved with data: ' + JSON.stringify(selectedData) + `${editAccIndex}`);
     if (activeAccType === 'Pickup') {
       updatePickupAcc(editAccIndex, {
-        id: pickupAccFields[editAccIndex]?.id, // Keeps the internal form field key intact
-        accessorial: selectedData.accessorial,
-        type: selectedData.chargesType,
-        charges: selectedData.charges,
+        // id: pickupAccFields[editAccIndex]?.id, // Keeps the internal form field key intact
+        accessorialName: selectedData.accessorialName,
+        chargeType: selectedData.chargeType,
+        chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
       });
     }
     if (activeAccType === 'LineHaul') {
       updateLineHaulAcc(
         editAccIndex, {
-        id: lineHaulAccFields[editAccIndex]?.id,
-        accessorial: selectedData.accessorial,
-        type: selectedData.chargesType,
-        charges: selectedData.charges,
+        // id: lineHaulAccFields[editAccIndex]?.id,
+        accessorialName: selectedData.accessorialName,
+        chargeType: selectedData.chargeType,
+        chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
       }
       );
     }
     if (activeAccType === 'Delivery') {
       updateDeliveryAcc(editAccIndex, {
-        id: deliveryAccFields[editAccIndex]?.id,
-        accessorial: selectedData.accessorial,
-        type: selectedData.chargesType,
-        charges: selectedData.charges,
+        // id: deliveryAccFields[editAccIndex]?.id,
+        accessorialName: selectedData.accessorialName,
+        chargeType: selectedData.chargeType,
+        chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
       });
     }
@@ -4441,438 +4459,447 @@ const ShipmentForm = ({ type }) => {
       // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
       // fromLocationEntityId not there in from location
       obj.carrierDetails = {
-        "carrierDetails": {
-          "pickupDetails": {
-            "pickupRouting": "PICKUP_ONLY",
-            "fromLocationType": "Shipper",
-            "fromLocation": currentValues?.carrierInfo?.fromLocation,
-            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
-            "carrierId": Number(pickupCarrierId),
-            "terminalId": Number(pickupTerminalId),
-            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+
+        "pickupDetails": {
+          "pickupRouting": "PICKUP_ONLY",
+          "fromLocationType": "Shipper",
+          "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+          "carrierId": Number(pickupCarrierId),
+          "terminalId": Number(pickupTerminalId),
+          "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+          "editFromLocationDetails": {
+            "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+            "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+            "city": currentValues?.carrierInfo?.manualAddress?.city,
+            "state": currentValues?.carrierInfo?.manualAddress?.state,
+            "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+          },
+          "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+          "pickupAgentTerminalDetails": {
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.toLocation,
+            "toLocationEntityId": selectedPickupToCarrierObject?.entityId || null,
+            "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualToAddress?.city,
+              "state": currentValues?.carrierInfo?.manualToAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+            }
+          },
+          "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+          "pickupAccessorialDetails": {
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+              ...rest,
+              notes: notes.map(({ noteMessageId, ...noteRest }) => noteRest)
+            })),
+          },
+          "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+          "pickupAlertDetails": {
+            "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "emailInfo": {
+              "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+            }
+          }
+        },
+        "linehaulDetails": {
+          "linehaulPrimaryInfo": {
+            "linehaulRouting": "LINE_HAUL",
+            "carrierId": Number(linehaulCarrierId),
+            "terminalId": Number(linehaulTerminalId),
+            "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
+            "fromLocationType": "Carrier",
+            "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
+            "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
+            // still to get
+            "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+            "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
+            "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
+            "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
+            'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+            "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
             "editFromLocationDetails": {
-              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
-              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
-              "city": currentValues?.carrierInfo?.manualAddress?.city,
-              "state": currentValues?.carrierInfo?.manualAddress?.state,
-              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+              "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
             },
-            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
-            "pickupAgentTerminalDetails": {
-              "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.toLocation,
-              "toLocationEntityId": selectedPickupToCarrierObject.entityId || null,
-              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
-              }
+            "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
+            }
+          },
+          "linehaulCommonInfo": {
+            "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+            "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+            "linehaulAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+                ...rest,
+                notes: notes.map(({ noteMessageId, ...noteRest }) => noteRest)
+              })),
+            }
+          }
+        },
+        "deliveryDetails": {
+          "deliveryPrimaryInfo": {
+            "carrierId": Number(deliveryCarrierId),
+            "terminalId": Number(deliveryTerminalId),
+            "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
+            "fromLocationType": "Carrier",
+            "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
+            "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+            "toLocationType": "Consignee",
+            "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
+            "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+            "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
+            "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
+            "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
+            'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+            "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
             },
-            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
-            "pickupAccessorialDetails": {
-              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
+            }
+          },
+          "deliveryCommonInfo": {
+            "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+            "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+            "deliveryAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+                ...rest,
+                notes: notes.map(({ noteMessageId, ...noteRest }) => noteRest)
+              })),
             },
-            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
-            "pickupAlertDetails": {
-              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+            "deliveryAlertDetails": {
+              "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+              "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
               "emailInfo": {
-                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
-              }
-            }
-          },
-          "linehaulDetails": {
-            "linehaulPrimaryInfo": {
-              "linehaulRouting": "LINE_HAUL",
-              "carrierId": Number(linehaulCarrierId),
-              "terminalId": Number(linehaulTerminalId),
-              "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
-              "fromLocationType": "Carrier",
-              "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
-              "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
-              "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
-              // still to get
-              "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
-              "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
-              "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
-              "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
-              'weight': currentValues?.carrierInfo?.lineHaul?.weight,
-              "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
-              "editFromLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
-              },
-              "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
-              }
-            },
-            "linehaulCommonInfo": {
-              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
-              "linehaulAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
-              }
-            }
-          },
-          "deliveryDetails": {
-            "deliveryPrimaryInfo": {
-              "carrierId": Number(deliveryCarrierId),
-              "terminalId": Number(deliveryTerminalId),
-              "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
-              "fromLocationType": "Carrier",
-              "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
-              "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
-              "toLocationType": "Consignee",
-              "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
-              "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
-              "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
-              "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
-              "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
-              'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
-              "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
-              "editFromLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
-              },
-              "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
-              }
-            },
-            "deliveryCommonInfo": {
-              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
-              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
-              "deliveryAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
-              },
-              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
-              "deliveryAlertDetails": {
-                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
-                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
-                "emailInfo": {
-                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
-                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
-                }
+                "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
               }
             }
           }
         }
+
       }
     }
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
       obj.carrierDetails = {
-        "carrierDetails": {
-          "pickupDetails": {
-            "pickupRouting": "PICKUP_ONLY",
-            "fromLocationType": "Shipper",
-            "fromLocation": currentValues?.carrierInfo?.fromLocation,
-            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
-            "carrierId": Number(pickupCarrierId),
-            "terminalId": Number(pickupTerminalId),
-            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
-            "editFromLocationDetails": {
-              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
-              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
-              "city": currentValues?.carrierInfo?.manualAddress?.city,
-              "state": currentValues?.carrierInfo?.manualAddress?.state,
-              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
-            },
-            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
-            "pickupAgentTerminalDetails": {
-              "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.toLocation,
-              "toLocationEntityId": selectedPickupCarrierObject?.entityId,
-              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
-              }
-            },
-            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
-            "pickupAccessorialDetails": {
-              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
-            },
-            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
-            "pickupAlertDetails": {
-              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-              "emailInfo": {
-                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
-              }
-            }
-          },
-          "linehaulDetails": {
-            "linehaulPrimaryInfo": {
-              "linehaulRouting": "LINE_HAUL_DELIVERY",
-              "carrierId": Number(linehaulCarrierId),
-              "terminalId": Number(linehaulTerminalId),
-              "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
-              "fromLocationType": "Carrier",
-              "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
-              "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
-              "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
-              "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
-              "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
-              "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
-              "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
-              'weight': currentValues?.carrierInfo?.lineHaul?.weight,
-              "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
-              "editFromLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
-              },
-              "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
-              }
-            },
-            "linehaulCommonInfo": {
-              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
-              "linehaulAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
-              }
-            }
-          },
-          "deliveryDetails": {
 
-            "deliveryCommonInfo": {
-              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
-              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
-              "deliveryAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
-              },
-              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
-              "deliveryAlertDetails": {
-                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
-                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
-                "emailInfo": {
-                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
-                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
-                }
+        "pickupDetails": {
+          "pickupRouting": "PICKUP_ONLY",
+          "fromLocationType": "Shipper",
+          "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+          "carrierId": Number(pickupCarrierId),
+          "terminalId": Number(pickupTerminalId),
+          "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+          "editFromLocationDetails": {
+            "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+            "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+            "city": currentValues?.carrierInfo?.manualAddress?.city,
+            "state": currentValues?.carrierInfo?.manualAddress?.state,
+            "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+          },
+          "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+          "pickupAgentTerminalDetails": {
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.toLocation,
+            "toLocationEntityId": selectedPickupCarrierObject?.entityId,
+            "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualToAddress?.city,
+              "state": currentValues?.carrierInfo?.manualToAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+            }
+          },
+          "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+          "pickupAccessorialDetails": {
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+          },
+          "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+          "pickupAlertDetails": {
+            "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "emailInfo": {
+              "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+            }
+          }
+        },
+        "linehaulDetails": {
+          "linehaulPrimaryInfo": {
+            "linehaulRouting": "LINE_HAUL_DELIVERY",
+            "carrierId": Number(linehaulCarrierId),
+            "terminalId": Number(linehaulTerminalId),
+            "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
+            "fromLocationType": "Carrier",
+            "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
+            "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
+            "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+            "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
+            "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
+            "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
+            'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+            "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
+            "editFromLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zipCode
+            },
+            "editToLocation": currentValues?.carrierInfo?.lineHaul?.manualToLocation ? 'Y' : 'N',
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zipCode
+            }
+          },
+          "linehaulCommonInfo": {
+            "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+            "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+            "linehaulAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+            }
+          }
+        },
+        "deliveryDetails": {
+
+          "deliveryCommonInfo": {
+            "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+            "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+            "deliveryAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
+            },
+            "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+            "deliveryAlertDetails": {
+              "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+              "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
+              "emailInfo": {
+                "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
               }
             }
           }
         }
+
       }
     }
     if (selectedRouting === 'pickup_linehaul') {
       obj.carrierDetails = {
-        "carrierDetails": {
-          "pickupDetails": {
-            "pickupRouting": "PICKUP_LINE_HAUL",
-            "fromLocationType": "Carrier",
-            "fromLocation": currentValues?.carrierInfo?.fromLocation,
-            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
-            "carrierId": Number(pickupCarrierId),
-            "terminalId": Number(pickupTerminalId),
-            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+
+        "pickupDetails": {
+          "pickupRouting": "PICKUP_LINE_HAUL",
+          "fromLocationType": "Carrier",
+          "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+          "carrierId": Number(pickupCarrierId),
+          "terminalId": Number(pickupTerminalId),
+          "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+          "editFromLocationDetails": {
+            "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+            "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+            "city": currentValues?.carrierInfo?.manualAddress?.city,
+            "state": currentValues?.carrierInfo?.manualAddress?.state,
+            "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+          },
+          "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+          "pickupAgentTerminalDetails": {
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.toLocation,
+            "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+            "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualToAddress?.city,
+              "state": currentValues?.carrierInfo?.manualToAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+            }
+          },
+          "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+          "pickupAccessorialDetails": {
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+          },
+          "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+          "pickupAlertDetails": {
+            "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "emailInfo": {
+              "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+            }
+          }
+        },
+        "linehaulDetails": {
+          "linehaulCommonInfo": {
+            "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+            "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+            "linehaulAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+            }
+          }
+        },
+        "deliveryDetails": {
+          "deliveryPrimaryInfo": {
+            "carrierId": Number(deliveryCarrierId),
+            "terminalId": Number(deliveryTerminalId),
+            "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
+            "fromLocationType": "Consignee",
+            "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
+            "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+            "toLocationType": "Consignee",
+            "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
+            "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+            "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
+            "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
+            "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
+            'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+            "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
             "editFromLocationDetails": {
-              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
-              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
-              "city": currentValues?.carrierInfo?.manualAddress?.city,
-              "state": currentValues?.carrierInfo?.manualAddress?.state,
-              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+              "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
             },
-            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
-            "pickupAgentTerminalDetails": {
-              "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.toLocation,
-              "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
-              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
-              }
+            "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
+              "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
+              "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
+              "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
+              "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
+            }
+          },
+          "deliveryCommonInfo": {
+            "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+            "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+            "deliveryAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
             },
-            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
-            "pickupAccessorialDetails": {
-              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
-            },
-            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
-            "pickupAlertDetails": {
-              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+            "deliveryAlertDetails": {
+              "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+              "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
               "emailInfo": {
-                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
-              }
-            }
-          },
-          "linehaulDetails": {
-            "linehaulCommonInfo": {
-              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
-              "linehaulAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
-              }
-            }
-          },
-          "deliveryDetails": {
-            "deliveryPrimaryInfo": {
-              "carrierId": Number(deliveryCarrierId),
-              "terminalId": Number(deliveryTerminalId),
-              "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
-              "fromLocationType": "Consignee",
-              "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
-              "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
-              "toLocationType": "Consignee",
-              "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
-              "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
-              "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
-              "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
-              "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
-              'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
-              "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
-              "editFromLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zipCode
-              },
-              "editToLocation": currentValues?.carrierInfo?.deliveryDetails?.manualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line1,
-                "line2": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.line2,
-                "city": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.city,
-                "state": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.state,
-                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zipCode
-              }
-            },
-            "deliveryCommonInfo": {
-              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
-              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
-              "deliveryAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
-              },
-              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
-              "deliveryAlertDetails": {
-                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
-                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
-                "emailInfo": {
-                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
-                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
-                }
+                "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
               }
             }
           }
         }
+
       }
     }
     if (selectedRouting === 'pickup_linehaul_delivery') {
       obj.carrierDetails = {
-        "carrierDetails": {
-          "pickupDetails": {
-            "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
-            "fromLocationType": "Carrier",
-            "fromLocation": currentValues?.carrierInfo?.fromLocation,
-            "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
-            "carrierId": Number(pickupCarrierId),
-            "terminalId": Number(pickupTerminalId),
-            "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
-            "editFromLocationDetails": {
-              "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
-              "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
-              "city": currentValues?.carrierInfo?.manualAddress?.city,
-              "state": currentValues?.carrierInfo?.manualAddress?.state,
-              "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+
+        "pickupDetails": {
+          "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
+          "fromLocationType": "Carrier",
+          "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+          "carrierId": Number(pickupCarrierId),
+          "terminalId": Number(pickupTerminalId),
+          "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+          "editFromLocationDetails": {
+            "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+            "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+            "city": currentValues?.carrierInfo?.manualAddress?.city,
+            "state": currentValues?.carrierInfo?.manualAddress?.state,
+            "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+          },
+          "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+          "pickupAgentTerminalDetails": {
+            "toLocationType": "Consignee",
+            "toLocation": currentValues?.carrierInfo?.toLocation,
+            "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+            "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualToAddress?.city,
+              "state": currentValues?.carrierInfo?.manualToAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+            }
+          },
+          "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+          "pickupAccessorialDetails": {
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+          },
+          "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+          "pickupAlertDetails": {
+            "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "emailInfo": {
+              "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+            }
+          }
+        },
+        "linehaulDetails": {
+          "linehaulCommonInfo": {
+            "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
+            "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+            "linehaulAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
+            }
+          }
+        },
+        "deliveryDetails": {
+          "deliveryCommonInfo": {
+            "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
+            "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
+            "deliveryAccessorialDetails": {
+              "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
             },
-            "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
-            "pickupAgentTerminalDetails": {
-              "toLocationType": "Consignee",
-              "toLocation": currentValues?.carrierInfo?.toLocation,
-              "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
-              "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
-              "editToLocationDetails": {
-                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
-              }
-            },
-            "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
-            "pickupAccessorialDetails": {
-              "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
-            },
-            "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
-            "pickupAlertDetails": {
-              "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
+            "deliveryAlertDetails": {
+              "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+              "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
               "emailInfo": {
-                "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
-              }
-            }
-          },
-          "linehaulDetails": {
-            "linehaulCommonInfo": {
-              "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-              "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
-              "linehaulAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
-              }
-            }
-          },
-          "deliveryDetails": {
-            "deliveryCommonInfo": {
-              "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
-              "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
-              "deliveryAccessorialDetails": {
-                "accessorials": currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials,
-              },
-              "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
-              "deliveryAlertDetails": {
-                "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
-                "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
-                "emailInfo": {
-                  "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
-                  "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
-                }
+                "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
+                "additionalEmails": currentValues?.carrierInfo?.deliveryDetails?.additionalEmail
               }
             }
           }
         }
+
       }
     }
 
 
 
-    // if (activeStep === 2) {
-    //   dispatch(postStep1(obj));
-    // }
+    if (activeStep === 3) {
+      dispatch(postStep1(obj));
+    }
 
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
@@ -4910,6 +4937,41 @@ const ShipmentForm = ({ type }) => {
     setValue('consigneePhone', '');
     // }
   }, [watchedAirportDeliveryService])
+  useEffect(() => {
+    if (pickupAccessorialsByEntityId.length > 0) {
+      const updatedAcc = pickupAccessorialsByEntityId.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setPICKUP_MASTER_Accessorials(updatedAcc);
+    } else {
+      setPICKUP_MASTER_Accessorials([]);
+    }
+  }, [pickupAccessorialsByEntityId])
+  useEffect(() => {
+    if (linehaulAccessorialsByEntityId.length > 0) {
+      const updatedAcc = linehaulAccessorialsByEntityId.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setLINEHAUL_MASTER_Accessorials(updatedAcc);
+    } else {
+      setLINEHAUL_MASTER_Accessorials([]);
+    }
+  }, [linehaulAccessorialsByEntityId])
+  useEffect(() => {
+    if (deliveryAccessorialsByEntityId.length > 0) {
+      const updatedAcc = deliveryAccessorialsByEntityId.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+      }));
+      setDELIVERY_MASTER_Accessorials(updatedAcc);
+    } else {
+      setDELIVERY_MASTER_Accessorials([]);
+    }
+  }, [deliveryAccessorialsByEntityId])
+
+
 
   return (
     <ErrorBoundary
@@ -5160,7 +5222,7 @@ const ShipmentForm = ({ type }) => {
             customerRateAccFields={customerRateAccFields}
             appendCustomerRateAccFields={appendCustomerRateAccFields}
             watchedHU={watchedHU}
-            masterAccessorials={MASTER_ACCESSORIALS}
+            masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
           />
 
           {/* STEP 0 */}
@@ -6533,6 +6595,7 @@ const ShipmentForm = ({ type }) => {
                             }}
                             value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
                             onChange={(event, newValue) => {
+                              dispatch(getPickupAccessorials(newValue?.terminalEntityId));
                               isSelectingCarrierPickupRef.current = true;
                               const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
                               onChange(formValue);
@@ -6836,9 +6899,9 @@ const ShipmentForm = ({ type }) => {
                         <TableBody>
                           {pickupAccFields.map((field, index) => (
                             <TableRow key={field.id}>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorialName}</TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeType}</TableCell>
+                              <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeValue}</TableCell>
                               <TableCell>
                                 <IconButton onClick={() => {
                                   setActiveAccType('Pickup');
@@ -6887,8 +6950,8 @@ const ShipmentForm = ({ type }) => {
                   setAddAccModal={setAddPickUpAccModal}
                   addAccModal={addPickUpAccModal}
                   actionType={actionType}
-                  MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                  setMASTER_Accessorials={setMASTER_Accessorials}
+                  MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS}
+                  setMASTER_Accessorials={setPICKUP_MASTER_Accessorials}
                 />
                 <AddAccessorialDialog
                   open={addPickUpAccModal}
@@ -6906,8 +6969,8 @@ const ShipmentForm = ({ type }) => {
                   editAccIndex={editAccIndex}
                   editableObj={pickupAccFields[editAccIndex]}
                   appendAccFields={appendPickupAccFields}
-                  MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                  setMASTER_Accessorials={setMASTER_Accessorials}
+                  MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS}
+                  setMASTER_Accessorials={setPICKUP_MASTER_Accessorials}
                 />
 
                 {/* pick alert details section */}
@@ -7172,6 +7235,7 @@ const ShipmentForm = ({ type }) => {
 
                                 // Updates React Hook Form state on change
                                 onChange={(event, newValue) => {
+                                  dispatch(getLinehaulAccessorials(newValue?.terminalEntityId));
                                   isSelectingCarrierLinehaulRef.current = true;
 
                                   // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
@@ -7598,9 +7662,9 @@ const ShipmentForm = ({ type }) => {
                             <TableBody>
                               {lineHaulAccFields.map((field, index) => (
                                 <TableRow key={field.id}>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorialName}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeType}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeValue}</TableCell>
                                   <TableCell>
                                     <IconButton onClick={() => {
                                       setActiveAccType('LineHaul');
@@ -7647,8 +7711,8 @@ const ShipmentForm = ({ type }) => {
                       setAddAccModal={setAddLineHaulAccModal}
                       addAccModal={addLineHaulAccModal}
                       actionType={actionType}
-                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                      setMASTER_Accessorials={setMASTER_Accessorials}
+                      MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
                     />
                     <AddAccessorialDialog
                       open={addLineHaulAccModal}
@@ -7665,8 +7729,8 @@ const ShipmentForm = ({ type }) => {
                       accFields={lineHaulAccFields}
                       editableObj={lineHaulAccFields[editAccIndex]}
                       appendAccFields={appendLineHaulAccFields}
-                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                      setMASTER_Accessorials={setMASTER_Accessorials}
+                      MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
                     />
 
 
@@ -7790,6 +7854,7 @@ const ShipmentForm = ({ type }) => {
 
                                 // Updates React Hook Form state on change
                                 onChange={(event, newValue) => {
+                                  dispatch(getDeliveryAccessorials(newValue?.terminalEntityId));
                                   isSelectingCarrierDeliveryRef.current = true;
 
                                   // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
@@ -8219,9 +8284,9 @@ const ShipmentForm = ({ type }) => {
                             <TableBody>
                               {deliveryAccFields.map((field, index) => (
                                 <TableRow key={field.id}>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorial}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.type}</TableCell>
-                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.charges}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorialName}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeType}</TableCell>
+                                  <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeValue}</TableCell>
                                   <TableCell>
                                     <IconButton onClick={() => {
                                       setActiveAccType('Delivery');
@@ -8269,8 +8334,8 @@ const ShipmentForm = ({ type }) => {
                       setAddAccModal={setAddDeliveryAccModal}
                       addAccModal={addDeliveryAccModal}
                       actionType={actionType}
-                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                      setMASTER_Accessorials={setMASTER_Accessorials}
+                      MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
                     />
                     <AddAccessorialDialog
                       open={addDeliveryAccModal}
@@ -8287,8 +8352,8 @@ const ShipmentForm = ({ type }) => {
                       accFields={deliveryAccFields}
                       editableObj={deliveryAccFields[editAccIndex]}
                       appendAccFields={appendDeliveryAccFields}
-                      MASTER_ACCESSORIALS={MASTER_ACCESSORIALS}
-                      setMASTER_Accessorials={setMASTER_Accessorials}
+                      MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
+                      setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
                     />
 
                     <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>

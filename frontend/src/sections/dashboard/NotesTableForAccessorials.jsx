@@ -29,6 +29,7 @@ NotesTableForAccessorials.PropTypes = {
 
 export default function NotesTableForAccessorials({ notes, handleCloseConfirm, getValues, setValue, index, updatePickupAcc, updateLineHaulAcc, updateDeliveryAcc, field, activeAccType }) {
     const dispatch = useDispatch();
+    const notesArray = useSelector((state) => state?.notedata?.notesData);
     const [multilineTextValue, setMultilineTextValue] = useState('');
     // 1. Initialize local state directly with the props provided on mount
     const [notesData, setNotesData] = useState([]);
@@ -55,30 +56,16 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
         dispatch(setTableBeingViewed('Notes'));
     }, []);
     useEffect(() => {
-        console.log("Notes in NotesTableForAccessorials: ", notes);
-        if (Array.isArray(notes)) {
+        if (notes !== undefined) {
+            console.log("Notes in NotesTableForAccessorials: ", notes);
             setNotesData(notes);
-        } else {
-            const noteObj = {
-                messageText: notes,
-                noteThreadId: null,
-                noteMessageId: `new-${Date.now()}`, // Temporary ID for frontend rendering
-                createdAt: new Date().toISOString(),
-                createdByName: notes?.[0]?.createdByName || 'Current User' // Replace with actual user name from auth context
-            };
-            const updatedNotes = [...(notesData || []), noteObj];
-            setNotesData(updatedNotes);
-        }
-
+        }     
     }, [notes]);
 
     const addNote = () => {
         const noteObj = {
+            noteMessageId: Date.now(),
             messageText: multilineTextValue,
-            noteThreadId: notes?.[0]?.noteThreadId || null,
-            noteMessageId: `new-${Date.now()}`, // Temporary ID for frontend rendering
-            createdAt: new Date().toISOString(),
-            createdByName: notes?.[0]?.createdByName || 'Current User' // Replace with actual user name from auth context
         };
         // 1. Calculate the updated array immediately
         const updatedNotes = [...(notesData || []), noteObj];
@@ -89,28 +76,19 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
         // 3. Update your form data using the fresh array directly
         if (activeAccType === 'Pickup') {
             updatePickupAcc(index, {
-                id: field.id, // Keeps the internal form field key intact
-                accessorial: field.accessorial,
-                type: field.type,
-                charges: field.charges,
+                ...field,
                 notes: updatedNotes, // Use the freshly calculated array with the new note
             });
         }
         if (activeAccType === 'LineHaul') {
             updateLineHaulAcc(index, {
-                id: field.id, // Keeps the internal form field key intact
-                accessorial: field.accessorial,
-                type: field.type,
-                charges: field.charges,
+                ...field,
                 notes: updatedNotes, // Use the freshly calculated array with the new note
             });
         }
         if (activeAccType === 'Delivery') {
             updateDeliveryAcc(index, {
-                id: field.id, // Keeps the internal form field key intact
-                accessorial: field.accessorial,
-                type: field.type,
-                charges: field.charges,
+                ...field,
                 notes: updatedNotes, // Use the freshly calculated array with the new note
             });
         }

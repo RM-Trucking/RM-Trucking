@@ -18,6 +18,10 @@ const initialState = {
   consigneeDropdown: [],
   shipperAirlineDropdown: [],
   consigneeAirlineDropdown: [],
+  pickupAccessorials: [],
+  linehaulAccessorials: [],
+  deliveryAccessorials: [],
+  accessorialDropdown : [],
 };
 
 const slice = createSlice({
@@ -74,11 +78,43 @@ const slice = createSlice({
       state.isLoading = false;
       state.consigneeAirlineDropdown = action.payload.data;
     },
+    getPickupAccessorialsSuccess(state, action) {
+      state.isLoading = false;
+      state.pickupAccessorials = action.payload.data;
+    },
+    setPickupAccessorials(state, action) {
+      state.pickupAccessorials = action.payload;
+    },
+    getLinehaulAccessorialsSuccess(state, action) {
+      state.isLoading = false;
+      state.linehaulAccessorials = action.payload.data;
+    },
+    setLinehaulAccessorials(state, action) {
+      state.pickupAccessorials = action.payload;
+    },
+    getDeliveryAccessorialsSuccess(state, action) {
+      state.isLoading = false;
+      state.deliveryAccessorials = action.payload.data;
+    },
+    setDeliveryAccessorials(state, action) {
+      state.pickupAccessorials = action.payload;
+    },
+    getAccessorialDropdownSuccess(state,action){
+      state.isLoading = false;
+      state.accessorialDropdown = action.payload.data;
+    },
+    setAccessorialDropdown(state,action){
+      state.accessorialDropdown = action.payload;
+    }
   },
 });
 
 export const {
   setDashboardSearchStr,
+  setPickupAccessorials,
+  setLinehaulAccessorials,
+  setDeliveryAccessorials,
+  setAccessorialDropdown,
 } = slice.actions;
 export default slice.reducer;
 
@@ -169,6 +205,51 @@ export function getConsigneeAirlineDropdown(airportCode, searchTerm) {
     try {
       const response = await axios.get(`maintenance/airline/dropdown?airportCode=${airportCode}${searchTerm ? `&searchTerm=${searchTerm}` : ''}`);
       dispatch(slice.actions.getConsigneeAirlineDropdownSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+// accessorial dropdown details
+export function getPickupAccessorials(entityId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/entity-accessorial/${entityId}?checkCarrierType=true`);
+      dispatch(slice.actions.getPickupAccessorialsSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getLinehaulAccessorials(entityId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/entity-accessorial/${entityId}?checkCarrierType=true`);
+      dispatch(slice.actions.getLinehaulAccessorialsSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getDeliveryAccessorials(entityId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/entity-accessorial/${entityId}?checkCarrierType=true`);
+      dispatch(slice.actions.getDeliveryAccessorialsSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function getAccessorialDropdown() {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get('/maintenance/accessorial/dropdown');
+      dispatch(slice.actions.getAccessorialDropdownSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

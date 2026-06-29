@@ -8,7 +8,7 @@ import {
     CircularProgress,
     Stack,
     Typography,
-    Divider
+    Divider, Autocomplete
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import StyledCheckbox from '../shared/StyledCheckBox';
@@ -29,6 +29,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
     const operationalMessage = useSelector((state) => state?.customerdata?.operationalMessage);
     const isLoading = useSelector((state) => state?.customerdata?.isLoading);
     const [warehouseFlag, setWarehouseFlag] = useState(false);
+    const [hasWarehouseService, setHasWarehouseServiceFlag] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
     const {
         control,
@@ -55,6 +56,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             warehouse: 'N',
             warehouseDetails: '',
             stationNotes: '',
+            hasWarehouseService: 'N',
+            warehouseEmails: [],
         }
     });
 
@@ -72,6 +75,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             "hours": data.hours,
             "warehouse": (data.warehouse) ? 'Y' : 'N',
             "warehouseDetail": data.warehouseDetails,
+            "hasWarehouseService": (data.hasWarehouseService) ? 'Y' : 'N',
+            "warehouseEmails": data.hasWarehouseService ? data.warehouseEmails : [],
             "addresses": [
                 {
                     "line1": data.addressLine1,
@@ -134,6 +139,21 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             setWarehouseFlag(selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouse', selectedCustomerStationDetails.warehouse === 'Y' ? true : false);
             setValue('warehouseDetails', selectedCustomerStationDetails.warehouseDetail || "");
+            // for hasWarehouseService
+            setHasWarehouseServiceFlag(selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
+            setValue('hasWarehouseService', selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
+            if (selectedCustomerStationDetails?.warehouseEmails) {
+                // 1. Get the raw value from the backend
+                const rawEmails = selectedCustomerStationDetails?.warehouseEmails;
+
+                // 2. If it's a string, clean up the literal escaped outer quotes. Otherwise, fallback to ""
+                const cleanedEmails = typeof rawEmails === 'string'
+                    ? rawEmails.replace(/^"|"$/g, '').trim()
+                    : "";
+
+                // 3. Set the form value as a clean string
+                setValue('warehouseEmails', cleanedEmails);
+            }
         }
     }, [selectedCustomerStationDetails]);
 
@@ -705,7 +725,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             render={({ field: { onChange, value } }) => (
                                 <FormControlLabel
                                     sx={{
-                                        width: '25%',
+                                        width: '30%',
                                         display: 'flex',
                                         alignItems: 'flex-end',
                                         pointerEvents: 'none', // Keeps the "Warehouse" text unclickable
@@ -736,7 +756,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             }}
                                         />
                                     }
-                                    label="Warehouse"
+                                    label="Does the customer station have a warehouse?"
                                 />
                             )}
                         />
@@ -755,7 +775,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                             }}
                             render={({ field, fieldState: { error } }) => (
                                 <StyledTextField {...field} label="Warehouse details" variant="standard" fullWidth sx={{
-                                    width: '25%',
+                                    width: '40%',
                                 }} disabled={readOnly} error={!!error}
                                     inputProps={{ maxLength: 250 }}
                                     // Intercept onChange to prevent leading spaces
@@ -771,6 +791,103 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />}
+                    </Stack>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                        <Controller
+                            name="hasWarehouseService"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <FormControlLabel
+                                    sx={{
+                                        width: '40%',
+                                        display: 'flex',
+                                        alignItems: 'flex-end',
+                                        pointerEvents: 'none', // Keeps the "Warehouse" text unclickable
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                            WebkitTextFillColor: 'black',
+                                        },
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                        }
+                                    }}
+                                    control={
+                                        <StyledCheckbox
+                                            sx={{
+                                                pointerEvents: 'auto',
+                                                padding: 0, // 1. Removes the invisible clickable padding
+                                                marginRight: '8px' // 2. Adds back space between box and label
+                                            }}
+                                            disableRipple // 3. Removes the circular highlight when clicked
+                                            checked={!!value}
+                                            disabled={readOnly}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                onChange(isChecked);
+                                                setHasWarehouseServiceFlag(isChecked);
+                                            }}
+                                        />
+                                    }
+                                    label="Requires R&M Warehouse Services"
+                                />
+                            )}
+                        />
+
+
+
+                        {hasWarehouseService && <Controller
+                            name="warehouseEmails"
+                            control={control}
+                            defaultValue="" // 1. Ensures the field starts as a string, not undefined
+                            rules={{
+                                validate: (value) => {
+                                    if (!value || typeof value !== 'string') return true; // 2. Guard clause
+                                    const emails = value.split(',').map(e => e.trim()).filter(Boolean);
+                                    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                                    const allValid = emails.every(email => emailRegex.test(email));
+                                    return allValid || "One or more emails are invalid";
+                                }
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => {
+                                // 3. Robust string conversion check to prevent the .split error
+                                const stringValue = typeof value === 'string' ? value : '';
+                                const selectedEmailsArray = stringValue.split(',').map(e => e.trim()).filter(Boolean);
+
+                                return (
+                                    <Autocomplete
+                                        multiple
+                                        freeSolo
+                                        options={[]}
+                                        value={selectedEmailsArray}
+                                        fullWidth
+                                        onChange={(event, newValue) => {
+                                            const processedEmails = newValue
+                                                .flatMap(item => (typeof item === 'string' ? item.split(',') : []))
+                                                .map(e => e.trim())
+                                                .filter(Boolean);
+
+                                            onChange(processedEmails.join(', '));
+                                        }}
+                                        renderInput={(params) => (
+                                            <StyledTextField
+                                                {...params}
+                                                variant="standard"
+                                                label="Additional Email"
+                                                placeholder={selectedEmailsArray.length === 0 ? "Type emails..." : ""}
+                                                InputLabelProps={{ shrink: true }}
+                                                error={!!error}
+                                                helperText={error ? error.message : "Press Enter after each email to add it"}
+                                            />
+                                        )}
+                                        sx={{ mt: 2 }}
+                                    />
+                                );
+                            }}
+                        />
+
+                        }
                     </Stack>
 
                     {/* customer notes */}

@@ -142,18 +142,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             // for hasWarehouseService
             setHasWarehouseServiceFlag(selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
             setValue('hasWarehouseService', selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
-            if (selectedCustomerStationDetails?.warehouseEmails) {
-                // 1. Get the raw value from the backend
-                const rawEmails = selectedCustomerStationDetails?.warehouseEmails;
-
-                // 2. If it's a string, clean up the literal escaped outer quotes. Otherwise, fallback to ""
-                const cleanedEmails = typeof rawEmails === 'string'
-                    ? rawEmails.replace(/^"|"$/g, '').trim()
-                    : "";
-
-                // 3. Set the form value as a clean string
-                setValue('warehouseEmails', cleanedEmails);
-            }
+            setValue('warehouseEmails', selectedCustomerStationDetails?.warehouseEmails || []);
         }
     }, [selectedCustomerStationDetails]);
 
@@ -837,55 +826,87 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
 
 
 
-                        {hasWarehouseService && <Controller
-                            name="warehouseEmails"
-                            control={control}
-                            defaultValue="" // 1. Ensures the field starts as a string, not undefined
-                            rules={{
-                                validate: (value) => {
-                                    if (!value || typeof value !== 'string') return true; // 2. Guard clause
-                                    const emails = value.split(',').map(e => e.trim()).filter(Boolean);
-                                    const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-                                    const allValid = emails.every(email => emailRegex.test(email));
-                                    return allValid || "One or more emails are invalid";
-                                }
-                            }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => {
-                                // 3. Robust string conversion check to prevent the .split error
-                                const stringValue = typeof value === 'string' ? value : '';
-                                const selectedEmailsArray = stringValue.split(',').map(e => e.trim()).filter(Boolean);
+                        {hasWarehouseService &&
+                            <Controller
+                                name="warehouseEmails"
+                                control={control}
+                                defaultValue={[]}
+                                rules={{
+                                    validate: (value) => {
+                                        const emails = Array.isArray(value) ? value : [];
+                                        if (emails.length === 0) return true;
 
-                                return (
-                                    <Autocomplete
-                                        multiple
-                                        freeSolo
-                                        options={[]}
-                                        value={selectedEmailsArray}
-                                        fullWidth
-                                        onChange={(event, newValue) => {
-                                            const processedEmails = newValue
-                                                .flatMap(item => (typeof item === 'string' ? item.split(',') : []))
-                                                .map(e => e.trim())
-                                                .filter(Boolean);
+                                        const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+                                        const allValid = emails.every(email => emailRegex.test(email));
+                                        return allValid || "One or more emails are invalid";
+                                    }
+                                }}
+                                render={({ field: { onChange, value }, fieldState: { error } }) => {
+                                    const selectedEmailsArray = Array.isArray(value) ? value : [];
 
-                                            onChange(processedEmails.join(', '));
-                                        }}
-                                        renderInput={(params) => (
-                                            <StyledTextField
-                                                {...params}
-                                                variant="standard"
-                                                label="Additional Email"
-                                                placeholder={selectedEmailsArray.length === 0 ? "Type emails..." : ""}
-                                                InputLabelProps={{ shrink: true }}
-                                                error={!!error}
-                                                helperText={error ? error.message : "Press Enter after each email to add it"}
-                                            />
-                                        )}
-                                        sx={{ mt: 2 }}
-                                    />
-                                );
-                            }}
-                        />
+                                    return (
+                                        <Autocomplete
+                                            multiple
+                                            freeSolo
+                                            options={[]}
+                                            fullWidth
+                                            value={selectedEmailsArray}
+                                            onChange={(event, newValue) => {
+                                                const processedEmails = newValue
+                                                    .flatMap(item => (typeof item === 'string' ? item.split(',') : []))
+                                                    .map(e => e.trim())
+                                                    .filter(Boolean);
+
+                                                const uniqueEmails = [...new Set(processedEmails)];
+                                                onChange(uniqueEmails);
+                                            }}
+                                            renderInput={(params) => (
+                                                <StyledTextField
+                                                    {...params}
+                                                    variant="standard"
+                                                    label="Additional Email"
+                                                    placeholder={selectedEmailsArray.length === 0 ? "Type emails..." : ""}
+                                                    InputLabelProps={{ shrink: true }}
+                                                    error={!!error}
+                                                    helperText={error ? error.message : "Press Enter, Comma, or Space to add"}
+
+                                                    // 1. Listen to key presses on the inner HTML input element
+                                                    inputProps={{
+                                                        ...params.inputProps,
+                                                        onKeyDown: (e) => {
+                                                            const target = e.target;
+                                                            const inputValue = target.value.trim();
+
+                                                            // 2. Catch Comma (,) or Space keys
+                                                            if ((e.key === ',' || e.key === ' ') && inputValue) {
+                                                                e.preventDefault(); // Stop the comma/space from showing up in the text box
+
+                                                                // 3. Prevent duplicate additions from this keypress
+                                                                if (!selectedEmailsArray.includes(inputValue)) {
+                                                                    onChange([...selectedEmailsArray, inputValue]);
+                                                                }
+
+                                                                // 4. Force clear the MUI text input display
+                                                                target.value = '';
+                                                                // Triggers MUI internal input reset
+                                                                const event = new Event('input', { bubbles: true });
+                                                                target.dispatchEvent(event);
+                                                            }
+
+                                                            // Maintain any original MUI onKeyDown logic
+                                                            if (params.inputProps.onKeyDown) {
+                                                                params.inputProps.onKeyDown(e);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                            sx={{ mt: 2 }}
+                                        />
+                                    );
+                                }}
+                            />
+
 
                         }
                     </Stack>

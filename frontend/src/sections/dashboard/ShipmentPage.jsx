@@ -36,6 +36,7 @@ import {
   getDeliveryAccessorials,
   setAccessorialDropdown,
   getAccessorialDropdown,
+  getStationAccessorialData,
 } from '../../redux/slices/shipment';
 
 
@@ -1806,7 +1807,7 @@ const getFreightClass = (length, width, height, lbs) => {
   return '400'; // Less than 1 lb/cu ft
 }
 // step 5 carrier rate
-const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo }) => {
+const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo }) => {
   // Track which row index is currently in "Edit Mode"
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
@@ -1822,7 +1823,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
   return (
     <Box sx={{ mb: 4 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      {type && type !== 'Add' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
         <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}
           onClick={() => {
             setInvoiceApprovalModal(true);
@@ -1830,14 +1831,14 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
         >
           Invoice Approval
         </Button>
-      </Box>
+      </Box>}
 
       <Box sx={{ border: '1px solid #ccc', borderRadius: '4px' }}>
         {/* Header Row */}
         <Box sx={{ display: 'flex', bgcolor: '#f5f5f5', borderBottom: '1px solid #ccc' }}>
           <Box sx={{ display: 'flex', p: 1, alignItems: 'center', gap: 1, flex: 3.5, fontWeight: 'bold', justifyContent: 'space-between' }}>
             <Typography variant="normal" fontSize={'12px'}>{sectionName}</Typography>
-            <Box sx={{
+            {type && type !== 'Add' && <Box sx={{
               p: 1,
               display: 'flex', alignItems: 'center', gap: 1
             }}>
@@ -1905,7 +1906,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
                 </IconButton>
               )}
-            </Box>
+            </Box>}
           </Box>
           <Box sx={{ display: 'flex', flex: 1.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Multiplication Factor</Typography></Box>
           <Box sx={{ display: 'flex', flex: 2.5, p: 1, borderLeft: '1px solid #ccc', alignItems: 'center' }}><Typography variant="subtitle2">Rates ($)</Typography></Box>
@@ -1989,20 +1990,21 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
 
         {/* Dynamic Rates Array */}
         {fields && fields.length > 0 && fields.map((item, index) => {
+          console.log(fields);
           const isEditing = editIndex === index;
           const isInputEditing = editInputIndex === index;
 
           return (
-            <Box key={item.accessorial} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (getValues(`${path}[${index}].isManual`) ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
+            <Box key={item.accessorialId} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', bgcolor: (getValues(`${path}[${index}].isManual`) ? 'rgba(255, 226, 201, 1)' : '#fff') }}>
               <Box sx={{ flex: 3.5, p: 1 }}>
-                <Typography variant="body2">{item.accessorial}</Typography>
+                <Typography variant="body2">{item.accessorialName}</Typography>
               </Box>
               <Box sx={{
                 flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
                 {
-                  item?.type?.toLowerCase() === 'hourly' && (
+                  item?.chargeType?.toLowerCase() === 'hourly' && (
                     <>
                       <Controller
                         name={`${path}[${index}].input`}
@@ -2049,7 +2051,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item?.type?.toLowerCase() === 'per pound' && (
+                  item?.chargeType?.toLowerCase() === 'per_pound' && (
                     <>
                       <Controller
                         name={`${path}[${index}].input`}
@@ -2077,7 +2079,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item?.type?.toLowerCase() === 'flat rate' && (
+                  item?.chargeType?.toLowerCase() === 'flat_rate' && (
                     <Typography variant="body2">-</Typography>
                   )
                 }
@@ -2087,7 +2089,7 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
                 <Controller
-                  name={`${path}[${index}].charges`}
+                  name={`${path}[${index}].chargeValue`}
                   control={control}
                   render={({ field }) => (
                     <TextField
@@ -2110,9 +2112,9 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                     size="small"
                     onClick={() => {
                       // 1. Get the current value from the form
-                      const currentVal = getValues(`${path}[${index}].charges`);
+                      const currentVal = getValues(`${path}[${index}].chargeValue`);
                       // 2. Get the original value from the fields array
-                      const originalVal = item.charges;
+                      const originalVal = item.chargeValue;
 
                       // 3. If they differ, update the 'isManual' key in the form state
                       if (currentVal !== originalVal) {
@@ -2139,10 +2141,10 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
               </Box>
               <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
                 {
-                  item?.type?.toLowerCase() === 'hourly' && (
+                  item?.chargeType?.toLowerCase() === 'hourly' && (
                     <Typography variant="body2">
                       {(() => {
-                        const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
+                        const charge = parseFloat(getValues(`${path}[${index}].chargeValue`)) || 0;
                         const inputVal = getValues(`${path}[${index}].input`);
 
                         // Check if input is a valid string or number
@@ -2158,10 +2160,10 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                   )
                 }
                 {
-                  item?.type?.toLowerCase() === 'per pound' && (
+                  item?.chargeType?.toLowerCase() === 'per_pound' && (
                     <Typography variant="body2">
                       {(() => {
-                        const charge = parseFloat(getValues(`${path}[${index}].charges`)) || 0;
+                        const charge = parseFloat(getValues(`${path}[${index}].chargeValue`)) || 0;
                         const weightVal = totals.totalWeight;
 
                         // Weight is considered "present" if it's not empty, null, undefined, or 0
@@ -2178,8 +2180,8 @@ const CarrierSection = ({ fields, sectionName, rate, totalSubCharges, watchedCar
                 }
 
                 {
-                  item?.type?.toLowerCase() === 'flat rate' && (
-                    <Typography variant="body2">{getValues(`${path}[${index}].charges`)}</Typography>
+                  item?.chargeType?.toLowerCase() === 'flat_rate' && (
+                    <Typography variant="body2">{getValues(`${path}[${index}].chargeValue`)}</Typography>
                   )
                 }
               </Box>
@@ -2442,13 +2444,13 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 
   const addAccessorial = () => {
     const selectedObj = getValues('customerRate.selectedAccToAdd');
-    const exists = getValues('customerRate.customerAccessorials').some(item => item.id === selectedObj.id);
+    const exists = getValues('customerRate.customerAccessorials').some(item => item.entityId === selectedObj.entityId);
     if (!exists) {
       appendCustomerRateAccFields({
         ...selectedObj,
         isManual: false,
-        apiCharges: selectedObj.charges,
-        input: (selectedObj.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: selectedObj.chargeValue,
+        input: (selectedObj.chargeType.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       });
       setErrorVisible(false);
     } else {
@@ -2616,16 +2618,16 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
               const isInputEditing = editInputIndex === index;
 
               return (
-                <Box key={`${item.accessorial}-${index}`} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+                <Box key={`${item.accessorialName}-${index}`} sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
                   <Box sx={{ flex: 3.5, p: 1 }}>
-                    <Typography variant="body2">{item.accessorial}</Typography>
+                    <Typography variant="body2">{item?.accessorialName}</Typography>
                   </Box>
                   <Box sx={{
                     flex: 1.5, p: 1, borderLeft: '1px solid #ccc',
                     display: 'flex', alignItems: 'center', gap: 1
                   }}>
                     {
-                      item.type.toLowerCase() === 'hourly' && (
+                      item?.chargeType?.toLowerCase() === 'hourly' && (
                         <>
                           <Controller
                             name={`customerRate.customerAccessorials[${index}].input`}
@@ -2673,7 +2675,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                       )
                     }
                     {
-                      item.type.toLowerCase() === 'per pound' && (
+                      item?.chargeType?.toLowerCase() === 'per_pound' && (
                         <>
                           <Controller
                             name={`customerRate.customerAccessorials[${index}].input`}
@@ -2702,7 +2704,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                       )
                     }
                     {
-                      item.type.toLowerCase() === 'flat rate' && (
+                      item?.chargeType?.toLowerCase() === 'flat_rate' && (
                         <Typography variant="body2">-</Typography>
                       )
                     }
@@ -2712,7 +2714,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     display: 'flex', alignItems: 'center', gap: 1
                   }}>
                     <Controller
-                      name={`customerRate.customerAccessorials[${index}].charges`}
+                      name={`customerRate.customerAccessorials[${index}].chargeValue`}
                       control={control}
                       render={({ field }) => (
                         <TextField
@@ -2736,9 +2738,9 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                         size="small"
                         onClick={() => {
                           // 1. Get the current value from the form
-                          const currentVal = getValues(`customerRate.customerAccessorials[${index}].charges`);
+                          const currentVal = getValues(`customerRate.customerAccessorials[${index}].chargeValue`);
                           // 2. Get the original value from the fields array
-                          const originalVal = item.charges;
+                          const originalVal = item.chargeValue;
 
                           // 3. If they differ, update the 'isManual' key in the form state
                           if (currentVal !== originalVal) {
@@ -2764,10 +2766,10 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   </Box>
                   <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
                     {
-                      item.type.toLowerCase() === 'hourly' && (
+                      item?.chargeType?.toLowerCase() === 'hourly' && (
                         <Typography variant="body2">
                           {(() => {
-                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].charges`)) || 0;
+                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].chargeValue`)) || 0;
                             const inputVal = getValues(`customerRate.customerAccessorials.[${index}].input`);
 
                             // Check if input is a valid string or number
@@ -2783,10 +2785,10 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                       )
                     }
                     {
-                      item.type.toLowerCase() === 'per pound' && (
+                      item?.chargeType?.toLowerCase() === 'per_pound' && (
                         <Typography variant="body2">
                           {(() => {
-                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].charges`)) || 0;
+                            const charge = parseFloat(getValues(`customerRate.customerAccessorials.[${index}].chargeValue`)) || 0;
                             const weightVal = totals.totalWeight;
 
                             // Weight is considered "present" if it's not empty, null, undefined, or 0
@@ -2803,8 +2805,8 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     }
 
                     {
-                      item.type.toLowerCase() === 'flat rate' && (
-                        <Typography variant="body2">{getValues(`customerRate.customerAccessorials.[${index}].charges`)}</Typography>
+                      item?.chargeType?.toLowerCase() === 'flat_rate' && (
+                        <Typography variant="body2">{getValues(`customerRate.customerAccessorials.[${index}].chargevalue`)}</Typography>
                       )
                     }
                   </Box>
@@ -2830,14 +2832,14 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
                   }}
                   onChange={(event) => {
-                    const selectedObject = masterAccessorials.find(item => item.id === event.target.value);
+                    const selectedObject = masterAccessorials.find(item => item.entityId === event.target.value);
                     setValue('customerRate.selectedAccToAdd', selectedObject);
                   }}
                 >
-                  {masterAccessorials.map((opt, index) => (<MenuItem key={index} value={opt.id}>{opt.accessorial}</MenuItem>))}
+                  {masterAccessorials.map((opt, index) => (<MenuItem key={index} value={opt.entityId}>{opt.accessorialName}</MenuItem>))}
                 </TextField>
 
-                <StyledTextField value={getValues('customerRate.selectedAccToAdd.type') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
+                <StyledTextField value={getValues('customerRate.selectedAccToAdd.chargeType') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
 
                 <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
                   onClick={addAccessorial}
@@ -2875,7 +2877,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   parseFloat(getValues('customerRate.rate') || 0) +
                   parseFloat(getValues('customerRate.fuelSurchargeRate') || 0) +
                   getValues('customerRate.customerAccessorials').reduce((sum, item) => {
-                    const charge = parseFloat(item.charges) || 0;
+                    const charge = parseFloat(item.chargeValue) || 0;
 
                     // Check if input exists and isn't an empty string
                     if (item.input !== undefined && item.input !== "" && item.input !== null) {
@@ -2926,6 +2928,7 @@ const ShipmentForm = ({ type }) => {
   const pickupAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.pickupAccessorials);
   const linehaulAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.linehaulAccessorials);
   const deliveryAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.deliveryAccessorials);
+  const stationAccessorialData = useSelector((state) => state?.shipmentdata?.stationAccessorialData);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -3225,30 +3228,30 @@ const ShipmentForm = ({ type }) => {
       // step 4 - Carrier Rates
       carrierRates: {
         pickUp: {
-          pickUpCarrier: 'Pickup Carrier',
-          pickUpRate: '130',
-          apiPickUpRate: '130',
+          pickUpCarrier: '',
+          pickUpRate: '',
+          apiPickUpRate: '',
           invoiceNo: '',
           pickupAccessorials: [],
         },
         lineHaul: {
-          lineHaulCarrier: 'Line Haul Carrier',
-          lineHaulRate: '140',
-          apiLineHaulRate: '140',
+          lineHaulCarrier: '',
+          lineHaulRate: '',
+          apiLineHaulRate: '',
           invoiceNo: '',
           lineHaulAccessorials: [],
         },
         delivery: {
-          deliveryCarrier: 'Delivery Carrier',
-          deliveryRate: '150',
-          apiDeliveryRate: '150',
+          deliveryCarrier: '',
+          deliveryRate: '',
+          apiDeliveryRate: '',
           invoiceNo: '',
           deliveryAccessorials: [],
         },
       },
       customerRate: {
-        rate: '130',
-        apiRate: '130',
+        rate: '',
+        apiRate: '',
         spotRate: false,
         fuelSurcharge: 'Fuel Surcharge (35% Charge)',
         fuelSurchargeRate: '',
@@ -3841,19 +3844,6 @@ const ShipmentForm = ({ type }) => {
       }
     });
   }, [dimensionsSync, setValue])
-
-  // useEffect(() => {
-  //   // apply accessorial details
-  //   if (custommerRateModal && MASTER_ACCESSORIALS.length > 0) {
-  //     const updatedAcc = MASTER_ACCESSORIALS.map((acc, index) => ({
-  //       ...acc,
-  //       isManual: false,
-  //       apiCharges: acc.charges,
-  //       input: (acc.type.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
-  //     }));
-  //     setValue('customerRate.customerAccessorials', updatedAcc);
-  //   }
-  // }, [custommerRateModal])
   useEffect(() => {
     if (watchedCarrierInfo.selectCarrier) {
       setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
@@ -3869,8 +3859,8 @@ const ShipmentForm = ({ type }) => {
       const updatedPickupAcc = watchedCarrierInfo.pickupAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        apiCharges: acc.charges,
-        input: (acc?.type?.toLowerCase() === 'per pound' || acc?.type?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.chargeValue,
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
@@ -3878,8 +3868,8 @@ const ShipmentForm = ({ type }) => {
       const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        apiCharges: acc.charges,
-        input: (acc?.type?.toLowerCase() === 'per pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.chargeValue,
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
@@ -3887,8 +3877,8 @@ const ShipmentForm = ({ type }) => {
       const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
-        apiCharges: acc.charges,
-        input: (acc?.type?.toLowerCase() === 'per pound' || acc?.type?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        apiCharges: acc.chargeValue,
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
@@ -4153,6 +4143,8 @@ const ShipmentForm = ({ type }) => {
   const watchedSelectedDeliveryCarrier = useWatch({ control, name: "carrierInfo.deliveryDetails.carrier" });
   const watchedPickupAdditionalMails = useWatch({ control, name: "carrierInfo.pickupAlertDetails.additionalEmailsArray" });
   const watchedDeliveryAdditionalMails = useWatch({ control, name: "carrierInfo.deliveryDetails.additionalEmailsArray" });
+  // fuel surcharge on customers
+  const customerZipRate = useWatch({ control, name: "customerRate.rate" })
 
   useEffect(() => {
     if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress) {
@@ -4493,7 +4485,7 @@ const ShipmentForm = ({ type }) => {
           "pickupAccessorialDetails": {
             "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
               ...rest,
-              notes: notes.map(({ noteMessageId, ...noteRest }) => noteRest)
+              notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
             })),
           },
           "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
@@ -4545,7 +4537,7 @@ const ShipmentForm = ({ type }) => {
             "linehaulAccessorialDetails": {
               "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.map(({ id, selected, notes, ...rest }) => ({
                 ...rest,
-                notes: notes.map(({ noteMessageId, ...noteRest }) => noteRest)
+                notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
               })),
             }
           }
@@ -4639,7 +4631,10 @@ const ShipmentForm = ({ type }) => {
           },
           "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
           "pickupAccessorialDetails": {
-            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+              ...rest,
+              notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
+            })),
           },
           "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
           "pickupAlertDetails": {
@@ -4747,7 +4742,10 @@ const ShipmentForm = ({ type }) => {
           },
           "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
           "pickupAccessorialDetails": {
-            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+              ...rest,
+              notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
+            })),
           },
           "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
           "pickupAlertDetails": {
@@ -4853,7 +4851,10 @@ const ShipmentForm = ({ type }) => {
           },
           "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
           "pickupAccessorialDetails": {
-            "accessorials": currentValues?.carrierInfo?.pickupAccessorials,
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+              ...rest,
+              notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
+            })),
           },
           "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
           "pickupAlertDetails": {
@@ -4895,11 +4896,108 @@ const ShipmentForm = ({ type }) => {
       }
     }
 
+    // step 4
+    const transformedPickupArray = currentValues?.carrierRates?.pickUp?.pickupAccessorials?.map(item => {
+      // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
+      const factor = Number(item.input) || 0;
+      const value = Number(item.chargeValue) || 0;
 
+      return {
+        rateType: item.chargeType,
+        multiplicationFactor: factor,
+        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        rateValue: value,
+        // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
+        totalRate: factor === 0 ? value : factor * value
+      };
+    });
+    const transformedLinehaulArray = currentValues?.carrierRates?.lineHaul?.lineHaulAccessorials?.map(item => {
+      // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
+      const factor = Number(item.input) || 0;
+      const value = Number(item.chargeValue) || 0;
 
-    if (activeStep === 3) {
-      dispatch(postStep1(obj));
+      return {
+        rateType: item.chargeType,
+        multiplicationFactor: factor,
+        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        rateValue: value,
+        // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
+        totalRate: factor === 0 ? value : factor * value
+      };
+    });
+    const transformedDeliveryArray = currentValues?.carrierRates?.delivery?.deliveryAccessorials?.map(item => {
+      // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
+      const factor = Number(item.input) || 0;
+      const value = Number(item.chargeValue) || 0;
+
+      return {
+        rateType: item.chargeType,
+        multiplicationFactor: factor,
+        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        rateValue: value,
+        // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
+        totalRate: factor === 0 ? value : factor * value
+      };
+    });
+    const pickupSubTotalRate = transformedPickupArray.reduce((accumulator, item) => {
+      // Force convert totalRate to a number safely, falling back to 0 if null/undefined
+      const currentRate = Number(item.totalRate) || 0;
+      return accumulator + currentRate;
+    }, 0);
+    const linehaulSubTotalRate = transformedLinehaulArray.reduce((accumulator, item) => {
+      // Force convert totalRate to a number safely, falling back to 0 if null/undefined
+      const currentRate = Number(item.totalRate) || 0;
+      return accumulator + currentRate;
+    }, 0);
+    const deliverySubTotalRate = transformedDeliveryArray.reduce((accumulator, item) => {
+      // Force convert totalRate to a number safely, falling back to 0 if null/undefined
+      const currentRate = Number(item.totalRate) || 0;
+      return accumulator + currentRate;
+    }, 0);
+
+    obj.shipmentRateDetails = {
+      "carrierRateDetails": {
+        "pickupRateDetails": {
+          "invoiceNumber": currentValues?.carrierRates?.pickUp?.invoiceNo,
+          "rateDetails": transformedPickupArray,
+          "pickupSubTotalRate": pickupSubTotalRate,
+          "invoiceApprovalStatus": "N"
+        },
+        "linehaulRateDetails": {
+          "invoiceNumber": currentValues?.carrierRates?.lineHaul?.invoiceNo,
+          "rateDetails": transformedLinehaulArray,
+          "linehaulSubTotalRate": linehaulSubTotalRate,
+          "invoiceApprovalStatus": "N"
+        },
+        "deliveryRateDetails": {
+          "invoiceNumber": currentValues?.carrierRates?.delivery?.invoiceNo,
+          "rateDetails": transformedDeliveryArray,
+          "deliverySubTotalRate": deliverySubTotalRate,
+          "invoiceApprovalStatus": "N"
+        },
+        "totalCarrierRate": Number(pickupSubTotalRate + linehaulSubTotalRate + deliverySubTotalRate),
+      },
+      "customerRateDetails": {
+        "rateDetails": [
+          {
+            "rateType": "BASE_RATE",
+            "multiplicationFactor": 1,
+            "multiplicationFactorUOM": "SHIPMENT",
+            "rateValue": 2200,
+            "totalRate": 2200
+          }
+        ],
+        "totalCustomerRate": 2200
+      }
     }
+    console.log(obj.shipmentRateDetails);
+
+
+
+
+    // if (activeStep === 3) {
+    //   dispatch(postStep1(obj));
+    // }
 
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
@@ -4970,6 +5068,29 @@ const ShipmentForm = ({ type }) => {
       setDELIVERY_MASTER_Accessorials([]);
     }
   }, [deliveryAccessorialsByEntityId])
+  useEffect(() => {
+    // apply accessorial details
+    if (custommerRateModal && stationAccessorialData.length > 0) {
+      const updatedAcc = stationAccessorialData.map((acc, index) => ({
+        ...acc,
+        isManual: false,
+        apiCharges: acc.chargeValue,
+        input: (acc.chargeType.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+      }));
+      setValue('customerRate.customerAccessorials', updatedAcc);
+    }
+  }, [custommerRateModal, stationAccessorialData])
+  // when there is change in ziprate of customer, making 35% for fuelsurcharge
+  useEffect(() => {
+    if (customerZipRate) {
+      const zipRateString = customerZipRate || "0";
+
+      // 2. Convert to a number and calculate 35%
+      const zipRateNum = Number(zipRateString) || 0;
+      const calculatedPercentage = zipRateNum * 0.35;
+      setValue('customerRate.fuelSurchargeRate', calculatedPercentage);
+    }
+  }, [customerZipRate])
 
 
 
@@ -5358,6 +5479,7 @@ const ShipmentForm = ({ type }) => {
                       value={value || null}
 
                       onChange={(event, newValue) => {
+                        dispatch(getStationAccessorialData(newValue?.entityId));
                         onChange(newValue);
                         if (!newValue) {
                           dispatch(searchCustomerStationDropdown(''));
@@ -6744,7 +6866,7 @@ const ShipmentForm = ({ type }) => {
                               // Updates React Hook Form state on change
                               onChange={(event, newValue) => {
                                 isSelectingToCarrierPickupRef.current = true;
-
+                                dispatch(getLinehaulAccessorials(newValue?.terminalEntityId));
                                 // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
                                 const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
                                 onChange(formValue);
@@ -7421,7 +7543,7 @@ const ShipmentForm = ({ type }) => {
                                 // Updates React Hook Form state on change
                                 onChange={(event, newValue) => {
                                   isSelectingToCarrierLinehaulRef.current = true;
-
+                                  dispatch(getDeliveryAccessorials(newValue?.terminalEntityId));
                                   // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
                                   const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
                                   onChange(formValue);
@@ -8626,20 +8748,22 @@ const ShipmentForm = ({ type }) => {
                 </Typography>
               </Box>
               <CarrierSection
+                type={type}
                 fields={carrierRatesPickUpAccessorials}
-                sectionName={`Pickup Carrier -  ${watchedCarrierRateInfo.pickUp.pickUpCarrier || ''}`}
+                sectionName={`Pickup Carrier ${watchedCarrierRateInfo.pickUp.pickUpCarrier ? `-  ${carrierTerminalDropdown.find(
+                  (item) => item.terminalId === Number(watchedSelectedPickupCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedPickupCarrier.split('-')?.[1])
+                )?.carrierName || ''}` : ''}`}
                 rate={'carrierRates.pickUp.pickUpRate'}
                 totalSubCharges={(
                   parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
                   watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.charges) || 0;
+                    const charge = parseFloat(item.chargeValue) || 0;
 
                     // Check if input exists and isn't an empty string
                     if (item.input !== undefined && item.input !== "" && item.input !== null) {
                       const input = parseFloat(item.input) || 0;
                       return sum + (charge * input);
                     }
-
                     // Otherwise, treat as a flat fee
                     return sum + charge;
                   }, 0)
@@ -8654,20 +8778,22 @@ const ShipmentForm = ({ type }) => {
                 invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
               />
               <CarrierSection
+                type={type}
                 fields={carrierRatesLineHaulAccessorials}
-                sectionName={`Line Haul Carrier -  ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier || ''}`}
+                sectionName={`Line Haul Carrier ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier ? `-  ${carrierTerminalDropdown.find(
+                  (item) => item.terminalId === Number(watchedSelectedLineHaulCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedLineHaulCarrier.split('-')?.[1])
+                )?.carrierName || ''}` : ''}`}
                 rate={'carrierRates.lineHaul.lineHaulRate'}
                 totalSubCharges={(
                   parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
                   watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.charges) || 0;
+                    const charge = parseFloat(item.chargeValue) || 0;
 
                     // Check if input exists and isn't an empty string
                     if (item.input !== undefined && item.input !== "" && item.input !== null) {
                       const input = parseFloat(item.input) || 0;
                       return sum + (charge * input);
                     }
-
                     // Otherwise, treat as a flat fee
                     return sum + charge;
                   }, 0)
@@ -8682,20 +8808,22 @@ const ShipmentForm = ({ type }) => {
                 invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
               />
               <CarrierSection
+                type={type}
                 fields={carrierRatesDeliveryAccessorials}
-                sectionName={`Delivery Carrier -  ${watchedCarrierRateInfo.delivery.deliveryCarrier || ''}`}
+                sectionName={`Delivery Carrier ${watchedCarrierRateInfo.delivery.deliveryCarrier ? `-  ${carrierTerminalDropdown.find(
+                  (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
+                )?.carrierName || ''}` : ''}`}
                 rate='carrierRates.delivery.deliveryRate'
                 totalSubCharges={(
                   parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
                   watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.charges) || 0;
+                    const charge = parseFloat(item.chargeValue) || 0;
 
                     // Check if input exists and isn't an empty string
                     if (item.input !== undefined && item.input !== "" && item.input !== null) {
                       const input = parseFloat(item.input) || 0;
                       return sum + (charge * input);
                     }
-
                     // Otherwise, treat as a flat fee
                     return sum + charge;
                   }, 0)
@@ -8714,14 +8842,14 @@ const ShipmentForm = ({ type }) => {
               <Box sx={{ bgcolor: '#f5f5f5' }}>
                 <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
                   <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>{
-                    (
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>
+                    {(
                       // 1. PickUp Section
                       // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
                       //   ? 
                       (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
                         watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.charges) || 0;
+                          const charge = parseFloat(item.chargeValue) || 0;
                           const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
                           return sum + (input !== null ? charge * input : charge);
                         }, 0))
@@ -8733,7 +8861,7 @@ const ShipmentForm = ({ type }) => {
                       //   ? 
                       (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
                         watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.charges) || 0;
+                          const charge = parseFloat(item.chargeValue) || 0;
                           const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
                           return sum + (input !== null ? charge * input : charge);
                         }, 0))
@@ -8745,13 +8873,12 @@ const ShipmentForm = ({ type }) => {
                       //   ?
                       (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
                         watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.charges) || 0;
+                          const charge = parseFloat(item.chargeValue) || 0;
                           const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
                           return sum + (input !== null ? charge * input : charge);
                         }, 0))
                       // : 0)
-                    ).toFixed(2)
-                  }
+                    ).toFixed(2)}
                   </Typography>
                 </Box>
               </Box>

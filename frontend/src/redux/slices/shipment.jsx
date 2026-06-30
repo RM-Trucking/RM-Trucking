@@ -22,6 +22,7 @@ const initialState = {
   linehaulAccessorials: [],
   deliveryAccessorials: [],
   accessorialDropdown : [],
+  stationAccessorialData : [],
 };
 
 const slice = createSlice({
@@ -45,18 +46,22 @@ const slice = createSlice({
     },
     getCustomerStationDropdownSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.customerStationDropdown = action.payload.data.data;
     },
     searchCustomerStationDropdownSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.customerStationDropdown = action.payload.data.data;
     },
     getCarrierTerminalDropdownSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.carrierTerminalDropdown = action.payload.data.data;
     },
     getShipperDropdownSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.shipperDropdown = action.payload.data;
     },
 
@@ -80,6 +85,7 @@ const slice = createSlice({
     },
     getPickupAccessorialsSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.pickupAccessorials = action.payload.data;
     },
     setPickupAccessorials(state, action) {
@@ -87,6 +93,7 @@ const slice = createSlice({
     },
     getLinehaulAccessorialsSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.linehaulAccessorials = action.payload.data;
     },
     setLinehaulAccessorials(state, action) {
@@ -94,6 +101,7 @@ const slice = createSlice({
     },
     getDeliveryAccessorialsSuccess(state, action) {
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.deliveryAccessorials = action.payload.data;
     },
     setDeliveryAccessorials(state, action) {
@@ -101,11 +109,17 @@ const slice = createSlice({
     },
     getAccessorialDropdownSuccess(state,action){
       state.isLoading = false;
+      state.shipmentSuccess = true;
       state.accessorialDropdown = action.payload.data;
     },
     setAccessorialDropdown(state,action){
       state.accessorialDropdown = action.payload;
-    }
+    },
+    getStationAccessorialDataSuccess(state, action) {
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.stationAccessorialData = action.payload.data;
+    },
   },
 });
 
@@ -254,4 +268,16 @@ export function getAccessorialDropdown() {
       dispatch(slice.actions.hasError(error));
     }
   };
+}
+// customer accessorials
+export function getStationAccessorialData(entityId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/entity-accessorial/${entityId}`);
+      dispatch(slice.actions.getStationAccessorialDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
 }

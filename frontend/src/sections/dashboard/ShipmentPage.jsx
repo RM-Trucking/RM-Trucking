@@ -9040,7 +9040,7 @@ const ShipmentForm = ({ type }) => {
 
           <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => setErrorVisible(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
-            <Alert severity="error" variant="filled">Please check required fields.</Alert>
+            <Alert severity="error" variant="filled">Please fill required fields.</Alert>
 
           </Snackbar>
 

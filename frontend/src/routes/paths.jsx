@@ -35,12 +35,15 @@ export const PATH_PAGE = {
 export const PATH_DASHBOARD = {
   root: ROOTS_DASHBOARD,
   general: {
-    dashboard:{
-      root :  path(ROOTS_DASHBOARD, '/dashboard'),
-      shipmentView : path(ROOTS_DASHBOARD, '/dashboard/shipment-view'),
+    dashboard: {
+      root: path(ROOTS_DASHBOARD, '/dashboard'),
+      shipmentView: path(ROOTS_DASHBOARD, '/dashboard/shipment-view'),
     }
   },
-  shipmentBuilding: path(ROOTS_DASHBOARD, '/shipment-building'),
+  shipmentBuilding: {
+    root: path(ROOTS_DASHBOARD, '/shipment-building'),
+    shipmentView: path(ROOTS_DASHBOARD, '/shipment-building/shipment-view'),
+  },
   warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),
   maintenance: {
     root: path(ROOTS_DASHBOARD, '/maintenance/customer-maintenance'),

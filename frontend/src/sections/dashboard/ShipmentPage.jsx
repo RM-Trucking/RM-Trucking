@@ -17,7 +17,7 @@ import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-picker
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
-
+import { useNavigate, useLocation } from 'react-router-dom';
 import Iconify from '../../components/iconify';
 import formatPhoneNumber from '../../utils/formatPhoneNumber';
 import NotesTable from '../customer/NotesTable';
@@ -25,6 +25,7 @@ import ErrorFallback from '../shared/ErrorBoundary';
 import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
+import { PATH_DASHBOARD } from '../../routes/paths';
 import {
   postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
   getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
@@ -2918,6 +2919,8 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 
 const ShipmentForm = ({ type }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
   const customerStationDropdown = useSelector((state) => state?.shipmentdata?.customerStationDropdown);
   const carrierTerminalDropdown = useSelector((state) => state?.shipmentdata?.carrierTerminalDropdown);
@@ -4270,13 +4273,127 @@ const ShipmentForm = ({ type }) => {
       ];
     } else if (activeStep === 2 && isHazmatSelected) {
       fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
+    } else if (activeStep === 3) {
+      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+        fieldsToValidate = [
+          'carrierInfo.selectCarrier',
+          'carrierInfo.fromLocation',
+          'carrierInfo.lineHaul.carrier',
+          'carrierInfo.lineHaul.billNumber',
+          'carrierInfo.lineHaul.toLocationType',
+          'carrierInfo.lineHaul.toLocation',
+          'carrierInfo.deliveryDetails.carrier',
+          'carrierInfo.deliveryDetails.billNumber',
+          'carrierInfo.deliveryDetails.toLocationType',
+          'carrierInfo.deliveryDetails.toLocation',
+
+        ];
+        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
+          fieldsToValidate.push(
+            'carrierInfo.toLocationType',
+            'carrierInfo.toLocation',
+          );
+        }
+
+        if (currentValues?.carrierInfo?.pickupAlert) {
+          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+        }
+
+        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
+        }
+
+      }
+      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
+        fieldsToValidate = [
+          'carrierInfo.selectCarrier',
+          'carrierInfo.fromLocation',
+          'carrierInfo.lineHaul.carrier',
+          'carrierInfo.lineHaul.billNumber',
+          'carrierInfo.lineHaul.toLocationType',
+          'carrierInfo.lineHaul.toLocation',
+
+        ];
+        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
+          fieldsToValidate.push(
+            'carrierInfo.toLocationType',
+            'carrierInfo.toLocation',
+          );
+        }
+
+        if (currentValues?.carrierInfo?.pickupAlert) {
+          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+        }
+
+        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
+        }
+
+      }
+      if (selectedRouting === 'pickup_linehaul') {
+        fieldsToValidate = [
+          'carrierInfo.selectCarrier',
+          'carrierInfo.fromLocation',
+          'carrierInfo.deliveryDetails.carrier',
+          'carrierInfo.deliveryDetails.billNumber',
+          'carrierInfo.deliveryDetails.toLocationType',
+          'carrierInfo.deliveryDetails.toLocation',
+
+        ];
+        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
+          fieldsToValidate.push(
+            'carrierInfo.toLocationType',
+            'carrierInfo.toLocation',
+          );
+        }
+
+        if (currentValues?.carrierInfo?.pickupAlert) {
+          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+        }
+
+        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
+        }
+      }
+      if (selectedRouting === 'pickup_linehaul_delivery') {
+        fieldsToValidate = [
+          'carrierInfo.selectCarrier',
+          'carrierInfo.fromLocation',
+        ];
+        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
+          fieldsToValidate.push(
+            'carrierInfo.toLocationType',
+            'carrierInfo.toLocation',
+          );
+        }
+
+        if (currentValues?.carrierInfo?.pickupAlert) {
+          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+        }
+
+        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
+        }
+      }
+    }
+
+    if (currentValues?.carrierInfo?.addPickupAccessorial && currentValues?.carrierInfo?.pickupAccessorials?.length === 0) {
+      setErrorVisible(true);
+    }
+    if (currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc && currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
+      setErrorVisible(true);
+    }
+    if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc && currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
+      setErrorVisible(true);
     }
 
 
     const isValid = await trigger(fieldsToValidate);
 
     // if (isValid) {
-    setActiveStep((prev) => prev + 1);
+    if (activeStep < 4) {
+      setActiveStep((prev) => prev + 1);
+    }
     // } else {
     // setErrorVisible(true);
     // }
@@ -4897,19 +5014,27 @@ const ShipmentForm = ({ type }) => {
     }
 
     // step 4
+    // push zip to zip
     const transformedPickupArray = currentValues?.carrierRates?.pickUp?.pickupAccessorials?.map(item => {
       // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
       const factor = Number(item.input) || 0;
       const value = Number(item.chargeValue) || 0;
 
       return {
-        rateType: item.chargeType,
+        rateType: item.accessorialName,
         multiplicationFactor: factor,
-        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '', // 
         rateValue: value,
         // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
         totalRate: factor === 0 ? value : factor * value
       };
+    });
+    transformedPickupArray.push({
+      rateType: 'Zip to Zip',
+      multiplicationFactor: null,
+      multiplicationFactorUOM: '',
+      rateValue: currentValues?.carrierRates?.pickUp?.pickUpRate,
+      totalRate: currentValues?.carrierRates?.pickUp?.pickUpRate,
     });
     const transformedLinehaulArray = currentValues?.carrierRates?.lineHaul?.lineHaulAccessorials?.map(item => {
       // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
@@ -4919,11 +5044,18 @@ const ShipmentForm = ({ type }) => {
       return {
         rateType: item.chargeType,
         multiplicationFactor: factor,
-        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '',
         rateValue: value,
         // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
         totalRate: factor === 0 ? value : factor * value
       };
+    });
+    transformedLinehaulArray.push({
+      rateType: 'Zip to Zip',
+      multiplicationFactor: null,
+      multiplicationFactorUOM: '',
+      rateValue: currentValues?.carrierRates?.lineHaul?.lineHaulRate,
+      totalRate: currentValues?.carrierRates?.lineHaul?.lineHaulRate,
     });
     const transformedDeliveryArray = currentValues?.carrierRates?.delivery?.deliveryAccessorials?.map(item => {
       // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
@@ -4933,11 +5065,18 @@ const ShipmentForm = ({ type }) => {
       return {
         rateType: item.chargeType,
         multiplicationFactor: factor,
-        multiplicationFactorUOM: currentValues?.handlingUnits?.[0]?.uom || '', // Injected externally
+        multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '', // 
         rateValue: value,
         // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
         totalRate: factor === 0 ? value : factor * value
       };
+    });
+    transformedDeliveryArray.push({
+      rateType: 'Zip to Zip',
+      multiplicationFactor: null,
+      multiplicationFactorUOM: '',
+      rateValue: currentValues?.carrierRates?.delivery?.deliveryRate,
+      totalRate: currentValues?.carrierRates?.delivery?.deliveryRate,
     });
     const pickupSubTotalRate = transformedPickupArray.reduce((accumulator, item) => {
       // Force convert totalRate to a number safely, falling back to 0 if null/undefined
@@ -4992,17 +5131,17 @@ const ShipmentForm = ({ type }) => {
     }
     console.log(obj.shipmentRateDetails);
 
-
-
-
-    // if (activeStep === 3) {
-    //   dispatch(postStep1(obj));
-    // }
+    if (activeStep === 4) {
+      dispatch(postStep1(obj));
+    }
 
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
       setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
+    }
+    if (activeStep === 4 || (activeStep === 3 && currentValues?.carrierInfo?.orderReceivedPending)) {
+      navigate(PATH_DASHBOARD?.general?.dashboard?.root);
     }
 
   };
@@ -5124,8 +5263,16 @@ const ShipmentForm = ({ type }) => {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, gap: 2 }}>
 
               <Box display={'flex'} alignItems={'center'}>
-
-                <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
+                <IconButton size="small" sx={{ color: '#a22' }} onClick={() => {
+                  if (location?.pathname?.includes('dashboard')) {
+                    navigate(PATH_DASHBOARD?.general?.dashboard?.root);
+                  }
+                  if (location?.pathname?.includes('shipment-building')) {
+                    navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+                  }                  
+                }}>
+                  <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
+                </IconButton>
 
                 <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
 
@@ -5183,7 +5330,7 @@ const ShipmentForm = ({ type }) => {
                     onClick={handleNext}
                     sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
                   >
-                    {activeStep === STEPS.length - 1 ? 'Finish' : 'Next'}
+                    {activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
                   </Button>
                 )}
 

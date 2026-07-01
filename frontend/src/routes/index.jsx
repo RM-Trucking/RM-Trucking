@@ -36,6 +36,7 @@ import {
   Page404,
   DashboardHomeLayout,
   ShipmentForm,
+  ShipmentBuildingHomeLayout,
 } from './elements';
 
 
@@ -87,7 +88,13 @@ export default function Router() {
             { path: 'shipment-view', element: <ShipmentForm /> },
           ]
         },
-        { path: 'shipment-building', element: <ShipmentBuildingPage /> },
+        { path: 'shipment-building',
+          element: <ShipmentBuildingHomeLayout />,
+          children: [
+            { index: true, element: <ShipmentBuildingPage /> },
+            { path: 'shipment-view', element: <ShipmentForm /> },
+          ]
+        },
         {
           path: 'maintenance',
           children: [

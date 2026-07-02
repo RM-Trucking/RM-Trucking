@@ -38,21 +38,21 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
     const updateRowValue = (id, field, value) => {
         const updatedData = [...tableData];
         // Clone the specific object to make it writable
-        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], charge: value };
+        updatedData[id - 1] = { ...updatedData[id - 1], charge: value };
         setTableData(updatedData);
         dispatch(setWarehouseRatesFieldChargeData(updatedData));
     }
-    const onEdit = () => {
+    const onEdit = (id, field, value) => {
         const updatedData = [...tableData];
         // Clone the specific object to make it writable
-        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: false };
+        updatedData[id - 1] = { ...updatedData[id - 1], readonly: false };
         setTableData(updatedData);
         dispatch(setWarehouseRatesFieldChargeData(updatedData));
     }
-    const onSave = () => {
+    const onSave = (id) => {
         const updatedData = [...tableData];
         // Clone the specific object to make it writable
-        updatedData[params.row.id - 1] = { ...updatedData[params.row.id - 1], readonly: true };
+        updatedData[id - 1] = { ...updatedData[id - 1], readonly: true };
         setTableData(updatedData);
         dispatch(setWarehouseRatesFieldChargeData(updatedData));
     }
@@ -122,12 +122,12 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
 
                         {params.row.readonly && (type === 'Edit' || type === 'Copy') &&
                             <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
-                                <IconButton onClick={() => onEdit()} >
+                                <IconButton onClick={() => onEdit(params.row.id, 'charge', params.row.value)} >
                                     <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
                                 </IconButton>
                             </Tooltip>}
                         {!params.row.readonly && (type === 'Edit' || type === 'Copy') && <Tooltip title={'Save'} arrow sx={{ mr: 2 }}>
-                            <IconButton onClick={() => onSave()} >
+                            <IconButton onClick={() => onSave(params.row.id)} >
                                 <Iconify icon="ic:baseline-save" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>}
@@ -144,7 +144,7 @@ export default function RateFieldAndChargeTableWarehouse({ type }) {
     }, []);
 
     useEffect(() => {
-        if (Object.keys(selectedCurrentRateRow).length !== 0) {
+        if (selectedCurrentRateRow && Object.keys(selectedCurrentRateRow).length !== 0) {
             // Update table data based on selectedCurrentRateRow
             const charges = [
                 selectedCurrentRateRow.minRate,

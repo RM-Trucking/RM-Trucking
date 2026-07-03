@@ -21,8 +21,11 @@ const initialState = {
   pickupAccessorials: [],
   linehaulAccessorials: [],
   deliveryAccessorials: [],
-  accessorialDropdown : [],
-  stationAccessorialData : [],
+  accessorialDropdown: [],
+  stationAccessorialData: [],
+  zipToZipCarrierPickupRate: null,
+  zipToZipCarrierLinehaulRate: null,
+  zipToZipCarrierDeliveryRate: null,
 };
 
 const slice = createSlice({
@@ -107,12 +110,12 @@ const slice = createSlice({
     setDeliveryAccessorials(state, action) {
       state.pickupAccessorials = action.payload;
     },
-    getAccessorialDropdownSuccess(state,action){
+    getAccessorialDropdownSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
       state.accessorialDropdown = action.payload.data;
     },
-    setAccessorialDropdown(state,action){
+    setAccessorialDropdown(state, action) {
       state.accessorialDropdown = action.payload;
     },
     getStationAccessorialDataSuccess(state, action) {
@@ -120,6 +123,22 @@ const slice = createSlice({
       state.shipmentSuccess = true;
       state.stationAccessorialData = action.payload.data;
     },
+    getZipToZipCarrierPickupRateSuccess(state, action) {
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.zipToZipCarrierPickupRate = action.payload.data;
+    },
+    getZipToZipCarrierLinehaulRateSuccess(state, action) {
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.zipToZipCarrierLinehaulRate = action.payload.data;
+    },
+    getZipToZipCarrierDeliveryRateSuccess(state, action) {
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.zipToZipCarrierDeliveryRate = action.payload.data;
+    },
+
   },
 });
 
@@ -276,6 +295,39 @@ export function getStationAccessorialData(entityId) {
     try {
       const response = await axios.get(`maintenance/entity-accessorial/${entityId}`);
       dispatch(slice.actions.getStationAccessorialDataSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
+}
+export function getZipToZipCarrierPickupRate(originZip, destinationZip, weight, terminalId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/quote?originZip=${originZip}&destinationZip=${destinationZip}&weight=${weight}&terminalId=${terminalId}`);
+      dispatch(slice.actions.getZipToZipCarrierPickupRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
+}
+export function getZipToZipCarrierLinehaulRate(originZip, destinationZip, weight, terminalId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/quote?originZip=${originZip}&destinationZip=${destinationZip}&weight=${weight}&terminalId=${terminalId}`);
+      dispatch(slice.actions.getZipToZipCarrierLinehaulRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
+}
+export function getZipToZipCarrierDeliveryRate(originZip, destinationZip, weight, terminalId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/transport-rate/quote?originZip=${originZip}&destinationZip=${destinationZip}&weight=${weight}&terminalId=${terminalId}`);
+      dispatch(slice.actions.getZipToZipCarrierDeliveryRateSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

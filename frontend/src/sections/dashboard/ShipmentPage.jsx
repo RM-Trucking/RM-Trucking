@@ -38,6 +38,10 @@ import {
   setAccessorialDropdown,
   getAccessorialDropdown,
   getStationAccessorialData,
+  getZipToZipCarrierPickupRate,
+  getZipToZipCarrierLinehaulRate,
+  getZipToZipCarrierDeliveryRate,
+
 } from '../../redux/slices/shipment';
 
 
@@ -4403,7 +4407,6 @@ const ShipmentForm = ({ type }) => {
       setErrorVisible(true);
     }
 
-
     const isValid = await trigger(fieldsToValidate);
 
     // if (isValid) {
@@ -4577,6 +4580,25 @@ const ShipmentForm = ({ type }) => {
     const selectedDeliveryToCarrierObject = carrierTerminalDropdown.find(
       (item) => item.terminalId === Number(deliveryToLocTerminalId) && item.carrierId === Number(deliveryToLocCarrierId)
     );
+
+    if (activeStep === 3 && isValid) {
+      const pickupFromZip = currentValues?.carrierInfo?.manualAddress?.zip;
+      let pickupToZip = '';
+      if (currentValues?.carrierInfo?.pickupAgentTerminal) {
+        pickupToZip = selectedPickupCarrierObject?.address?.zipCode;
+      } else {
+        pickupToZip = currentValues?.carrierInfo?.manualToAddress?.zip
+      }
+      dispatch(getZipToZipCarrierPickupRate(pickupFromZip, pickupToZip, Number(totals.totalWeight), selectedPickupCarrierObject?.terminalId));
+
+      const linehaulFromZip = currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zip;
+      const linehaulToZip = currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zip;
+      dispatch(getZipToZipCarrierLinehaulRate(linehaulFromZip, linehaulToZip, Number(totals.totalWeight), selectedLinehaulCarrierObject?.terminalId))
+
+      const deliveryFromZip = currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zip;
+      const deliveryToZip = currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zip;
+      dispatch(getZipToZipCarrierDeliveryRate(deliveryFromZip, deliveryToZip, Number(totals.totalWeight), selectedDeliveryCarrierObject?.terminalId));
+    }
 
 
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
@@ -5839,6 +5861,13 @@ const ShipmentForm = ({ type }) => {
                             } else {
                               // Handles cases where the clear (x) button is clicked
                               onChange(null);
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
                             }
                           }}
 
@@ -5848,6 +5877,13 @@ const ShipmentForm = ({ type }) => {
                             if (reason === 'input') {
                               // onChange({ shipperId: null, shipperName: newInputValue });
                               console.log('value to api', newInputValue);
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
                             }
                           }}
 
@@ -5972,13 +6008,41 @@ const ShipmentForm = ({ type }) => {
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
                               onChange({ airlineId: null, airlineName: newValue });
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
                             } else if (newValue && newValue.inputValue) {
                               onChange({ airlineId: null, airlineName: newValue.inputValue });
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
                             } else if (newValue) {
                               onChange(newValue);
+                              // setValue('shipperAddr1', newValue.addressLine1 || '');
+                              //   setValue('shipperAddr2', newValue.addressLine2 || '');
+                              //   setValue('shipperCity', newValue.city || '');
+                              //   setValue('shipperState', newValue.state || '');
+                              //   setValue('shipperZip', newValue.zipCode || '');
+                              //   setValue('shipperContact', newValue.contactPersonName || '');
+                              //   setValue('shipperPhone', newValue.phoneNumber || '');
                             } else {
                               // Safe fallback when the input selection is cleared out entirely
                               onChange(null);
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
                             }
                           }}
 
@@ -6003,6 +6067,13 @@ const ShipmentForm = ({ type }) => {
                                   formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
                                 }
                               }
+                              setValue('shipperAddr1', '');
+                              setValue('shipperAddr2', '');
+                              setValue('shipperCity', '');
+                              setValue('shipperState', '');
+                              setValue('shipperZip', '');
+                              setValue('shipperContact', '');
+                              setValue('shipperPhone', '');
 
                               onChange({ airlineId: null, airlineName: formatted });
                             }
@@ -6185,6 +6256,13 @@ const ShipmentForm = ({ type }) => {
                             } else {
                               // Safe fallback if the user clears out the text entirely
                               onChange(null);
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             }
                           }}
 
@@ -6192,6 +6270,13 @@ const ShipmentForm = ({ type }) => {
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
                               // onChange({ consigneeId: null, consigneeName: newInputValue });
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             }
                           }}
 
@@ -6316,13 +6401,41 @@ const ShipmentForm = ({ type }) => {
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
                               onChange({ airlineId: null, airlineName: newValue });
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             } else if (newValue && newValue.inputValue) {
                               onChange({ airlineId: null, airlineName: newValue.inputValue });
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             } else if (newValue) {
                               onChange(newValue);
+                              // setValue('consigneeAddr1', newValue.addressLine1 || '');
+                              // setValue('consigneeAddr2', newValue.addressLine2 || '');
+                              // setValue('consigneeCity', newValue.city || '');
+                              // setValue('consigneeState', newValue.state || '');
+                              // setValue('consigneeZip', newValue.zipCode || '');
+                              // setValue('consigneeContact', newValue.contactPersonName || '');
+                              // setValue('consigneePhone', newValue.phoneNumber || '');
                             } else {
                               // Safe fallback when the input selection is cleared out entirely via 'X' button
                               onChange(null);
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             }
                           }}
 
@@ -6349,6 +6462,13 @@ const ShipmentForm = ({ type }) => {
                               }
 
                               onChange({ airlineId: null, airlineName: formatted });
+                              setValue('consigneeAddr1', '');
+                              setValue('consigneeAddr2', '');
+                              setValue('consigneeCity', '');
+                              setValue('consigneeState', '');
+                              setValue('consigneeZip', '');
+                              setValue('consigneeContact', '');
+                              setValue('consigneePhone', '');
                             }
                           }}
 

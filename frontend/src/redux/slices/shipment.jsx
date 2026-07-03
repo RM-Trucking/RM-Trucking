@@ -34,7 +34,7 @@ const slice = createSlice({
   reducers: {
     hasError(state, action) {
       state.isLoading = false;
-      state.error = 'error';
+      state.error = action?.payload;
     },
     // START LOADING
     startLoading(state) {
@@ -138,11 +138,15 @@ const slice = createSlice({
       state.shipmentSuccess = true;
       state.zipToZipCarrierDeliveryRate = action.payload.data;
     },
+    setError(state) {
+      state.error = '';
+    },
 
   },
 });
 
 export const {
+  setError,
   setDashboardSearchStr,
   setPickupAccessorials,
   setLinehaulAccessorials,

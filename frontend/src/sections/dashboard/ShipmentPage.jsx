@@ -40,7 +40,7 @@ import {
   getStationAccessorialData,
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
-  getZipToZipCarrierDeliveryRate,
+  getZipToZipCarrierDeliveryRate, setError,
 
 } from '../../redux/slices/shipment';
 
@@ -2952,6 +2952,7 @@ const ShipmentForm = ({ type }) => {
   const deliveryAccessorialsByEntityId = useSelector((state) => state?.shipmentdata?.deliveryAccessorials);
   const stationAccessorialData = useSelector((state) => state?.shipmentdata?.stationAccessorialData);
   const shipmentSuccess = useSelector((state) => state?.shipmentdata?.shipmentSuccess);
+  const shipmentError = useSelector((state) => state?.shipmentdata?.error);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -3004,6 +3005,8 @@ const ShipmentForm = ({ type }) => {
 
   // for select carrier selection
   const [carrierTerminalSelectError, setCarrierTerminalSelectError] = useState(false);
+  const [shipmentErrorFlag, setShipmentErrorFlag] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   const filter = createFilterOptions();
 
@@ -5298,6 +5301,12 @@ const ShipmentForm = ({ type }) => {
       navigate(PATH_DASHBOARD?.general?.dashboard?.root);
     }
   }, [shipmentSuccess])
+  useEffect(() => {
+    if (shipmentError) {
+      setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError}`}`);
+      setShipmentErrorFlag(true);
+    }
+  }, [shipmentError])
 
 
 
@@ -9423,6 +9432,28 @@ const ShipmentForm = ({ type }) => {
           >
             <Alert severity="error" variant="filled">
               All items must have the same weight unit as the first item
+            </Alert>
+          </Snackbar>
+
+          <Snackbar
+            open={shipmentErrorFlag}
+            autoHideDuration={3000}
+            onClose={() => {
+              setShipmentErrorFlag(false);
+              dispatch(setError());
+            }}
+            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <Alert
+              onClose={() => {
+                setShipmentErrorFlag(false);
+                dispatch(setError());
+              }}
+              severity="error"
+              variant="filled"
+              sx={{ width: '100%' }}
+            >
+              {snackbarMessage}
             </Alert>
           </Snackbar>
 

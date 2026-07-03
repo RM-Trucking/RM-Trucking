@@ -2462,6 +2462,9 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
   const [spotRateFlag, setSpotRateFlag] = useState(false);
   const [errorVisible, setErrorVisible] = useState(false);
 
+  const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
+
+
   const addAccessorial = () => {
     const selectedObj = getValues('customerRate.selectedAccToAdd');
     const exists = getValues('customerRate.customerAccessorials').some(item => item.entityAccessorialId === selectedObj.entityAccessorialId);
@@ -2478,6 +2481,12 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
     }
     setAddFlag(false);
   }
+
+  useEffect(() => {
+    if (!spotRateFlag) {
+      setValue('customerRate.rate', getValues('customerRate.apiRate'));
+    }
+  }, [spotRateFlag])
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{
@@ -2925,13 +2934,84 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
             This accessorial is alreay available in the list.
           </Alert>
         </Snackbar>
+        <Dialog open={invoiceApprovalModal} onClose={() => setInvoiceApprovalModal(false)} sx={{
+          '& .MuiPaper-root': { borderRadius: '12px' }, '& .MuiDialog-paper': { // Target the paper class
+            width: '500px',
+            height: 'auto',
+            maxHeight: 'none',
+            maxWidth: 'none',
+          }
+        }}>
+          <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>
+            Confirmation</DialogTitle>
+          <DialogContent sx={{ mt: 2, pb: 4 }}>
+            <Box>
+              <Typography variant='body-2'>Are you sure you to submit the rate ?
+              </Typography>
+              <Box sx={{ display: 'flex', border: '1px solid #000', mt: 2, borderBottom: 'none' }}>
+                <Box sx={{ flex: 3, p: 1 }}>
+                  <Typography variant="subtitle2">Initial API amount</Typography>
+                </Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}>
+                  <Typography variant="subtitle2" fontWeight={'700'}>$ {getValues('customerRate.apiRate')}</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', border: '1px solid #000', borderBottom: 'none' }}>
+                <Box sx={{ flex: 3, p: 1 }}>
+                  <Typography variant="subtitle2">Manual Entry amount</Typography>
+                </Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}>
+                  <Typography variant="subtitle2" fontWeight={'700'}>$ {getValues('customerRate.rate')}</Typography>
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', border: '1px solid #000' }}>
+                <Box sx={{ flex: 3, p: 1 }}>
+                  <Typography variant="subtitle2">Difference amount</Typography>
+                </Box>
+                <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}>
+                  <Typography variant="subtitle2" fontWeight={'700'}> $
+                    {Math.abs(
+                      parseFloat(getValues('customerRate.apiRate') || 0) - parseFloat(getValues('customerRate.rate') || 0)
+                    ).toFixed(2)}
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          </DialogContent>
+          <DialogActions sx={{ pb: 3, justifyContent: 'center', gap: 2 }}>
+            <Button onClick={() => {
+              setInvoiceApprovalModal(false);
+              onClose();
+            }} variant="contained" sx={{
+              ...commonBtnStyle, bgcolor:
+                '#a22', px: 4, '&:hover': { bgcolor: '#811' }
+            }}>
+              Ok
+            </Button>
+            <Button onClick={() => {
+              setInvoiceApprovalModal(false);
+            }} variant="contained" sx={{
+              ...commonBtnStyle, bgcolor:
+                '#a22', px: 4, '&:hover': { bgcolor: '#811' }
+            }}>
+              cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
       </DialogContent>
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        <Button onClick={onClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+        <Button onClick={() => {
+          if (Number(getValues('customerRate.apiRate')) === Number(getValues('customerRate.rate'))) {
+            onClose();
+          } else {
+            setInvoiceApprovalModal(true);
+          }
+        }} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
           Cancel
         </Button>
       </DialogActions>
     </Dialog>
+
   );
 };
 
@@ -3277,7 +3357,7 @@ const ShipmentForm = ({ type }) => {
       },
       customerRate: {
         rate: '',
-        apiRate: '',
+        apiRate: '140',
         spotRate: false,
         fuelSurcharge: 'Fuel Surcharge (35% Charge)',
         fuelSurchargeRate: '',
@@ -5559,7 +5639,9 @@ const ShipmentForm = ({ type }) => {
           {/* dialog for customer rate  */}
           <CustomerRateDialog
             open={custommerRateModal}
-            onClose={() => setCustomerRateModal(false)}
+            onClose={() => {
+              setCustomerRateModal(false);
+            }}
             getValues={getValues}
             setValue={setValue}
             control={control}

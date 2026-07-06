@@ -487,6 +487,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
     return item?.pieces && item?.description;
   };
 
+
   return (
     <Box sx={{ mt: 2 }}>
       {fields.map((item, itemIndex) => {
@@ -650,7 +651,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
         size="small"
         onClick={() => {
           if (isItemComplete(fields.length - 1)) {
-            append({ pieces: '', piecesUom: 'Skid', description: '', hazmatInfo: false, hazmatData: null });
+            append({ pieces: '', piecesUom: '', description: '', hazmatInfo: false, hazmatData: null });
           } else {
             // Trigger error if previous item isn't filled
             alert("Please fill item details before adding more.");
@@ -4483,12 +4484,34 @@ const ShipmentForm = ({ type }) => {
     if (activeStep === 3 && currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc && currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
       setErrorVisible(true);
     }
-
+    const units = getValues('handlingUnits');
+    const lastUnit = units[units.length - 1];
+    const hasTopLevelValid =
+      !!lastUnit?.uom?.trim() &&
+      !!lastUnit?.unitsCount?.toString().trim();
+    const hasItemsValid = Array.isArray(lastUnit?.items) && lastUnit.items.length > 0 &&
+      lastUnit.items.every(item =>
+        !!item?.pieces?.toString().trim() &&
+        !!item?.piecesUom?.trim() &&
+        !!item?.description?.trim()
+      );
+    const isLastUnitValid = hasTopLevelValid && hasItemsValid;
 
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {
       if (activeStep < 4) {
-        setActiveStep((prev) => prev + 1);
+        if (activeStep === 2) {
+          if (isLastUnitValid) {
+            setErrorVisible(false);
+            setActiveStep((prev) => prev + 1);
+          } else {
+            setErrorVisible(true);
+          }
+        }
+
+        if (activeStep !== 2) {
+          setActiveStep((prev) => prev + 1);
+        }
       }
     } else {
       setErrorVisible(true);
@@ -5734,11 +5757,11 @@ const ShipmentForm = ({ type }) => {
                     >
                       Submit
                     </Button>
-                    
+
                   </>
                 }
                 {
-                  activeStep === 3 && <Button
+                  activeStep === 3 && !isPickupPending && <Button
                     variant="contained"
                     onClick={handleNext}
                     sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}

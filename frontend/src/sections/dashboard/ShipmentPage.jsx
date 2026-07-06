@@ -4489,13 +4489,34 @@ const ShipmentForm = ({ type }) => {
     const hasTopLevelValid =
       !!lastUnit?.uom?.trim() &&
       !!lastUnit?.unitsCount?.toString().trim();
-    const hasItemsValid = Array.isArray(lastUnit?.items) && lastUnit.items.length > 0 &&
-      lastUnit.items.every(item =>
-        !!item?.pieces?.toString().trim() &&
-        !!item?.piecesUom?.trim() &&
-        !!item?.description?.trim()
-      );
-    const isLastUnitValid = hasTopLevelValid && hasItemsValid;
+    const isItemsValid = Array.isArray(lastUnit?.items) && lastUnit.items.length > 0 &&
+      lastUnit.items.every(item => {
+        // Baseline checks for every item
+        const baseFieldsValid =
+          !!item?.pieces?.toString().trim() &&
+          !!item?.piecesUom?.trim() &&
+          !!item?.description?.trim();
+
+        // If baseline fails, no need to check hazmat
+        if (!baseFieldsValid) return false;
+
+        // Hazmat conditional check
+        if (item?.hazmatInfo === true) {
+          const hazmat = item?.hazmatData;
+          return (
+            !!hazmat?.unNumber?.trim() &&
+            !!hazmat?.shippingName?.trim() &&
+            !!hazmat?.packagingGroup?.trim() &&
+            !!hazmat?.hazmatClass?.trim() &&
+            !!hazmat?.weight?.toString().trim() &&
+            !!hazmat?.technicalName?.trim() &&
+            !!hazmat?.contactPhone?.trim()
+          );
+        }
+
+        return true;
+      });
+    const isLastUnitValid = hasTopLevelValid && isItemsValid;
 
     const isValid = await trigger(fieldsToValidate);
     if (isValid) {

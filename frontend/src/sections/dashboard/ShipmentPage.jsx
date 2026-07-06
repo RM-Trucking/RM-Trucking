@@ -5734,17 +5734,11 @@ const ShipmentForm = ({ type }) => {
                     >
                       Submit
                     </Button>
-                    <Button
-                      variant="contained"
-                      onClick={handleNext}
-                      sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-                    >
-                      Next
-                    </Button>
+                    
                   </>
                 }
                 {
-                  activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') === "" && <Button
+                  activeStep === 3 && <Button
                     variant="contained"
                     onClick={handleNext}
                     sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}

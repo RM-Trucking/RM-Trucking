@@ -3357,7 +3357,7 @@ const ShipmentForm = ({ type }) => {
       },
       customerRate: {
         rate: '',
-        apiRate: '140',
+        apiRate: '',
         spotRate: false,
         fuelSurcharge: 'Fuel Surcharge (35% Charge)',
         fuelSurchargeRate: '',
@@ -4068,7 +4068,7 @@ const ShipmentForm = ({ type }) => {
   useEffect(() => {
     // Whenever any shipper detail changes, we can perform actions here
     // update manual from address of carrierinfo 
-    setValue('carrierInfo.fromLocation', watchedShipperName?.shipperName ?? '');
+    setValue('carrierInfo.fromLocation', watchedShipperName?.shipperName ?? watchedShipperName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedShipperName?.airlineName ?? '');
     setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
     setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
     setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
@@ -4080,7 +4080,7 @@ const ShipmentForm = ({ type }) => {
     // Whenever any consignee detail changes, we can perform actions here
     // update manual to address of carrierinfo
     if (watchedToLocationType === 'Consignee') {
-      setValue('carrierInfo.toLocation', watchedConsigneeName?.consigneeName ?? '');
+      setValue('carrierInfo.toLocation', watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? '');
       setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
       setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
@@ -4492,13 +4492,13 @@ const ShipmentForm = ({ type }) => {
 
     const isValid = await trigger(fieldsToValidate);
 
-    // if (isValid) {
-    // if (activeStep < 4) {
-    setActiveStep((prev) => prev + 1);
-    // }
-    // } else {
-    // setErrorVisible(true);
-    // }
+    if (isValid) {
+      if (activeStep < 4) {
+        setActiveStep((prev) => prev + 1);
+      }
+    } else {
+      setErrorVisible(true);
+    }
 
     // adding to object
     // step 0
@@ -4536,11 +4536,11 @@ const ShipmentForm = ({ type }) => {
         'entityId': currentValues?.shipperName?.entityId,
       },
       "pickupAirlineDetails": {
-        "airlineId": currentValues?.shipperName?.shipperId || null,
-        "airlineNumber": Number(currentValues?.shipperName?.airlineNumber) || Number(currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[0]),
-        "airlineCode": currentValues?.shipperName?.airlineCode || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[1],
+        "airlineId": currentValues?.shipperName?.shipperId || currentValues?.shipperName?.airlineId || null,
+        "airlineNumber": Number(currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[0]) || Number(currentValues?.shipperName?.airlineNumber) || null,
+        "airlineCode": currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[1] || currentValues?.shipperName?.airlineCode || '',
         "airportCode": currentValues?.shipperName?.airportCode || watchedOriginAirport,
-        "airlineName": currentValues?.shipperName?.airlineName || currentValues?.shipperName?.shipperName?.split('-').map(item => item.trim())[2],
+        "airlineName": currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.shipperName?.airlineName || '',
         "addressLine1": currentValues?.shipperAddr1,
         "addressLine2": currentValues?.shipperAddr2,
         "city": currentValues.shipperCity,
@@ -4550,6 +4550,7 @@ const ShipmentForm = ({ type }) => {
         "phoneNumber": currentValues.shipperPhone,
         "handler": '',
         'entityId': currentValues?.shipperName?.entityId || null,
+        "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
       },
       "consigneeDetails": {
         "consigneeId": currentValues?.consigneeName?.consigneeId || null,
@@ -4564,11 +4565,11 @@ const ShipmentForm = ({ type }) => {
         'entityId': currentValues?.consigneeName?.entityId,
       },
       "deliveryAirlineDetails": {
-        "airlineId": currentValues?.consigneeName?.consigneeId || null,
-        "airlineNumber": Number(currentValues?.consigneeName?.airlineNumber) || Number(currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[0]),
-        "airlineCode": currentValues?.consigneeName?.airlineCode || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[1],
+        "airlineId": currentValues?.consigneeName?.consigneeId || currentValues?.consigneeName?.airlineId || null,
+        "airlineNumber": Number(currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[0]) || Number(currentValues?.consigneeName?.airlineNumber) || '',
+        "airlineCode": currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[1] || currentValues?.consigneeName?.airlineCode || '',
         "airportCode": currentValues?.consigneeName?.airportCode || watchedDestinationAirport,
-        "airlineName": currentValues?.consigneeName?.airlineName || currentValues?.consigneeName?.consigneeName?.split('-').map(item => item.trim())[2],
+        "airlineName": currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
         "addressLine1": currentValues.consigneeAddr1,
         "addressLine2": currentValues.consigneeAddr2,
         "city": currentValues.consigneeCity,
@@ -4578,6 +4579,7 @@ const ShipmentForm = ({ type }) => {
         "phoneNumber": currentValues.consigneePhone,
         "handler": '',
         'entityId': currentValues?.consigneeName?.entityId || null,
+        "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
       },
     };
     if (watchedAirportPickupService) {
@@ -5266,16 +5268,10 @@ const ShipmentForm = ({ type }) => {
         "totalCarrierRate": Number(pickupSubTotalRate + linehaulSubTotalRate + deliverySubTotalRate),
       },
       "customerRateDetails": {
-        "rateDetails": [
-          {
-            "rateType": "BASE_RATE",
-            "multiplicationFactor": 1,
-            "multiplicationFactorUOM": "SHIPMENT",
-            "rateValue": 2200,
-            "totalRate": 2200
-          }
-        ],
-        "totalCustomerRate": 2200
+        "rateDetails": transformedCustomerArray,
+        "totalCustomerRate": Number(
+          transformedCustomerArray.reduce((sum, item) => sum + Number(item.totalRate || 0), 0)
+        )
       }
     }
     console.log(obj.shipmentRateDetails);
@@ -5367,14 +5363,14 @@ const ShipmentForm = ({ type }) => {
   }, [custommerRateModal, stationAccessorialData])
   // when there is change in ziprate of customer, making 35% for fuelsurcharge
   useEffect(() => {
-    if (customerZipRate) {
-      const zipRateString = customerZipRate || "0";
+    // if (customerZipRate) {
+    const zipRateString = customerZipRate || "0";
 
-      // 2. Convert to a number and calculate 35%
-      const zipRateNum = Number(zipRateString) || 0;
-      const calculatedPercentage = zipRateNum * 0.35;
-      setValue('customerRate.fuelSurchargeRate', calculatedPercentage);
-    }
+    // 2. Convert to a number and calculate 35%
+    const zipRateNum = Number(zipRateString) || 0;
+    const calculatedPercentage = zipRateNum * 0.35;
+    setValue('customerRate.fuelSurchargeRate', calculatedPercentage);
+    // }
   }, [customerZipRate])
   useEffect(() => {
     if (shipmentSuccess && activeStep === 4 || (activeStep === 3 && getValues('carrierInfo.orderReceivedPending'))) {
@@ -5383,7 +5379,7 @@ const ShipmentForm = ({ type }) => {
   }, [shipmentSuccess])
   useEffect(() => {
     if (shipmentError) {
-      setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError}`}`);
+      setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError?.message ?? shipmentError}`}`);
       setShipmentErrorFlag(true);
     }
   }, [shipmentError])
@@ -8779,7 +8775,7 @@ const ShipmentForm = ({ type }) => {
                                   fullWidth
                                   variant="standard"
                                   label="To Location *"
-                                  value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                  value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}// Your hardcoded static value displayed to the user
                                   disabled // Visual indicator showing the user it cannot be changed manually
                                   InputLabelProps={{ shrink: true }}
                                   sx={{

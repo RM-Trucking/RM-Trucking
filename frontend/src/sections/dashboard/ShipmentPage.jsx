@@ -3837,6 +3837,25 @@ const ShipmentForm = ({ type }) => {
     const isCityOrState = ['city', 'state'].some(keyword =>
       name.toLowerCase().includes(keyword) || label.toLowerCase().includes(keyword)
     );
+    const isAirport = name.toLowerCase().includes('airport');
+
+    // Dynamic Rules based on field type
+    const validationRules = isAirport ? {
+      // If required is passed as true explicitly, use it; otherwise, it is optional
+      required: required ? `${label} is required` : false,
+      maxLength: {
+        value: 10,
+        message: `${label} cannot exceed 10 characters`
+      },
+      pattern: {
+        value: /^[A-Z]{3,10}$/,
+        message: 'Must be between 3 and 10 letters'
+      },
+      // Only validates spaces if a value actually exists
+      validate: (value) => !value || value.trim().length > 0 || `${label} cannot be only spaces`
+    } : {
+      required: required
+    };
 
     return (<Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
 
@@ -3846,23 +3865,43 @@ const ShipmentForm = ({ type }) => {
 
         control={control}
 
-        rules={{ required }}
+        rules={validationRules}
 
         render={({ field }) => (
           <TextField
             {...field}
+            value={field.value || ''}
             onChange={(e) => {
-              if (isCityOrState) {
-                // Instantly strips out numbers and most special characters from the input field
-                e.target.value = e.target.value.replace(/[^A-Za-z\s.-]/g, '');
+              let val = e.target.value;
+
+              if (isAirport) {
+                // 1. Prevent leading spaces
+                if (val.startsWith(' ')) {
+                  return;
+                }
+                // 2. Remove non-letters, convert to uppercase, limit to 10 characters
+                val = val
+                  .replace(/[^a-zA-Z]/g, '')
+                  .toUpperCase()
+                  .slice(0, 10);
+
+                field.onChange(val);
+              } else {
+                if (isCityOrState) {
+                  // Instantly strips out numbers and most special characters from the input field
+                  val = val.replace(/[^A-Za-z\s.-]/g, '');
+                }
+                field.onChange(val); // Updates React Hook Form state for normal fields
               }
-              field.onChange(e); // Updates React Hook Form state
             }}
             fullWidth
             label={`${label}${required ? ' *' : ''}`}
             variant="standard"
             error={!!errors[name]}
             helperText={errors[name]?.message || ""}
+            inputProps={isAirport ? {
+              maxLength: 10
+            } : {}}
           />
         )}
 

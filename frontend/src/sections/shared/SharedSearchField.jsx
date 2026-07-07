@@ -7,6 +7,7 @@ import { setCustomerSearchStr, setStationSearchStr, getCustomerData, getCustomer
 import { getZoneData, setZoneSearchStr } from '../../redux/slices/zone';
 import { setAccessorialSearchStr, getAccessorialData } from '../../redux/slices/accessorial';
 import { setCarrierSearchStr, getCarrierData } from '../../redux/slices/carrier';
+import { setShipmentBuildSearchStr, getShipmentBuildData } from '../../redux/slices/shipmentbuilding';
 import { setFuelSurchargeSearchStr, getFuelSurchargeData, getCustomerFuelSurchargeData } from '../../redux/slices/fuel';
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,8 @@ export default function SharedSearchField({ page }) {
     const currentCarrierTab = useSelector((state) => state?.carrierdata?.currentCarrierTab);
     const fuelPagination = useSelector((state) => state?.fueldata?.pagination);
     const currentFuelSurchargeTab = useSelector((state) => state?.fueldata?.currentFuelSurchargeTab);
+    const shipmentBuildSearchStr = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildSearchStr);
+    const shipmentBuildPagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
 
     const handleSearch = (event) => {
         setSearchValue(event.target.value);
@@ -43,6 +46,7 @@ export default function SharedSearchField({ page }) {
         if (page === 'zone') dispatch(setZoneSearchStr(event?.target?.value));
         if (page === 'accessorial') dispatch(setAccessorialSearchStr(event?.target?.value));
         if (page === 'carrier') dispatch(setCarrierSearchStr(event?.target?.value));
+        if (page === 'shipmentbuilding') dispatch(setShipmentBuildSearchStr(event?.target?.value));
         if (page === 'fuelSurcharge') dispatch(setFuelSurchargeSearchStr(event?.target?.value));
         // calling api on each change of search input
         if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: event.target.value })); }
@@ -50,6 +54,7 @@ export default function SharedSearchField({ page }) {
         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: event.target.value })); }
         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: event.target.value })); }
         if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: event.target.value, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
+        if (page === 'shipmentbuilding') { dispatch(getShipmentBuildData({ pageNo: 1, pageSize: shipmentBuildPagination.pageSize, searchStr: event.target.value })); }
         if (page === 'fuelSurcharge') {
             if (currentFuelSurchargeTab === 'active') {
                 dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: event.target.value, }));
@@ -69,6 +74,7 @@ export default function SharedSearchField({ page }) {
             if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
             if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
             if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
+            if (page === 'shipmentbuilding') { dispatch(getShipmentBuildData({ pageNo: 1, pageSize: shipmentBuildPagination.pageSize, searchStr: searchValue })); }
             if (page === 'fuelSurcharge') {
                 if (currentFuelSurchargeTab === 'active') {
                     dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
@@ -98,11 +104,14 @@ export default function SharedSearchField({ page }) {
         if (page === 'fuelSurcharge') {
             setSearchValue(fuelSurchargeSearchStr);
         }
-    }, [customerSearchStr, stationSearchStr, zoneSearchStr, accessorialSearchStr, carrierSearchStr, fuelSurchargeSearchStr]);
+        if (page === 'shipmentbuilding') {
+            setSearchValue(shipmentBuildSearchStr);
+        }
+    }, [customerSearchStr, stationSearchStr, zoneSearchStr, accessorialSearchStr, carrierSearchStr, fuelSurchargeSearchStr, shipmentBuildSearchStr]);
 
     return (
         <>
-            <Box width='100%'>
+            <Box width={'100%'} sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
                 <Stack flexDirection={'row'} alignItems={'center'} justifyContent={'flex-end'} sx={{ padding: 2 }}>
                     <TextField
                         variant="outlined"
@@ -124,6 +133,7 @@ export default function SharedSearchField({ page }) {
                                                 if (page === 'zone') dispatch(setZoneSearchStr(''));
                                                 if (page === 'accessorial') dispatch(setAccessorialSearchStr(''));
                                                 if (page === 'carrier') dispatch(setCarrierSearchStr(''));
+                                                if (page === 'shipmentbuilding') dispatch(setShipmentBuildSearchStr(''));
                                                 if (page === 'fuelSurcharge') dispatch(setFuelSurchargeSearchStr(''));
                                                 // Optionally trigger a search with empty string to reset results
                                                 if (page === 'customers') { dispatch(getCustomerData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: '' })); }
@@ -131,6 +141,7 @@ export default function SharedSearchField({ page }) {
                                                 if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: '' })); }
                                                 if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: '' })); }
                                                 if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: '', status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
+                                                if (page === 'shipmentbuilding') { dispatch(getShipmentBuildData({ pageNo: 1, pageSize: shipmentBuildPagination.pageSize, searchStr: '' })); }
                                                 if (page === 'fuelSurcharge') {
                                                     if (currentFuelSurchargeTab === 'active') {
                                                         dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: '', }));
@@ -150,10 +161,11 @@ export default function SharedSearchField({ page }) {
                                         if (page === 'station') { dispatch(getCustomerStationData({ pageNo: 1, pageSize: pagination.pageSize, searchStr: searchValue, customerId: selectedCustomerRowDetails.customerId })); }
                                         if (page === 'zone') { dispatch(getZoneData({ pageNo: 1, pageSize: zonePagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'accessorial') { dispatch(getAccessorialData({ pageNo: 1, pageSize: accessorialPagination.pageSize, searchStr: searchValue })); }
+                                        if (page === 'shipmentbuilding') { dispatch(getShipmentBuildData({ pageNo: 1, pageSize: shipmentBuildPagination.pageSize, searchStr: searchValue })); }
                                         if (page === 'carrier') { dispatch(getCarrierData({ pageNo: 1, pageSize: carrierPagination.pageSize, searchStr: searchValue, status: currentCarrierTab.charAt(0).toUpperCase() + currentCarrierTab.slice(1) })); }
                                         if (page === 'fuelSurcharge') {
                                             if (currentFuelSurchargeTab === 'active') {
-                                                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue,  }));
+                                                dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
                                             }
                                             if (currentFuelSurchargeTab === 'customer') {
                                                 dispatch(getCustomerFuelSurchargeData({ pageNo: 1, pageSize: fuelPagination.pageSize, searchStr: searchValue, }));
@@ -172,7 +184,7 @@ export default function SharedSearchField({ page }) {
                                 alignItems: 'center',
                                 padding: '0 0 0 5px',
                             },
-                            width: "25%"
+                            width: page === 'shipmentbuilding' ? '100%' : '25%'
                         }}
                     />
                 </Stack>

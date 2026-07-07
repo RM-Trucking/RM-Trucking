@@ -172,7 +172,7 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
 
                   render={({ field }) => (
 
-                    <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentType} SelectProps={{
+                    <TextField {...field} select fullWidth label="Type of Shipment *" variant="standard" error={!!errors.shipmentStatus.status} SelectProps={{
                       displayEmpty: true,
                       MenuProps: {
                         // Crucial: disables internal centering logic so origins work
@@ -243,7 +243,6 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
               <Box sx={{ flex: '1 1 22%' }}>
                 <Controller name="shipmentStatus.location" control={control} rules={{ required: true }} render={({ field }) => (
                   <TextField {...field} fullWidth label="Current Location *" variant="standard" error={!!errors.location} />
-
                 )} />
               </Box>
             </Box>

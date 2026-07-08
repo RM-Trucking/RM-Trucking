@@ -851,6 +851,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             options={[]}
                                             fullWidth
                                             value={selectedEmailsArray}
+                                            disabled={readOnly}
                                             onChange={(event, newValue) => {
                                                 const processedEmails = newValue
                                                     .flatMap(item => (typeof item === 'string' ? item.split(',') : []))
@@ -870,23 +871,23 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                     error={!!error}
                                                     helperText={error ? error.message : "Press Enter, Comma, or Space to add"}
 
-                                                    // 1. Listen to key presses on the inner HTML input element
+                                                    // Listen to key presses on the inner HTML input element
                                                     inputProps={{
                                                         ...params.inputProps,
                                                         onKeyDown: (e) => {
                                                             const target = e.target;
                                                             const inputValue = target.value.trim();
 
-                                                            // 2. Catch Comma (,) or Space keys
+                                                            // Catch Comma (,) or Space keys
                                                             if ((e.key === ',' || e.key === ' ') && inputValue) {
                                                                 e.preventDefault(); // Stop the comma/space from showing up in the text box
 
-                                                                // 3. Prevent duplicate additions from this keypress
+                                                                // Prevent duplicate additions from this keypress
                                                                 if (!selectedEmailsArray.includes(inputValue)) {
                                                                     onChange([...selectedEmailsArray, inputValue]);
                                                                 }
 
-                                                                // 4. Force clear the MUI text input display
+                                                                // Force clear the MUI text input display
                                                                 target.value = '';
                                                                 // Triggers MUI internal input reset
                                                                 const event = new Event('input', { bubbles: true });
@@ -901,8 +902,28 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                     }}
                                                 />
                                             )}
-                                            sx={{ mt: 2 }}
+                                            sx={{
+                                                mt: 2,
+                                                // 1. Targets the text inside the standard input field when disabled
+                                                '& .MuiInputBase-input.Mui-disabled': {
+                                                    color: '#000000',
+                                                    WebkitTextFillColor: '#000000', // Necessary for Safari/iOS compatibility
+                                                },
+                                                // 2. Targets the text inside the selected tags/chips when disabled
+                                                '& .MuiChip-root.Mui-disabled': {
+                                                    color: '#000000',
+                                                    opacity: 1, // Restores text sharpness from default opacity reduction
+                                                    '& .MuiChip-label': {
+                                                        color: '#000000',
+                                                    }
+                                                },
+                                                // 3. Optional: Keeps the input label text readable/black when disabled
+                                                '& .MuiInputLabel-root.Mui-disabled': {
+                                                    color: '#000000',
+                                                }
+                                            }}
                                         />
+
                                     );
                                 }}
                             />

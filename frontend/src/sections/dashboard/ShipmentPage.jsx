@@ -3412,6 +3412,7 @@ const ShipmentForm = ({ type }) => {
         weight: '',
         weightUnit: '',
         class: '',
+        freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
         items: [{
           pieces: '',
           piecesUom: '',
@@ -3925,37 +3926,31 @@ const ShipmentForm = ({ type }) => {
   };
 
   useEffect(() => {
-    if (watchedHU.length === 0) return true;
+    if (!watchedHU || watchedHU.length <= 1) {
+      setHandlingUnitWtFlag(false);
+      return;
+    }
 
+    const lastItem = watchedHU[watchedHU.length - 1];
+
+    // 1. Check Weight Unit Consistency
     const firstWeightUnit = watchedHU[0].weightUnit;
     const isConsistentWeightUnit = watchedHU.every(item => item.weightUnit === firstWeightUnit);
+    const isWeightUnitInconsistent = !isConsistentWeightUnit && lastItem.weightUnit !== '';
 
-    if (!isConsistentWeightUnit && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].weightUnit !== '') {
-      setHandlingUnitWtFlag(true);
-    } else {
-      setHandlingUnitWtFlag(false);
-    }
+    // 2. Check Dimension Unit Consistency
     const firstUnit = watchedHU[0].unit;
     const isConsistentUnit = watchedHU.every(item => item.unit === firstUnit);
+    const isUnitInconsistent = !isConsistentUnit && lastItem.unit !== '';
 
-    if (!isConsistentUnit && watchedHU.length > 1 && watchedHU[watchedHU.length - 1].unit !== '') {
+    // 3. Set flag if EITHER condition fails validation
+    if (isWeightUnitInconsistent || isUnitInconsistent) {
       setHandlingUnitWtFlag(true);
     } else {
       setHandlingUnitWtFlag(false);
     }
 
   }, [watchedHU]);
-
-  const dimensionsSync = JSON.stringify(
-    watchedHU?.map(hu => ({
-      l: hu.length,
-      w: hu.width,
-      h: hu.height,
-      wt: hu.weight,
-      u: hu.unit,
-      wu: hu.weightUnit
-    }))
-  );
 
   useEffect(() => {
     dispatch(getCustomerStationDropdown());
@@ -3984,7 +3979,7 @@ const ShipmentForm = ({ type }) => {
         }
       }
     });
-  }, [dimensionsSync, setValue])
+  }, [watchedHU, setValue])
   useEffect(() => {
     if (watchedCarrierInfo.selectCarrier) {
       setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
@@ -5611,28 +5606,28 @@ const ShipmentForm = ({ type }) => {
   }, [shipperAirlineDropdown])
 
   useEffect(() => {
-    // if (watchedAirportPickupService) {
-    // if they check or uncheck the values have to be empty for the new select
-    setValue('shipperAddr1', '');
-    setValue('shipperAddr2', '');
-    setValue('shipperCity', '');
-    setValue('shipperState', '');
-    setValue('shipperZip', '');
-    setValue('shipperContact', '');
-    setValue('shipperPhone', '');
-    // }
+    if (watchedAirportPickupService !== undefined) {
+      // if they check or uncheck the values have to be empty for the new select
+      setValue('shipperAddr1', '');
+      setValue('shipperAddr2', '');
+      setValue('shipperCity', '');
+      setValue('shipperState', '');
+      setValue('shipperZip', '');
+      setValue('shipperContact', '');
+      setValue('shipperPhone', '');
+    }
   }, [watchedAirportPickupService])
   useEffect(() => {
-    // if (watchedAirportDeliveryService) {
-    // if they check or uncheck the values have to be empty for the new select
-    setValue('consigneeAddr1', '');
-    setValue('consigneeAddr2', '');
-    setValue('consigneeCity', '');
-    setValue('consigneeState', '');
-    setValue('consigneeZip', '');
-    setValue('consigneeContact', '');
-    setValue('consigneePhone', '');
-    // }
+    if (watchedAirportDeliveryService !== undefined) {
+      // if they check or uncheck the values have to be empty for the new select
+      setValue('consigneeAddr1', '');
+      setValue('consigneeAddr2', '');
+      setValue('consigneeCity', '');
+      setValue('consigneeState', '');
+      setValue('consigneeZip', '');
+      setValue('consigneeContact', '');
+      setValue('consigneePhone', '');
+    }
   }, [watchedAirportDeliveryService])
   useEffect(() => {
     if (pickupAccessorialsByEntityId.length > 0) {
@@ -8636,7 +8631,7 @@ const ShipmentForm = ({ type }) => {
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                       <FormControlLabel
                         control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                        label={<Typography variant="body2">Add Accessorial</Typography>}
+                        label={<Typography variant="body2">Add Linehaul Accessorials</Typography>}
                       />
                     </Box>
 
@@ -8646,7 +8641,7 @@ const ShipmentForm = ({ type }) => {
                         expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                         sx={{ borderBottom: '1px solid #ccc', px: 0 }}
                       >
-                        <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                        <Typography variant="subtitle1" fontWeight="bold">Linehaul Accessorial Details</Typography>
                       </AccordionSummary>
                       <AccordionDetails sx={{ px: 0, pt: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
@@ -9281,7 +9276,7 @@ const ShipmentForm = ({ type }) => {
                     <Box display={'flex'} alignItems={'center'}>
                       <FormControlLabel
                         control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
-                        label={<Typography variant="body2">Add Accessorial</Typography>}
+                        label={<Typography variant="body2">Add Delivery Accessorials</Typography>}
                       />
                       <Box sx={{ display: 'flex', gap: 4 }}>
 
@@ -9308,7 +9303,7 @@ const ShipmentForm = ({ type }) => {
                         expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                         sx={{ borderBottom: '1px solid #ccc', px: 0 }}
                       >
-                        <Typography variant="subtitle1" fontWeight="bold">Accessorial Details</Typography>
+                        <Typography variant="subtitle1" fontWeight="bold">Delivery Accessorial Details</Typography>
                       </AccordionSummary>
                       <AccordionDetails sx={{ px: 0, pt: 2 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>

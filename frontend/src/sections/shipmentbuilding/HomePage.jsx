@@ -22,6 +22,7 @@ import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import ErrorFallback from '../shared/ErrorBoundary';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import SharedSearchField from '../shared/SharedSearchField';
+import ShipmentViewTable from './ShipmentViewTable';
 
 import {
     setError, getCarrierTerminalDropdown
@@ -120,7 +121,7 @@ export default function HomePage() {
                 }}
             >
                 {/* The components within this boundary are protected */}
-                <SharedHomePageHeader title="Shipment Building" buttonText='New Sipment' onButtonClick={onClickOfNewDashboard} />
+                <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
                 <Stack direction={{ xs: 'column', lg: 'row' }} alignItems={{ xs: 'stretch', lg: 'center' }} sx={{ width: '100%' }}>
                     <Stack direction={{ xs: 'column', md: 'row' }}
                         spacing={2}
@@ -344,6 +345,8 @@ export default function HomePage() {
                         <SharedSearchField page="shipmentbuilding" />
                     </Stack>
                 </Stack>
+
+                <ShipmentViewTable />
 
 
 

@@ -28,6 +28,7 @@ const initialState = {
     zipToZipCarrierDeliveryRate: null,
     shipmentBuildSearchStr: '',
     shipmentBuildPagination: { page: 1, pageSize: 10, totalRecords: 0 },
+    shipmentViewData: [],
 };
 
 const slice = createSlice({
@@ -148,6 +149,12 @@ const slice = createSlice({
         },
         setShipmentBuildPaginationObject(state, action) {
             state.shipmentBuildPagination = action.payload;
+        },
+        getShipmentBuildDataSuccess(state,action){
+            state.isLoading = false;
+            state.shipmentSuccess = true;
+            // state.shipmentViewData = action.payload.data;
+            state.shipmentViewData = [];
         },
 
     },

@@ -1188,17 +1188,36 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
 // commodity list table
 const CommoditiesList = ({ watchedHU }) => {
-  const calculateTotals = (huArray) => {
+ const calculateTotals = (huArray) => {
     let totalHU = 0, totalPieces = 0, totalHM = 0, totalWeight = 0;
+
     huArray?.forEach((hu) => {
       totalHU += Number(hu.unitsCount || 0);
+
       hu.items?.forEach((item) => {
         totalPieces += Number(item.pieces || 0);
         if (item.hazmatInfo) totalHM += 1;
       });
-      totalWeight += Number(hu.weight || 0);
+
+      // Extract current weight and unit string
+      const currentWeight = Number(hu.weight || 0);
+      const weightUnit = (hu.weightUnit || '').trim().toLowerCase();
+
+      // 1. Convert to LBS if the item unit is registered as KGS
+      if (weightUnit === 'kgs' || weightUnit === 'kg') {
+        totalWeight += currentWeight * 2.20462;
+      } else {
+        totalWeight += currentWeight;
+      }
     });
-    return { totalHU, totalPieces, totalHM, totalWeight };
+
+    return {
+      totalHU,
+      totalPieces,
+      totalHM,
+      // 2. Round up the weight value to 2 decimals, or display empty string if 0
+      totalWeight: totalWeight === 0 ? "" : Number(totalWeight.toFixed(2))
+    };
   };
 
 
@@ -3405,12 +3424,12 @@ const ShipmentForm = ({ type }) => {
       appendHU({
         uom: '',
         unitsCount: '',
-        unit: '',
+        unit: lastUnit.unit,
         length: '',
         width: '',
         height: '',
         weight: '',
-        weightUnit: '',
+        weightUnit: lastUnit.weightUnit,
         class: '',
         freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
         items: [{
@@ -3515,23 +3534,39 @@ const ShipmentForm = ({ type }) => {
 
     huArray?.forEach((hu) => {
       totalHU += Number(hu.unitsCount || 0);
+
       hu.items?.forEach((item) => {
         totalPieces += Number(item.pieces || 0);
         if (item.hazmatInfo) totalHM += 1;
       });
-      totalWeight += Number(hu.weight || 0);
+
+      // Extract current weight and unit string
+      const currentWeight = Number(hu.weight || 0);
+      const weightUnit = (hu.weightUnit || '').trim().toLowerCase();
+
+      // 1. Convert to LBS if the item unit is registered as KGS
+      if (weightUnit === 'kgs' || weightUnit === 'kg') {
+        totalWeight += currentWeight * 2.20462;
+      } else {
+        totalWeight += currentWeight;
+      }
     });
 
     return {
       totalHU,
       totalPieces,
       totalHM,
-      // If totalWeight is 0, return an empty string, otherwise return the number
-      totalWeight: totalWeight === 0 ? "" : totalWeight
+      // 2. Round up the weight value to 2 decimals, or display empty string if 0
+      totalWeight: totalWeight === 0 ? "" : Number(totalWeight.toFixed(2))
     };
   };
 
-  const totals = calculateTotals(watchedHU);
+
+  let totals = calculateTotals(watchedHU);
+
+  useEffect(() =>{
+    totals = calculateTotals(watchedHU);
+  },[watchedHU]); 
 
   const hasInitialData = () => {
     const values = getValues();

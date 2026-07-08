@@ -1032,63 +1032,63 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
     "Class 9: Miscellaneous Dangerous Goods"
   ];
 
-  const allUNNumbers = Array.from({ length:3600 }, (_, i) => `UN${(i + 1).toString().padStart(4, '0')}`);
+  const allUNNumbers = Array.from({ length: 3600 }, (_, i) => `UN${(i + 1).toString().padStart(4, '0')}`);
   const shippingNames = [
-  "ACETONE",
-  "ACETONITRILE",
-  "AEROSOLS, flammable",
-  "AEROSOLS, non-flammable, toxic",
-  "ALCOHOLS, N.O.S.",
-  "AMMUNITION, SMOKE",
-  "ARGON, COMPRESSED",
-  "BATTERIES, WET, FILLED WITH ACID",
-  "BUTANES",
-  "CARBON, ACTIVATED",
-  "CHLORINE",
-  "CHLOROFORM",
-  "CORROSIVE LIQUID, ACIDIC, INORGANIC, N.O.S.",
-  "CORROSIVE LIQUID, FLAMMABLE, N.O.S.",
-  "DIESEL FUEL",
-  "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, LIQUID, N.O.S.",
-  "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, SOLID, N.O.S.",
-  "ETHANOL",
-  "ETHANOL SOLUTION",
-  "EXTINGUISHERS, FIRE",
-  "FLAMMABLE LIQUID, N.O.S.",
-  "FLAMMABLE SOLID, ORGANIC, N.O.S.",
-  "FLARES, AERIAL",
-  "GAS OIL",
-  "GASOLINE",
-  "HELIUN, COMPRESSED",
-  "HYDROCHLORIC ACID",
-  "HYDROGEN, REFRIGERATED LIQUID",
-  "HYPOCHLORITE SOLUTION",
-  "ISOPROPANOL",
-  "ISOPROPYL ALCOHOL",
-  "KEROSENE",
-  "LITHIUM ION BATTERIES",
-  "LITHIUM METAL BATTERIES",
-  "LIQUEFIED PETROLEUM GAS",
-  "METHANOL",
-  "MOTOR SPIRIT",
-  "NITROGEN, COMPRESSED",
-  "NITROGEN, REFRIGERATED LIQUID",
-  "OXIDIZING LIQUID, N.O.S.",
-  "OXYGEN, COMPRESSED",
-  "OXYGEN, REFRIGERATED LIQUID",
-  "PAINT",
-  "PAINT RELATED MATERIAL",
-  "PERFUMERY PRODUCTS",
-  "PETROLEUM DISTILLATES, N.O.S.",
-  "POTASSIUM CYANIDE, SOLID",
-  "RADIOACTIVE MATERIAL, EXCEPTED PACKAGE",
-  "SODIUM HYDROXIDE SOLUTION",
-  "SULFURIC ACID",
-  "TOXIC LIQUID, ORGANIC, N.O.S.",
-  "TURPENTINE",
-  "XENON, COMPRESSED",
-  "XYLENES"
-];
+    "ACETONE",
+    "ACETONITRILE",
+    "AEROSOLS, flammable",
+    "AEROSOLS, non-flammable, toxic",
+    "ALCOHOLS, N.O.S.",
+    "AMMUNITION, SMOKE",
+    "ARGON, COMPRESSED",
+    "BATTERIES, WET, FILLED WITH ACID",
+    "BUTANES",
+    "CARBON, ACTIVATED",
+    "CHLORINE",
+    "CHLOROFORM",
+    "CORROSIVE LIQUID, ACIDIC, INORGANIC, N.O.S.",
+    "CORROSIVE LIQUID, FLAMMABLE, N.O.S.",
+    "DIESEL FUEL",
+    "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, LIQUID, N.O.S.",
+    "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, SOLID, N.O.S.",
+    "ETHANOL",
+    "ETHANOL SOLUTION",
+    "EXTINGUISHERS, FIRE",
+    "FLAMMABLE LIQUID, N.O.S.",
+    "FLAMMABLE SOLID, ORGANIC, N.O.S.",
+    "FLARES, AERIAL",
+    "GAS OIL",
+    "GASOLINE",
+    "HELIUN, COMPRESSED",
+    "HYDROCHLORIC ACID",
+    "HYDROGEN, REFRIGERATED LIQUID",
+    "HYPOCHLORITE SOLUTION",
+    "ISOPROPANOL",
+    "ISOPROPYL ALCOHOL",
+    "KEROSENE",
+    "LITHIUM ION BATTERIES",
+    "LITHIUM METAL BATTERIES",
+    "LIQUEFIED PETROLEUM GAS",
+    "METHANOL",
+    "MOTOR SPIRIT",
+    "NITROGEN, COMPRESSED",
+    "NITROGEN, REFRIGERATED LIQUID",
+    "OXIDIZING LIQUID, N.O.S.",
+    "OXYGEN, COMPRESSED",
+    "OXYGEN, REFRIGERATED LIQUID",
+    "PAINT",
+    "PAINT RELATED MATERIAL",
+    "PERFUMERY PRODUCTS",
+    "PETROLEUM DISTILLATES, N.O.S.",
+    "POTASSIUM CYANIDE, SOLID",
+    "RADIOACTIVE MATERIAL, EXCEPTED PACKAGE",
+    "SODIUM HYDROXIDE SOLUTION",
+    "SULFURIC ACID",
+    "TOXIC LIQUID, ORGANIC, N.O.S.",
+    "TURPENTINE",
+    "XENON, COMPRESSED",
+    "XYLENES"
+  ];
 
 
   return (
@@ -4722,58 +4722,66 @@ const ShipmentForm = ({ type }) => {
       setErrorVisible(true);
     }
     const units = getValues('handlingUnits');
-    const lastUnit = units[units.length - 1];
-    const hasTopLevelValid =
-      !!lastUnit?.uom?.trim() &&
-      !!lastUnit?.unitsCount?.toString().trim();
-    const isItemsValid = Array.isArray(lastUnit?.items) && lastUnit.items.length > 0 &&
-      lastUnit.items.every(item => {
-        // Baseline checks for every item
-        const baseFieldsValid =
-          !!item?.pieces?.toString().trim() &&
-          !!item?.piecesUom?.trim() &&
-          !!item?.description?.trim();
 
-        // If baseline fails, no need to check hazmat
-        if (!baseFieldsValid) return false;
+    const isAllUnitsValid = Array.isArray(units) && units.length > 0 && units.every(unit => {
+      // 1. Top-level validation for the current handling unit
+      const hasTopLevelValid =
+        !!unit?.uom?.trim() &&
+        !!unit?.unitsCount?.toString().trim();
 
-        // Hazmat conditional check
-        if (item?.hazmatInfo === true) {
-          const hazmat = item?.hazmatData;
-          return (
-            !!hazmat?.unNumber?.trim() &&
-            !!hazmat?.shippingName?.trim() &&
-            !!hazmat?.packagingGroup?.trim() &&
-            !!hazmat?.hazmatClass?.trim() &&
-            !!hazmat?.weight?.toString().trim() &&
-            !!hazmat?.technicalName?.trim() &&
-            !!hazmat?.contactPhone?.trim()
-          );
-        }
+      if (!hasTopLevelValid) return false;
 
-        return true;
-      });
-    const isLastUnitValid = hasTopLevelValid && isItemsValid;
+      // 2. Nested items validation for the current handling unit
+      const isItemsValid = Array.isArray(unit?.items) && unit.items.length > 0 &&
+        unit.items.every(item => {
+          // Baseline checks for every item
+          const baseFieldsValid =
+            !!item?.pieces?.toString().trim() &&
+            !!item?.piecesUom?.trim() &&
+            !!item?.description?.trim();
+
+          if (!baseFieldsValid) return false;
+
+          // Hazmat conditional check
+          if (item?.hazmatInfo === true) {
+            const hazmat = item?.hazmatData;
+            return (
+              !!hazmat?.unNumber?.trim() &&
+              !!hazmat?.shippingName?.trim() &&
+              !!hazmat?.packagingGroup?.trim() &&
+              !!hazmat?.hazmatClass?.trim() &&
+              !!hazmat?.weight?.toString().trim() &&
+              !!hazmat?.technicalName?.trim() &&
+              !!hazmat?.contactPhone?.trim()
+            );
+          }
+
+          return true;
+        });
+
+      return isItemsValid;
+    });
+
 
     const isValid = await trigger(fieldsToValidate);
-    // if (isValid) {
-    //   if (activeStep < 4) {
-    //     if (activeStep === 2) {
-    //       if (isLastUnitValid) {
-    //         setErrorVisible(false);
-    //         setActiveStep((prev) => prev + 1);
-    //       } else {
-    //         setErrorVisible(true);
-    //       }
-    //     }
+    if (isValid) {
+      if (activeStep < 4) {
+        if (activeStep === 2) {
+          if (isAllUnitsValid) {
+            setErrorVisible(false);
+            setActiveStep((prev) => prev + 1);
+          } else {
+            setErrorVisible(true);
+          }
+        }
 
-    // if (activeStep !== 2) {
-    setActiveStep((prev) => prev + 1);
-    // }
-    // }
-    // } else {
-    // setErrorVisible(true);
-    // }
+        if (activeStep !== 2) {
+          setActiveStep((prev) => prev + 1);
+        }
+      }
+    } else {
+      setErrorVisible(true);
+    }
 
     // adding to object
     // step 0

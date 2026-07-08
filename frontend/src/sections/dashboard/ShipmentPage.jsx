@@ -4610,7 +4610,7 @@ const ShipmentForm = ({ type }) => {
     } else if (activeStep === 2 && isHazmatSelected) {
       fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
     } else if (activeStep === 3) {
-      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+      if (selectedRouting === 'pickup_only') {
         fieldsToValidate = [
           'carrierInfo.selectCarrier',
           'carrierInfo.fromLocation',

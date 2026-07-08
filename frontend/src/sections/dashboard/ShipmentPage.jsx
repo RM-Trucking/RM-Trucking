@@ -996,12 +996,99 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
     onClose();
   };
 
-
-
   const handleChange = (field, value) => {
     setLocalData((prev) => ({ ...prev, [field]: value }));
   };
+  const validateUNNumber = (value) => {
+    if (!value) return "UN Number is required";
 
+    // Regex matches 'UN' (case-insensitive) followed by exactly 4 digits
+    const unRegex = /^UN\d{4}$/i;
+    if (!unRegex.test(value)) {
+      return "Must start with 'UN' followed by 4 digits (e.g., UN1234)";
+    }
+    return "";
+  };
+  const hazmatClassOptions = [
+    "Class 1.1: Explosives - Mass explosion hazard",
+    "Class 1.2: Explosives - Projection hazard",
+    "Class 1.3: Explosives - Fire hazard",
+    "Class 1.4: Explosives - Minor explosion hazard",
+    "Class 1.5: Explosives - Very insensitive substances",
+    "Class 1.6: Explosives - Extremely insensitive articles",
+    "Class 2.1: Gases - Flammable gases",
+    "Class 2.2: Gases - Non-flammable, non-toxic compressed gases",
+    "Class 2.3: Gases - Toxic/poisonous gases by inhalation",
+    "Class 3: Flammable Liquids",
+    "Class 4.1: Flammable Solids - Self-reactive substances",
+    "Class 4.2: Spontaneously Combustible Materials",
+    "Class 4.3: Dangerous When Wet Materials",
+    "Class 5.1: Oxidizing Substances",
+    "Class 5.2: Organic Peroxides",
+    "Class 6.1: Poisonous (toxic) Materials",
+    "Class 6.2: Infectious Substances",
+    "Class 7: Radioactive Materials",
+    "Class 8: Corrosives",
+    "Class 9: Miscellaneous Dangerous Goods"
+  ];
+
+  const allUNNumbers = Array.from({ length:3600 }, (_, i) => `UN${(i + 1).toString().padStart(4, '0')}`);
+  const shippingNames = [
+  "ACETONE",
+  "ACETONITRILE",
+  "AEROSOLS, flammable",
+  "AEROSOLS, non-flammable, toxic",
+  "ALCOHOLS, N.O.S.",
+  "AMMUNITION, SMOKE",
+  "ARGON, COMPRESSED",
+  "BATTERIES, WET, FILLED WITH ACID",
+  "BUTANES",
+  "CARBON, ACTIVATED",
+  "CHLORINE",
+  "CHLOROFORM",
+  "CORROSIVE LIQUID, ACIDIC, INORGANIC, N.O.S.",
+  "CORROSIVE LIQUID, FLAMMABLE, N.O.S.",
+  "DIESEL FUEL",
+  "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, LIQUID, N.O.S.",
+  "ENVIRONMENTALLY HAZARDOUS SUBSTANCE, SOLID, N.O.S.",
+  "ETHANOL",
+  "ETHANOL SOLUTION",
+  "EXTINGUISHERS, FIRE",
+  "FLAMMABLE LIQUID, N.O.S.",
+  "FLAMMABLE SOLID, ORGANIC, N.O.S.",
+  "FLARES, AERIAL",
+  "GAS OIL",
+  "GASOLINE",
+  "HELIUN, COMPRESSED",
+  "HYDROCHLORIC ACID",
+  "HYDROGEN, REFRIGERATED LIQUID",
+  "HYPOCHLORITE SOLUTION",
+  "ISOPROPANOL",
+  "ISOPROPYL ALCOHOL",
+  "KEROSENE",
+  "LITHIUM ION BATTERIES",
+  "LITHIUM METAL BATTERIES",
+  "LIQUEFIED PETROLEUM GAS",
+  "METHANOL",
+  "MOTOR SPIRIT",
+  "NITROGEN, COMPRESSED",
+  "NITROGEN, REFRIGERATED LIQUID",
+  "OXIDIZING LIQUID, N.O.S.",
+  "OXYGEN, COMPRESSED",
+  "OXYGEN, REFRIGERATED LIQUID",
+  "PAINT",
+  "PAINT RELATED MATERIAL",
+  "PERFUMERY PRODUCTS",
+  "PETROLEUM DISTILLATES, N.O.S.",
+  "POTASSIUM CYANIDE, SOLID",
+  "RADIOACTIVE MATERIAL, EXCEPTED PACKAGE",
+  "SODIUM HYDROXIDE SOLUTION",
+  "SULFURIC ACID",
+  "TOXIC LIQUID, ORGANIC, N.O.S.",
+  "TURPENTINE",
+  "XENON, COMPRESSED",
+  "XYLENES"
+];
 
 
   return (
@@ -1019,20 +1106,102 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         {/* Row 1: UN, Shipping Name, PKG Group, Class */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="UN Number" required variant="standard" fullWidth value={localData.unNumber} onChange={(e) => handleChange('unNumber', e.target.value)}>
-              <MenuItem value="UN1567">UN1567</MenuItem>
-            </TextField>
+            <Autocomplete
+              freeSolo
+              options={allUNNumbers}
+              value={localData.unNumber || ""}
+
+              onChange={(event, newValue) => {
+                const val = newValue || "";
+                handleChange('unNumber', val);
+
+                // Trigger validation on selection
+                const errorMsg = validateUNNumber(val);
+                setErrors?.(prev => ({ ...prev, unNumber: errorMsg }));
+              }}
+
+              onInputChange={(event, newInputValue) => {
+                // Optional: Automatically force uppercase as they type
+                const upperVal = (newInputValue || "").toUpperCase();
+                handleChange('unNumber', upperVal);
+
+                // Trigger validation on typing
+                const errorMsg = validateUNNumber(upperVal);
+                setErrors?.(prev => ({ ...prev, unNumber: errorMsg }));
+              }}
+
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  variant="standard"
+                  label="UN Number"
+                  fullWidth
+                  // Displays styling and message dynamically based on your error state tracker
+                  error={!!errors?.unNumber}
+                  helperText={errors?.unNumber || " "}
+                />
+              )}
+            />
+
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField select label="Shipping Name" required variant="standard" fullWidth value={localData.shippingName} onChange={(e) => handleChange('shippingName', e.target.value)}>
-              <MenuItem value="Hazard Substance,liquid.n.o.s">Hazard Substance,liquid.n.o.s</MenuItem>
-            </TextField>
+            <Autocomplete
+              freeSolo
+              options={shippingNames} // Add any additional default shipping names to this array
+              value={localData.shippingName || ""}
+
+              // Handles selection changes from the menu list or Enter press
+              onChange={(event, newValue) => {
+                handleChange('shippingName', newValue || "");
+              }}
+
+              // Handles character-by-character user text entry
+              onInputChange={(event, newInputValue) => {
+                handleChange('shippingName', newInputValue || "");
+              }}
+
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  variant="standard"
+                  label="Shipping Name"
+                  fullWidth
+                />
+              )}
+            />
+
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
             <TextField label="Packaging Group" required variant="standard" fullWidth value={localData.packagingGroup} onChange={(e) => handleChange('packagingGroup', e.target.value)} />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Class" required variant="standard" fullWidth value={localData.hazmatClass} onChange={(e) => handleChange('hazmatClass', e.target.value)} />
+            <Autocomplete
+              freeSolo
+              options={hazmatClassOptions}
+              value={localData.hazmatClass || ""}
+
+              // Handles selection from the menu or pressing Enter
+              onChange={(event, newValue) => {
+                handleChange('hazmatClass', newValue || "");
+              }}
+
+              // Handles character-by-character text entry
+              onInputChange={(event, newInputValue) => {
+                handleChange('hazmatClass', newInputValue || "");
+              }}
+
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  required
+                  variant="standard"
+                  label="Class"
+                  fullWidth
+                />
+              )}
+            />
           </Box>
         </Box>
 
@@ -1188,7 +1357,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
 // commodity list table
 const CommoditiesList = ({ watchedHU }) => {
- const calculateTotals = (huArray) => {
+  const calculateTotals = (huArray) => {
     let totalHU = 0, totalPieces = 0, totalHM = 0, totalWeight = 0;
 
     huArray?.forEach((hu) => {
@@ -3564,9 +3733,9 @@ const ShipmentForm = ({ type }) => {
 
   let totals = calculateTotals(watchedHU);
 
-  useEffect(() =>{
+  useEffect(() => {
     totals = calculateTotals(watchedHU);
-  },[watchedHU]); 
+  }, [watchedHU]);
 
   const hasInitialData = () => {
     const values = getValues();
@@ -4587,24 +4756,24 @@ const ShipmentForm = ({ type }) => {
     const isLastUnitValid = hasTopLevelValid && isItemsValid;
 
     const isValid = await trigger(fieldsToValidate);
-    if (isValid) {
-      if (activeStep < 4) {
-        if (activeStep === 2) {
-          if (isLastUnitValid) {
-            setErrorVisible(false);
-            setActiveStep((prev) => prev + 1);
-          } else {
-            setErrorVisible(true);
-          }
-        }
+    // if (isValid) {
+    //   if (activeStep < 4) {
+    //     if (activeStep === 2) {
+    //       if (isLastUnitValid) {
+    //         setErrorVisible(false);
+    //         setActiveStep((prev) => prev + 1);
+    //       } else {
+    //         setErrorVisible(true);
+    //       }
+    //     }
 
-        if (activeStep !== 2) {
-          setActiveStep((prev) => prev + 1);
-        }
-      }
-    } else {
-      setErrorVisible(true);
-    }
+    // if (activeStep !== 2) {
+    setActiveStep((prev) => prev + 1);
+    // }
+    // }
+    // } else {
+    // setErrorVisible(true);
+    // }
 
     // adding to object
     // step 0

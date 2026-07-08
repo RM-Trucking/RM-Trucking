@@ -184,7 +184,6 @@ export default function SharedSearchField({ page }) {
                                 alignItems: 'center',
                                 padding: '0 0 0 5px',
                             },
-                            width: page === 'shipmentbuilding' ? '100%' : '25%'
                         }}
                     />
                 </Stack>

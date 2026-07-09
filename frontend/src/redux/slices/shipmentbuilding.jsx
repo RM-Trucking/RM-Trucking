@@ -29,6 +29,7 @@ const initialState = {
     shipmentBuildSearchStr: '',
     shipmentBuildPagination: { page: 1, pageSize: 10, totalRecords: 0 },
     shipmentViewData: [],
+    operationalMessage : '',
 };
 
 const slice = createSlice({
@@ -144,6 +145,9 @@ const slice = createSlice({
         setError(state) {
             state.error = '';
         },
+        setOperationalMessage(state, action) {
+            state.operationalMessage = action.payload;
+        },
         setShipmentBuildSearchStr(state, action) {
             state.shipmentBuildSearchStr = action.payload;
         },
@@ -168,6 +172,7 @@ export const {
     setLinehaulAccessorials,
     setDeliveryAccessorials,
     setAccessorialDropdown,
+    setOperationalMessage,
 } = slice.actions;
 export default slice.reducer;
 

@@ -13,17 +13,26 @@ import { setTableBeingViewed } from '../../redux/slices/customer';
 import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
+import {
+    getShipmentBuildData, setError, setOperationalMessage,
+} from '../../redux/slices/shipmentbuilding';
 
 ShipmentViewTable.PropTypes = {
-    
+
 };
 
-export default function ShipmentViewTable({  }) {
+export default function ShipmentViewTable({ }) {
     const dispatch = useDispatch();
     const isLoading = useSelector((state) => state?.shipmentbuildingdata?.isLoading);
     const shipmentViewData = useSelector((state) => state?.shipmentbuildingdata?.shipmentViewData);
+    const pagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
+    // pagination model
+    const [paginationModel, setPaginationModel] = useState({
+        page: 0,
+        pageSize: 10,
+    });
     const shipmentColumns = [
-        
+
     ];
 
     // get call for notes
@@ -33,9 +42,10 @@ export default function ShipmentViewTable({  }) {
 
     return (
         <>
-                      
+
             <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
+                    checkboxSelection
                     rows={shipmentViewData}
                     columns={shipmentColumns}
                     loading={isLoading}
@@ -45,6 +55,30 @@ export default function ShipmentViewTable({  }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     hideFooterSelectedRowCount
+                    // Targets the checkbox container specifically in the header row
+                    sx={{
+                        '& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-checkboxInput': {
+                            display: 'none',
+                        },
+                    }}
+                    paginationMode="server"
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={(newModel) => {
+                        setPaginationModel(newModel);
+                        // dispatch(getCustomerFuelSurchargeData({
+                        //     pageNo: newModel.page + 1,
+                        //     pageSize: newModel.pageSize,
+                        //     searchStr: fuelSurchargeSearchStr,
+                        // })); 
+                    }}
+                    onPageChange={(newPage) => {
+                        // dispatch(getFuelSurchargeData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: fuelSurchargeSearchStr, }));
+                    }}
+                    onPageSizeChange={(newPageSize) => {
+                        // dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr, }));
+                    }}
+                    pageSizeOptions={[5, 10, 50, 100]}
+                    rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 />
             </Box>
         </>

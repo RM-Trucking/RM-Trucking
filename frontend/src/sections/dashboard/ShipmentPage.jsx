@@ -3023,7 +3023,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 
                     {
                       item?.chargeType?.toLowerCase() === 'flat_rate' && (
-                        <Typography variant="body2">{getValues(`customerRate.customerAccessorials.[${index}].chargevalue`)}</Typography>
+                        <Typography variant="body2">{parseFloat(getValues(`customerRate.customerAccessorials.[${index}].chargeValue`)) || 0}</Typography>
                       )
                     }
                   </Box>

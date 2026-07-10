@@ -31,8 +31,38 @@ export default function ShipmentViewTable({ }) {
         page: 0,
         pageSize: 10,
     });
-    const shipmentColumns = [
+    useEffect(() => {
+        dispatch(getShipmentBuildData({
+            pageNo: paginationModel.page,
+            pageSize: paginationModel.pageSize,
+        }));
+    },[]);
 
+    const shipmentColumns = [
+        {
+            field: "shipmentPRONo",
+            headerName: "Shipment PRO",
+            minWidth: 200,
+            flex: 1,
+            filterable: false,
+            sortable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                        variant='normal'
+                        sx={{
+                            p: 2,
+                            color: '#AA2222',            // Applies the dark red/amber tone
+                            textDecoration: 'underline'  // Underlines the text
+                        }}
+                    >
+                        {params?.row?.shipmentPRONo}
+                    </Typography>
+
+                );
+                return element;
+            },
+        },
     ];
 
     // get call for notes

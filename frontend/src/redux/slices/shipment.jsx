@@ -126,17 +126,17 @@ const slice = createSlice({
     getZipToZipCarrierPickupRateSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
-      state.zipToZipCarrierPickupRate = action.payload.data;
+      state.zipToZipCarrierPickupRate = action?.payload?.data?.calculatedRate;
     },
     getZipToZipCarrierLinehaulRateSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
-      state.zipToZipCarrierLinehaulRate = action.payload.data;
+      state.zipToZipCarrierLinehaulRate = action?.payload?.data?.calculatedRate;
     },
     getZipToZipCarrierDeliveryRateSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
-      state.zipToZipCarrierDeliveryRate = action.payload.data;
+      state.zipToZipCarrierDeliveryRate = action?.payload?.data?.calculatedRate;
     },
     setError(state) {
       state.error = '';

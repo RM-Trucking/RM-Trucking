@@ -3221,6 +3221,9 @@ const ShipmentForm = ({ type }) => {
   const stationAccessorialData = useSelector((state) => state?.shipmentdata?.stationAccessorialData);
   const shipmentSuccess = useSelector((state) => state?.shipmentdata?.shipmentSuccess);
   const shipmentError = useSelector((state) => state?.shipmentdata?.error);
+  const zipToZipCarrierPickupRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierPickupRate);
+  const zipToZipCarrierLinehaulRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierLinehaulRate);
+  const zipToZipCarrierDeliveryRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierDeliveryRate);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -3355,29 +3358,29 @@ const ShipmentForm = ({ type }) => {
 
       doDetails: {
         handlingUnits: [{
-          uom: 'Skid', unitsCount: '02', unit: 'in', length: '20', width: '20', height: '20', weight: '200', weightUnit: 'lbs', class: '30', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
+          uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
           items: [{
-            pieces: '50', piecesUom: 'Skid', description: '24 Bottles of Nitric acid', hazmatInfo: true, hazmatData: {
+            pieces: '', piecesUom: '', description: '', hazmatInfo: false, hazmatData: {
 
-              "contactPhone": "(456) 456-5653",
-              "description": "desc",
-              "dotExemption": true,
-              "hazmatClass": "4",
-              "limitedQuality": true,
-              marinePollutant: true,
-              packagingGroup: "4",
-              reportableQuantity: true,
-              residueLastContained: true,
-              shippingName: "Hazard Substance,liquid.n.o.s",
-              technicalName: "tech",
-              unNumber: "UN1567",
-              weight: "4",
+              "contactPhone": "",
+              "description": "",
+              "dotExemption": false,
+              "hazmatClass": "",
+              "limitedQuality": false,
+              marinePollutant: false,
+              packagingGroup: "",
+              reportableQuantity: false,
+              residueLastContained: false,
+              shippingName: "",
+              technicalName: "",
+              unNumber: "",
+              weight: "",
               weightUnit: "lbs"
             }
           }]
         }],
-        emergencyContactName: 'Name',
-        emergencyContactPhone: '123-456-7890',
+        emergencyContactName: '',
+        emergencyContactPhone: '',
       },
 
       // shipment status
@@ -5909,6 +5912,15 @@ const ShipmentForm = ({ type }) => {
       setShipmentErrorFlag(true);
     }
   }, [shipmentError])
+  useEffect(() => {
+    setValue('carrierRates.pickUp.apiPickUpRate', zipToZipCarrierPickupRate || 0);
+  }, [zipToZipCarrierPickupRate])
+  useEffect(() => {
+    setValue('carrierRates.lineHaul.apiLineHaulRate', zipToZipCarrierLinehaulRate || 0);
+  }, [zipToZipCarrierLinehaulRate])
+  useEffect(() => {
+    setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
+  }, [zipToZipCarrierDeliveryRate])
 
 
 
@@ -6488,13 +6500,13 @@ const ShipmentForm = ({ type }) => {
                               // User selected an existing shipper object
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
-                                setValue('shipperAddr1', newValue.addressLine1 || '');
-                                setValue('shipperAddr2', newValue.addressLine2 || '');
-                                setValue('shipperCity', newValue.city || '');
-                                setValue('shipperState', newValue.state || '');
-                                setValue('shipperZip', newValue.zipCode || '');
-                                setValue('shipperContact', newValue.contactPersonName || '');
-                                setValue('shipperPhone', newValue.phoneNumber || '');
+                                setValue('shipperAddr1', newValue?.addressLine1 || '');
+                                setValue('shipperAddr2', newValue?.addressLine2 || '');
+                                setValue('shipperCity', newValue?.city || '');
+                                setValue('shipperState', newValue?.state || '');
+                                setValue('shipperZip', newValue?.zipCode || '');
+                                setValue('shipperContact', newValue?.contactPersonName || '');
+                                setValue('shipperPhone', newValue?.phoneNumber || '');
                               }
                             } else {
                               // Handles cases where the clear (x) button is clicked
@@ -6664,13 +6676,13 @@ const ShipmentForm = ({ type }) => {
                               setValue('shipperPhone', '');
                             } else if (newValue) {
                               onChange(newValue);
-                              // setValue('shipperAddr1', newValue.addressLine1 || '');
-                              //   setValue('shipperAddr2', newValue.addressLine2 || '');
-                              //   setValue('shipperCity', newValue.city || '');
-                              //   setValue('shipperState', newValue.state || '');
-                              //   setValue('shipperZip', newValue.zipCode || '');
-                              //   setValue('shipperContact', newValue.contactPersonName || '');
-                              //   setValue('shipperPhone', newValue.phoneNumber || '');
+                              setValue('shipperAddr1', newValue?.addressLine1 || '');
+                              setValue('shipperAddr2', newValue?.addressLine2 || '');
+                              setValue('shipperCity', newValue?.city || '');
+                              setValue('shipperState', newValue?.state || '');
+                              setValue('shipperZip', newValue?.zipCode || '');
+                              setValue('shipperContact', newValue?.contactPersonName || '');
+                              setValue('shipperPhone', newValue?.phoneNumber || '');
                             } else {
                               // Safe fallback when the input selection is cleared out entirely
                               onChange(null);
@@ -6883,13 +6895,13 @@ const ShipmentForm = ({ type }) => {
                               // User selected an existing item from the dropdown
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
-                                setValue('consigneeAddr1', newValue.addressLine1 || '');
-                                setValue('consigneeAddr2', newValue.addressLine2 || '');
-                                setValue('consigneeCity', newValue.city || '');
-                                setValue('consigneeState', newValue.state || '');
-                                setValue('consigneeZip', newValue.zipCode || '');
-                                setValue('consigneeContact', newValue.contactPersonName || '');
-                                setValue('consigneePhone', newValue.phoneNumber || '');
+                                setValue('consigneeAddr1', newValue?.addressLine1 || '');
+                                setValue('consigneeAddr2', newValue?.addressLine2 || '');
+                                setValue('consigneeCity', newValue?.city || '');
+                                setValue('consigneeState', newValue?.state || '');
+                                setValue('consigneeZip', newValue?.zipCode || '');
+                                setValue('consigneeContact', newValue?.contactPersonName || '');
+                                setValue('consigneePhone', newValue?.phoneNumber || '');
                               }
                             } else {
                               // Safe fallback if the user clears out the text entirely
@@ -7057,13 +7069,13 @@ const ShipmentForm = ({ type }) => {
                               setValue('consigneePhone', '');
                             } else if (newValue) {
                               onChange(newValue);
-                              // setValue('consigneeAddr1', newValue.addressLine1 || '');
-                              // setValue('consigneeAddr2', newValue.addressLine2 || '');
-                              // setValue('consigneeCity', newValue.city || '');
-                              // setValue('consigneeState', newValue.state || '');
-                              // setValue('consigneeZip', newValue.zipCode || '');
-                              // setValue('consigneeContact', newValue.contactPersonName || '');
-                              // setValue('consigneePhone', newValue.phoneNumber || '');
+                              setValue('consigneeAddr1', newValue?.addressLine1 || '');
+                              setValue('consigneeAddr2', newValue?.addressLine2 || '');
+                              setValue('consigneeCity', newValue?.city || '');
+                              setValue('consigneeState', newValue?.state || '');
+                              setValue('consigneeZip', newValue?.zipCode || '');
+                              setValue('consigneeContact', newValue?.contactPersonName || '');
+                              setValue('consigneePhone', newValue?.phoneNumber || '');
                             } else {
                               // Safe fallback when the input selection is cleared out entirely via 'X' button
                               onChange(null);

@@ -158,7 +158,24 @@ const slice = createSlice({
             state.isLoading = false;
             state.shipmentSuccess = true;
             // state.shipmentViewData = action.payload.data;
-            state.shipmentViewData = [];
+            state.shipmentViewData = [
+                {
+                    shipmentId: 1,
+                    shipmentPRONo : 'PRO9289280209',
+                    customerName : 'Oliver',
+                    origin : 'Brooklyn, New York',
+                    destination : 'Los Angeles, California',
+                    serviceLevel : 'Level 1',
+                    pickupAgent : 'Cal Sierra',
+                    pickupRouting : 'pending',
+                    linehaulRouting : 'pending',
+                    deliveryRouting : 'pending',
+                    status : 'To be Routed',
+                    delChecked : 'N',
+                    delCarrier : '',
+
+                }
+            ];
         },
 
     },
@@ -181,7 +198,7 @@ export default slice.reducer;
 
 // ----------------------------------------------------------------------
 
-export function getShipmentBuildData() {
+export function getShipmentBuildData({pageNo, pageSize}) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {

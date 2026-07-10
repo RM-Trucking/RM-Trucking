@@ -940,6 +940,16 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
 const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
   const { open, huIdx, itemIdx } = state;
   const [errors, setErrors] = useState({});
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'error' // 'error' | 'warning' | 'info' | 'success'
+  });
+
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   const emptyHazmat = {
     unNumber: '',
@@ -982,16 +992,47 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
 
   const handleSave = () => {
+    const requiredFields = [
+      { key: 'unNumber', label: 'UN Number' },
+      { key: 'shippingName', label: 'Shipping Name' },
+      { key: 'packagingGroup', label: 'Packaging Group' },
+      { key: 'hazmatClass', label: 'Hazmat Class' },
+      { key: 'weight', label: 'Weight' },
+      { key: 'technicalName', label: 'Technical Name' },
+      { key: 'contactPhone', label: 'Contact Phone' }
+    ];
+
+    const missingFields = requiredFields.filter(field => !String(localData[field.key])?.trim());
     const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
-    // Final check before saving 
-    if (!localData.contactPhone || !phoneRegex.test(localData.contactPhone)) {
-      setErrors(prev => ({
-        ...prev,
-        contactPhone: !localData.contactPhone ? 'Phone number is required' : 'Invalid phone format'
-      }));
-      return; // Block save if invalid [cite: 15]
+
+    // Check for empty required fields
+    if (missingFields.length > 0) {
+      const newErrors = {};
+      missingFields.forEach(field => {
+        newErrors[field.key] = `${field.label} is required`;
+      });
+      setErrors(prev => ({ ...prev, ...newErrors }));
+
+      setSnackbar({
+        open: true,
+        message: `Required fields missing: ${missingFields.map(f => f.label).join(', ')}`,
+        severity: 'error'
+      });
+      return;
     }
 
+    // Validate phone format
+    if (!phoneRegex.test(localData.contactPhone)) {
+      setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone format' }));
+      setSnackbar({
+        open: true,
+        message: 'Invalid phone format. Expected: (XXX) XXX-XXXX',
+        severity: 'error'
+      });
+      return;
+    }
+
+    // Success path
     setValue(`handlingUnits.${huIdx}.items.${itemIdx}.hazmatData`, localData);
     onClose();
   };
@@ -1339,6 +1380,22 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             <FormControlLabel control={<Checkbox size="small" checked={localData.dotExemption} onChange={(e) => handleChange('dotExemption', e.target.checked)} />} label={<Typography variant="body2">DOT Exemption</Typography>} />
           </Box>
         </Box>
+
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Optional position tweak
+        >
+          <Alert
+            onClose={handleCloseSnackbar}
+            severity={snackbar.severity}
+            variant="filled"
+            sx={{ width: '100%' }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </DialogContent>
 
 

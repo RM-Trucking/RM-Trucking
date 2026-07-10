@@ -1795,7 +1795,6 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                       variant="standard"
                       fullWidth
                       required
-                      // FIX: MUI Select cannot handle null. If value is null/undefined, use ''
                       value={value ?? ''}
                       onChange={onChange}
                       onBlur={onBlur}
@@ -1808,10 +1807,25 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                       disabled={actionType === 'Edit' || actionType === 'View'}
                       SelectProps={{
                         displayEmpty: true,
+                        // Custom rendering to fallback to the name segment of your value string
+                        renderValue: (selectedValue) => {
+                          if (!selectedValue) return <em>Select Accessorial</em>;
+
+                          // Checks if the active value exists in the current dropdown list
+                          const itemExists = accessorialDropdown?.some(
+                            (data) => `${data.accessorialId}-${data.accessorialName}` === selectedValue
+                          );
+
+                          // If it exists, let MUI handle it naturally. If missing, parse and show the text part.
+                          if (itemExists) {
+                            return selectedValue.split('-')[1] || selectedValue;
+                          }
+
+                          // Fallback: Extracts "Name" out of "Id-Name" format when dropdown is empty
+                          return selectedValue.split('-')[1] || selectedValue;
+                        },
                         MenuProps: {
-                          // Crucial: disables internal centering logic so origins work
                           getContentAnchorEl: null,
-                          // Prevents layout shifts and menu misplacement on scroll
                           disableScrollLock: true,
                           anchorOrigin: {
                             vertical: 'bottom',
@@ -1823,9 +1837,9 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                           },
                           PaperProps: {
                             sx: {
-                              marginTop: '4px', // Your custom gap
+                              marginTop: '4px',
                               maxHeight: 300,
-                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                              maxWidth: 300
                             }
                           }
                         },
@@ -1847,6 +1861,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                     </StyledTextField>
                   )}
                 />
+
 
                 <Controller
                   name="chargesType"

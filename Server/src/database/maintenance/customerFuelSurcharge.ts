@@ -118,24 +118,39 @@ export async function expireCustomerFuelSurcharge(
 export async function selectAllCustomerFuelSurcharges(
     conn: Connection,
     page: number,
-    pageSize: number
+    pageSize: number,
+    searchTerm?: string
 ): Promise<{ surcharges: CustomerFuelSurchargeResponse[]; total: number }> {
     const offset = (page - 1) * pageSize;
 
-    const query = `
-    SELECT "fsc".*, "u"."userName" AS "createdByName"
-    FROM ${SCHEMA}."Fuel_Surcharge_Customer" "fsc"
-    LEFT JOIN ${SCHEMA}."User" "u" ON "fsc"."createdBy" = "u"."userId"
-    ORDER BY "customerFuelSurchargeId" DESC
-    OFFSET ? ROWS FETCH NEXT ? ROWS ONLY
-  `;
-    const totalQuery = `SELECT COUNT(*) AS "total" FROM ${SCHEMA}."Fuel_Surcharge_Customer"`
+    let query = `
+        SELECT "fsc".*, "u"."userName" AS "createdByName"
+        FROM ${SCHEMA}."Fuel_Surcharge_Customer" "fsc"
+        LEFT JOIN ${SCHEMA}."User" "u" ON "fsc"."createdBy" = "u"."userId"
+        LEFT JOIN ${SCHEMA}."Customer" "c" ON "fsc"."customerId" = "c"."customerId"
+    `;
+    const params: any[] = [];
 
-    const surcharges = await conn.query(query, [offset, pageSize]) as CustomerFuelSurchargeResponse[];
-    const totalResult = await conn.query(totalQuery) as any[];
+    if (searchTerm) {
+        query += ` WHERE "c"."customerName" LIKE ?`;
+        params.push(`%${searchTerm}%`);
+    }
+
+    query += ` ORDER BY "customerFuelSurchargeId" DESC OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`;
+    params.push(offset, pageSize);
+
+    const totalQuery = `
+        SELECT COUNT(*) AS "total"
+        FROM ${SCHEMA}."Fuel_Surcharge_Customer"
+        LEFT JOIN ${SCHEMA}."Customer" "c" ON "Fuel_Surcharge_Customer"."customerId" = "c"."customerId"
+        ${searchTerm ? `WHERE "c"."customerName" LIKE ?` : ''}
+    `;
+    const totalParams = searchTerm ? [`%${searchTerm}%`] : [];
+
+    const surcharges = await conn.query(query, params) as CustomerFuelSurchargeResponse[];
+    const totalResult = await conn.query(totalQuery, totalParams) as any[];
     const total = totalResult[0].total;
 
-    // Attach stations for each surcharge
     for (const surcharge of surcharges) {
         const stations = await conn.query(
             `SELECT * FROM ${SCHEMA}."Fuel_Surcharge_Customer_Station" WHERE "customerFuelSurchargeId" = ?`,
@@ -146,6 +161,7 @@ export async function selectAllCustomerFuelSurcharges(
 
     return { surcharges, total };
 }
+
 
 // ✅ Select Customer Fuel Surcharge by ID
 export async function selectCustomerFuelSurchargeById(

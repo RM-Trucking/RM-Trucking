@@ -19,6 +19,330 @@ import {
 } from '../../entities/maintenance';
 import { toUtcDate } from '../../utils/dateFormater';
 
+type TransportRateQuoteResult = {
+    rateId: number;
+    carrierRateId: number;
+    originZone: { zoneId: number; zoneName: string } | null;
+    destinationZone: { zoneId: number; zoneName: string } | null;
+    calculatedRate: number;
+    minRate: number | null;
+    maxRate: number | null;
+    matchedRateField: string | null;
+    usedNearestRateField: boolean;
+    details: any[];
+};
+
+type ZipCandidate =
+    | { kind: 'zip'; value: string }
+    | { kind: 'range'; start: string; end: string };
+
+type ZoneZipLike = {
+    zipCode?: string | null;
+    rangeStart?: string | null;
+    rangeEnd?: string | null;
+};
+
+function parseZipCandidates(input?: string): ZipCandidate[] {
+    if (!input) return [];
+
+    return input
+        .split(',')
+        .map(part => part.trim())
+        .filter(Boolean)
+        .flatMap(part => {
+            if (part.includes('-')) {
+                const [start, end] = part.split('-').map(value => value.trim());
+                return start && end ? [{ kind: 'range' as const, start, end }] as ZipCandidate[] : [];
+            }
+
+            return [{ kind: 'zip' as const, value: part }] as ZipCandidate[];
+        });
+}
+
+function normalizeZipValue(value?: string | null): string | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+}
+
+function toNumericZip(value?: string | null): number | null {
+    const normalized = normalizeZipValue(value);
+    if (!normalized || !/^\d+$/.test(normalized)) {
+        return null;
+    }
+    return Number(normalized);
+}
+
+function isZipWithinRange(zipValue: string, start: string, end: string): boolean {
+    const zipNumber = toNumericZip(zipValue);
+    const startNumber = toNumericZip(start);
+    const endNumber = toNumericZip(end);
+
+    if (zipNumber === null || startNumber === null || endNumber === null) {
+        return false;
+    }
+
+    const low = Math.min(startNumber, endNumber);
+    const high = Math.max(startNumber, endNumber);
+    return zipNumber >= low && zipNumber <= high;
+}
+
+function rangesOverlap(startA: string, endA: string, startB: string, endB: string): boolean {
+    const aStart = toNumericZip(startA);
+    const aEnd = toNumericZip(endA);
+    const bStart = toNumericZip(startB);
+    const bEnd = toNumericZip(endB);
+
+    if (aStart === null || aEnd === null || bStart === null || bEnd === null) {
+        return false;
+    }
+
+    const lowA = Math.min(aStart, aEnd);
+    const highA = Math.max(aStart, aEnd);
+    const lowB = Math.min(bStart, bEnd);
+    const highB = Math.max(bStart, bEnd);
+
+    return lowA <= highB && lowB <= highA;
+}
+
+function candidateMatchesZoneEntry(candidate: ZipCandidate, zoneEntry: ZoneZipLike): boolean {
+    const zipCode = normalizeZipValue(zoneEntry.zipCode);
+
+    if (candidate.kind === 'zip') {
+        if (zipCode) {
+            return candidate.value === zipCode;
+        }
+
+        return !!zoneEntry.rangeStart && !!zoneEntry.rangeEnd && isZipWithinRange(candidate.value, zoneEntry.rangeStart, zoneEntry.rangeEnd);
+    }
+
+    if (zipCode) {
+        return isZipWithinRange(zipCode, candidate.start, candidate.end);
+    }
+
+    return !!zoneEntry.rangeStart && !!zoneEntry.rangeEnd && rangesOverlap(candidate.start, candidate.end, zoneEntry.rangeStart, zoneEntry.rangeEnd);
+}
+
+function candidateMatchesZone(candidate: ZipCandidate, zoneEntries: ZoneZipLike[]): boolean {
+    return zoneEntries.some(entry => candidateMatchesZoneEntry(candidate, entry));
+}
+
+function buildZoneCandidates(zoneZips: ZoneZipLike[]): ZipCandidate[] {
+    return zoneZips.flatMap(entry => {
+        const candidates: ZipCandidate[] = [];
+        const zipCode = normalizeZipValue(entry.zipCode);
+        if (zipCode) {
+            candidates.push({ kind: 'zip', value: zipCode });
+        }
+
+        if (entry.rangeStart && entry.rangeEnd) {
+            candidates.push({ kind: 'range', start: entry.rangeStart, end: entry.rangeEnd });
+        }
+
+        return candidates;
+    });
+}
+
+async function validateTransportRateZipUniqueness(
+    conn: Connection,
+    originZoneId: number,
+    destinationZoneId: number,
+    req: CreateCarrierTransportRateRequest,
+    excludeRateId?: number
+): Promise<void> {
+    const originZoneZips = await zoneDB.getZoneZips(conn, originZoneId);
+    const destinationZoneZips = await zoneDB.getZoneZips(conn, destinationZoneId);
+
+    const explicitOriginCandidates = parseZipCandidates(req.originZipOrRange);
+    const explicitDestinationCandidates = parseZipCandidates(req.destinationZipOrRange);
+
+    const originCandidates = explicitOriginCandidates.length > 0
+        ? explicitOriginCandidates
+        : buildZoneCandidates(originZoneZips);
+
+    const destinationCandidates = explicitDestinationCandidates.length > 0
+        ? explicitDestinationCandidates
+        : buildZoneCandidates(destinationZoneZips);
+
+    if (!originCandidates.length || !destinationCandidates.length) {
+        return;
+    }
+
+    const existingRates = await rateDB.listCarrierTransportRates(conn, {}, 1, 10000);
+
+    for (const existingRate of existingRates.data) {
+        if (excludeRateId !== undefined && existingRate.rateId === excludeRateId) {
+            continue;
+        }
+        const existingOriginZips = await zoneDB.getZoneZips(conn, existingRate.originZoneId);
+        const existingDestinationZips = await zoneDB.getZoneZips(conn, existingRate.destinationZoneId);
+
+        for (const originCandidate of originCandidates) {
+            if (!candidateMatchesZone(originCandidate, existingOriginZips)) {
+                continue;
+            }
+
+            for (const destinationCandidate of destinationCandidates) {
+                if (candidateMatchesZone(destinationCandidate, existingDestinationZips)) {
+                    throw new Error('A transport rate already exists for the provided origin/destination zip range.');
+                }
+            }
+        }
+    }
+}
+
+function parseNumericRateField(value?: string | null): number | null {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed || Number.isNaN(Number(trimmed))) return null;
+    return Number(trimmed);
+}
+
+function getBoundaryDetail(details: any[], fieldName: string): number | null {
+    const detail = details.find(d => d?.rateField?.toString().toUpperCase().includes(fieldName.toUpperCase()));
+    return detail ? Number(detail.chargeValue) : null;
+}
+
+function calculateTransportRateQuote(details: any[], weight: number): { calculatedRate: number; matchedRateField: string | null; usedNearestRateField: boolean } {
+    const numericDetails = (details || [])
+        .map(d => ({ ...d, numericRateField: parseNumericRateField(d?.rateField) }))
+        .filter(d => d.numericRateField !== null)
+        .sort((a, b) => (a.numericRateField ?? 0) - (b.numericRateField ?? 0));
+
+    const exactMatch = numericDetails.find(d => d.numericRateField === weight);
+    if (exactMatch) {
+        const rateValue = Number(exactMatch.chargeValue || 0);
+        return {
+            calculatedRate: exactMatch.perUnitFlag === 'Y' ? rateValue * weight : rateValue,
+            matchedRateField: exactMatch.rateField,
+            usedNearestRateField: false
+        };
+    }
+
+    if (!numericDetails.length) {
+        return { calculatedRate: 0, matchedRateField: null, usedNearestRateField: false };
+    }
+
+    const selectedDetail = numericDetails.reduce((closest, current) => {
+        if (!closest) return current;
+        if ((current.numericRateField ?? 0) <= weight) {
+            return current.numericRateField! > (closest.numericRateField ?? 0) ? current : closest;
+        }
+        return closest;
+    }, null as any);
+
+    const fallbackDetail = selectedDetail ?? numericDetails[numericDetails.length - 1];
+    const rateValue = Number(fallbackDetail.chargeValue || 0);
+    const selectedWeight = Number(fallbackDetail.numericRateField ?? weight);
+    const calculatedRate = fallbackDetail.perUnitFlag === 'Y'
+        ? rateValue * (weight / selectedWeight)
+        : rateValue;
+
+    return {
+        calculatedRate,
+        matchedRateField: fallbackDetail.rateField,
+        usedNearestRateField: true
+    };
+}
+
+export async function getCarrierTransportRateQuoteService(
+    conn: Connection,
+    originZip: string,
+    destinationZip: string,
+    weight: number,
+    terminalId: number
+): Promise<TransportRateQuoteResult> {
+    const normalizedOriginZip = originZip?.trim();
+    const normalizedDestinationZip = destinationZip?.trim();
+
+    if (!normalizedOriginZip || !normalizedDestinationZip) {
+        throw new Error('Origin zip and destination zip are required');
+    }
+
+    if (!Number.isFinite(weight) || weight <= 0) {
+        throw new Error('Weight must be a positive number');
+    }
+
+    if (!terminalId || Number.isNaN(terminalId)) {
+        throw new Error('terminalId is required');
+    }
+
+    const mappings = await rateDB.getTerminalRates(conn, terminalId, 'TRANSPORT');
+    if (!mappings.length) {
+        throw new Error('No transport rate available for the provided terminalId');
+    }
+
+    const originZones = await zoneDB.findZonesByZip(conn, normalizedOriginZip);
+    const destinationZones = await zoneDB.findZonesByZip(conn, normalizedDestinationZip);
+
+    if (!originZones.length || !destinationZones.length) {
+        throw new Error('No matching zone found for the provided zip code(s)');
+    }
+
+    const matchingRates = mappings
+        .map(mapping => mapping.rateId)
+        .map(rateId => ({ rateId, rate: null as any }))
+        .filter(({ rateId }) => rateId)
+        .map(({ rateId }) => ({ rateId, rate: null as any }));
+
+    const resolvedRates = await Promise.all(
+        matchingRates.map(async ({ rateId }) => {
+            const rate = await rateDB.getCarrierTransportRateById(conn, rateId);
+            return rate ? { rateId, rate } : null;
+        })
+    );
+
+    const filteredRates = resolvedRates.filter((entry): entry is { rateId: number; rate: any } => !!entry)
+        .filter(({ rate }) => {
+            const hasOriginMatch = originZones.some(zone => zone.zoneId === rate.originZoneId);
+            const hasDestinationMatch = destinationZones.some(zone => zone.zoneId === rate.destinationZoneId);
+            return hasOriginMatch && hasDestinationMatch;
+        });
+
+    if (filteredRates.length > 1) {
+        throw new Error('More than one transport rate exists for the provided origin/destination pair');
+    }
+
+    if (!filteredRates.length) {
+        throw new Error('No transport rate found for the provided origin/destination pair and terminal mapping');
+    }
+
+    const matchedRate = filteredRates[0];
+
+    if (matchingRates.length > 1) {
+        throw new Error('More than one transport rate exists for the provided origin/destination pair');
+    }
+
+    if (!matchingRates.length) {
+        throw new Error('No transport rate found for the provided origin/destination pair');
+    }
+
+    const rate = matchedRate.rate;
+    const details = await rateDB.getCarrierTransportRateDetails(conn, rate.rateId);
+    const minRate = getBoundaryDetail(details, 'MIN');
+    const maxRate = getBoundaryDetail(details, 'MAX');
+    const quote = calculateTransportRateQuote(details, weight);
+    const calculatedRate = (() => {
+        let value = quote.calculatedRate;
+        if (minRate !== null && value < minRate) value = minRate;
+        if (maxRate !== null && value > maxRate) value = maxRate;
+        return Number(value.toFixed(2));
+    })();
+
+    return {
+        rateId: rate.rateId,
+        carrierRateId: rate.carrierRateId,
+        originZone: originZones[0] ? { zoneId: originZones[0].zoneId, zoneName: originZones[0].zoneName } : null,
+        destinationZone: destinationZones[0] ? { zoneId: destinationZones[0].zoneId, zoneName: destinationZones[0].zoneName } : null,
+        calculatedRate,
+        minRate,
+        maxRate,
+        matchedRateField: quote.matchedRateField,
+        usedNearestRateField: quote.usedNearestRateField,
+        details
+    };
+}
+
 // -------------------- Warehouse Rate --------------------
 export async function createCarrierWarehouseRateService(
     conn: Connection,
@@ -64,6 +388,7 @@ export async function createCarrierTransportRateService(
 ): Promise<CarrierTransportRateResponse> {
     await conn.beginTransaction();
     try {
+        await validateTransportRateZipUniqueness(conn, req.originZoneId, req.destinationZoneId, req);
 
         // 1) Create the transport rate (without entity/noteThread yet)
         const rateId = await rateDB.createCarrierTransportRate(
@@ -217,8 +542,6 @@ export async function getCarrierTransportRateService(
     };
 }
 
-
-
 export async function updateCarrierTransportRateService(
     conn: Connection,
     rateId: number,
@@ -227,6 +550,19 @@ export async function updateCarrierTransportRateService(
 ): Promise<CarrierTransportRateResponse> {
     await conn.beginTransaction();
     try {
+        const existingRate = await rateDB.getCarrierTransportRateById(conn, rateId);
+        if (!existingRate) throw new Error('Transport rate not found');
+
+        const newOriginZoneId = req.originZoneId ?? existingRate.originZoneId;
+        const newDestinationZoneId = req.destinationZoneId ?? existingRate.destinationZoneId;
+
+        const originChanged = req.originZoneId !== undefined && req.originZoneId !== existingRate.originZoneId;
+        const destinationChanged = req.destinationZoneId !== undefined && req.destinationZoneId !== existingRate.destinationZoneId;
+
+        if (originChanged || destinationChanged) {
+            await validateTransportRateZipUniqueness(conn, newOriginZoneId, newDestinationZoneId, req);
+        }
+
         // Update base record if needed
         if (req.originZoneId || req.destinationZoneId) {
             await rateDB.updateCarrierTransportRate(conn, rateId, req.originZoneId, req.destinationZoneId, userId);

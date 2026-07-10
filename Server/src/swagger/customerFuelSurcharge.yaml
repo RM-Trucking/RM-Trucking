@@ -36,6 +36,9 @@ paths:
         - in: query
           name: pageSize
           schema: { type: integer }
+        - in: query
+          name: searchTerm
+          schema: { type: string }
       responses:
         "200":
           description: List of surcharges

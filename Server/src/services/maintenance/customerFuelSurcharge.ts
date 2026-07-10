@@ -46,9 +46,10 @@ export async function createCustomerFuelSurcharge(
 export async function getCustomerFuelSurcharges(
     conn: Connection,
     page: number,
-    pageSize: number
+    pageSize: number,
+    searchTerm?: string
 ): Promise<{ surcharges: CustomerFuelSurchargeResponse[]; total: number; page: number; pageSize: number }> {
-    const { surcharges, total } = await customerFuelDb.selectAllCustomerFuelSurcharges(conn, page, pageSize);
+    const { surcharges, total } = await customerFuelDb.selectAllCustomerFuelSurcharges(conn, page, pageSize, searchTerm);
 
     // Format timestamps
     const formattedSurcharges = surcharges.map(s => ({

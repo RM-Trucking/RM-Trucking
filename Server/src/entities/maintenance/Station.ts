@@ -3,17 +3,19 @@ import { AddressRequest, AddressUpdateRequest } from "./Address";
 export interface Station {
     stationId: number;
     customerId: number;
-    entityId: number;          // link to global Entity table
+    entityId: number;
     stationName: string;
     rmAccountNumber: string;
     airportCode: string;
     phoneNumber: string;
     faxNumber: string;
-    openTime: string | null;          // HH:mm:ss
-    closeTime: string | null;         // HH:mm:ss
+    openTime: string | null;
+    closeTime: string | null;
     hours: string;
     warehouse: 'Y' | 'N';
     warehouseDetail: string;
+    hasWarehouseService: 'Y' | 'N';
+    warehouseEmails: string | null;
     activeStatus: 'Y' | 'N';
     createdAt: Date | null;
     createdBy: number;
@@ -34,6 +36,8 @@ export interface CreateStationRequest {
     hours: string;
     warehouse: 'Y' | 'N';
     warehouseDetail?: string;
+    hasWarehouseService: 'Y' | 'N';
+    warehouseEmails?: string[] | null;
     addresses?: AddressRequest[];
     note?: { messageText: string };
 }
@@ -49,6 +53,8 @@ export interface UpdateStationRequest {
     hours?: string;
     warehouse?: 'Y' | 'N';
     warehouseDetail?: string;
+    hasWarehouseService?: 'Y' | 'N';
+    warehouseEmails?: string[] | null;
     addresses?: AddressUpdateRequest[];
 }
 

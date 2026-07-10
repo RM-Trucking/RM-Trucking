@@ -253,6 +253,14 @@ components:
           type: string
           enum: [Y, N]
         warehouseDetail: { type: string }
+        hasWarehouseService:
+          type: string
+          enum: [Y, N]
+        warehouseEmails:
+          type: array
+          items:
+            type: string
+            format: email
         addresses:
           type: array
           items:
@@ -277,6 +285,14 @@ components:
           type: string
           enum: [Y, N]
         warehouseDetail: { type: string }
+        hasWarehouseService:
+          type: string
+          enum: [Y, N]
+        warehouseEmails:
+          type: array
+          items:
+            type: string
+            format: email
         addresses:
           type: array
           items:

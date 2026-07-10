@@ -57,6 +57,21 @@ export async function createCarrierTransportRate(req: Request, res: Response, co
 }
 
 
+export async function getCarrierTransportRateQuote(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const originZip = req.query.originZip as string | undefined;
+        const destinationZip = req.query.destinationZip as string | undefined;
+        const weight = Number(req.query.weight);
+        const terminalId = Number(req.query.terminalId);
+
+        const result = await rateService.getCarrierTransportRateQuoteService(conn, originZip || '', destinationZip || '', weight, terminalId);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: 'Failed to fetch transport rate quote', message: (error as Error).message });
+    }
+}
+
 export async function getCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const rate = await rateService.getCarrierTransportRateService(conn, Number(req.params.id));
@@ -113,9 +128,6 @@ export async function assignRateToTerminal(
 export async function getTerminalRates(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const terminalId = Number(req.query.terminalId);
-
-        console.log(req.query.terminalId);
-
 
         const {
             rateType,

@@ -1,5 +1,5 @@
 export type ShipmentDetails = {
-    typeOfShipment: string;
+    typeOfShipment: "AIR_IMPORT" | "AIR_EXPORT" | "OCEAN_IMPORT" | "OCEAN_EXPORT" | "DOMESTIC" | "NON_FORWARDER_DOMESTIC";
     serviceLevel: string;
     shipmentDate: Date;
     shipmentTime: string;
@@ -21,6 +21,7 @@ export type AirlineDetails = {
     handler?: string;
     phoneNumber?: string;
     entityId?: number;
+    scenarioType: 'IMPORT' | 'EXPORT';
 };
 
 export type ShipperDetails = {
@@ -127,6 +128,7 @@ export type CommodityDetails = {
 
 export type Accessorial = {
     accessorialId: number;
+    accessorialName: string;
     chargeType: string;
     chargeValue: number;
     notes: Notes[];
@@ -291,7 +293,7 @@ export type PickupDetails = {
         }
     ) & (
         | {
-            pickupAgentTerminal: 'Y';
+            pickupAgentTerminal: 'N';
             pickupAgentTerminalDetails: {
                 toLocationType: 'Carrier' | 'Consignee';
                 toLocation: string;
@@ -353,7 +355,7 @@ export type PickupDetails = {
 
 // Linehaul Primary Info
 export type LinehaulPrimaryInfo = {
-    linehaulRouting: 'LINE_HAUL' | 'LINE_HAUL_DELIVERY';
+    linehaulRouting: 'LINE_HAUL_ONLY' | 'LINE_HAUL_DELIVERY';
     carrierId: number;
     terminalId: number;
     carrierBillNumber: string;
@@ -516,7 +518,7 @@ export type CarrierDetails =
 
         linehaulDetails: {
             linehaulPrimaryInfo: LinehaulPrimaryInfo & {
-                linehaulRouting: 'LINE_HAUL';
+                linehaulRouting: '  ';
                 toLocationType: 'Carrier';
                 fromLocationType: 'Carrier';
             };
@@ -665,10 +667,72 @@ export type CarrierDetails =
         };
     };
 
+export type RateDetails = {
+    rateType: string;
+    multiplicationFactor: number;
+    multiplicationFactorUOM: string;
+    rateValue: number;
+    totalRate: number;
+}
+
+export type InvoiceDetails = {
+    shipmentId: number;
+    invoiceNumber: string;
+    invoiceType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY';
+    subTotalRate: number;
+    approvalStatus: 'Y' | 'N';
+    approvedBy?: number;
+    approvedDate?: Date;
+}
+
+export type PickupRateDetails = {
+    invoiceNumber: string;
+    rateDetails: RateDetails[];
+    pickupSubTotalRate: number;
+    invoiceApprovalStatus: 'Y' | 'N';
+    approvedBy?: number;
+    approvedDate?: Date;
+}
+
+export type LinehaulRateDetails = {
+    invoiceNumber: string;
+    rateDetails: RateDetails[];
+    linehaulSubTotalRate: number;
+    invoiceApprovalStatus: 'Y' | 'N';
+    approvedBy?: number;
+    approvedDate?: Date;
+}
+
+export type DeliveryRateDetails = {
+    invoiceNumber: string;
+    rateDetails: RateDetails[];
+    deliverySubTotalRate: number;
+    invoiceApprovalStatus: 'Y' | 'N';
+    approvedBy?: number;
+    approvedDate?: Date;
+}
+
+export type CarrierRateDetails = {
+    pickupRateDetails: PickupRateDetails;
+    linehaulRateDetails: LinehaulRateDetails;
+    deliveryRateDetails: DeliveryRateDetails;
+    totalCarrierRate: number;
+}
+
+export type CustomerRateDetails = {
+    rateDetails: RateDetails[];
+    totalCustomerRate: number;
+}
+
+export type ShipmentRateDetails = {
+    carrierRateDetails: CarrierRateDetails;
+    customerRateDetails: CustomerRateDetails;
+}
 
 export type CreateNetworkShipmentRequest = {
     shipmentDetails: ShipmentDetails;
     customerDetails: CustomerDetails;
     commodityDetails: CommodityDetails;
-    carrierDetails: CarrierDetails
+    carrierDetails?: CarrierDetails;
+    shipmentRateDetails?: ShipmentRateDetails;
 }

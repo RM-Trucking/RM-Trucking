@@ -165,7 +165,7 @@ export interface NetworkShipmentLinehaulInfo {
     linehaulInfoId: number;
     shipmentId: number;
     entityId: number;
-    linehaulRouting: 'LINEHAUL_ONLY' | 'LINEHAUL_DELIVERY';
+    linehaulRouting: 'LINE_HAUL_ONLY' | 'LINE_HAUL_DELIVERY';
     carrierId: number;
     terminalId: number;
     carrierBillNumber: string;
@@ -179,7 +179,7 @@ export interface NetworkShipmentLinehaulInfo {
     toLocationEntityId: number;
     etaDate: Date;
     etaTime: string;
-    pices: number;
+    pieces: number;
     weight: number;
 }
 
@@ -216,7 +216,7 @@ export interface NetworkShipmentDeliveryInfo {
     toLocationEntityId: number;
     etaDate: Date;
     etaTime: string;
-    pices: number;
+    pieces: number;
     weight: number;
 }
 
@@ -263,5 +263,53 @@ export interface NetworkShipmentAddressMap {
     entityId: number;
     addressId: number;
     addressType: 'FROM' | 'TO';
-    locationType: 'Pickup' | 'Linehaul' | 'Delivery';
+    locationType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY';
+}
+
+//Rate Details Interfaces
+export interface NetworkShipmentRateInfo {
+    rateId: number;
+    rateType: string;
+    multiplicationFactor: number;
+    multiplicationFactorUOM: string;
+    rateValue: number;
+    totalRate: number;
+}
+
+export interface NetworkShipmentInvoiceInfo {
+    invoiceId: number;
+    shipmentId: number;
+    invoiceNumber: string;
+    invoiceType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY';
+    subTotalRate: number;
+    approvalStatus: 'Y' | 'N';
+    approvedBy?: number;
+    approvalDate?: Date;
+}
+
+export interface NetworkShipmentInvoiceRateMap {
+    invoiceRateMapId: number;
+    invoiceId: number;
+    rateId: number;
+}
+
+export interface NetworkShipmentCarrierRateInfo {
+    carrierRateId: number;
+    shipmentId: number;
+    pickupInvoiceId: number;
+    linehaulInvoiceId: number;
+    deliveryInvoiceId: number;
+    totalCarrierRate: number;
+}
+
+export interface NetworkShipmentCustomerRateInfo {
+    customerRateId: number;
+    shipmentId: number;
+    totalCustomerRate: number;
+}
+
+export interface NetworkShipmentCustomerRateMap {
+    customerRateMapId: number;
+    customerRateId: number;
+    rateId: number;
 }

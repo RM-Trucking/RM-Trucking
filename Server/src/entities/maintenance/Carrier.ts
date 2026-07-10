@@ -26,6 +26,8 @@ export interface Carrier {
     corporateBillingSame: 'Y' | 'N';
     corporatePhoneNumber?: string;
     isParcelCarrier?: 'Y' | 'N';
+    isLTLCarrier?: 'Y' | 'N';
+    isAirportCarrier?: 'Y' | 'N';
 }
 
 export interface CreateCarrierRequest {
@@ -45,6 +47,8 @@ export interface CreateCarrierRequest {
     note?: NoteMessageRequest;
     corporatePhoneNumber?: string;
     isParcelCarrier?: 'Y' | 'N';
+    isLTLCarrier?: 'Y' | 'N';
+    isAirportCarrier?: 'Y' | 'N';
 }
 
 export interface UpdateCarrierRequest {
@@ -66,6 +70,8 @@ export interface UpdateCarrierRequest {
     corporateBillingSame: 'Y' | 'N';
     corporatePhoneNumber?: string;
     isParcelCarrier?: 'Y' | 'N';
+    isLTLCarrier?: 'Y' | 'N';
+    isAirportCarrier?: 'Y' | 'N';
     addresses?: AddressUpdateRequest[];
 }
 

@@ -26,6 +26,13 @@ router.get("/", authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+// DROPDOWN
+router.get("/dropdown", authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await carrierController.getCarrierTerminalDropdown(req, res, conn);
+    conn.close();
+});
+
 // GET BY ID
 router.get("/:id", authenticateJWT, async (req, res) => {
     const conn = await db();
@@ -33,12 +40,6 @@ router.get("/:id", authenticateJWT, async (req, res) => {
     conn.close();
 });
 
-// DROPDOWN
-router.get("/dropdown", authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await carrierController.listCarrierDropdown(req, res, conn);
-    conn.close();
-});
 
 // TOGGLE STATUS
 router.patch("/:id/status", authenticateJWT, async (req, res) => {

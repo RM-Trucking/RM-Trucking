@@ -62,6 +62,8 @@ export interface CustomerRateDetail {
 export interface CreateCustomerTransportRateRequest {
     originZoneId: number;
     destinationZoneId: number;
+    originZipOrRange?: string;
+    destinationZipOrRange?: string;
     details?: {
         rateField: string;
         chargeValue: number;
@@ -72,8 +74,8 @@ export interface CreateCustomerTransportRateRequest {
 
 // Request object for updating a transport rate
 export interface UpdateCustomerTransportRateRequest {
-    originZoneId?: number;
-    destinationZoneId?: number;
+    originZoneId: number;
+    destinationZoneId: number;
     details?: {
         rateField: string;
         chargeValue: number;

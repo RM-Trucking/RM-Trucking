@@ -43,6 +43,13 @@ paths:
           required: true
           schema:
             type: integer
+        - name: checkCarrierType
+          in: query
+          required: false
+          schema:
+            type: enum
+            enum: [true, false]
+            description: Optional query parameter to check carrier type
       responses:
         "200":
           description: List of accessorial mappings for the entity

@@ -15,6 +15,12 @@ paths:
       security:
         - bearerAuth: []
       parameters:
+        - name: scenarioType
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: ["IMPORT", "EXPORT"]
         - name: airportCode
           in: query
           required: false

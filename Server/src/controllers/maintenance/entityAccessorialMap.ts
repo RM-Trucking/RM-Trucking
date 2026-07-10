@@ -25,7 +25,8 @@ export async function createEntityAccessorialMap(req: Request, res: Response, co
 export async function getAccessorialsForEntity(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { entityId } = req.params;
-        const maps = await entityAccessorialMapService.getAccessorialsForEntityService(conn, parseInt(entityId, 10));
+        const checkCarrierType = req.query.checkCarrierType as string | undefined;
+        const maps = await entityAccessorialMapService.getAccessorialsForEntityService(conn, parseInt(entityId, 10), checkCarrierType);
         res.status(200).json({ success: true, data: maps });
     } catch (error) {
         res.status(400).json({
@@ -96,3 +97,4 @@ export async function deleteEntityAccessorialMap(req: Request, res: Response, co
         });
     }
 }
+

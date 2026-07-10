@@ -7,6 +7,7 @@ import {
 } from '../../entities/maintenance/EntityAccessorialMap';
 import * as noteDB from '../../database/maintenance/note';
 import * as entityDB from '../../database/maintenance/entity';
+import * as terminalDb from '../../database/maintenance/terminal';
 import * as accessorialDB from '../../database/maintenance/accessorial';
 
 /**
@@ -66,24 +67,50 @@ export async function createEntityAccessorialMapService(
  */
 export async function getAccessorialsForEntityService(
     conn: Connection,
-    entityId: number
+    entityId: number,
+    checkCarrierType?: string
 ): Promise<EntityAccessorialMapResponse[]> {
-    const accessorials = await entityAccessorialMapDB.getAccessorialsForEntity(conn, entityId);
 
-    const enriched = await Promise.all(
-        accessorials.map(async (acc) => {
-            const notes = acc.noteThreadId
-                ? await noteDB.getMessagesByThread(conn, acc.noteThreadId)
-                : [];
+    // If checkCarrierType is provided, we need to check if the entity is a terminal and if it's an LTL carrier
+    if (checkCarrierType === 'true') {
+        let validEntityId = entityId;
 
-            return {
-                ...acc,
-                notes
-            };
-        })
-    );
+        const terminal = await terminalDb.getTerminalByEntityId(conn, entityId);
 
-    return enriched;
+        if (!terminal || terminal.length === 0) {
+            throw new Error(`No active terminal found for entityId: ${entityId}`);
+        }
+
+        console.log('Terminal details:', terminal);
+
+        if (terminal.isLTLCarrier === 'Y') {
+            // If the terminal is an LTL carrier, we need to fetch the parent entity ID
+            validEntityId = terminal.carrierEntityId;
+        }
+        const accessorials = await entityAccessorialMapDB.getAccessorialsForEntity(conn, validEntityId);
+
+        return accessorials;
+    }
+    else {
+        const accessorials = await entityAccessorialMapDB.getAccessorialsForEntity(conn, entityId);
+
+        const enriched = await Promise.all(
+            accessorials.map(async (acc) => {
+                const notes = acc.noteThreadId
+                    ? await noteDB.getMessagesByThread(conn, acc.noteThreadId)
+                    : [];
+
+                return {
+                    ...acc,
+                    notes
+                };
+            })
+        );
+
+        return enriched;
+    }
+
+
 }
 export async function updateEntityAccessorialMapService(
     conn: Connection,

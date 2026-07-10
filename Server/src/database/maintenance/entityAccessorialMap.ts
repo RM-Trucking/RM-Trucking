@@ -123,3 +123,4 @@ export async function deleteEntityAccessorialMap(
   `;
   await conn.query(query, [entityAccessorialId]);
 }
+

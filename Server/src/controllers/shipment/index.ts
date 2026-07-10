@@ -22,3 +22,46 @@ export async function createNetworkShipment(req: Request, res: Response, conn: C
         res.status(400).json({ success: false, message: error.message });
     }
 }
+
+export async function getNetworkShipmentView(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const shipmentId = Number(req.params.shipmentId);
+        if (Number.isNaN(shipmentId) || shipmentId <= 0) {
+            res.status(400).json({ success: false, message: "Invalid shipmentId" });
+            return;
+        }
+
+        const shipment = await shipmentService.getNetworkShipmentView(conn, shipmentId);
+
+        if (!shipment) {
+            res.status(404).json({ success: false, message: "Shipment not found" });
+            return;
+        }
+
+        res.status(200).json({
+            success: true,
+            message: "Network shipment retrieved successfully",
+            data: shipment
+        });
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+export async function getNetworkShipmentForms(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const pagination = shipmentService.normalizePaginationParams(req.query.page, req.query.limit);
+        const result = await shipmentService.getNetworkShipmentForms(conn, pagination);
+
+        res.status(200).json({
+            success: true,
+            message: "Shipments retrieved successfully",
+            data: result.items,
+            pagination: result.pagination
+        });
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+}

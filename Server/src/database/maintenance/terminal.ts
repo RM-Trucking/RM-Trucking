@@ -163,3 +163,15 @@ export async function checkTerminalUniqueFields(
     const result = await conn.query(query, params) as { conflictField: string }[];
     return result.length ? result[0].conflictField : null;
 }
+
+
+export async function getTerminalByEntityId(conn: Connection, entityId: number): Promise<any> {
+    const query = `
+        SELECT "t"."terminalId", "c"."carrierId", "t"."entityId" as "terminalEntityId", "t"."terminalName", "c"."carrierName", "c"."entityId" as "carrierEntityId", "c"."isLTLCarrier"
+        FROM ${SCHEMA}."Terminal" "t"
+        LEFT JOIN ${SCHEMA}."Carrier" "c" ON "t"."carrierId" = "c"."carrierId"
+        WHERE "t"."entityId" = ? AND "t"."activeStatus" = 'Y'
+    `;
+    const result = await conn.query(query, [entityId]) as any[];
+    return result[0] ? result[0] : [];
+}

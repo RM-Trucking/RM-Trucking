@@ -157,6 +157,58 @@ paths:
               schema:
                 $ref: "#/components/schemas/TransportRateListResponse"
 
+  /api/maintenance/customer-rate/transport-rate/quote:
+    get:
+      summary: Get transport rate quote by origin zip, destination zip, and weight
+      tags: [Customer Transport Rate]
+      parameters:
+        - in: query
+          name: originZip
+          required: true
+          schema: { type: string }
+          description: Origin zip code or zip range
+        - in: query
+          name: destinationZip
+          required: true
+          schema: { type: string }
+          description: Destination zip code or zip range
+        - in: query
+          name: weight
+          required: true
+          schema: { type: number }
+          description: Shipment weight used to calculate the quote
+        - in: query
+          name: stationId
+          required: true
+          schema: { type: integer }
+          description: Station ID that must have a mapped transport rate
+      responses:
+        "200":
+          description: Transport rate quote
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      rateId: { type: integer }
+                      customerRateId: { type: integer }
+                      calculatedRate: { type: number }
+                      minRate: { type: number, nullable: true }
+                      maxRate: { type: number, nullable: true }
+                      matchedRateField: { type: string, nullable: true }
+                      usedNearestRateField: { type: boolean }
+                      details:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/TransportRateDetail"
+        "400":
+          description: Invalid request or ambiguous rate selection
+
   /api/maintenance/customer-rate/transport-rate/by-zone:
     get:
       summary: List transport rates by zone

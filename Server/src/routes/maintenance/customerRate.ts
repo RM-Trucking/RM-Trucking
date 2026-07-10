@@ -46,6 +46,12 @@ router.post('/transport-rate', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+router.get('/transport-rate/quote', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.getCustomerTransportRateQuote(req, res, conn);
+    conn.close();
+});
+
 router.get('/transport-rate/by-zone', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.listCustomerTransportRatesByZone(req, res, conn);

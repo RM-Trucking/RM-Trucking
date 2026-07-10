@@ -1,7 +1,7 @@
 import { Connection } from "odbc";
 import { SCHEMA } from "../../config/db2";
 import { NetworkShipment, NetworkShipmentCustomerInfo, NetworkShipmentShipperInfo, NetworkCommodityInfo, NetworkShipmentConsigneeInfo, NetworkHandlingUnitInfo, NetworkHandlingUnitItemInfo, NetworkHandlingUnitItemHazmatInfo, NetworkShipmentShipperConsigneeAirlineMapping } from "../../entities/shipment";
-import { AddressDetail, AirlineDetails, CommodityDetails, ConsigneeDetails, CustomerDetails, HandlingUnitDetails, HazmatDetails, PalletDetails, PickupDetails, ShipmentDetails, ShipperDetails, Accessorial, LinehaulDetails, LinehaulPrimaryInfo, LinehaulCommonInfo, DeliveryPrimaryInfo, DeliveryCommonInfo } from "../../entities/shipment/shipmentTypes";
+import { AddressDetail, AirlineDetails, CommodityDetails, ConsigneeDetails, CustomerDetails, HandlingUnitDetails, HazmatDetails, PalletDetails, PickupDetails, ShipmentDetails, ShipperDetails, Accessorial, LinehaulDetails, LinehaulPrimaryInfo, LinehaulCommonInfo, DeliveryPrimaryInfo, DeliveryCommonInfo, RateDetails, InvoiceDetails } from "../../entities/shipment/shipmentTypes";
 
 export async function createNetworkShipment(
   conn: Connection,
@@ -58,7 +58,7 @@ export async function createShipperInfo(conn: Connection, shipperDetails: Shippe
        )
     `;
   const result = await conn.query(query, [
-    shipperDetails.shipperName,
+    shipperDetails.shipperName.toLocaleUpperCase(),
     shipperDetails.addressLine1,
     shipperDetails.addressLine2 ?? '',
     shipperDetails.city,
@@ -104,7 +104,7 @@ export async function createConsigneeInfo(conn: Connection, consigneeDetails: Co
        )
     `;
   const result = await conn.query(query, [
-    consigneeDetails.consigneeName,
+    consigneeDetails.consigneeName.toLocaleUpperCase(),
     consigneeDetails.addressLine1,
     consigneeDetails.addressLine2 ?? '',
     consigneeDetails.city,
@@ -130,8 +130,8 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: Airlin
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Airline"
-          ("airlineNumber", "airlineCode", "airportCode", "airlineName", "addressLine1", "addressLine2", "city", "state", "zipCode", "handler", "phoneNumber", "entityId")
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+          ("airlineNumber", "airlineCode", "airportCode", "airlineName", "addressLine1", "addressLine2", "city", "state", "zipCode", "handler", "phoneNumber", "entityId", "scenarioType")
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        )
     `;
   const result = await conn.query(query, [
@@ -146,7 +146,8 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: Airlin
     airlineDetails.zipCode ?? '',
     airlineDetails.handler ?? '',
     airlineDetails.phoneNumber ?? '',
-    airlineDetails.entityId
+    airlineDetails.entityId,
+    airlineDetails.scenarioType
   ] as any) as unknown as any[];
   return result[0];
 }
@@ -254,7 +255,7 @@ export async function createNetworkShipmentAddress(conn: Connection, addressDeta
   return result[0];
 }
 
-export async function createNetworkShipmentEntityAddressMapping(conn: Connection, entityId: number, addressId: number, addressType: 'FROM' | 'TO', locationType: 'Pickup' | 'Linehaul' | 'Delivery') {
+export async function createNetworkShipmentEntityAddressMapping(conn: Connection, entityId: number, addressId: number, addressType: 'FROM' | 'TO', locationType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY') {
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Entity_Network_Shipment_Address_Map"
@@ -363,16 +364,18 @@ export async function createNetworkShipmentPickupAccessorial(conn: Connection, s
       (
         "shipmentId",
         "accessorialId",
+        "accessorialName",
         "chargeType",
         "chargeValue",
         "entityId",
         "noteThreadId"
       )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   )`
   const result = await conn.query(query, [
     shipmentId,
     accessorial?.accessorialId ?? null,
+    accessorial?.accessorialName ?? null,
     accessorial?.chargeType ?? null,
     accessorial?.chargeValue ?? null,
     accessorial?.entityId ?? null,
@@ -464,16 +467,18 @@ export async function createNetworkShipmentLinehaulAccessorial(conn: Connection,
       (
         "shipmentId",
         "accessorialId",
+        "accessorialName",
         "chargeType",
         "chargeValue",
         "entityId",
         "noteThreadId"
       )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   )`
   const result = await conn.query(query, [
     shipmentId,
     accessorial?.accessorialId ?? null,
+    accessorial?.accessorialName ?? null,
     accessorial?.chargeType ?? null,
     accessorial?.chargeValue ?? null,
     accessorial?.entityId ?? null,
@@ -564,16 +569,18 @@ export async function createNetworkShipmentDeliveryAccessorial(conn: Connection,
       (
         "shipmentId",
         "accessorialId",
+        "accessorialName",
         "chargeType",
         "chargeValue",
         "entityId",
         "noteThreadId"
       )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   )`
   const result = await conn.query(query, [
     shipmentId,
     accessorial?.accessorialId ?? null,
+    accessorial?.accessorialName ?? null,
     accessorial?.chargeType ?? null,
     accessorial?.chargeValue ?? null,
     accessorial?.entityId ?? null,
@@ -604,3 +611,507 @@ export async function createNetworkShipementDeliveryAlertInfo(conn: Connection, 
   ] as any) as unknown as any[];
   return result[0];
 }
+
+//Rate Details Creation Functions
+export async function createNetworkShipmentRateInfo(conn: Connection, rateDetails: RateDetails) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Rate_Info"
+      (
+        "rateType",
+        "multiplicationFactor",
+        "multiplicationFactorUOM",
+        "rateValue",
+        "totalRate"
+      )
+    VALUES (?, ?, ?, ?, ?)
+  )`;
+  const result = await conn.query(query, [
+    rateDetails.rateType,
+    rateDetails.multiplicationFactor,
+    rateDetails.multiplicationFactorUOM,
+    rateDetails.rateValue,
+    rateDetails.totalRate
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentInvoiceInfo(conn: Connection, invoiceDetails: InvoiceDetails) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Invoice_Info"
+      (
+        "shipmentId",
+        "invoiceNumber",
+        "invoiceType",
+        "subTotalRate",
+        "approvalStatus",
+        "approvedBy",
+        "approvedDate"
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  )`;
+  const result = await conn.query(query, [
+    invoiceDetails.shipmentId,
+    invoiceDetails.invoiceNumber,
+    invoiceDetails.invoiceType,
+    invoiceDetails.subTotalRate,
+    invoiceDetails.approvalStatus,
+    invoiceDetails.approvedBy ?? null,
+    invoiceDetails.approvedDate ?? null
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentInvoiceRateMapping(conn: Connection, invoiceId: number, rateId: number) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Invoice_Rate_Map"
+      ("invoiceId",
+       "rateId")
+    VALUES (?, ?)
+  )`;
+  const result = await conn.query(query, [
+    invoiceId,
+    rateId
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentCarrierRateInfo(conn: Connection, shipmentId: number, pickupInvoiceId: number | null, linehaulInvoiceId: number | null, deliveryInvoiceId: number | null, totalCarrierRate: number) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Carrier_Rate_Info"
+      ("shipmentId",
+       "pickupInvoiceId",
+       "linehaulInvoiceId",
+       "deliveryInvoiceId",
+       "totalCarrierRate")
+    VALUES (?, ?, ?, ?, ?)
+  )`;
+  const result = await conn.query(query, [
+    shipmentId,
+    pickupInvoiceId,
+    linehaulInvoiceId,
+    deliveryInvoiceId,
+    totalCarrierRate
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentCustomerRateInfo(conn: Connection, shipmentId: number, totalCustomerRate: number) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Customer_Rate_Info"
+      ("shipmentId",
+       "totalCustomerRate")
+    VALUES (?, ?)
+  )`;
+  const result = await conn.query(query, [
+    shipmentId,
+    totalCustomerRate
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function createNetworkShipmentCustomerRateMapping(conn: Connection, customerRateId: number, rateId: number) {
+  const query = `
+  SELECT * FROM FINAL TABLE (
+    INSERT INTO ${SCHEMA}."Network_Shipment_Customer_Rate_Map"
+      ("customerRateId",
+       "rateId")
+    VALUES (?, ?)
+  )`;
+  const result = await conn.query(query, [
+    customerRateId,
+    rateId
+  ] as any) as unknown as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentById(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentCustomerInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Info"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentShipperInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT s.* FROM ${SCHEMA}."Network_Shipment_Shipper_Info" s
+    JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
+      ON m."entityId" = s."entityId"
+    WHERE m."shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentConsigneeInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT c.* FROM ${SCHEMA}."Network_Shipment_Consignee_Info" c
+    JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
+      ON m."entityId" = c."entityId"
+    WHERE m."shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentAirlinesByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT a.* FROM ${SCHEMA}."Airline" a
+    JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
+      ON m."entityId" = a."entityId"
+    WHERE m."shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentCommodityInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Commodity_Info"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getHandlingUnitsByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Handling_Unit"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result;
+}
+
+export async function getHandlingUnitItemsByHandlingUnitId(conn: Connection, handlingUnitId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Handling_Unit_Item"
+    WHERE "handlingUnitId" = ?
+  `;
+  const result = await conn.query(query, [handlingUnitId]) as any[];
+  return result;
+}
+
+export async function getHazmatInfoByItemId(conn: Connection, itemId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Handling_Unit_Item_Hazmat_Info"
+    WHERE "itemId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [itemId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentPickupInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Pickup_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentPickupAgentTerminalInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Pickup_Agent_Terminal_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentPickupAlertInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Pickup_Alert_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentPickupAccessorials(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Pickup_Accessorial"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentLinehaulInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Linehaul_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentLinehaulCommonInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Linehaul_Common_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentLinehaulAccessorials(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Linehaul_Accessorial"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentDeliveryInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Delivery_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentDeliveryCommonInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Delivery_Common_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentDeliveryAccessorials(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Delivery_Accessorial"
+    WHERE "shipmentId" = ?
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentDeliveryAlertInfo(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Delivery_Alert_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getAddressByShipmentIdLocationTypeAddressType(
+  conn: Connection,
+  entityId: number,
+  locationType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY',
+  addressType: 'FROM' | 'TO'
+) {
+  const query = `
+    SELECT a.* FROM ${SCHEMA}."Network_Shipment_Address" a
+    JOIN ${SCHEMA}."Entity_Network_Shipment_Address_Map" m
+      ON m."addressId" = a."addressId"
+    WHERE m."entityId" = ?
+      AND m."locationType" = ?
+      AND m."addressType" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [entityId, locationType, addressType]) as any[];
+  const row = result[0];
+  if (!row) return null;
+  return {
+    addressLine1: row.line1,
+    addressLine2: row.line2,
+    city: row.city,
+    state: row.state,
+    zipCode: row.zipCode
+  };
+}
+
+export async function getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn: Connection, shipmentId: number, invoiceType: 'PICKUP' | 'LINE_HAUL' | 'DELIVERY') {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Invoice_Info"
+    WHERE "shipmentId" = ?
+      AND "invoiceType" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId, invoiceType]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentInvoiceRateMapByInvoiceId(conn: Connection, invoiceId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Invoice_Rate_Map"
+    WHERE "invoiceId" = ?
+  `;
+  const result = await conn.query(query, [invoiceId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentRateInfoByRateId(conn: Connection, rateId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Rate_Info"
+    WHERE "rateId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [rateId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentCarrierRateInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Carrier_Rate_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentCustomerRateInfoByShipmentId(conn: Connection, shipmentId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Rate_Info"
+    WHERE "shipmentId" = ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [shipmentId]) as any[];
+  return result[0];
+}
+
+export async function getNetworkShipmentCustomerRateMapByCustomerRateId(conn: Connection, customerRateId: number) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Rate_Map"
+    WHERE "customerRateId" = ?
+  `;
+  const result = await conn.query(query, [customerRateId]) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentForms(conn: Connection) {
+  const query = `
+    SELECT * FROM ${SCHEMA}."Network_Shipment"
+    ORDER BY "shipmentId" DESC
+  `;
+  const result = await conn.query(query) as any[];
+  return result;
+}
+
+export async function getNetworkShipmentList(conn: Connection, page: number, limit: number) {
+  const offset = (page - 1) * limit;
+  const countQuery = `
+    SELECT COUNT(*) AS "totalItems"
+    FROM ${SCHEMA}."Network_Shipment"
+  `;
+  const countResult = await conn.query(countQuery) as any[];
+  const totalItems = Number(countResult[0]?.totalItems ?? 0);
+
+  const query = `
+    SELECT
+      "shipmentId",
+      "typeOfShipment",
+      "serviceLevel",
+      "shipmentDate",
+      "shipmentTime",
+      "createdBy",
+      "createdAt"
+    FROM ${SCHEMA}."Network_Shipment"
+    ORDER BY "shipmentId" DESC
+    OFFSET ? ROWS
+    FETCH NEXT ? ROWS ONLY
+  `;
+  const result = await conn.query(query, [offset, limit]) as any[];
+
+  return { totalItems, rows: result };
+}
+
+
+
+
+// ✅ Check for unique fields in Shipper, Consignee, and Airline tables
+export async function checkShipperUniqueFields(
+  conn: Connection,
+  { shipperName }:
+    { shipperName?: string },
+): Promise<string | null> {
+  const queries: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (shipperName) {
+    queries.push(`SELECT 'shipperName' AS "conflictField" FROM "${SCHEMA}"."Network_Shipment_Shipper_Info" WHERE "shipperName" = ?`);
+    params.push(shipperName.toLocaleUpperCase());
+  }
+
+  if (queries.length === 0) return null;
+
+  const query = queries.join(' UNION ALL ');
+
+  const result = await conn.query(query, params) as { conflictField: string }[];
+  return result.length ? result[0].conflictField : null;
+}
+
+export async function checkConsigneeUniqueFields(
+  conn: Connection,
+  { consigneeName }:
+    { consigneeName?: string },
+): Promise<string | null> {
+  const queries: string[] = [];
+  const params: (string | number)[] = [];
+
+  if (consigneeName) {
+    queries.push(`SELECT 'consigneeName' AS "conflictField" FROM "${SCHEMA}"."Network_Shipment_Consignee_Info" WHERE "consigneeName" = ?`);
+    params.push(consigneeName.toLocaleUpperCase());
+  }
+
+  if (queries.length === 0) return null;
+
+  const query = queries.join(' UNION ALL ');
+
+  const result = await conn.query(query, params) as { conflictField: string }[];
+  return result.length ? result[0].conflictField : null;
+}
+
+export async function checkAirlineUniqueFields(
+  conn: Connection,
+  airlineNumber: number,
+  airlineCode: string,
+  scenarioType: string
+): Promise<string | null> {
+  const query = `
+    SELECT 'airlineNumber' AS "conflictField" 
+    FROM "${SCHEMA}"."Airline" 
+    WHERE "airlineNumber" = ? AND "scenarioType" = ?
+    UNION ALL
+    SELECT 'airlineCode' AS "conflictField" 
+    FROM "${SCHEMA}"."Airline" 
+    WHERE "airlineCode" = ? AND "scenarioType" = ?
+  `;
+
+  const result = await conn.query(query, [airlineNumber, scenarioType, airlineCode, scenarioType]) as { conflictField: string }[];
+  return result.length ? result[0].conflictField : null;
+}
+

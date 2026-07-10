@@ -19,7 +19,7 @@ export async function createNewCarrier(
     const {
         carrierName, carrierType, carrierStatus,
         tsaCertified, ustDotNo, mcnNo, insuranceExpiry,
-        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame, corporatePhoneNumber, isParcelCarrier,
+        tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame, corporatePhoneNumber, isParcelCarrier, isLTLCarrier, isAirportCarrier,
         addresses, note
     } = createCarrierReq;
 
@@ -56,7 +56,9 @@ export async function createNewCarrier(
             noteThreadId,
             corporateBillingSame,
             corporatePhoneNumber,
-            isParcelCarrier
+            isParcelCarrier,
+            isLTLCarrier,
+            isAirportCarrier
         });
 
         // 4) Insert addresses
@@ -233,10 +235,48 @@ export async function getCarrierByIdService(conn: Connection, carrierId: number)
 }
 
 // DROPDOWN (minimal list)
-export async function listCarrierDropdownService(conn: Connection): Promise<{ carrierId: number; carrierName: string }[]> {
-    const queryResult = await carrierDB.listCarriers(conn, 1000, 0); // limit arbitrarily high
-    return queryResult.map(c => ({ carrierId: c.carrierId, carrierName: c.carrierName }));
+export async function getCarrierTerminalDropdown(
+    conn: Connection,
+    search: string
+): Promise<{
+    terminalId: number;
+    terminalName: string;
+    carrierId: number;
+    carrierName: string;
+    terminalEntityId: number;
+    terminalEmail: string | null;
+    address: { addressLine1: string; addressLine2: string | null; city: string; state: string; zipCode: string } | null;
+    emails: {
+        personnelId: number;
+        email: string;
+    }[];
+}[]> {
+    // Step 1: Get customer + station list
+    const terminals = await carrierDB.getCarrierTerminalDropdown(conn, search);
+
+    // Step 2: For each terminal, fetch its address
+    const terminalAddresses = await Promise.all(
+        terminals.map(async (terminal) => {
+            const address = await carrierDB.getTerminalAddressByTerminalId(conn, terminal.terminalId);
+            return { ...terminal, address };
+        })
+    );
+
+    // Step 3: For each station, fetch deduplicated emails
+    const enrichedResult = await Promise.all(
+        terminalAddresses.map(async (terminal) => {
+            const emails = await carrierDB.getPersonnelEmail(conn, terminal.terminalId);
+
+            return {
+                ...terminal,
+                emails, // already deduplicated by query
+            };
+        })
+    );
+
+    return enrichedResult;
 }
+
 
 // MAKE ACTIVE / INACTIVE
 export async function toggleCarrierStatusService(

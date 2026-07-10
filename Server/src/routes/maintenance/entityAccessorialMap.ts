@@ -12,6 +12,7 @@ router.post('/', authenticateJWT, async (req: Request, res: Response) => {
     if (conn) conn.close();
 });
 
+
 // ✅ Get all accessorial mappings for a given entity
 router.get('/:entityId', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();

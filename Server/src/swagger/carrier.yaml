@@ -140,6 +140,15 @@ paths:
     get:
       summary: List carriers for dropdown (id + name only)
       tags: [Carrier]
+      description: >
+        Retrieves a minimal list of carriers for dropdown selection, optionally filtered by a search term.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Search term to filter carriers by name
       responses:
         "200":
           description: Minimal carrier list
@@ -201,6 +210,8 @@ components:
         corporateBillingSame: { type: string, enum: [Y, N] }
         corporatePhoneNumber: { type: string }
         isParcelCarrier: { type: string, enum: [Y, N] }
+        isLTLCarrier: { type: string, enum: [Y, N] }
+        isAirportCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -228,6 +239,8 @@ components:
         corporateBillingSame: { type: string, enum: [Y, N] }
         corporatePhoneNumber: { type: string }
         isParcelCarrier: { type: string, enum: [Y, N] }
+        isLTLCarrier: { type: string, enum: [Y, N] }
+        isAirportCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:
@@ -260,6 +273,8 @@ components:
         corporateBillingSame: { type: string, enum: [Y, N] }
         corporatePhoneNumber: { type: string }
         isParcelCarrier: { type: string, enum: [Y, N] }
+        isLTLCarrier: { type: string, enum: [Y, N] }
+        isAirportCarrier: { type: string, enum: [Y, N] }
         addresses:
           type: array
           items:

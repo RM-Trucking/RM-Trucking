@@ -27,8 +27,9 @@ export async function getCustomerFuelSurcharges(req: Request, res: Response, con
     try {
         const page = parseInt((req.query.page as string) || '1', 10);
         const pageSize = parseInt((req.query.pageSize as string) || '10', 10);
+        const searchTerm = req.query.searchTerm as string | undefined;
 
-        const result = await customerFuelService.getCustomerFuelSurcharges(conn, page, pageSize);
+        const result = await customerFuelService.getCustomerFuelSurcharges(conn, page, pageSize, searchTerm);
 
         res.status(200).json({
             success: true,

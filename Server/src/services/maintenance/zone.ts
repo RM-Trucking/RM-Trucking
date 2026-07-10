@@ -70,7 +70,7 @@ export async function createZoneService(
             });
         }
 
-        if (conflicts.length && !force) {
+        if ((conflicts.length) && !force) {
             const zoneIds = [...new Set(conflicts.flatMap(c => c.zones.map(z => z.zoneId)))];
 
             const zoneDetails = await Promise.all(zoneIds.map(id => zoneDB.getZoneById(conn, id)));
@@ -371,6 +371,7 @@ export async function updateZoneService(
         conflicts?: { zip: string; zones: { zoneId: number; zoneName: string }[] }[];
         zoneList?: ZoneResponse[];
         zone?: ZoneResponse;
+        rateConflicts?: { zip: string; rates: { rateId: number; rateType: 'CUSTOMER' | 'CARRIER' }[] }[];
     }
 > {
     await conn.beginTransaction();
@@ -386,6 +387,7 @@ export async function updateZoneService(
 
         // 2. Conflict detection (only new zips/ranges, deduplicated)
         const conflicts: { zip: string; zones: { zoneId: number; zoneName: string }[] }[] = [];
+        const rateConflicts: { zip: string; rates: { rateId: number; rateType: 'CUSTOMER' | 'CARRIER' }[] }[] = [];
 
         const currentZips = await zoneDB.getZoneZips(conn, zoneId);
         const existingZipSet = new Set(currentZips.filter(z => z.zipCode).map(z => z.zipCode!));
@@ -408,6 +410,33 @@ export async function updateZoneService(
                     conflicts.push({ zip: newZips[idx], zones: uniqueZones });
                 }
             });
+
+            // Check rate conflicts for each new zip token
+            if (newZips.length) {
+                await Promise.all(newZips.map(async token => {
+                    const [custOrigin, custDest, carrierOrigin, carrierDest] = await Promise.all([
+                        customerRateDB.listCustomerTransportRates(conn, { originZipOrRange: token } as any, 1, 10000),
+                        customerRateDB.listCustomerTransportRates(conn, { destinationZipOrRange: token } as any, 1, 10000),
+                        carrierRateDB.listCarrierTransportRates(conn, { originZipOrRange: token } as any, 1, 10000),
+                        carrierRateDB.listCarrierTransportRates(conn, { destinationZipOrRange: token } as any, 1, 10000)
+                    ]);
+
+                    const custIds = new Set<number>();
+                    const carrierIds = new Set<number>();
+
+                    (custOrigin.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) custIds.add(r.rateId); });
+                    (custDest.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) custIds.add(r.rateId); });
+                    (carrierOrigin.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) carrierIds.add(r.rateId); });
+                    (carrierDest.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) carrierIds.add(r.rateId); });
+
+                    if (custIds.size || carrierIds.size) {
+                        const rates: { rateId: number; rateType: 'CUSTOMER' | 'CARRIER' }[] = [];
+                        Array.from(custIds).forEach(id => rates.push({ rateId: id, rateType: 'CUSTOMER' }));
+                        Array.from(carrierIds).forEach(id => rates.push({ rateId: id, rateType: 'CARRIER' }));
+                        rateConflicts.push({ zip: token, rates });
+                    }
+                }));
+            }
         }
 
         // Check new ranges
@@ -433,9 +462,36 @@ export async function updateZoneService(
                     conflicts.push({ zip: uniqueNumbers[idx], zones: uniqueZones });
                 }
             });
+
+            // Check rate conflicts for each new numeric zip token
+            if (uniqueNumbers.length) {
+                await Promise.all(uniqueNumbers.map(async token => {
+                    const [custOrigin, custDest, carrierOrigin, carrierDest] = await Promise.all([
+                        customerRateDB.listCustomerTransportRates(conn, { originZipOrRange: token } as any, 1, 10000),
+                        customerRateDB.listCustomerTransportRates(conn, { destinationZipOrRange: token } as any, 1, 10000),
+                        carrierRateDB.listCarrierTransportRates(conn, { originZipOrRange: token } as any, 1, 10000),
+                        carrierRateDB.listCarrierTransportRates(conn, { destinationZipOrRange: token } as any, 1, 10000)
+                    ]);
+
+                    const custIds = new Set<number>();
+                    const carrierIds = new Set<number>();
+
+                    (custOrigin.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) custIds.add(r.rateId); });
+                    (custDest.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) custIds.add(r.rateId); });
+                    (carrierOrigin.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) carrierIds.add(r.rateId); });
+                    (carrierDest.data || []).forEach(r => { if (r.rateId && r.originZoneId !== zoneId && r.destinationZoneId !== zoneId) carrierIds.add(r.rateId); });
+
+                    if (custIds.size || carrierIds.size) {
+                        const rates: { rateId: number; rateType: 'CUSTOMER' | 'CARRIER' }[] = [];
+                        Array.from(custIds).forEach(id => rates.push({ rateId: id, rateType: 'CUSTOMER' }));
+                        Array.from(carrierIds).forEach(id => rates.push({ rateId: id, rateType: 'CARRIER' }));
+                        rateConflicts.push({ zip: token, rates });
+                    }
+                }));
+            }
         }
 
-        if (conflicts.length && !force) {
+        if ((conflicts.length || rateConflicts.length) && !force) {
             // Build conflict zone list (parallelized)
             const zoneIds = [...new Set(conflicts.flatMap(c => c.zones.map(z => z.zoneId)))];
 

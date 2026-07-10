@@ -30,6 +30,8 @@ export async function createStation(
         hours,
         warehouse,
         warehouseDetail,
+        hasWarehouseService,
+        warehouseEmails,
         addresses,
         note
     } = createStationReq;
@@ -67,6 +69,8 @@ export async function createStation(
             hours,
             warehouse,
             warehouseDetail,
+            hasWarehouseService,
+            warehouseEmails: warehouseEmails ? JSON.stringify(warehouseEmails) : null,
             createdBy: adminId,
             noteThreadId,
             activeStatus: 'Y'
@@ -102,6 +106,7 @@ export async function createStation(
                 createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
                 updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
                 addresses: addressResults,
+                warehouseEmails: station.warehouseEmails ? JSON.parse(station.warehouseEmails) : null,
                 notes: note && note.messageText?.trim()
                     ? [{
                         noteMessageId: 0, // placeholder
@@ -136,6 +141,7 @@ export async function getStationService(conn: Connection, stationId: number): Pr
 
     return {
         ...station,
+        warehouseEmails: station.warehouseEmails ? JSON.parse(station.warehouseEmails) : null,
         createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
         updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
         addresses,
@@ -168,6 +174,7 @@ export async function getStationsForCustomerService(
                 : [];
             return {
                 ...station,
+                warehouseEmails: station.warehouseEmails ? JSON.parse(station.warehouseEmails) : null,
                 createdAt: station.createdAt ? toUtcDate(station.createdAt) : null,
                 updatedAt: station.updatedAt ? toUtcDate(station.updatedAt) : null,
                 addresses,
@@ -209,7 +216,9 @@ export async function updateStationService(
         closeTime,
         hours,
         warehouse,
-        warehouseDetail
+        warehouseDetail,
+        hasWarehouseService,
+        warehouseEmails
     } = updates;
 
     await stationDB.updateStation(conn, stationId, {
@@ -223,6 +232,8 @@ export async function updateStationService(
         hours,
         warehouse,
         warehouseDetail,
+        hasWarehouseService,
+        warehouseEmails: warehouseEmails ? JSON.stringify(warehouseEmails) : null,
         updatedBy: userId
     });
 
@@ -258,6 +269,7 @@ export async function updateStationService(
 
     return {
         ...updated,
+        warehouseEmails: updated.warehouseEmails ? JSON.parse(updated.warehouseEmails) : null,
         createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
         updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null,
         addresses,

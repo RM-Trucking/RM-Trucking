@@ -3,28 +3,35 @@ import { SCHEMA } from '../../config/db2';
 import { Airline } from '../../entities/shipment';
 
 export async function getAirlineDropdown(
-    conn: Connection,
-    airportCode: string,
-    searchTerm: string
+  conn: Connection,
+  scenarioType?: 'IMPORT' | 'EXPORT',
+  airportCode?: string,
+  searchTerm?: string
 ): Promise<Airline[]> {
 
-    let query = `
+  let query = `
     SELECT *
     FROM ${SCHEMA}."Airline"
     WHERE 1=1
   `;
 
-    const params: any[] = [];
+  const params: any[] = [];
 
-    // ✅ Add airportCode condition only if provided
-    if (airportCode && airportCode.trim() !== '') {
-        query += ` AND "airportCode" = ?`;
-        params.push(airportCode);
-    }
+  // ✅ Add scenarioType condition only if provided
+  if (scenarioType) {
+    query += ` AND "scenarioType" = ?`;
+    params.push(scenarioType);
+  }
 
-    // ✅ Add searchTerm condition only if provided
-    if (searchTerm && searchTerm.trim() !== '') {
-        query += `
+  // ✅ Add airportCode condition only if provided
+  if (airportCode && airportCode.trim() !== '') {
+    query += ` AND "airportCode" = ?`;
+    params.push(airportCode);
+  }
+
+  // ✅ Add searchTerm condition only if provided
+  if (searchTerm && searchTerm.trim() !== '') {
+    query += `
       AND (
         LOWER("airlineName") LIKE ?
         OR LOWER("airlineCode") LIKE ?
@@ -32,12 +39,12 @@ export async function getAirlineDropdown(
       )
     `;
 
-        const likeTerm = `%${searchTerm.toLowerCase()}%`;
-        params.push(likeTerm, likeTerm, likeTerm);
-    }
+    const likeTerm = `%${searchTerm.toLowerCase()}%`;
+    params.push(likeTerm, likeTerm, likeTerm);
+  }
 
-    query += ` ORDER BY "airlineName"`;
+  query += ` ORDER BY "airlineName"`;
 
-    const result = await conn.query(query, params) as any[];
-    return result as Airline[];
+  const result = await conn.query(query, params) as any[];
+  return result as Airline[];
 }

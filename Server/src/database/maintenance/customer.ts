@@ -210,7 +210,7 @@ export async function getCustomerWithStationDropdown(
     search: string
 ): Promise<{ stationId: number; stationName: string; customerId: number; customerName: string }[]> {
     let query = `
-    SELECT s."stationId", s."stationName", c."customerId", c."customerName"
+    SELECT s."stationId", s."stationName", c."customerId", c."customerName", s."entityId" as "stationEntityId", c."entityId" as "customerEntityId"
     FROM ${SCHEMA}."Station" s
     JOIN ${SCHEMA}."Customer" c ON s."customerId" = c."customerId"
     WHERE c."activeStatus" = 'Y'

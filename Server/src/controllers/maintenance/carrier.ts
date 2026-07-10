@@ -88,12 +88,22 @@ export async function getCarrierById(req: Request, res: Response, conn: Connecti
 }
 
 // DROPDOWN
-export async function listCarrierDropdown(req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getCarrierTerminalDropdown(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const carriers = await carrierService.listCarrierDropdownService(conn);
-        res.status(200).json({ success: true, data: carriers });
-    } catch (error: any) {
-        res.status(400).json({ success: false, message: error.message });
+
+        console.log("Fetching carrier dropdown data...");
+        const search = (req.query.search as string) || ""; // user types into autocomplete
+
+        console.log(`Fetching carrier dropdown with search: "${search}"`);
+
+        const dropdownData = await carrierService.getCarrierTerminalDropdown(conn, search);
+        res.status(200).json({ success: true, data: dropdownData });
+    } catch (error) {
+        console.error(error);
+        res.status(400).json({
+            error: "Failed to fetch dropdown data",
+            message: (error as Error).message
+        });
     }
 }
 

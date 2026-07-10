@@ -49,7 +49,7 @@ export async function createUser(
 export async function getUserById(conn: Connection, userId: number): Promise<User | null> {
     const query = `
         SELECT "userId", "userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "roleId", "userType", "customerId"
-        FROM User
+        FROM ${SCHEMA}."User"
         WHERE "userId" = ?
     `;
 
@@ -163,7 +163,7 @@ export async function updateUser(
     }
 
     values.push(userId);
-    const query = `UPDATE RANDM_TST.USER SET ${updateFields.join(', ')} WHERE USERID = ?`;
+    const query = `UPDATE ${SCHEMA}."User" SET ${updateFields.join(', ')} WHERE "userId" = ?`;
 
     await conn.query(query, values);
     return true;

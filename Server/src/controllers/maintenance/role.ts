@@ -43,6 +43,7 @@ export async function createRole(req: Request, res: Response, conn: Connection):
             data: role
         });
     } catch (error) {
+        console.error('Error creating role:', error);
         res.status(400).json({
             error: 'Failed to create role',
             message: (error as Error).message

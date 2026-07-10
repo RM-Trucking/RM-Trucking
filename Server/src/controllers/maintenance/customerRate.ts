@@ -59,6 +59,21 @@ export async function createCustomerTransportRate(req: Request, res: Response, c
 }
 
 
+export async function getCustomerTransportRateQuote(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const originZip = req.query.originZip as string | undefined;
+        const destinationZip = req.query.destinationZip as string | undefined;
+        const weight = Number(req.query.weight);
+        const stationId = Number(req.query.stationId);
+
+        const result = await rateService.getCustomerTransportRateQuoteService(conn, originZip || '', destinationZip || '', weight, stationId);
+        res.json({ success: true, data: result });
+    } catch (error) {
+        console.log(error);
+        res.status(400).json({ error: 'Failed to fetch transport rate quote', message: (error as Error).message });
+    }
+}
+
 export async function getCustomerTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const rate = await rateService.getCustomerTransportRateService(conn, Number(req.params.id));

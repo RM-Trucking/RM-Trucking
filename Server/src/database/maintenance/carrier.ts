@@ -12,8 +12,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
       ("carrierName","carrierType","carrierStatus","tsaCertified","ustDotNo","mcnNo",
        "insuranceExpiry","tariffRenewalDate","totalShipments","rmOnTimePercent","lateShipments",
        "salesRepName","salesRepPhone","salesRepEmail",
-       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame", "corporatePhoneNumber", "isParcelCarrier")
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?, ?)
+       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame", "corporatePhoneNumber", "isParcelCarrier", "isLTLCarrier", "isAirportCarrier")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?, ?, ?, ?)
     )
   `;
 
@@ -37,7 +37,9 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
         carrier.noteThreadId,
         carrier.corporateBillingSame ?? 'N',
         carrier.corporatePhoneNumber,
-        carrier.isParcelCarrier ?? 'N'
+        carrier.isParcelCarrier ?? 'N',
+        carrier.isLTLCarrier ?? 'N',
+        carrier.isAirportCarrier ?? 'N'
     ].map(v => v === undefined ? '' : v);
 
     const result = await conn.query(insertQuery, params as any[]) as any[];
@@ -140,6 +142,8 @@ export async function updateCarrier(conn: Connection, carrierId: number, updates
     if (updates.corporateBillingSame !== undefined) { fields.push(`"corporateBillingSame" = ?`); params.push(updates.corporateBillingSame); }
     if (updates.corporatePhoneNumber !== undefined) { fields.push(`"corporatePhoneNumber" = ?`); params.push(updates.corporatePhoneNumber); }
     if (updates.isParcelCarrier !== undefined) { fields.push(`"isParcelCarrier" = ?`); params.push(updates.isParcelCarrier); }
+    if (updates.isLTLCarrier !== undefined) { fields.push(`"isLTLCarrier" = ?`); params.push(updates.isLTLCarrier); }
+    if (updates.isAirportCarrier !== undefined) { fields.push(`"isAirportCarrier" = ?`); params.push(updates.isAirportCarrier); }
     if (!fields.length) return;
 
     fields.push(`"updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)`);
@@ -204,4 +208,68 @@ export async function checkCarrierUniqueFields(
 
     const result = await conn.query(query, params) as { conflictField: string }[];
     return result.length ? result[0].conflictField : null;
+}
+
+export async function getCarrierTerminalDropdown(
+    conn: Connection,
+    search: string
+): Promise<{ terminalId: number; terminalName: string; carrierId: number; carrierName: string, terminalEntityId: number, terminalEmail: string | null }[]> {
+    let query = `
+    SELECT t."terminalId", t."terminalName", c."carrierId", c."carrierName", t."entityId" as "terminalEntityId", t."email" AS "terminalEmail"
+    FROM ${SCHEMA}."Terminal" t
+    JOIN ${SCHEMA}."Carrier" c ON t."carrierId" = c."carrierId"
+    WHERE c."carrierStatus" = 'Active' OR c."carrierStatus" = 'Incomplete' AND t."activeStatus" = 'Y'
+  `;
+    const params: any[] = [];
+
+    if (search && search.trim().length > 0) {
+        query += ` AND LOWER(c."carrierName") LIKE ?`;
+        params.push(`%${search.toLowerCase()}%`);
+    }
+
+    query += ` ORDER BY c."carrierName" ASC`;
+
+    const result = await conn.query(query, params) as any[];
+    return result;
+}
+
+export async function getTerminalAddressByTerminalId(
+    conn: Connection,
+    terminalId: number): Promise<{ addressLine1: string; addressLine2: string | null; city: string; state: string; zipCode: string } | null> {
+    const query = `
+    SELECT "line1" as "addressLine1", "line2" as "addressLine2", "city", "state", "zipCode"
+    FROM ${SCHEMA}."Address"
+    LEFT JOIN ${SCHEMA}."Entity_Address_Map" eam ON "Address"."addressId" = eam."addressId"
+    LEFT JOIN ${SCHEMA}."Terminal" t ON eam."entityId" = t."entityId"
+    WHERE eam."addressRole" = 'Primary'
+      AND t."terminalId" = ?
+  `;
+    const result = await conn.query(query, [terminalId]) as any[];
+    return result.length ? result[0] : null;
+}
+
+
+export async function getPersonnelEmail(
+    conn: Connection,
+    terminalId: number
+): Promise<{
+    personnelId: number;
+    email: string;
+}[]> {
+    let query = `
+    SELECT DISTINCT p."personnelId",
+           p."email" 
+    FROM ${SCHEMA}."Carrier_Personnel" p
+    JOIN ${SCHEMA}."Terminal" t ON p."terminalId" = t."terminalId"
+    WHERE t."terminalId" = ?
+      AND t."activeStatus" = 'Y'
+      AND t."email" IS NOT NULL
+
+    ORDER BY "personnelId", "email"
+    `;
+
+    const params: any[] = [terminalId];
+
+    const result = await conn.query(query, params) as any[];
+    return result;
 }

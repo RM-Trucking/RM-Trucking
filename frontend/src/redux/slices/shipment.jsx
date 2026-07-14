@@ -26,6 +26,7 @@ const initialState = {
   zipToZipCarrierPickupRate: null,
   zipToZipCarrierLinehaulRate: null,
   zipToZipCarrierDeliveryRate: null,
+  operationalMessage : '',
 };
 
 const slice = createSlice({
@@ -46,6 +47,7 @@ const slice = createSlice({
     postStep1Success(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
+      state.operationalMessage = "Network shipment created successfully.";
     },
     getCustomerStationDropdownSuccess(state, action) {
       state.isLoading = false;
@@ -141,12 +143,15 @@ const slice = createSlice({
     setError(state) {
       state.error = '';
     },
-
+    setOperationalMessage(state, action) {
+      state.operationalMessage = action.payload;
+    },
   },
 });
 
 export const {
   setError,
+  setOperationalMessage,
   setDashboardSearchStr,
   setPickupAccessorials,
   setLinehaulAccessorials,

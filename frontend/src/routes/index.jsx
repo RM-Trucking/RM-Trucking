@@ -85,7 +85,6 @@ export default function Router() {
           element: <DashboardHomeLayout />,
           children: [
             { index: true, element: <DashboardPage /> },
-            { path: 'shipment-view', element: <ShipmentForm /> },
           ]
         },
         { path: 'shipment-building',

@@ -1,10 +1,10 @@
-import ShipmentPage from "../../sections/dashboard/ShipmentPage";
+import ShipmentPage from "../../sections/shipmentbuilding/ShipmentPage";
 // ----------------------------------------------------------------------
 
 export default function ShipmentForm() {
   return (
     <>
-      <ShipmentPage/>
+      <ShipmentPage />
     </>
   );
 }

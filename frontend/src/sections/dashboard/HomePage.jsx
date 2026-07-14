@@ -27,8 +27,7 @@ export default function HomePage() {
     };
 
     const onClickOfNewDashboard = () => {
-       // route to shipment
-       navigate(PATH_DASHBOARD.general.dashboard.shipmentView);
+    
     }
     
 
@@ -43,7 +42,7 @@ export default function HomePage() {
                 }}
             >
                 {/* The components within this boundary are protected */}
-                <SharedHomePageHeader title="Dashboard" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
+                <SharedHomePageHeader title="Dashboard" buttonText='' onButtonClick={onClickOfNewDashboard} />
                 
             </ErrorBoundary>
 

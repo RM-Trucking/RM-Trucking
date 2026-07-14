@@ -40,7 +40,7 @@ import {
   getStationAccessorialData,
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
-  getZipToZipCarrierDeliveryRate, setError,
+  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
 } from '../../redux/slices/shipment';
 
@@ -474,7 +474,7 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
     </Dialog>
   );
 };
-const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
+const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: `handlingUnits.${huIndex}.items`,
@@ -601,7 +601,11 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat }) => {
                           checked={field.value}
                           onChange={(e) => {
                             field.onChange(e.target.checked);
-                            if (e.target.checked) openHazmat(huIndex, itemIndex);
+                            if (e.target.checked) { openHazmat(huIndex, itemIndex) }
+                            else {
+                              // Clear hazmatData if unchecked
+                              setValue(`handlingUnits.${huIndex}.items.${itemIndex}.hazmatData`, null);
+                            };
                           }}
                           size="small"
                         />
@@ -989,7 +993,10 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
   if (!open) return null;
 
-
+  const hanldeClose = () => {
+    setLocalData(emptyHazmat);
+    onClose();
+  }
 
   const handleSave = () => {
     const requiredFields = [
@@ -1401,7 +1408,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
 
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        <Button onClick={onClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+        <Button onClick={hanldeClose} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
           Cancel
         </Button>
         <Button onClick={handleSave} variant="contained" sx={{ ...commonBtnStyle, bgcolor: '#a22', px: 4, '&:hover': { bgcolor: '#811' } }}>
@@ -2713,7 +2720,7 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
   );
 };
 // customer Rate pop up dialog box
-const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, watchedHU, masterAccessorials }) => {
+const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials }) => {
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -2740,6 +2747,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
       setErrorVisible(true);
     }
     setAddFlag(false);
+    setValue('customerRate.selectedAccToAdd', {});
   }
 
   useEffect(() => {
@@ -3213,7 +3221,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   <Typography variant="subtitle2">Initial API amount</Typography>
                 </Box>
                 <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}>
-                  <Typography variant="subtitle2" fontWeight={'700'}>$ {getValues('customerRate.apiRate')}</Typography>
+                  <Typography variant="subtitle2" fontWeight={'700'}>{getValues('customerRate.apiRate') ? `$ ${getValues('customerRate.apiRate')}` : '-'}</Typography>
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', border: '1px solid #000', borderBottom: 'none' }}>
@@ -3261,13 +3269,25 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
       </DialogContent>
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
         <Button onClick={() => {
+          setValue('customerRate.rate', getValues('customerRate.apiRate'));
+          replaceCustomerRateAccFields([]);
+          setIsRateEditing(false);
+          setSpotRateFlag(false);
+          onClose();
+        }} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
+          Cancel
+        </Button>
+        <Button onClick={() => {
           if (Number(getValues('customerRate.apiRate')) === Number(getValues('customerRate.rate'))) {
             onClose();
           } else {
             setInvoiceApprovalModal(true);
           }
-        }} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
-          Cancel
+        }} variant="contained" sx={{
+          ...commonBtnStyle, bgcolor:
+            '#a22', px: 4, '&:hover': { bgcolor: '#811' }
+        }}>
+          Save
         </Button>
       </DialogActions>
     </Dialog>
@@ -3296,6 +3316,7 @@ const ShipmentForm = ({ type }) => {
   const zipToZipCarrierPickupRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierPickupRate);
   const zipToZipCarrierLinehaulRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierLinehaulRate);
   const zipToZipCarrierDeliveryRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierDeliveryRate);
+  const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -3641,10 +3662,11 @@ const ShipmentForm = ({ type }) => {
 
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
-  const { fields: customerRateAccFields, append: appendCustomerRateAccFields, } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
+  const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
+  const watchedServiceLevel = useWatch({ control, name: "serviceLevel" });
 
   const showEmergencyContact = watchedHandlingUnits.some(hu =>
     hu?.items?.some(item => item.hazmatInfo)
@@ -3848,13 +3870,9 @@ const ShipmentForm = ({ type }) => {
     <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
 
       <Controller
-
         name={name}
-
         control={control}
-
         rules={{
-          // required: 'Zipcode is required',
           validate: (value) => {
             if (!value) return true;
 
@@ -3862,30 +3880,10 @@ const ShipmentForm = ({ type }) => {
             const rawDigits = value.replace(/[^\d]/g, '');
             if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-            // 2. Strict Length/Format check
-            // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
-            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+            // 2. Format check for 5-digit or standard 5+4 format (#####-####)
+            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/;
             if (!zipRegex.test(value)) {
-              return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
-            }
-
-            // 3. Range-specific constraints (only if a range is present)
-            if (value.includes('-')) {
-              const parts = value.split('-');
-              const firstZip = parts[0];
-              const secondZip = parts[1];
-
-              // Ensure the first 3 digits of both segments match perfectly
-              if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
-                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
-              }
-
-              // Ensure the last 2 digits of the second segment are strictly greater
-              const startSuffix = parseInt(firstZip.slice(-2), 10);
-              const endSuffix = parseInt(secondZip.slice(-2), 10);
-
-              if (endSuffix === startSuffix) return 'End range cannot be equal to start';
-              if (endSuffix < startSuffix) return 'End range must be greater than start';
+              return 'Zip Code must be 5 digits or standard 9-digit format (Ex: 12345-6789)';
             }
 
             return true;
@@ -3893,45 +3891,31 @@ const ShipmentForm = ({ type }) => {
         }}
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-
           <TextField
-
             {...field}
-
             variant="standard"
-
             fullWidth
-
             label="Zip Code"
-
             error={!!error}
-            helperText={error?.message || 'Ex: 12345 or 12345-12346'}
-
+            helperText={error?.message || 'Ex: 12345 or 12345-6789'}
             value={value || ''}
-
             onChange={(e) => {
               const input = e.target.value;
+
               // Allow only digits and a single dash character
               let raw = input.replace(/[^\d-]/g, '');
 
-              // Detect backspacing/deletion
-              const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
+              // Removed the automatic dash insertion here so users can type naturally
 
-              if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
-                // Auto-append dash only when typing forwards past the 5th digit
-                raw = `${raw}-`;
-              }
-
-              // Prevent typing more than 11 characters (#####-#####)
-              onChange(raw.slice(0, 11));
+              // Prevent typing more than 10 characters (#####-####)
+              onChange(raw.slice(0, 10));
             }}
-            inputProps={{ maxLength: 11, inputMode: 'numeric' }}
-
+            // Maximum length updated to 10 characters for #####-#### layout
+            inputProps={{ maxLength: 10, inputMode: 'numeric' }}
           />
-
         )}
-
       />
+
 
     </Box>
 
@@ -3941,11 +3925,8 @@ const ShipmentForm = ({ type }) => {
     <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
 
       <Controller
-
         name={name}
-
         control={control}
-
         rules={{
           // required: 'Zipcode is required',
           validate: (value) => {
@@ -3956,29 +3937,32 @@ const ShipmentForm = ({ type }) => {
             if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
             // 2. Strict Length/Format check
-            // Check if it matches exactly 5 digits OR exactly 5-5 digits (11 total characters)
-            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{5}$)/;
+            // Accommodates 5 digits, 5+4 format (#####-####), or custom 5-5 range formats (#####-#####)
+            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4,5}$)/;
             if (!zipRegex?.test(value)) {
-              return 'Zip Code must be exactly 5 digits or a range (#####-#####)';
+              return 'Zip Code must be 5 digits, a range (#####-#####), or standard +4 format (#####-####)';
             }
 
-            // 3. Range-specific constraints (only if a range is present)
+            // 3. Range-specific constraints (only if a range/dash is present)
             if (value.includes('-')) {
               const parts = value.split('-');
               const firstZip = parts[0];
               const secondZip = parts[1];
 
-              // Ensure the first 3 digits of both segments match perfectly
-              if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
-                return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+              // Skip range mathematical checks if it is just a standard 4-digit +4 extension
+              if (secondZip.length === 5) {
+                // Ensure the first 3 digits of both segments match perfectly
+                if (firstZip.slice(0, 3) !== secondZip.slice(0, 3)) {
+                  return `End range prefix must match '${firstZip.slice(0, 3)}'`;
+                }
+
+                // Ensure the last 2 digits of the second segment are strictly greater
+                const startSuffix = parseInt(firstZip.slice(-2), 10);
+                const endSuffix = parseInt(secondZip.slice(-2), 10);
+
+                if (endSuffix === startSuffix) return 'End range cannot be equal to start';
+                if (endSuffix < startSuffix) return 'End range must be greater than start';
               }
-
-              // Ensure the last 2 digits of the second segment are strictly greater
-              const startSuffix = parseInt(firstZip.slice(-2), 10);
-              const endSuffix = parseInt(secondZip.slice(-2), 10);
-
-              if (endSuffix === startSuffix) return 'End range cannot be equal to start';
-              if (endSuffix < startSuffix) return 'End range must be greater than start';
             }
 
             return true;
@@ -3986,46 +3970,30 @@ const ShipmentForm = ({ type }) => {
         }}
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-
           <StyledTextField
-
             {...field}
-
             variant="standard"
-
             fullWidth
-
             label="Zip Code"
-
             error={!!error}
-            helperText={error?.message || 'Ex: 12345 or 12345-12346'}
-
+            helperText={error?.message || 'Ex: 12345, 12345-6789, or 12345-12346'}
             value={value || ''}
-
             onChange={(e) => {
               const input = e.target.value;
               // Allow only digits and a single dash character
               let raw = input.replace(/[^\d-]/g, '');
 
-              // Detect backspacing/deletion
-              const isDeleting = e.nativeEvent.inputType === 'deleteContentBackward';
-
-              if (!isDeleting && raw.length === 5 && !raw.includes('-')) {
-                // Auto-append dash only when typing forwards past the 5th digit
-                raw = `${raw}-`;
-              }
+              // FIXED: The automatic dash insertion code block has been removed
 
               // Prevent typing more than 11 characters (#####-#####)
               onChange(raw.slice(0, 11));
             }}
             inputProps={{ maxLength: 11, inputMode: 'numeric' }}
             disabled={flag}
-
           />
-
         )}
-
       />
+
 
     </Box>
 
@@ -4243,10 +4211,11 @@ const ShipmentForm = ({ type }) => {
     watchedHU.forEach((hu, index) => {
       // Only calculate if all fields have values
       if (hu.length && hu.width && hu.height && hu.weight) {
+        const unitsCount = Number(hu.unitsCount);
         const length = hu.unit === 'cm' ? parseFloat(hu.length) / 2.54 : parseFloat(hu.length);
         const width = hu.unit === 'cm' ? parseFloat(hu.width) / 2.54 : parseFloat(hu.width);
         const height = hu.unit === 'cm' ? parseFloat(hu.height) / 2.54 : parseFloat(hu.height);
-        const weight = hu.weightUnit === 'kg' ? parseFloat(hu.weight) * 2.20462 : parseFloat(hu.weight);
+        const weight = hu.weightUnit === 'kg' ? (parseFloat(hu.weight) * 2.20462) / unitsCount : parseFloat(hu.weight) / unitsCount;
 
         const freightClass = getFreightClass(length, width, height, weight);
 
@@ -5973,11 +5942,14 @@ const ShipmentForm = ({ type }) => {
     setValue('customerRate.fuelSurchargeRate', calculatedPercentage);
     // }
   }, [customerZipRate])
+
   useEffect(() => {
-    if (shipmentSuccess && activeStep === 4 || (activeStep === 3 && getValues('carrierInfo.orderReceivedPending'))) {
-      navigate(PATH_DASHBOARD?.general?.dashboard?.root);
+    // if (shipmentSuccess && activeStep === 4 || (activeStep === 3 && getValues('carrierInfo.orderReceivedPending'))) {
+    // if (shipmentSuccess && (activeStep === 4 || (activeStep === 3 && (getValues('carrierInfo.orderReceivedPending') || watchedSelectedPickupCarrier)))) {
+    if (shipmentSuccess && operationalMessage) {
+      navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
     }
-  }, [shipmentSuccess])
+  }, [operationalMessage])
   useEffect(() => {
     if (shipmentError) {
       setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError?.message ?? shipmentError}`}`);
@@ -6279,6 +6251,7 @@ const ShipmentForm = ({ type }) => {
             totals={totals}
             customerRateAccFields={customerRateAccFields}
             appendCustomerRateAccFields={appendCustomerRateAccFields}
+            replaceCustomerRateAccFields={replaceCustomerRateAccFields}
             watchedHU={watchedHU}
             masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
           />
@@ -6356,11 +6329,11 @@ const ShipmentForm = ({ type }) => {
 
                     control={control}
 
-                    rules={{ required: true }}
+                    rules={{ required: (watchedServiceLevel?.includes('(Date Specific)')) }}
 
                     render={({ field }) => (
 
-                      <DatePicker {...field} label="Select Date *" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
+                      <DatePicker {...field} label="Select Date" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
 
                     )}
 
@@ -6376,11 +6349,11 @@ const ShipmentForm = ({ type }) => {
 
                     control={control}
 
-                    rules={{ required: true }}
+                    rules={{ required: (watchedServiceLevel?.includes('(Date Specific)')) }}
 
                     render={({ field }) => (
 
-                      <TimePicker {...field} label="Select Time *" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
+                      <TimePicker {...field} label="Select Time" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
 
                     )}
 
@@ -6668,47 +6641,41 @@ const ShipmentForm = ({ type }) => {
                       rules={{
                         required: watchedAirportPickupService ? 'This field is required' : false,
                         validate: (value) => {
-                          if (!value) return true; // Handled by 'required' if empty
+                          if (!value) return true;
 
-                          // 1. Skip custom text check if a valid selection was chosen from the dropdown list
                           if (typeof value === 'object' && value.airlineId) {
                             return true;
                           }
 
-                          // 2. Fallback check for manually typed custom text strings
-                          const textToValidate = typeof value === 'string' ? value : (value.airlineName || '');
+                          const textToValidate = typeof value === 'object' ? (value.airlineName || '') : (value || '');
 
-                          // Check if the exact full string matches an existing option's formatted text
                           const isPreExisting = shipperAirlineDropdown.some((opt) => {
                             const fullString = `${opt.airlineNumber} - ${opt.airlineCode} - ${opt.airlineName}`;
                             return textToValidate.trim().toLowerCase() === fullString.toLowerCase();
                           });
                           if (isPreExisting) return true;
 
-                          // 3. Strict component checks for completely custom text entries
                           const parts = textToValidate.split('-').map(p => p.trim());
-
                           const numPart = parts[0] || '';
                           const codePart = parts[1] || '';
                           const namePart = parts[2] || '';
 
-                          // Validate Airline Number (Matches the 4-digit requirement)
-                          if (!/^\d{4}$/.test(numPart)) {
-                            return 'Airline Number must be exactly 4 digits (Ex: 6788)';
+                          // FIX 1: Validate Airline Number (Accepts exactly 3 digits now)
+                          if (!/^\d{3}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 3 digits (Ex: 001)';
                           }
 
-                          // Validate Airline Code (Exactly 3 letters)
-                          if (!/^[A-Za-z]{3}$/.test(codePart)) {
-                            return 'Airline Code must be exactly 3 letters (Ex: AAA)';
+                          // FIX 2: Validate Airline Code (Accepts 2 or 3 letters now)
+                          if (!/^[A-Za-z]{2,3}$/.test(codePart)) {
+                            return 'Airline Code must be 2 or 3 letters (Ex: AA or AAA)';
                           }
 
-                          // Validate Airline Name exists
                           if (!namePart) {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // Final structural confirmation (Digits - 3 Letters - Name)
-                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/i;
+                          // FIX 3: Final structural verification pattern update
+                          const formatRegex = /^\d{3} - [A-Z]{2,3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
                           }
@@ -6716,112 +6683,69 @@ const ShipmentForm = ({ type }) => {
                           return true;
                         }
                       }}
-
                       render={({ field: { onChange, value, ref } }) => (
                         <Autocomplete
                           freeSolo
                           options={
-                            watchedOriginAirport ? shipperAirlineDropdown.filter(
-                              (item) => item.airportCode === watchedOriginAirport
-                            ) : shipperAirlineDropdown
+                            watchedOriginAirport
+                              ? shipperAirlineDropdown.filter((item) => item.airportCode === watchedOriginAirport)
+                              : shipperAirlineDropdown
                           }
                           value={value || null}
-
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
                               onChange({ airlineId: null, airlineName: newValue });
-                              setValue('shipperAddr1', '');
-                              setValue('shipperAddr2', '');
-                              setValue('shipperCity', '');
-                              setValue('shipperState', '');
-                              setValue('shipperZip', '');
-                              setValue('shipperContact', '');
-                              setValue('shipperPhone', '');
                             } else if (newValue && newValue.inputValue) {
                               onChange({ airlineId: null, airlineName: newValue.inputValue });
-                              setValue('shipperAddr1', '');
-                              setValue('shipperAddr2', '');
-                              setValue('shipperCity', '');
-                              setValue('shipperState', '');
-                              setValue('shipperZip', '');
-                              setValue('shipperContact', '');
-                              setValue('shipperPhone', '');
                             } else if (newValue) {
                               onChange(newValue);
-                              setValue('shipperAddr1', newValue?.addressLine1 || '');
-                              setValue('shipperAddr2', newValue?.addressLine2 || '');
-                              setValue('shipperCity', newValue?.city || '');
-                              setValue('shipperState', newValue?.state || '');
-                              setValue('shipperZip', newValue?.zipCode || '');
-                              setValue('shipperContact', newValue?.contactPersonName || '');
-                              setValue('shipperPhone', newValue?.phoneNumber || '');
                             } else {
-                              // Safe fallback when the input selection is cleared out entirely
                               onChange(null);
-                              setValue('shipperAddr1', '');
-                              setValue('shipperAddr2', '');
-                              setValue('shipperCity', '');
-                              setValue('shipperState', '');
-                              setValue('shipperZip', '');
-                              setValue('shipperContact', '');
-                              setValue('shipperPhone', '');
                             }
-                          }}
 
-                          // User-friendly typing mask handler matching the strict 4-digit/3-letter validation rules
+                            const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
+                            setValue('shipperAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                            setValue('shipperAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                            setValue('shipperCity', isSelection ? newValue?.city || '' : '');
+                            setValue('shipperState', isSelection ? newValue?.state || '' : '');
+                            setValue('shipperZip', isSelection ? newValue?.zipCode || '' : '');
+                            setValue('shipperContact', isSelection ? newValue?.contactPersonName || '' : '');
+                            setValue('shipperPhone', isSelection ? newValue?.phoneNumber || '' : '');
+                          }}
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
                               const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
                               let formatted = newInputValue;
 
                               if (!isDeleting) {
-                                // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
                                 let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
 
-                                // Rule A: Auto-append " - " ONLY when exactly 4 digits are reached
-                                if (/^\d{4}$/.test(clean)) {
+                                // FIX 4: Auto-append " - " when exactly 3 digits are typed
+                                if (/^\d{3}$/.test(clean)) {
                                   formatted = `${clean} - `;
                                 }
 
-                                // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                                const match = clean.match(/^(\d{4})\s*-\s*([A-Za-z]{3})$/);
+                                // FIX 5: Auto-format airline code (Allows 2 or 3 letters before appending space-hyphen)
+                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
                                 if (match) {
                                   formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
                                 }
                               }
-                              setValue('shipperAddr1', '');
-                              setValue('shipperAddr2', '');
-                              setValue('shipperCity', '');
-                              setValue('shipperState', '');
-                              setValue('shipperZip', '');
-                              setValue('shipperContact', '');
-                              setValue('shipperPhone', '');
 
                               onChange({ airlineId: null, airlineName: formatted });
                             }
                           }}
-
                           getOptionLabel={(option) => {
                             if (typeof option === 'string') return option;
                             if (option.inputValue) return option.inputValue;
-
                             if (option.airlineId) {
-                              const num = option.airlineNumber || '';
-                              const code = option.airlineCode || '';
-                              const name = option.airlineName || '';
-                              const city = option.city || '';
-                              const airCode = option.airportCode || '';
-                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
+                              return `${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`;
                             }
-
                             return option.airlineName || '';
                           }}
-
                           isOptionEqualToValue={(option, val) =>
                             option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
                           }
-
-                          // Resolves duplicate key warning by generating a unique string per element using its state index
                           renderOption={(props, option, state) => {
                             const { key, ...optionProps } = props;
                             const uniqueKey = option.airlineId
@@ -6830,30 +6754,18 @@ const ShipmentForm = ({ type }) => {
 
                             if (option.inputValue) {
                               return (
-                                <Box
-                                  component="li"
-                                  key={uniqueKey}
-                                  {...optionProps}
-                                  sx={{ fontWeight: 'bold', color: 'primary.main' }}
-                                >
+                                <Box component="li" key={uniqueKey} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
                                   Add : "{option.inputValue}"
                                 </Box>
                               );
                             }
 
-                            const num = option.airlineNumber || '';
-                            const code = option.airlineCode || '';
-                            const name = option.airlineName || '';
-                            const city = option.city || '';
-                            const airCode = option.airportCode || '';
-
                             return (
                               <Box component="li" key={uniqueKey} {...optionProps}>
-                                {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
+                                {`${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`}
                               </Box>
                             );
                           }}
-
                           filterOptions={(options, params) => {
                             const { inputValue } = params;
                             const searchStr = (inputValue || '').toLowerCase().trim();
@@ -6875,13 +6787,12 @@ const ShipmentForm = ({ type }) => {
                             if (inputValue !== '' && !isExisting) {
                               filtered.unshift({
                                 inputValue,
-                                airlineName: `${inputValue}`,
+                                airlineName: inputValue,
                               });
                             }
 
                             return filtered;
                           }}
-
                           renderInput={(params) => (
                             <TextField
                               {...params}
@@ -6897,6 +6808,7 @@ const ShipmentForm = ({ type }) => {
                         />
                       )}
                     />
+
                   )}
 
 
@@ -7061,15 +6973,15 @@ const ShipmentForm = ({ type }) => {
                       rules={{
                         required: watchedAirportDeliveryService ? 'This field is required' : false,
                         validate: (value) => {
-                          if (!value) return true; // Handled by 'required' if empty
+                          if (!value) return true;
 
                           // 1. Skip custom text check if a valid selection was chosen from the dropdown list
                           if (typeof value === 'object' && value.airlineId) {
                             return true;
                           }
 
-                          // 2. Fallback check for manually typed custom text strings
-                          const textToValidate = typeof value === 'string' ? value : (value.airlineName || '');
+                          // 2. Safe extraction of string to check manually typed custom text entries
+                          const textToValidate = typeof value === 'object' ? (value.airlineName || '') : (value || '');
 
                           // Check if the exact full string matches an existing option's formatted text
                           const isPreExisting = consigneeAirlineDropdown.some((opt) => {
@@ -7080,19 +6992,18 @@ const ShipmentForm = ({ type }) => {
 
                           // 3. Strict component checks for completely custom text entries
                           const parts = textToValidate.split('-').map(p => p.trim());
-
                           const numPart = parts[0] || '';
                           const codePart = parts[1] || '';
                           const namePart = parts[2] || '';
 
-                          // Validate Airline Number (Matches the 4-digit requirement)
-                          if (!/^\d{4}$/.test(numPart)) {
-                            return 'Airline Number must be exactly 4 digits (Ex: 6788)';
+                          // FIX 1: Validate Airline Number (Accepts exactly 3 digits)
+                          if (!/^\d{3}$/.test(numPart)) {
+                            return 'Airline Number must be exactly 3 digits (Ex: 176)';
                           }
 
-                          // Validate Airline Code (Exactly 3 letters)
-                          if (!/^[A-Za-z]{3}$/.test(codePart)) {
-                            return 'Airline Code must be exactly 3 letters (Ex: AAA)';
+                          // FIX 2: Validate Airline Code (Accepts 2 or 3 letters)
+                          if (!/^[A-Za-z]{2,3}$/.test(codePart)) {
+                            return 'Airline Code must be 2 or 3 letters (Ex: EK or AAA)';
                           }
 
                           // Validate Airline Name exists
@@ -7100,8 +7011,8 @@ const ShipmentForm = ({ type }) => {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // Final structural confirmation (Digits - 3 Letters - Name)
-                          const formatRegex = /^\d{4} - [A-Z]{3} - .+$/i;
+                          // FIX 3: Final structural verification (3 Digits - 2/3 Letters - Name)
+                          const formatRegex = /^\d{3} - [A-Z]{2,3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
                           }
@@ -7123,74 +7034,46 @@ const ShipmentForm = ({ type }) => {
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
                               onChange({ airlineId: null, airlineName: newValue });
-                              setValue('consigneeAddr1', '');
-                              setValue('consigneeAddr2', '');
-                              setValue('consigneeCity', '');
-                              setValue('consigneeState', '');
-                              setValue('consigneeZip', '');
-                              setValue('consigneeContact', '');
-                              setValue('consigneePhone', '');
                             } else if (newValue && newValue.inputValue) {
                               onChange({ airlineId: null, airlineName: newValue.inputValue });
-                              setValue('consigneeAddr1', '');
-                              setValue('consigneeAddr2', '');
-                              setValue('consigneeCity', '');
-                              setValue('consigneeState', '');
-                              setValue('consigneeZip', '');
-                              setValue('consigneeContact', '');
-                              setValue('consigneePhone', '');
                             } else if (newValue) {
                               onChange(newValue);
-                              setValue('consigneeAddr1', newValue?.addressLine1 || '');
-                              setValue('consigneeAddr2', newValue?.addressLine2 || '');
-                              setValue('consigneeCity', newValue?.city || '');
-                              setValue('consigneeState', newValue?.state || '');
-                              setValue('consigneeZip', newValue?.zipCode || '');
-                              setValue('consigneeContact', newValue?.contactPersonName || '');
-                              setValue('consigneePhone', newValue?.phoneNumber || '');
                             } else {
-                              // Safe fallback when the input selection is cleared out entirely via 'X' button
                               onChange(null);
-                              setValue('consigneeAddr1', '');
-                              setValue('consigneeAddr2', '');
-                              setValue('consigneeCity', '');
-                              setValue('consigneeState', '');
-                              setValue('consigneeZip', '');
-                              setValue('consigneeContact', '');
-                              setValue('consigneePhone', '');
                             }
+
+                            // Set address fields safely in a single batched run on explicit choice or clear
+                            const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
+                            setValue('consigneeAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                            setValue('consigneeAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                            setValue('consigneeCity', isSelection ? newValue?.city || '' : '');
+                            setValue('consigneeState', isSelection ? newValue?.state || '' : '');
+                            setValue('consigneeZip', isSelection ? newValue?.zipCode || '' : '');
+                            setValue('consigneeContact', isSelection ? newValue?.contactPersonName || '' : '');
+                            setValue('consigneePhone', isSelection ? newValue?.phoneNumber || '' : '');
                           }}
 
-                          // User-friendly typing mask handler matching the strict 4-digit/3-letter validation rules
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
                               const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
                               let formatted = newInputValue;
 
                               if (!isDeleting) {
-                                // Strip out illegal symbols, keep alphanumeric text and spaces/hyphens
                                 let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
 
-                                // Rule A: Auto-append " - " ONLY when exactly 4 digits are reached
-                                if (/^\d{4}$/.test(clean)) {
+                                // FIX 4: Auto-append " - " when exactly 3 digits are typed
+                                if (/^\d{3}$/.test(clean)) {
                                   formatted = `${clean} - `;
                                 }
 
-                                // Rule B: Auto-format the airline code portion to uppercase and append " - "
-                                const match = clean.match(/^(\d{4})\s*-\s*([A-Za-z]{3})$/);
+                                // FIX 5: Auto-format airline code (Allows 2 or 3 letters before appending space-hyphen)
+                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
                                 if (match) {
                                   formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
                                 }
                               }
 
                               onChange({ airlineId: null, airlineName: formatted });
-                              setValue('consigneeAddr1', '');
-                              setValue('consigneeAddr2', '');
-                              setValue('consigneeCity', '');
-                              setValue('consigneeState', '');
-                              setValue('consigneeZip', '');
-                              setValue('consigneeContact', '');
-                              setValue('consigneePhone', '');
                             }
                           }}
 
@@ -7214,7 +7097,6 @@ const ShipmentForm = ({ type }) => {
                             option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
                           }
 
-                          // Resolves duplicate key warning by generating a unique key using state index
                           renderOption={(props, option, state) => {
                             const { key, ...optionProps } = props;
                             const uniqueKey = option.airlineId
@@ -7290,6 +7172,7 @@ const ShipmentForm = ({ type }) => {
                         />
                       )}
                     />
+
                   )}
 
 
@@ -7567,6 +7450,7 @@ const ShipmentForm = ({ type }) => {
                     control={control}
                     watchedHU={watchedHU}
                     openHazmat={(hu, itm) => setHazmatModal({ open: true, huIdx: hu, itemIdx: itm })}
+                    setValue={setValue}
                   />
                 </Paper>
               ))}

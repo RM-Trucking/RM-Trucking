@@ -75,20 +75,63 @@ const shipmentTypes = [
   },
 ];
 
-const shipmentStatusOptions = ['Order received Pickup Pending',
-  'Order received Pickup Setup',
-  'Dispatched / RSL',
-  'Picked',
-  'At Warehouse',
-  'To be recovered',
-  'To be Routed',
-  'Added to Queue',
-  'Manifested',
-  'Carrier Picked Up',
-  'In Transit',
-  'Delivered',
-  'Appointment',
-  'Recovered Short',
+const shipmentStatusOptions = [
+  {
+    label: 'Order received Pickup Pending',
+    value: 'ORDER_RECEIVED_PICKUP_PENDING'
+  },
+  {
+    label: 'Order received Pickup Setup',
+    value: 'ORDER_RECEIVED_PICKUP_SETUP'
+  },
+  {
+    label: 'Dispatched / RSL',
+    value: 'DISPATCHED_RSL'
+  },
+  {
+    label: 'Picked',
+    value: 'PICKED'
+  },
+  {
+    label: 'At Warehouse',
+    value: 'AT_WAREHOUSE'
+  },
+  {
+    label: 'To be recovered',
+    value: 'TO_BE_RECOVERED'
+  },
+  {
+    label: 'To be Routed',
+    value: 'TO_BE_ROUTED'
+  },
+  {
+    label: 'Added to Queue',
+    value: 'ADDED_TO_QUEUE'
+  },
+  {
+    label: 'Manifested',
+    value: 'MANIFESTED'
+  },
+  {
+    label: 'Carrier Picked Up',
+    value: 'CARRIER_PICKED_UP'
+  },
+  {
+    label: 'In Transit',
+    value: 'IN_TRANSIT'
+  },
+  {
+    label: 'Delivered',
+    value: 'DELIVERED'
+  },
+  {
+    label: 'Appointment',
+    value: 'APPOINTMENT'
+  },
+  {
+    label: 'Recovered Short',
+    value: 'RECOVERED_SHORT'
+  }
 ]
 
 const STEPS = [
@@ -197,7 +240,7 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
                       },
                     }}>
 
-                      {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+                      {shipmentStatusOptions.map((opt) => (<MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>))}
 
                     </TextField>
 
@@ -3300,14 +3343,14 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 const HandleCancelDialog = ({ open, onClose, onSave, }) => {
   return (
     <>
-      <Dialog open={open} onClose={onClose}  fullWidth>
+      <Dialog open={open} onClose={onClose} fullWidth>
         <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Information</DialogTitle>
         <DialogContent>
-          <Typography variant="h6"  sx={{mt:2, textAlign:'center',}}>
+          <Typography variant="h6" sx={{ mt: 2, textAlign: 'center', }}>
             Are you sure you want to cancel?
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ pb:3, justifyContent: 'center', gap: 2 }}>
+        <DialogActions sx={{ pb: 3, justifyContent: 'center', gap: 2 }}>
           <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
           <Button onClick={onSave} variant="contained" sx={{ bgcolor: '#a22' }}>Ok</Button>
         </DialogActions>
@@ -4891,8 +4934,8 @@ const ShipmentForm = ({ type }) => {
       "shipmentTime": currentValues.time
         ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
         : "",
-      "orderReceivedPickupPending": "Y",
-      "shipmentStatus": "Active"
+      "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
+      "status": "ORDER_RECEIVED_PICKUP_PENDING",
     };
     // step 1
     obj.customerDetails = {
@@ -5684,8 +5727,8 @@ const ShipmentForm = ({ type }) => {
       "shipmentTime": currentValues.time
         ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
         : "",
-      "orderReceivedPickupPending": "Y",
-      "shipmentStatus": "Active"
+      "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
+      "status": "ORDER_RECEIVED_PICKUP_PENDING",
     };
     // step 1
     obj.customerDetails = {
@@ -6095,11 +6138,11 @@ const ShipmentForm = ({ type }) => {
 
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button variant="outlined" onClick={() => { 
-                  if(activeStep > 0) {
+                <Button variant="outlined" onClick={() => {
+                  if (activeStep > 0) {
                     setHandleCancelModal(true);
                   }
-                 }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
+                }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
 
                 {activeStep > 0 && (
 

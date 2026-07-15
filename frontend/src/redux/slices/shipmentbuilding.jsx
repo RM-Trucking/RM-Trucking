@@ -29,7 +29,7 @@ const initialState = {
     shipmentBuildSearchStr: '',
     shipmentBuildPagination: { page: 1, pageSize: 10, totalRecords: 0 },
     shipmentViewData: [],
-    operationalMessage : '',
+    operationalMessage: '',
 };
 
 const slice = createSlice({
@@ -154,28 +154,10 @@ const slice = createSlice({
         setShipmentBuildPaginationObject(state, action) {
             state.shipmentBuildPagination = action.payload;
         },
-        getShipmentBuildDataSuccess(state,action){
+        getShipmentBuildDataSuccess(state, action) {
             state.isLoading = false;
             state.shipmentSuccess = true;
-            // state.shipmentViewData = action.payload.data;
-            state.shipmentViewData = [
-                {
-                    shipmentId: 1,
-                    shipmentPRONo : 'PRO9289280209',
-                    customerName : 'Oliver',
-                    origin : 'Brooklyn, New York',
-                    destination : 'Los Angeles, California',
-                    serviceLevel : 'Level 1',
-                    pickupAgent : 'Cal Sierra',
-                    pickupRouting : 'pending',
-                    linehaulRouting : 'pending',
-                    deliveryRouting : 'pending',
-                    status : 'To be Routed',
-                    delChecked : 'N',
-                    delCarrier : '',
-
-                }
-            ];
+            state.shipmentViewData = action.payload.data;
         },
 
     },
@@ -198,13 +180,12 @@ export default slice.reducer;
 
 // ----------------------------------------------------------------------
 
-export function getShipmentBuildData({pageNo, pageSize}) {
+export function getShipmentBuildData({ pageNo, pageSize }) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            //   const response = await axios.get('maintenance/customer/dropdown');
-            //   dispatch(slice.actions.getShipmentBuildDataSuccess(response));
-            dispatch(slice.actions.getShipmentBuildDataSuccess([]));
+            const response = await axios.get(`network-shipment?page=${pageNo}&limit=${pageSize}`);
+            dispatch(slice.actions.getShipmentBuildDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error));
         }

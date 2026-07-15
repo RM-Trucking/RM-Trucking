@@ -6139,9 +6139,7 @@ const ShipmentForm = ({ type }) => {
 
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button variant="outlined" onClick={() => {
-                  if (activeStep > 0) {
-                    setHandleCancelModal(true);
-                  }
+                  setHandleCancelModal(true);
                 }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
 
                 {activeStep > 0 && (
@@ -6361,9 +6359,16 @@ const ShipmentForm = ({ type }) => {
             onClose={() => setHandleCancelModal(false)}
             onSave={() => {
               // Handle cancel save logic here
-              reset();
+              if (activeStep === 0) {
+                reset();
+                setActiveStep(0);
+                setHandleCancelModal(false);
+                navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+              }else{
+                reset();
               setActiveStep(0);
               setHandleCancelModal(false);
+              }
             }}
           />
 

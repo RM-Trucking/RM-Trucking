@@ -944,6 +944,7 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
 const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
   const { open, huIdx, itemIdx } = state;
   const [errors, setErrors] = useState({});
+  const [editMode, setEditMode] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: '',
@@ -981,8 +982,10 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
       // 2. Fetch data for the SPECIFIC item currently being edited 
       const existingData = getValues(`handlingUnits.${huIdx}.items.${itemIdx}.hazmatData`);
       if (existingData) {
+        setEditMode(true);
         setLocalData(existingData);
       } else {
+        setEditMode(false);
         // 3. CRITICAL: If Item 2 is new, reset to empty so Item 1's data doesn't persist
         setLocalData(emptyHazmat);
       }
@@ -1148,7 +1151,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         maxWidth: 'none',
       }
     }}>
-      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>Hazmat Info</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>{editMode ? 'Edit' : 'Add'} Hazmat Info</DialogTitle>
 
       <DialogContent sx={{ mt: 2, pb: 4 }}>
         {/* Row 1: UN, Shipping Name, PKG Group, Class */}
@@ -3294,6 +3297,24 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
 
   );
 };
+const HandleCancelDialog = ({ open, onClose, onSave, }) => {
+  return (
+    <>
+      <Dialog open={open} onClose={onClose}  fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Information</DialogTitle>
+        <DialogContent>
+          <Typography variant="h6"  sx={{mt:2, textAlign:'center',}}>
+            Are you sure you want to cancel?
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ pb:3, justifyContent: 'center', gap: 2 }}>
+          <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+          <Button onClick={onSave} variant="contained" sx={{ bgcolor: '#a22' }}>Ok</Button>
+        </DialogActions>
+      </Dialog>
+    </>
+  );
+};
 
 
 const ShipmentForm = ({ type }) => {
@@ -3359,6 +3380,7 @@ const ShipmentForm = ({ type }) => {
   const [actionType, setActionType] = useState('');
   const [handlingUnitWtFlag, setHandlingUnitWtFlag] = useState(false);
   const [doDetailsModal, setDoDetailsModal] = useState(false);
+  const [handleCancelModal, setHandleCancelModal] = useState(false);
   const [custommerRateModal, setCustomerRateModal] = useState(false);
   const [editAccIndex, setEditAccIndex] = useState(null);
   const [activeAccType, setActiveAccType] = useState('');
@@ -4637,6 +4659,7 @@ const ShipmentForm = ({ type }) => {
     const currentValues = getValues();
 
     let fieldsToValidate = [];
+    let validAccessorials = true;
     const obj = {};
 
     if (activeStep === 0) {
@@ -4658,6 +4681,27 @@ const ShipmentForm = ({ type }) => {
         fieldsToValidate = [
           'carrierInfo.selectCarrier',
           'carrierInfo.fromLocation',
+        ];
+        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
+          fieldsToValidate.push(
+            'carrierInfo.toLocationType',
+            'carrierInfo.toLocation',
+          );
+        }
+
+        if (currentValues?.carrierInfo?.pickupAlert) {
+          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
+        }
+
+        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
+        }
+
+      }
+      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+        fieldsToValidate = [
+          'carrierInfo.selectCarrier',
+          'carrierInfo.fromLocation',
           'carrierInfo.lineHaul.carrier',
           'carrierInfo.lineHaul.billNumber',
           'carrierInfo.lineHaul.toLocationType',
@@ -4676,10 +4720,10 @@ const ShipmentForm = ({ type }) => {
         }
 
         if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
         }
 
-        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
           fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
         }
 
@@ -4705,7 +4749,7 @@ const ShipmentForm = ({ type }) => {
           fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
         }
 
-        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
           fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
         }
 
@@ -4728,10 +4772,10 @@ const ShipmentForm = ({ type }) => {
         }
 
         if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
         }
 
-        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
           fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
         }
       }
@@ -4748,22 +4792,22 @@ const ShipmentForm = ({ type }) => {
         }
 
         if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
+          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
         }
 
-        if (currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
+        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
           fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
         }
       }
     }
     if (activeStep === 3 && currentValues?.carrierInfo?.addPickupAccessorial && currentValues?.carrierInfo?.pickupAccessorials?.length === 0) {
-      setErrorVisible(true);
+      validAccessorials = false;
     }
     if (activeStep === 3 && currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc && currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
-      setErrorVisible(true);
+      validAccessorials = false;
     }
     if (activeStep === 3 && currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc && currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
-      setErrorVisible(true);
+      validAccessorials = false;
     }
     const units = getValues('handlingUnits');
 
@@ -4819,7 +4863,16 @@ const ShipmentForm = ({ type }) => {
           }
         }
 
-        if (activeStep !== 2) {
+        if (activeStep === 3) {
+          if (validAccessorials) {
+            setErrorVisible(false);
+            setActiveStep((prev) => prev + 1);
+          } else {
+            setErrorVisible(true);
+          }
+        }
+
+        if (activeStep !== 2 && activeStep !== 3) {
           setActiveStep((prev) => prev + 1);
         }
       }
@@ -6042,7 +6095,11 @@ const ShipmentForm = ({ type }) => {
 
 
               <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button variant="outlined" onClick={() => { reset(); setActiveStep(0); }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
+                <Button variant="outlined" onClick={() => { 
+                  if(activeStep > 0) {
+                    setHandleCancelModal(true);
+                  }
+                 }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>
 
                 {activeStep > 0 && (
 
@@ -6254,6 +6311,17 @@ const ShipmentForm = ({ type }) => {
             replaceCustomerRateAccFields={replaceCustomerRateAccFields}
             watchedHU={watchedHU}
             masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
+          />
+
+          <HandleCancelDialog
+            open={handleCancelModal}
+            onClose={() => setHandleCancelModal(false)}
+            onSave={() => {
+              // Handle cancel save logic here
+              reset();
+              setActiveStep(0);
+              setHandleCancelModal(false);
+            }}
           />
 
           {/* STEP 0 */}

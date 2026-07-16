@@ -158,6 +158,9 @@ const slice = createSlice({
             state.isLoading = false;
             state.shipmentSuccess = true;
             state.shipmentViewData = action.payload.data;
+            state.shipmentBuildPagination.page = action.payload.pagination.page;
+            state.shipmentBuildPagination.pageSize = action.payload.pagination.limit;
+            state.shipmentBuildPagination.totalRecords = action.payload.pagination.totalItems;
         },
 
     },

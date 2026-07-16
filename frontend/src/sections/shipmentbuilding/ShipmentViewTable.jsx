@@ -28,12 +28,14 @@ export default function ShipmentViewTable({ }) {
     const pagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
     const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
     const shipmentSuccess = useSelector((state) => state?.shipmentdata?.shipmentSuccess);
+    const shipmentBuildSearchStr = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildSearchStr);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
         pageSize: 10,
     });
     const [shipmentSuccessFlag, setShipmentSuccessFlag] = useState(false);
+    const [shipmentViewTableData, setShipmentViewTableData] = useState([]);
 
     const shipmentColumns = [
         {
@@ -110,7 +112,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.pickupRouting === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.pickupRouting === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon="majesticons:clock" sx={{ color: params.row.pickupRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.pickupRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -127,7 +129,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.linehaulRouting === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.linehaulRouting === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon="majesticons:clock" sx={{ color: params.row.linehaulRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.linehaulRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -144,7 +146,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.deliveryRouting === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.deliveryRouting === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon="majesticons:clock" sx={{ color: params.row.deliveryRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.deliveryRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -203,11 +205,54 @@ export default function ShipmentViewTable({ }) {
             pageSize: paginationModel.pageSize,
         }));
     }, []);
-      useEffect(() => {
+    useEffect(() => {
         if (shipmentSuccess && operationalMessage) {
-         setShipmentSuccessFlag(true);
+            setShipmentSuccessFlag(true);
         }
-      }, [operationalMessage])
+    }, [operationalMessage])
+    const transformDataGridRows = (apiResponseArray) => {
+        if (!Array.isArray(apiResponseArray)) return [];
+
+        return apiResponseArray.map((row) => {
+            // 1. Destructure top-level properties safely
+            const { shipmentId, shipmentDetails, customerDetails, carrierDetails } = row;
+
+            // 2. Destructure deep nested objects safely using optional chaining (?.)
+            const shipper = customerDetails?.shipperDetails;
+            const consignee = customerDetails?.consigneeDetails;
+            const pickup = carrierDetails?.pickupDetails;
+
+            // 3. Build concatenated address strings helper
+            const formatAddress = (details) => {
+                if (!details) return '';
+                const parts = [details.city, details.state, details.zipCode].filter(Boolean);
+                return parts.join(', '); // Result: "Los Angeles, CA, 90001"
+            };
+
+            // 4. Return the newly structured row object
+            return {
+                shipmentId : shipmentId,
+                shipmentPRONo: "", // Kept empty as requested
+                customerName: customerDetails?.customerName ?? "",
+                origin: formatAddress(shipper),
+                destination: formatAddress(consignee),
+                serviceLevel: shipmentDetails?.serviceLevel ?? "",
+                pickupAgent: pickup?.carrierId ?? "",
+                pickupRouting: 'Pending',
+                linehaulRouting: 'Pending',
+                deliveryRouting: 'Pending',
+                status: shipmentDetails?.status ?? '',
+                rowDetails: row // Stores the entire original 1st object unmodified
+            };
+        });
+    };
+
+    useEffect(() => {
+        // Usage:
+        const dataGridRows = shipmentViewData?.length > 0 ? transformDataGridRows(shipmentViewData) : [];
+        console.log(dataGridRows);
+        setShipmentViewTableData(dataGridRows);
+    }, [shipmentViewData])
 
     return (
         <>
@@ -215,7 +260,7 @@ export default function ShipmentViewTable({ }) {
             <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
-                    rows={shipmentViewData}
+                    rows={shipmentViewTableData}
                     columns={shipmentColumns}
                     loading={isLoading}
                     getRowId={(row) => row?.shipmentId}
@@ -234,17 +279,17 @@ export default function ShipmentViewTable({ }) {
                     paginationModel={paginationModel}
                     onPaginationModelChange={(newModel) => {
                         setPaginationModel(newModel);
-                        // dispatch(getCustomerFuelSurchargeData({
-                        //     pageNo: newModel.page + 1,
-                        //     pageSize: newModel.pageSize,
-                        //     searchStr: fuelSurchargeSearchStr,
-                        // })); 
+                        dispatch(getShipmentBuildData({
+                            pageNo: newModel.page + 1,
+                            pageSize: newModel.pageSize,
+                            searchStr: shipmentBuildSearchStr,
+                        }));
                     }}
                     onPageChange={(newPage) => {
-                        // dispatch(getFuelSurchargeData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: fuelSurchargeSearchStr, }));
+                        dispatch(getShipmentBuildData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: shipmentBuildSearchStr, }));
                     }}
                     onPageSizeChange={(newPageSize) => {
-                        // dispatch(getFuelSurchargeData({ pageNo: 1, pageSize: newPageSize, searchStr: fuelSurchargeSearchStr, }));
+                        dispatch(getShipmentBuildData({ pageNo: 1, pageSize: newPageSize, searchStr: shipmentBuildSearchStr, }));
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}
@@ -252,27 +297,27 @@ export default function ShipmentViewTable({ }) {
             </Box>
 
             <Snackbar
-                        open={shipmentSuccessFlag}
-                        autoHideDuration={3000}
-                        onClose={() => {
-                          setShipmentSuccessFlag(false);
-                          dispatch(setError());
-                          dispatch(setOperationalMessage(''));
-                        }}
-                        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                      >
-                        <Alert
-                          onClose={() => {
-                            setShipmentSuccessFlag(false);
-                            dispatch(setOperationalMessage(''));
-                          }}
-                          severity="success"
-                          variant="filled"
-                          sx={{ width: '100%' }}
-                        >
-                          {operationalMessage || " New shipment created successfully."}
-                        </Alert>
-                      </Snackbar>
+                open={shipmentSuccessFlag}
+                autoHideDuration={3000}
+                onClose={() => {
+                    setShipmentSuccessFlag(false);
+                    dispatch(setError());
+                    dispatch(setOperationalMessage(''));
+                }}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => {
+                        setShipmentSuccessFlag(false);
+                        dispatch(setOperationalMessage(''));
+                    }}
+                    severity="success"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {operationalMessage || " New shipment created successfully."}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

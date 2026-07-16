@@ -76,7 +76,6 @@ export default function HomePage() {
         formState: { errors },
         reset,
         getValues, setValue, handleSubmit
-
     } = useForm({
         mode: 'onChange',
 

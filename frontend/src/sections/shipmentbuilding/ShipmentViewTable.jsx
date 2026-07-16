@@ -16,8 +16,11 @@ import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
 import {
-    getShipmentBuildData, setError, setOperationalMessage,
+    getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage,
 } from '../../redux/slices/shipmentbuilding';
+import {
+    setOperationalMessage,
+} from '../../redux/slices/shipment';
 
 ShipmentViewTable.PropTypes = {
 
@@ -275,7 +278,7 @@ export default function ShipmentViewTable({ }) {
         if (shipmentSuccess && operationalMessage) {
             setShipmentSuccessFlag(true);
         }
-    }, [operationalMessage])
+    }, [shipmentSuccess,operationalMessage])
     const transformDataGridRows = (apiResponseArray) => {
         if (!Array.isArray(apiResponseArray)) return [];
 
@@ -367,7 +370,6 @@ export default function ShipmentViewTable({ }) {
                 autoHideDuration={3000}
                 onClose={() => {
                     setShipmentSuccessFlag(false);
-                    dispatch(setError());
                     dispatch(setOperationalMessage(''));
                 }}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -381,7 +383,7 @@ export default function ShipmentViewTable({ }) {
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    {operationalMessage || " New shipment created successfully."}
+                    New shipment created successfully.
                 </Alert>
             </Snackbar>
         </>

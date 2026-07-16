@@ -45,6 +45,7 @@ import {
 } from '../../redux/slices/shipment';
 
 
+
 // --------------------------------------------------------------
 
 // --- CONSTANTS & LISTS --- 
@@ -6055,12 +6056,10 @@ const ShipmentForm = ({ type }) => {
   }, [customerZipRate])
 
   useEffect(() => {
-    // if (shipmentSuccess && activeStep === 4 || (activeStep === 3 && getValues('carrierInfo.orderReceivedPending'))) {
-    // if (shipmentSuccess && (activeStep === 4 || (activeStep === 3 && (getValues('carrierInfo.orderReceivedPending') || watchedSelectedPickupCarrier)))) {
     if (shipmentSuccess && operationalMessage) {
       navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
     }
-  }, [operationalMessage])
+  }, [shipmentSuccess, operationalMessage, navigate])
   useEffect(() => {
     if (shipmentError) {
       setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError?.message ?? shipmentError}`}`);

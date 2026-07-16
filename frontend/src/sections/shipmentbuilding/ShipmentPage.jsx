@@ -1583,7 +1583,7 @@ const CommoditiesList = ({ watchedHU }) => {
             <td style={cellStyle}>Piece</td>
             <td style={cellStyle}>{totals.totalPieces}</td>
             <td style={cellStyle}>{totals.totalHM}</td>
-            <td style={{ ...cellStyle, textAlign: 'right' }}>Total Shipping Weight</td>
+            <td style={{ ...cellStyle, textAlign: 'center' }}>Total Shipping Weight</td>
             <td style={cellStyle}>{totals.totalWeight}</td>
             <td style={cellStyle} colSpan={4}></td>
           </tr>
@@ -1659,6 +1659,18 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
     onClose();
   };
 
+  const handleCancelAllSelections = () => {
+    // 1. Map through the entire array and explicitly set 'selected' to false for every item
+    const resetList = MASTER_ACCESSORIALS.map((item) => ({
+      ...item,
+      selected: false, // Forces all items from true to false
+    }));
+
+    // 2. Push the completely cleaned list back into your React state
+    setMASTER_Accessorials(resetList);
+    onClose();
+  };
+
   return (
     <>
       <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -1724,7 +1736,7 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
           </TableContainer>
         </DialogContent>
         <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-          <Button onClick={onClose} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+          <Button onClick={handleCancelAllSelections} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
           <Button onClick={handleSave} variant="contained" sx={{ bgcolor: '#a22' }}>Save</Button>
         </DialogActions>
       </Dialog>
@@ -2048,7 +2060,10 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
             {<Stack flexDirection={'row'} alignItems={'center'} sx={{ mt: 4 }}>
               <Button
                 variant="outlined"
-                onClick={onClose}
+                onClick={() => {
+                  reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
+                  onClose();
+                }}
                 size="small"
                 sx={{
                   '&.MuiButton-outlined': {
@@ -6364,10 +6379,10 @@ const ShipmentForm = ({ type }) => {
                 setActiveStep(0);
                 setHandleCancelModal(false);
                 navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
-              }else{
+              } else {
                 reset();
-              setActiveStep(0);
-              setHandleCancelModal(false);
+                setActiveStep(0);
+                setHandleCancelModal(false);
               }
             }}
           />
@@ -6440,19 +6455,56 @@ const ShipmentForm = ({ type }) => {
                 <Box sx={{ flex: '1 1 22%' }}>
 
                   <Controller
-
                     name="date"
-
                     control={control}
+                    rules={{
+                      // 1. Mandatory condition rule
+                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Date is required' : false,
 
-                    rules={{ required: (watchedServiceLevel?.includes('(Date Specific)')) }}
+                      validate: (value) => {
+                        // 2. FIXED: If value is missing, empty, or completely wiped out, it is valid (if not required)
+                        if (!value || value === '' || (dayjs.isDayjs(value) && !value.isValid() && !watchedServiceLevel?.includes('(Date Specific)'))) {
+                          return true;
+                        }
 
-                    render={({ field }) => (
+                        const dateObj = dayjs(value);
 
-                      <DatePicker {...field} label="Select Date" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.date } }} />
+                        // 3. Only throw error for '00/00/0000' if there is an actual typed string present
+                        if (!dateObj.isValid()) {
+                          return "Please enter a valid date";
+                        }
 
+                        if (dateObj.year() < 1000) {
+                          return "Year is invalid";
+                        }
+
+                        return true;
+                      }
+                    }}
+                    render={({ field: { onChange, value, ...fieldParams } }) => (
+                      <DatePicker
+                        {...fieldParams}
+                        // Ensure bad strings do not crash the component UI display
+                        value={value && dayjs(value).isValid() ? dayjs(value) : null}
+                        onChange={(newValue) => {
+                          // 4. FIXED: If the user cleared out the text field, explicitly push null to the state
+                          if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
+                            onChange(null);
+                          } else {
+                            onChange(newValue);
+                          }
+                        }}
+                        label={`Select Date ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
+                        slotProps={{
+                          textField: {
+                            variant: 'standard',
+                            fullWidth: true,
+                            error: !!errors.date,
+                            helperText: errors.date ? errors.date.message : ''
+                          }
+                        }}
+                      />
                     )}
-
                   />
 
                 </Box>
@@ -6469,7 +6521,7 @@ const ShipmentForm = ({ type }) => {
 
                     render={({ field }) => (
 
-                      <TimePicker {...field} label="Select Time" ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
+                      <TimePicker {...field} label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`} ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
 
                     )}
 
@@ -7594,7 +7646,9 @@ const ShipmentForm = ({ type }) => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
                     <Box sx={{ flex: '1 1 30%' }}>
-                      <Controller name="emergencyContactName" control={control} render={({ field }) => (
+                      <Controller name="emergencyContactName" rules={{
+                        required: 'Contact Name is required',
+                      }} control={control} render={({ field }) => (
                         <TextField {...field} fullWidth label="Contact Name" variant="standard" required={isHazmatSelected} />
                       )} />
                     </Box>
@@ -8840,18 +8894,58 @@ const ShipmentForm = ({ type }) => {
                           <Controller
                             name="carrierInfo.lineHaul.etaDate"
                             control={control}
-                            rules={{ required: true }}
-                            render={({ field, fieldState: { error, isTouched } }) => (
+                            rules={{
+                              validate: (value) => {
+                                if (!value || value === '') return true;
+
+                                const dateObj = dayjs(value);
+                                if (!dateObj.isValid()) {
+                                  return "Please enter a valid date";
+                                }
+                                if (dateObj.year() < 1000) {
+                                  return "Year is invalid";
+                                }
+                                return true;
+                              }
+                            }}
+                            render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => (
                               <DatePicker
-                                {...field}
+                                {...fieldParams}
+                                value={value && dayjs(value).isValid() ? dayjs(value) : null}
+                                onChange={(newValue) => {
+                                  if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
+                                    onChange(null);
+                                  } else {
+                                    onChange(newValue);
+                                  }
+                                }}
                                 label="ETA Date"
                                 slotProps={{
                                   textField: {
                                     variant: 'standard',
                                     fullWidth: true,
-                                    // FIX 1: Uses the exact field error slice from the render arguments
-                                    // FIX 2: (Optional) Only shows error if the user has interacted with it
-                                    error: !!error && isTouched
+                                    error: !!error,
+                                    helperText: error ? error.message : '',
+
+                                    // FIXED: Intercept keystrokes immediately to block "00/00/0000" layouts
+                                    onBeforeInput: (e) => {
+                                      const target = e.target;
+                                      const inputVal = target.value;
+                                      const insertedChar = e.data;
+
+                                      // 1. Block '0' if it is the very first character typed
+                                      if (insertedChar === '0' && (!inputVal || inputVal.trim() === '')) {
+                                        e.preventDefault();
+                                        return;
+                                      }
+
+                                      // 2. Block '0' if they are typing it directly after a slash (e.g., "12/0" for month/day filler)
+                                      // This stops patterns like "12/00/0000" or "01/00/2024"
+                                      if (insertedChar === '0' && inputVal.endsWith('/')) {
+                                        e.preventDefault();
+                                        return;
+                                      }
+                                    }
                                   }
                                 }}
                                 InputLabelProps={{ shrink: true }}
@@ -9471,18 +9565,67 @@ const ShipmentForm = ({ type }) => {
                           <Controller
                             name="carrierInfo.deliveryDetails.etaDate"
                             control={control}
-                            rules={{ required: true }}
-                            render={({ field, fieldState: { error, isTouched } }) => (
+                            rules={{
+                              validate: (value) => {
+                                // 1. FIXED: If there is no value, return true instantly (No error is shown)
+                                if (!value || value === '') return true;
+
+                                const dateObj = dayjs(value);
+
+                                // 2. If it's a Dayjs object but not fully typed out yet, check if it's completely invalid
+                                if (dayjs.isDayjs(value) && !value.isValid()) {
+                                  // If the user cleared the text box entirely, let it pass as valid
+                                  return "Please enter a valid date";
+                                }
+
+                                if (!dateObj.isValid()) {
+                                  return "Please enter a valid date";
+                                }
+
+                                // 3. Catches invalid partial years like 202 or 0202
+                                if (dateObj.year() < 1000) {
+                                  return "Year is invalid";
+                                }
+
+                                return true;
+                              }
+                            }}
+                            render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => (
                               <DatePicker
-                                {...field}
+                                {...fieldParams}
+                                // 4. FIXED: Do not force null on partial text inputs, allow the user to type out the year
+                                value={value ? dayjs(value) : null}
+                                onChange={(newValue) => {
+                                  // 5. FIXED: If the field is manually wiped out cleanly, send null to the form state
+                                  if (!newValue) {
+                                    onChange(null);
+                                  } else {
+                                    onChange(newValue);
+                                  }
+                                }}
                                 label="ETA Date"
                                 slotProps={{
                                   textField: {
                                     variant: 'standard',
                                     fullWidth: true,
-                                    // FIX: Targets the specific error block for delivery details
-                                    // only after the user interacts with the input (isTouched)
-                                    error: !!error && isTouched
+                                    error: !!error,
+                                    helperText: error ? error.message : '',
+
+                                    onBeforeInput: (e) => {
+                                      const target = e.target;
+                                      const inputVal = target.value;
+                                      const insertedChar = e.data;
+
+                                      if (insertedChar === '0' && (!inputVal || inputVal.trim() === '')) {
+                                        e.preventDefault();
+                                        return;
+                                      }
+
+                                      if (insertedChar === '0' && inputVal.endsWith('/')) {
+                                        e.preventDefault();
+                                        return;
+                                      }
+                                    }
                                   }
                                 }}
                                 InputLabelProps={{ shrink: true }}

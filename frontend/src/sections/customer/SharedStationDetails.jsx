@@ -31,6 +31,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
     const [warehouseFlag, setWarehouseFlag] = useState(false);
     const [hasWarehouseService, setHasWarehouseServiceFlag] = useState(false);
     const [readOnly, setReadOnly] = useState(false);
+    const [emailInput, setEmailInput] = useState('');
     const {
         control,
         handleSubmit,
@@ -852,15 +853,30 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             fullWidth
                                             value={selectedEmailsArray}
                                             disabled={readOnly}
+
+                                            // 1. Explicitly link the text input state
+                                            inputValue={emailInput}
+
+                                            // 2. Track what the user is typing in real-time
+                                            onInputChange={(event, newInputValue, reason) => {
+                                                // If the user is just typing, update our state
+                                                if (reason === 'input') {
+                                                    setEmailInput(newInputValue);
+                                                }
+                                            }}
+
+                                            // 3. Handle when they press Enter or select a chip
                                             onChange={(event, newValue) => {
                                                 const processedEmails = newValue
-                                                    .flatMap(item => (typeof item === 'string' ? item.split(',') : []))
+                                                    .flatMap(item => (typeof item === 'string' ? item.split(/[,\s]+/) : []))
                                                     .map(e => e.trim())
                                                     .filter(Boolean);
 
                                                 const uniqueEmails = [...new Set(processedEmails)];
                                                 onChange(uniqueEmails);
+                                                setEmailInput(''); // Clean text field after successful chip insertion
                                             }}
+
                                             renderInput={(params) => (
                                                 <StyledTextField
                                                     {...params}
@@ -871,30 +887,25 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                     error={!!error}
                                                     helperText={error ? error.message : "Press Enter, Comma, or Space to add"}
 
-                                                    // Listen to key presses on the inner HTML input element
+                                                    // 4. Intercept Comma or Space events natively on the input element
                                                     inputProps={{
                                                         ...params.inputProps,
                                                         onKeyDown: (e) => {
                                                             const target = e.target;
                                                             const inputValue = target.value.trim();
 
-                                                            // Catch Comma (,) or Space keys
                                                             if ((e.key === ',' || e.key === ' ') && inputValue) {
-                                                                e.preventDefault(); // Stop the comma/space from showing up in the text box
+                                                                e.preventDefault(); // Stop ',' or ' ' from appearing in the text field
 
-                                                                // Prevent duplicate additions from this keypress
+                                                                // Add email if it doesn't already exist in your array
                                                                 if (!selectedEmailsArray.includes(inputValue)) {
                                                                     onChange([...selectedEmailsArray, inputValue]);
                                                                 }
 
-                                                                // Force clear the MUI text input display
-                                                                target.value = '';
-                                                                // Triggers MUI internal input reset
-                                                                const event = new Event('input', { bubbles: true });
-                                                                target.dispatchEvent(event);
+                                                                setEmailInput(''); // Completely wipes the input field safely via state
                                                             }
 
-                                                            // Maintain any original MUI onKeyDown logic
+                                                            // Maintain MUI's internal chip creation via 'Enter' key
                                                             if (params.inputProps.onKeyDown) {
                                                                 params.inputProps.onKeyDown(e);
                                                             }
@@ -904,26 +915,22 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             )}
                                             sx={{
                                                 mt: 2,
-                                                // 1. Targets the text inside the standard input field when disabled
                                                 '& .MuiInputBase-input.Mui-disabled': {
                                                     color: '#000000',
-                                                    WebkitTextFillColor: '#000000', // Necessary for Safari/iOS compatibility
+                                                    WebkitTextFillColor: '#000000',
                                                 },
-                                                // 2. Targets the text inside the selected tags/chips when disabled
                                                 '& .MuiChip-root.Mui-disabled': {
                                                     color: '#000000',
-                                                    opacity: 1, // Restores text sharpness from default opacity reduction
+                                                    opacity: 1,
                                                     '& .MuiChip-label': {
                                                         color: '#000000',
                                                     }
                                                 },
-                                                // 3. Optional: Keeps the input label text readable/black when disabled
                                                 '& .MuiInputLabel-root.Mui-disabled': {
                                                     color: '#000000',
                                                 }
                                             }}
                                         />
-
                                     );
                                 }}
                             />

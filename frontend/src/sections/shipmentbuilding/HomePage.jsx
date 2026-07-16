@@ -123,7 +123,7 @@ export default function HomePage() {
                 <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
 
 
-                {/* <ShipmentViewTable /> */}
+                <ShipmentViewTable />
 
 
 

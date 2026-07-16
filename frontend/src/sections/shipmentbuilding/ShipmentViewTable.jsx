@@ -2,13 +2,15 @@ import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Stack, Typography, Button, Dialog,
-    DialogContent, Tooltip, Divider, IconButton, Chip, Snackbar, Alert
+    DialogContent, Tooltip, Divider, IconButton, Chip, Snackbar, Alert,
+    MenuItem, FormControlLabel, Checkbox,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
+import MenuPopover from '../../components/menu-popover';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
@@ -36,6 +38,28 @@ export default function ShipmentViewTable({ }) {
     });
     const [shipmentSuccessFlag, setShipmentSuccessFlag] = useState(false);
     const [shipmentViewTableData, setShipmentViewTableData] = useState([]);
+    const [openPopover, setOpenPopover] = useState(false);
+    const [anchorEl, setAnchorEl] = useState(null);
+
+    const handleUserMenu = (event) => {
+        setOpenPopover(true);
+        setAnchorEl(event?.currentTarget);
+    }
+    const handleClosePopover = () => {
+        setOpenPopover(false);
+        setAnchorEl(null);
+    };
+    const handleClickedItem = async (event) => {
+        if (event?.target?.id === 'delete') {
+            // Handle delete action
+        }
+        setOpenPopover(false);
+        setAnchorEl(null);
+    }
+    const handleCheckboxDelete = (rowId, isChecked) => {
+        console.log(`Row ID: ${rowId} checked for delete: ${isChecked}`);
+        // Track checked items here in a useState array
+    };
 
     const shipmentColumns = [
         {
@@ -173,28 +197,70 @@ export default function ShipmentViewTable({ }) {
         {
             field: "actions",
             headerName: "Action",
-            minWidth: 300,
+            minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
             flex: 1,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
-                const element = (
-                    <Box>
-                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                // Safe access to your underlying row data if needed
+                const rowId = params.id;
+
+                return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                        <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
                             <IconButton>
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
-                            <IconButton >
+
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 1 }}>
+                            <IconButton>
                                 <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>
+
+                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                            <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
+                        </IconButton>
+
+                        {/* Checkbox with Delete Label */}
+                        <FormControlLabel
+                            label="Del"
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+                                    // Checked state should ideally bind to a tracking state array in your component
+                                    onChange={(event) => {
+                                        event.stopPropagation(); // Stops DataGrid row-click selection triggers
+                                        handleCheckboxDelete(rowId, event.target.checked);
+                                    }}
+                                />
+                            }
+                            sx={{
+                                ml: 1,
+                                '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
+                            }}
+                        />
+
+                        {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
+                        <MenuPopover
+                            open={openPopover}
+                            anchorEl={anchorEl}
+                            onClose={handleClosePopover}
+                            sx={{ width: 150, p: 0, bgcolor: '#A22' }}
+                            disableScrollLock
+                        >
+                            <Stack sx={{ p: 1 }}>
+                                <MenuItem key="1" onClick={() => handleClickedItem(rowId)} id={"delete"} sx={{ color: "#fff" }}>
+                                    Delete
+                                </MenuItem>
+                            </Stack>
+                        </MenuPopover>
                     </Box>
                 );
-                return element;
             },
-        },
+        }
     ];
 
     // get call for notes
@@ -231,7 +297,7 @@ export default function ShipmentViewTable({ }) {
 
             // 4. Return the newly structured row object
             return {
-                shipmentId : shipmentId,
+                shipmentId: shipmentId,
                 shipmentPRONo: "", // Kept empty as requested
                 customerName: customerDetails?.customerName ?? "",
                 origin: formatAddress(shipper),
@@ -257,7 +323,7 @@ export default function ShipmentViewTable({ }) {
     return (
         <>
 
-            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+            {/* <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
                     rows={shipmentViewTableData}
@@ -294,7 +360,7 @@ export default function ShipmentViewTable({ }) {
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 />
-            </Box>
+            </Box> */}
 
             <Snackbar
                 open={shipmentSuccessFlag}

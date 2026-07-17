@@ -753,7 +753,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
         open={snackbar.open}
         autoHideDuration={6000}
         onClose={handleCloseSnackbar}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Optional position tweak
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }} // Optional position tweak
       >
         <Alert
           onClose={handleCloseSnackbar}
@@ -1676,7 +1676,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
           open={snackbar.open}
           autoHideDuration={6000}
           onClose={handleCloseSnackbar}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Optional position tweak
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }} // Optional position tweak
         >
           <Alert
             onClose={handleCloseSnackbar}

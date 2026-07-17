@@ -1495,42 +1495,61 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         {/* Row 2: Weight, Technical Name, Contact Phone */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
           <Box sx={{ flex: '1 1 20%', }}>
-              <TextField
-                label="Weight"
-                required
-                variant="standard"
-                fullWidth
-                value={localData.weight || ''} // Fallback to empty string if undefined
-                error={!!errors.weight} // Assumes you have an errors object like other fields
-                helperText={errors.weight || ''}
-                onChange={(e) => {
-                  let val = e.target.value;
+            <TextField
+              label="Weight"
+              required
+              variant="standard"
+              fullWidth
+              value={localData.weight || ''} // Fallback to empty string if undefined
+              error={!!errors.weight} // Assumes you have an errors object like other fields
+              helperText={errors.weight || ''}
+              onChange={(e) => {
+                let val = e.target.value;
 
-                  // 1. Instantly strip out any characters that are NOT digits or periods
-                  val = val.replace(/[^0-9.]/g, '');
+                // 1. Instantly strip out any characters that are NOT digits or periods
+                val = val.replace(/[^0-9.]/g, '');
 
-                  // 2. Prevent entering multiple decimal points (e.g., 12.5.5 becomes 12.55)
-                  const splitValue = val.split('.');
-                  if (splitValue.length > 2) {
-                    val = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
-                  }
+                // 2. Prevent entering multiple decimal points (e.g., 12.5.5 becomes 12.55)
+                const splitValue = val.split('.');
+                if (splitValue.length > 2) {
+                  val = `${splitValue[0]}.${splitValue.slice(1).join('')}`;
+                }
 
-                  // 3. Update the state with the cleaned numeric string
-                  handleChange('weight', val);
+                // 3. Update the state with the cleaned numeric string
+                handleChange('weight', val);
 
-                  // 4. Real-time validation logic (optional, matching your other form fields)
-                  if (!val) {
-                    setErrors(prev => ({ ...prev, weight: 'Weight is required' }));
-                  } else {
-                    setErrors(prev => ({ ...prev, weight: null }));
-                  }
-                }}
-                // Hints mobile browsers to show a decimal-friendly numeric pad
-                inputProps={{ inputMode: 'decimal' }}
-              />
+                // 4. Real-time validation logic (optional, matching your other form fields)
+                if (!val) {
+                  setErrors(prev => ({ ...prev, weight: 'Weight is required' }));
+                } else {
+                  setErrors(prev => ({ ...prev, weight: null }));
+                }
+              }}
+              // Hints mobile browsers to show a decimal-friendly numeric pad
+              inputProps={{ inputMode: 'decimal' }}
+            />
           </Box>
           <Box sx={{ flex: '1 1 15%', }}>
-            <TextField label = "UOM" required variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} />
+            <TextField
+              label="UOM"
+              required
+              variant="standard"
+              fullWidth // Added to maintain consistent sizing layout
+              value={localData.weightUnit || ""}
+              onChange={(e) => {
+                // 1. FIXED: Truncates text instantly to a 10 character maximum limit
+                const val = e.target.value;
+                handleChange('weightUnit', val.slice(0, 10));
+              }}
+              // 2. FIXED: Wire up errors dynamically if tracking via a validation error state map
+              error={!!errors?.weightUnit}
+              helperText={errors?.weightUnit || ""}
+              // 3. FIXED: Hard browser barrier blocking physical keyboard strokes at character 10
+              inputProps={{
+                maxLength: 10
+              }}
+            />
+
           </Box>
           <Box sx={{ flex: '1 1 25%' }}>
             <TextField

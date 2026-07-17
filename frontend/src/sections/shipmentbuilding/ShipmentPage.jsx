@@ -10644,7 +10644,7 @@ const ShipmentForm = ({ type }) => {
               <CarrierSection
                 type={type}
                 fields={carrierRatesLineHaulAccessorials}
-                sectionName={`Line Haul Carrier ${watchedCarrierRateInfo.lineHaul.lineHaulCarrier ? `-  ${carrierTerminalDropdown.find(
+                sectionName={`Line Haul Carrier ${(watchedCarrierRateInfo.lineHaul.lineHaulCarrier && (selectedRouting === 'pickup_only' && (watchedLinehaulSelectRouting === 'linehaul_only' || watchedLinehaulSelectRouting === 'linehaul_delivery'))) ? `-  ${carrierTerminalDropdown.find(
                   (item) => item.terminalId === Number(watchedSelectedLineHaulCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedLineHaulCarrier.split('-')?.[1])
                 )?.carrierName || ''}` : ''}`}
                 rate={'carrierRates.lineHaul.lineHaulRate'}
@@ -10674,7 +10674,7 @@ const ShipmentForm = ({ type }) => {
               <CarrierSection
                 type={type}
                 fields={carrierRatesDeliveryAccessorials}
-                sectionName={`Delivery Carrier ${watchedCarrierRateInfo.delivery.deliveryCarrier ? `-  ${carrierTerminalDropdown.find(
+                sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only'  && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
                   (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
                 )?.carrierName || ''}` : ''}`}
                 rate='carrierRates.delivery.deliveryRate'

@@ -7868,7 +7868,7 @@ const ShipmentForm = ({ type }) => {
                               // FIXED: Displays the grayed-out placeholder when the value is empty
                               renderValue: (selected) => {
                                 if (!selected || selected === "") {
-                                  return <span style={{ color: '#aaa' }}>Select the Handling Units</span>;
+                                  return <span style={{ color: '#aaa', fontSize : '12px' }}>Select the Handling Units</span>;
                                 }
                                 return selected;
                               },
@@ -8038,7 +8038,7 @@ const ShipmentForm = ({ type }) => {
                             SelectProps={{
                               displayEmpty: true,
                               // This ensures the input only shows the value, not the "(Recommended)" text
-                              renderValue: (selected) => selected || <em>Select Class</em>,
+                              renderValue: (selected) => selected || <em style={{fontSize : '12px'}}>Select Class</em>,
                               MenuProps: {
                                 getContentAnchorEl: null,
                                 disableScrollLock: true,

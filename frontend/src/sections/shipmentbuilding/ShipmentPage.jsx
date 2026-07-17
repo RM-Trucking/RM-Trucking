@@ -8203,7 +8203,7 @@ const ShipmentForm = ({ type }) => {
                               fullWidth
                               variant="standard"
                               label="To Location *"
-                              value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                             value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
                               disabled // Visual indicator showing the user it cannot be changed manually
                               InputLabelProps={{ shrink: true }}
                               sx={{
@@ -8922,7 +8922,7 @@ const ShipmentForm = ({ type }) => {
                                   fullWidth
                                   variant="standard"
                                   label="To Location *"
-                                  value={watchedConsigneeName.consigneeName ?? ''}// Your hardcoded static value displayed to the user
+                                  value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
                                   disabled // Visual indicator showing the user it cannot be changed manually
                                   InputLabelProps={{ shrink: true }}
                                   sx={{

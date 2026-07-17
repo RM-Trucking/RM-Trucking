@@ -1108,7 +1108,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
       { key: 'packagingGroup', label: 'Packaging Group' },
       { key: 'hazmatClass', label: 'Hazmat Class' },
       { key: 'weight', label: 'Weight' },
-      { key: 'technicalName', label: 'Technical Name' },
+      { key: 'weightUnit', label: 'UOM' },
       { key: 'contactPhone', label: 'Contact Phone' }
     ];
 
@@ -1494,8 +1494,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
         {/* Row 2: Weight, Technical Name, Contact Phone */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
-          <Box sx={{ flex: '1 1 25%', }}>
-            <Box display={'flex'} alignItems={'flex-end'}>
+          <Box sx={{ flex: '1 1 20%', }}>
               <TextField
                 label="Weight"
                 required
@@ -1529,17 +1528,13 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                 // Hints mobile browsers to show a decimal-friendly numeric pad
                 inputProps={{ inputMode: 'decimal' }}
               />
-
-              <TextField select variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} sx={{ width: '80px' }} disabled>
-                <MenuItem value="lbs">lbs</MenuItem>
-                <MenuItem value="kgs">kgs</MenuItem>
-              </TextField>
-            </Box>
+          </Box>
+          <Box sx={{ flex: '1 1 15%', }}>
+            <TextField label = "UOM" required variant="standard" value={localData.weightUnit} onChange={(e) => handleChange('weightUnit', e.target.value)} />
           </Box>
           <Box sx={{ flex: '1 1 25%' }}>
             <TextField
               label="Technical Name"
-              required
               variant="standard"
               fullWidth
               // Fallback to empty string if value is undefined or null to prevent un-controlled input warnings

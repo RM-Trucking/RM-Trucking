@@ -4972,7 +4972,7 @@ const ShipmentForm = ({ type }) => {
         "zipCode": currentValues.shipperZip,
         "contactPersonName": currentValues.shipperContact,
         "phoneNumber": currentValues.shipperPhone,
-        'entityId': currentValues?.shipperName?.entityId,
+        'entityId': currentValues?.shipperName?.entityId || null,
       },
       "pickupAirlineDetails": {
         "airlineId": currentValues?.shipperName?.shipperId || currentValues?.shipperName?.airlineId || null,
@@ -5001,7 +5001,7 @@ const ShipmentForm = ({ type }) => {
         "zipCode": currentValues.consigneeZip,
         "contactPersonName": currentValues.consigneeContact,
         "phoneNumber": currentValues.consigneePhone,
-        'entityId': currentValues?.consigneeName?.entityId,
+        'entityId': currentValues?.consigneeName?.entityId || null,
       },
       "deliveryAirlineDetails": {
         "airlineId": currentValues?.consigneeName?.consigneeId || currentValues?.consigneeName?.airlineId || null,
@@ -5125,7 +5125,7 @@ const ShipmentForm = ({ type }) => {
     }
 
 
-    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+    if (selectedRouting === 'pickup_only') {
       // obj to send
       // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
       // fromLocationEntityId not there in from location
@@ -5135,6 +5135,7 @@ const ShipmentForm = ({ type }) => {
           "pickupRouting": "PICKUP_ONLY",
           "fromLocationType": "Shipper",
           "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
           "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
           "carrierId": Number(pickupCarrierId),
           "terminalId": Number(pickupTerminalId),
@@ -5149,8 +5150,62 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.toLocation,
-            "toLocationEntityId": selectedPickupToCarrierObject?.entityId || null,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
+            "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
+            "editToLocationDetails": {
+              "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
+              "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
+              "city": currentValues?.carrierInfo?.manualToAddress?.city,
+              "state": currentValues?.carrierInfo?.manualToAddress?.state,
+              "zipCode": currentValues?.carrierInfo?.manualToAddress?.zipCode
+            }
+          },
+          "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
+          "pickupAccessorialDetails": {
+            "accessorials": currentValues?.carrierInfo?.pickupAccessorials?.map(({ id, selected, notes, ...rest }) => ({
+              ...rest,
+              notes: notes?.map(({ noteMessageId, ...noteRest }) => noteRest)
+            })),
+          },
+          "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
+          "pickupAlertDetails": {
+            "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+            "emailInfo": {
+              "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
+              "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+            }
+          }
+        },
+      }
+    }
+    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+      // obj to send
+      // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
+      // fromLocationEntityId not there in from location
+      obj.carrierDetails = {
+
+        "pickupDetails": {
+          "pickupRouting": "PICKUP_ONLY",
+          "fromLocationType": "Shipper",
+          "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
+          "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
+          "carrierId": Number(pickupCarrierId),
+          "terminalId": Number(pickupTerminalId),
+          "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+          "editFromLocationDetails": {
+            "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
+            "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
+            "city": currentValues?.carrierInfo?.manualAddress?.city,
+            "state": currentValues?.carrierInfo?.manualAddress?.state,
+            "zipCode": currentValues?.carrierInfo?.manualAddress?.zipCode
+          },
+          "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
+          "pickupAgentTerminalDetails": {
+            "toLocationType": "Carrier",
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
@@ -5184,11 +5239,11 @@ const ShipmentForm = ({ type }) => {
             "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
             "fromLocationType": "Carrier",
             "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
-            "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
+            "fromLocationEntityId": selectedLinehaulCarrierObject?.terminalEntityId || null,
             "toLocationType": "Carrier",
             "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
             // still to get
-            "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+            "toLocationEntityId": selectedLinehaulToCarrierObject?.terminalEntityId || null,
             "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
             "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
             "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
@@ -5228,10 +5283,10 @@ const ShipmentForm = ({ type }) => {
             "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
             "fromLocationType": "Carrier",
             "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
-            "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+            "fromLocationEntityId": selectedDeliveryCarrierObject?.terminalEntityId || null,
             "toLocationType": "Consignee",
-            "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
-            "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+            "toLocation": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+            "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
             "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
             "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
@@ -5283,6 +5338,7 @@ const ShipmentForm = ({ type }) => {
           "pickupRouting": "PICKUP_ONLY",
           "fromLocationType": "Shipper",
           "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
           "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
           "carrierId": Number(pickupCarrierId),
           "terminalId": Number(pickupTerminalId),
@@ -5297,8 +5353,8 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.toLocation,
-            "toLocationEntityId": selectedPickupCarrierObject?.entityId,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
@@ -5332,10 +5388,10 @@ const ShipmentForm = ({ type }) => {
             "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
             "fromLocationType": "Carrier",
             "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
-            "fromLocationEntityId": selectedLinehaulCarrierObject?.entityId,
-            "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.lineHaul?.toLocation,
-            "toLocationEntityId": selectedLinehaulToCarrierObject?.entityId,
+            "fromLocationEntityId": selectedLinehaulCarrierObject?.terminalEntityId || null,
+            "toLocationType": "Consignee",
+            "toLocation": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+            "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
             "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
             "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
@@ -5392,8 +5448,9 @@ const ShipmentForm = ({ type }) => {
 
         "pickupDetails": {
           "pickupRouting": "PICKUP_LINE_HAUL",
-          "fromLocationType": "Carrier",
+          "fromLocationType": "Shipper",
           "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
           "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
           "carrierId": Number(pickupCarrierId),
           "terminalId": Number(pickupTerminalId),
@@ -5408,8 +5465,8 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.toLocation,
-            "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
@@ -5449,12 +5506,12 @@ const ShipmentForm = ({ type }) => {
             "carrierId": Number(deliveryCarrierId),
             "terminalId": Number(deliveryTerminalId),
             "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
-            "fromLocationType": "Consignee",
+            "fromLocationType": "Carrier",
             "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
-            "fromLocationEntityId": selectedDeliveryCarrierObject?.entityId,
+            "fromLocationEntityId": selectedDeliveryCarrierObject?.terminalEntityId || null,
             "toLocationType": "Consignee",
-            "toLocation": currentValues?.carrierInfo?.deliveryDetails?.toLocation,
-            "toLocationEntityId": selectedDeliveryToCarrierObject?.entityId,
+            "toLocation": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+            "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
             "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
             "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
@@ -5501,8 +5558,9 @@ const ShipmentForm = ({ type }) => {
 
         "pickupDetails": {
           "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
-          "fromLocationType": "Carrier",
+          "fromLocationType": "Shipper",
           "fromLocation": currentValues?.carrierInfo?.fromLocation,
+          "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
           "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
           "carrierId": Number(pickupCarrierId),
           "terminalId": Number(pickupTerminalId),
@@ -5517,8 +5575,8 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Consignee",
-            "toLocation": currentValues?.carrierInfo?.toLocation,
-            "toLocationEntityId": selectedPickupToCarrierObject?.entityId,
+            "toLocation": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+            "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
@@ -5591,13 +5649,15 @@ const ShipmentForm = ({ type }) => {
         totalRate: factor === 0 ? value : factor * value
       };
     });
-    transformedPickupArray.push({
-      rateType: 'Zip to Zip',
-      multiplicationFactor: null,
-      multiplicationFactorUOM: '',
-      rateValue: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
-      totalRate: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
-    });
+    if (currentValues?.carrierRates?.pickUp?.pickUpRate) {
+      transformedPickupArray.push({
+        rateType: 'Zip to Zip',
+        multiplicationFactor: null,
+        multiplicationFactorUOM: '',
+        rateValue: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
+        totalRate: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
+      });
+    }
     const transformedLinehaulArray = currentValues?.carrierRates?.lineHaul?.lineHaulAccessorials?.map(item => {
       // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
       const factor = Number(item.input) || 0;
@@ -5612,13 +5672,15 @@ const ShipmentForm = ({ type }) => {
         totalRate: factor === 0 ? value : factor * value
       };
     });
-    transformedLinehaulArray.push({
-      rateType: 'Zip to Zip',
-      multiplicationFactor: null,
-      multiplicationFactorUOM: '',
-      rateValue: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
-      totalRate: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
-    });
+    if (currentValues?.carrierRates?.lineHaul?.lineHaulRate) {
+      transformedLinehaulArray.push({
+        rateType: 'Zip to Zip',
+        multiplicationFactor: null,
+        multiplicationFactorUOM: '',
+        rateValue: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
+        totalRate: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
+      });
+    }
     const transformedDeliveryArray = currentValues?.carrierRates?.delivery?.deliveryAccessorials?.map(item => {
       // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
       const factor = Number(item.input) || 0;
@@ -5633,13 +5695,15 @@ const ShipmentForm = ({ type }) => {
         totalRate: factor === 0 ? value : factor * value
       };
     });
-    transformedDeliveryArray.push({
-      rateType: 'Zip to Zip',
-      multiplicationFactor: null,
-      multiplicationFactorUOM: '',
-      rateValue: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
-      totalRate: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
-    });
+    if (currentValues?.carrierRates?.delivery?.deliveryRate) {
+      transformedDeliveryArray.push({
+        rateType: 'Zip to Zip',
+        multiplicationFactor: null,
+        multiplicationFactorUOM: '',
+        rateValue: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
+        totalRate: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
+      });
+    }
     const pickupSubTotalRate = transformedPickupArray.reduce((accumulator, item) => {
       // Force convert totalRate to a number safely, falling back to 0 if null/undefined
       const currentRate = Number(item.totalRate) || 0;
@@ -5669,20 +5733,25 @@ const ShipmentForm = ({ type }) => {
         totalRate: factor === 0 ? value : factor * value
       };
     });
-    transformedCustomerArray.push({
-      rateType: 'Rate',
-      multiplicationFactor: null,
-      multiplicationFactorUOM: '',
-      rateValue: Number(currentValues?.customerRate?.rate),
-      totalRate: Number(currentValues?.customerRate?.rate),
-    });
-    transformedCustomerArray.push({
-      rateType: 'Fuel Surcharge (35% charge)',
-      multiplicationFactor: null,
-      multiplicationFactorUOM: '',
-      rateValue: Number(currentValues?.customerRate?.fuelSurchargeRate),
-      totalRate: Number(currentValues?.customerRate?.fuelSurchargeRate),
-    });
+    if (currentValues?.customerRate?.rate) {
+      transformedCustomerArray.push({
+        rateType: 'Rate',
+        multiplicationFactor: null,
+        multiplicationFactorUOM: '',
+        rateValue: Number(currentValues?.customerRate?.rate),
+        totalRate: Number(currentValues?.customerRate?.rate),
+      });
+    }
+    if (currentValues?.customerRate?.fuelSurchargeRate) {
+      transformedCustomerArray.push({
+        rateType: 'Fuel Surcharge (35% charge)',
+        multiplicationFactor: null,
+        multiplicationFactorUOM: '',
+        rateValue: Number(currentValues?.customerRate?.fuelSurchargeRate),
+        totalRate: Number(currentValues?.customerRate?.fuelSurchargeRate),
+      });
+    }
+
 
     obj.shipmentRateDetails = {
       "carrierRateDetails": {
@@ -5713,8 +5782,27 @@ const ShipmentForm = ({ type }) => {
         )
       }
     }
-    console.log(obj.shipmentRateDetails);
+    if (transformedPickupArray && transformedPickupArray.length === 0) {
+      delete obj.shipmentRateDetails.carrierRateDetails.pickupRateDetails;
+    }
+    if (transformedLinehaulArray && transformedLinehaulArray.length === 0) {
+      delete obj.shipmentRateDetails.carrierRateDetails.linehaulRateDetails;
+    }
+    if (transformedDeliveryArray && transformedDeliveryArray.length === 0) {
+      delete obj.shipmentRateDetails.carrierRateDetails.deliveryRateDetails;
+    }
 
+    if (transformedPickupArray && transformedPickupArray.length === 0 && transformedLinehaulArray && transformedLinehaulArray.length === 0 && transformedDeliveryArray && transformedDeliveryArray.length === 0) {
+      delete obj.shipmentRateDetails.carrierRateDetails;
+    }
+
+    if (transformedCustomerArray && transformedCustomerArray.length === 0) {
+      delete obj.shipmentRateDetails.customerRateDetails;
+    }
+
+    if (transformedPickupArray && transformedPickupArray.length === 0 && transformedLinehaulArray && transformedLinehaulArray.length === 0 && transformedDeliveryArray && transformedDeliveryArray.length === 0 && transformedCustomerArray && transformedCustomerArray.length === 0) {
+      delete obj.shipmentRateDetails;
+    }
     if (activeStep === 4) {
       dispatch(postStep1(obj));
     }
@@ -5765,7 +5853,7 @@ const ShipmentForm = ({ type }) => {
         "zipCode": currentValues.shipperZip,
         "contactPersonName": currentValues.shipperContact,
         "phoneNumber": currentValues.shipperPhone,
-        'entityId': currentValues?.shipperName?.entityId,
+        'entityId': currentValues?.shipperName?.entityId || null,
       },
       "pickupAirlineDetails": {
         "airlineId": currentValues?.shipperName?.shipperId || currentValues?.shipperName?.airlineId || null,
@@ -5794,7 +5882,7 @@ const ShipmentForm = ({ type }) => {
         "zipCode": currentValues.consigneeZip,
         "contactPersonName": currentValues.consigneeContact,
         "phoneNumber": currentValues.consigneePhone,
-        'entityId': currentValues?.consigneeName?.entityId,
+        'entityId': currentValues?.consigneeName?.entityId || null,
       },
       "deliveryAirlineDetails": {
         "airlineId": currentValues?.consigneeName?.consigneeId || currentValues?.consigneeName?.airlineId || null,
@@ -5920,6 +6008,7 @@ const ShipmentForm = ({ type }) => {
             "pickupRouting": "PICKUP_ONLY",
             "fromLocationType": "Shipper",
             "fromLocation": currentValues?.carrierInfo?.fromLocation,
+            "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
             "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
             "carrierId": Number(pickupCarrierId),
             "terminalId": Number(pickupTerminalId),
@@ -5934,8 +6023,8 @@ const ShipmentForm = ({ type }) => {
             "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
             "pickupAgentTerminalDetails": {
               "toLocationType": "Carrier",
-              "toLocation": currentValues?.carrierInfo?.toLocation || selectedPickupCarrierObject.carrierName,
-              "toLocationEntityId": selectedPickupToCarrierObject?.entityId || null,
+              "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+              "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
               "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
               "editToLocationDetails": {
                 "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,

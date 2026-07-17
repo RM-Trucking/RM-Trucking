@@ -4286,84 +4286,101 @@ const ShipmentForm = ({ type }) => {
 
 
   const renderTextField = (name, label, required = false) => {
+    const labelLower = label.toLowerCase();
+    const nameLower = name.toLowerCase();
 
-    // Check if the current field is a city or state field
+    // Check field characteristics
     const isCityOrState = ['city', 'state'].some(keyword =>
-      name.toLowerCase().includes(keyword) || label.toLowerCase().includes(keyword)
+      nameLower.includes(keyword) || labelLower.includes(keyword)
     );
-    const isAirport = name.toLowerCase().includes('airport');
+    const isAirport = nameLower.includes('airport');
 
-    // Dynamic Rules based on field type
-    const validationRules = isAirport ? {
-      // If required is passed as true explicitly, use it; otherwise, it is optional
-      required: required ? `${label} is required` : false,
-      maxLength: {
-        value: 10,
-        message: `${label} cannot exceed 10 characters`
-      },
-      pattern: {
-        value: /^[A-Z]{3,10}$/,
-        message: 'Must be between 3 and 10 letters'
-      },
-      // Only validates spaces if a value actually exists
-      validate: (value) => !value || value.trim().length > 0 || `${label} cannot be only spaces`
-    } : {
-      required: required
-    };
+    // FIXED 1: Determine dynamic maxLength values based on the field's label string
+    let maxCharLimit = null;
+    if (labelLower.includes('address line 1') || labelLower.includes('address line 2')) {
+      maxCharLimit = 255;
+    } else if (labelLower.includes('city') || labelLower.includes('state') || labelLower.includes('contact person name')) {
+      maxCharLimit = 100;
+    }
 
-    return (<Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+    // Dynamic Rules configuration builder
+    let validationRules = {};
 
-      <Controller
+    if (isAirport) {
+      validationRules = {
+        required: required ? `${label} is required` : false,
+        maxLength: {
+          value: 10,
+          message: `${label} cannot exceed 10 characters`
+        },
+        pattern: {
+          value: /^[A-Z]{3,10}$/,
+          message: 'Must be between 3 and 10 letters'
+        },
+        validate: (value) => !value || value.trim().length > 0 || `${label} cannot be only spaces`
+      };
+    } else {
+      // FIXED 2: Append custom maxLength validation constraints to standard text fields
+      validationRules = {
+        required: required ? `${label} is required` : false, // Fixed boolean required bug to show clean string errors
+        ...(maxCharLimit && {
+          maxLength: {
+            value: maxCharLimit,
+            message: `${label} cannot exceed ${maxCharLimit} characters`
+          }
+        })
+      };
+    }
 
-        name={name}
+    return (
+      <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+        <Controller
+          name={name}
+          control={control}
+          rules={validationRules}
+          render={({ field }) => (
+            <TextField
+              {...field}
+              value={field.value || ''}
+              onChange={(e) => {
+                let val = e.target.value;
 
-        control={control}
-
-        rules={validationRules}
-
-        render={({ field }) => (
-          <TextField
-            {...field}
-            value={field.value || ''}
-            onChange={(e) => {
-              let val = e.target.value;
-
-              if (isAirport) {
-                // 1. Prevent leading spaces
-                if (val.startsWith(' ')) {
-                  return;
+                if (isAirport) {
+                  if (val.startsWith(' ')) return;
+                  val = val
+                    .replace(/[^a-zA-Z]/g, '')
+                    .toUpperCase()
+                    .slice(0, 10);
+                  field.onChange(val);
+                } else {
+                  if (isCityOrState) {
+                    val = val.replace(/[^A-Za-z\s.-]/g, '');
+                  }
+                  // FIXED 3: Truncate normal strings inside onChange handler to prevent copy-paste length overflows
+                  if (maxCharLimit) {
+                    val = val.slice(0, maxCharLimit);
+                  }
+                  field.onChange(val);
                 }
-                // 2. Remove non-letters, convert to uppercase, limit to 10 characters
-                val = val
-                  .replace(/[^a-zA-Z]/g, '')
-                  .toUpperCase()
-                  .slice(0, 10);
+              }}
+              fullWidth
+              label={`${label}${required ? ' *' : ''}`}
+              variant="standard"
+              error={!!errors[name]}
+              helperText={errors[name]?.message || ""}
 
-                field.onChange(val);
-              } else {
-                if (isCityOrState) {
-                  // Instantly strips out numbers and most special characters from the input field
-                  val = val.replace(/[^A-Za-z\s.-]/g, '');
-                }
-                field.onChange(val); // Updates React Hook Form state for normal fields
-              }
-            }}
-            fullWidth
-            label={`${label}${required ? ' *' : ''}`}
-            variant="standard"
-            error={!!errors[name]}
-            helperText={errors[name]?.message || ""}
-            inputProps={isAirport ? {
-              maxLength: 10
-            } : {}}
-          />
-        )}
-
-      />
-
-    </Box>);
-
+              // FIXED 4: Inject the calculated maxLength attribute straight into the underlying HTML input node
+              inputProps={{
+                ...(isAirport && { maxLength: 10 }),
+                ...(!isAirport && maxCharLimit && { maxLength: maxCharLimit })
+              }}
+            />
+          )}
+        />
+      </Box>
+    );
   };
+
 
   const labelStyle = { fontSize: '0.75rem', color: '#555' };
   const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
@@ -6645,24 +6662,30 @@ const ShipmentForm = ({ type }) => {
                 <Box sx={{ flex: '1 1 22%' }}>
 
                   <Controller
-
                     name="serviceLevel"
-
                     control={control}
-
-                    rules={{ required: true }}
-
+                    // 1. FIXED: Pass the explicit string message instead of just 'true'
+                    rules={{ required: "This field is required" }}
                     render={({ field }) => (
-
-                      <TextField {...field} select fullWidth label="Service Level *" variant="standard" error={!!errors.serviceLevel}>
-
-                        {serviceLevels.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-
+                      <TextField
+                        {...field}
+                        select
+                        fullWidth
+                        label="Service Level *"
+                        variant="standard"
+                        error={!!errors.serviceLevel}
+                        // 2. FIXED: Displays the precise validation message when an error exists
+                        helperText={errors.serviceLevel ? errors.serviceLevel.message : ''}
+                      >
+                        {serviceLevels.map((opt) => (
+                          <MenuItem key={opt} value={opt}>
+                            {opt}
+                          </MenuItem>
+                        ))}
                       </TextField>
-
                     )}
-
                   />
+
 
                 </Box>
 
@@ -6672,18 +6695,28 @@ const ShipmentForm = ({ type }) => {
                     name="date"
                     control={control}
                     rules={{
-                      // 1. Mandatory condition rule
-                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Date is required' : false,
+                      // 1. Keeps your conditional required message contract intact
+                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'This field is required' : false,
 
                       validate: (value) => {
-                        // 2. FIXED: If value is missing, empty, or completely wiped out, it is valid (if not required)
-                        if (!value || value === '' || (dayjs.isDayjs(value) && !value.isValid() && !watchedServiceLevel?.includes('(Date Specific)'))) {
-                          return true;
+                        const isRequired = watchedServiceLevel?.includes('(Date Specific)');
+
+                        // Check if the current value is structurally empty or blank
+                        const isEmpty = !value || value === '';
+
+                        // 2. FIXED: If it is empty and required, return false to let the 'required' string error show up
+                        if (isEmpty) {
+                          return isRequired ? "This field is required" : true;
+                        }
+
+                        // If it is a Dayjs object structure but flagged invalid (like when a user clears a field manually)
+                        if (dayjs.isDayjs(value) && !value.isValid()) {
+                          return isRequired ? "This field is required" : true;
                         }
 
                         const dateObj = dayjs(value);
 
-                        // 3. Only throw error for '00/00/0000' if there is an actual typed string present
+                        // 3. Throw an error for '00/00/0000' strings
                         if (!dateObj.isValid()) {
                           return "Please enter a valid date";
                         }
@@ -6698,10 +6731,10 @@ const ShipmentForm = ({ type }) => {
                     render={({ field: { onChange, value, ...fieldParams } }) => (
                       <DatePicker
                         {...fieldParams}
-                        // Ensure bad strings do not crash the component UI display
-                        value={value && dayjs(value).isValid() ? dayjs(value) : null}
+                        // Allows user typing to display normally without locking or snapping back to blank midway
+                        value={value ? dayjs(value) : null}
                         onChange={(newValue) => {
-                          // 4. FIXED: If the user cleared out the text field, explicitly push null to the state
+                          // If the user cleared out the text field, explicitly push null to the state
                           if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
                             onChange(null);
                           } else {
@@ -6726,19 +6759,54 @@ const ShipmentForm = ({ type }) => {
                 <Box sx={{ flex: '1 1 22%' }}>
 
                   <Controller
-
                     name="time"
-
                     control={control}
+                    rules={{
+                      // 1. FIXED: Pass the explicit string message instead of a boolean value
+                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'This field is required' : false,
 
-                    rules={{ required: (watchedServiceLevel?.includes('(Date Specific)')) }}
+                      validate: (value) => {
+                        const isRequired = watchedServiceLevel?.includes('(Date Specific)');
+                        const isEmpty = !value || value === '';
 
-                    render={({ field }) => (
+                        // 2. Handle empty conditions against requirement states
+                        if (isEmpty) {
+                          return isRequired ? "This field is required" : true;
+                        }
 
-                      <TimePicker {...field} label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`} ampm={false} slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors.time } }} />
+                        // 3. Catch structural library validation failures (like typing 00:00 incorrectly or broken shapes)
+                        if (dayjs.isDayjs(value) && !value.isValid()) {
+                          return isRequired ? "This field is required" : "Please enter a valid time";
+                        }
 
+                        return true;
+                      }
+                    }}
+                    render={({ field: { onChange, value, ...fieldParams } }) => (
+                      <TimePicker
+                        {...fieldParams}
+                        ampm={false} // Maintains 24-hour military clock layout formatting
+                        value={value ? dayjs(value) : null}
+                        onChange={(newValue) => {
+                          // If the user manually backs out characters or clears it, pass a clean null state
+                          if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
+                            onChange(null);
+                          } else {
+                            onChange(newValue);
+                          }
+                        }}
+                        label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
+                        slotProps={{
+                          textField: {
+                            variant: 'standard',
+                            fullWidth: true,
+                            error: !!errors.time,
+                            // 4. FIXED: Renders the precise validation string message underneath the input row
+                            helperText: errors.time ? errors.time.message : ''
+                          }
+                        }}
+                      />
                     )}
-
                   />
 
                 </Box>
@@ -6891,14 +6959,20 @@ const ShipmentForm = ({ type }) => {
                     <Controller
                       name="shipperName"
                       control={control}
-                      // 1. FIXED: Matches requirement logic with your label condition
                       rules={{
                         validate: (value) => {
-                          const isRequired = !!watchedAirportPickupService; // Required if service is true
-                          const hasText = !!value?.shipperName?.trim();
+                          const isRequired = !!watchedAirportPickupService;
+                          const currentText = value?.shipperName || "";
+                          const hasText = !!currentText.trim();
 
+                          // 1. Mandatory structural baseline check
                           if (isRequired && !hasText) {
                             return "This field is required";
+                          }
+
+                          // 2. FIXED: Validation rule checking for strings exceeding 100 characters
+                          if (currentText.length > 100) {
+                            return "Shipper Name cannot exceed 100 characters";
                           }
                           return true;
                         }
@@ -6923,9 +6997,10 @@ const ShipmentForm = ({ type }) => {
 
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              onChange({ shipperId: null, shipperName: newValue });
+                              // Slice incoming values to strictly match 100 chars
+                              onChange({ shipperId: null, shipperName: newValue.slice(0, 100) });
                             } else if (newValue && newValue.inputValue) {
-                              onChange({ shipperId: null, shipperName: newValue.inputValue });
+                              onChange({ shipperId: null, shipperName: newValue.inputValue.slice(0, 100) });
                             } else if (newValue) {
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
@@ -6951,8 +7026,8 @@ const ShipmentForm = ({ type }) => {
 
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
-                              // 2. FIXED: Keeps the internal object contract intact when typing manually
-                              onChange({ shipperId: null, shipperName: newInputValue });
+                              // Slice layout text inputs to block long text loops
+                              onChange({ shipperId: null, shipperName: newInputValue.slice(0, 100) });
                               setValue('shipperAddr1', '');
                               setValue('shipperAddr2', '');
                               setValue('shipperCity', '');
@@ -6973,8 +7048,8 @@ const ShipmentForm = ({ type }) => {
 
                             if (inputValue !== '' && !isExisting) {
                               filtered.unshift({
-                                inputValue,
-                                shipperName: `${inputValue}`,
+                                inputValue: inputValue.slice(0, 100),
+                                shipperName: `${inputValue.slice(0, 100)}`,
                               });
                             }
 
@@ -7000,18 +7075,23 @@ const ShipmentForm = ({ type }) => {
                               {...params}
                               inputRef={ref}
                               fullWidth
-                              // 3. Label accurately reflects dynamic rules tracking
                               label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['shipperName']}
-                              // 4. FIXED: Displays the precise dynamic error string message
                               helperText={errors['shipperName'] ? errors['shipperName'].message : ''}
+
+                              // 3. FIXED: UI barrier stopping user from typing past character 100
+                              inputProps={{
+                                ...params.inputProps,
+                                maxLength: 100
+                              }}
                             />
                           )}
                           sx={{ width: '25%' }}
                         />
                       )}
                     />
+
 
                   )}
 
@@ -7029,6 +7109,15 @@ const ShipmentForm = ({ type }) => {
                           }
 
                           const textToValidate = typeof value === 'object' ? (value.airlineName || '') : (value || '');
+                          const parts = textToValidate.split('-').map(p => p.trim());
+                          const numPart = parts[0] || '';
+                          const codePart = parts[1] || '';
+                          const namePart = parts[2] || '';
+
+                          // FIXED 1: Schema-level check ensuring the name segment alone doesn't pass 100 characters
+                          if (namePart.length > 100) {
+                            return 'Airline Name cannot exceed 100 characters';
+                          }
 
                           const isPreExisting = shipperAirlineDropdown.some((opt) => {
                             const fullString = `${opt.airlineNumber} - ${opt.airlineCode} - ${opt.airlineName}`;
@@ -7036,17 +7125,10 @@ const ShipmentForm = ({ type }) => {
                           });
                           if (isPreExisting) return true;
 
-                          const parts = textToValidate.split('-').map(p => p.trim());
-                          const numPart = parts[0] || '';
-                          const codePart = parts[1] || '';
-                          const namePart = parts[2] || '';
-
-                          // FIX 1: Validate Airline Number (Accepts exactly 3 digits now)
                           if (!/^\d{3}$/.test(numPart)) {
                             return 'Airline Number must be exactly 3 digits (Ex: 001)';
                           }
 
-                          // FIX 2: Validate Airline Code (Accepts 2 or 3 letters now)
                           if (!/^[A-Za-z]{2,3}$/.test(codePart)) {
                             return 'Airline Code must be 2 or 3 letters (Ex: AA or AAA)';
                           }
@@ -7055,7 +7137,6 @@ const ShipmentForm = ({ type }) => {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // FIX 3: Final structural verification pattern update
                           const formatRegex = /^\d{3} - [A-Z]{2,3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
@@ -7064,130 +7145,152 @@ const ShipmentForm = ({ type }) => {
                           return true;
                         }
                       }}
-                      render={({ field: { onChange, value, ref } }) => (
-                        <Autocomplete
-                          freeSolo
-                          options={
-                            watchedOriginAirport
-                              ? shipperAirlineDropdown.filter((item) => item.airportCode === watchedOriginAirport)
-                              : shipperAirlineDropdown
+                      render={({ field: { onChange, value, ref } }) => {
+                        // Helper function to safely crop only the name portion to 100 characters max
+                        const enforceNameLimit = (text) => {
+                          if (!text) return '';
+                          const sections = text.split(' - ');
+                          if (sections.length >= 3) {
+                            // Recombine everything after the second hyphen and cap it at 100 characters
+                            const prefix = `${sections[0]} - ${sections[1]} - `;
+                            const namePart = sections.slice(2).join(' - ');
+                            return prefix + namePart.slice(0, 100);
                           }
-                          value={value || null}
-                          onChange={(event, newValue) => {
-                            if (typeof newValue === 'string') {
-                              onChange({ airlineId: null, airlineName: newValue });
-                            } else if (newValue && newValue.inputValue) {
-                              onChange({ airlineId: null, airlineName: newValue.inputValue });
-                            } else if (newValue) {
-                              onChange(newValue);
-                            } else {
-                              onChange(null);
+                          return text;
+                        };
+
+                        return (
+                          <Autocomplete
+                            freeSolo
+                            options={
+                              watchedOriginAirport
+                                ? shipperAirlineDropdown.filter((item) => item.airportCode === watchedOriginAirport)
+                                : shipperAirlineDropdown
                             }
-
-                            const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
-                            setValue('shipperAddr1', isSelection ? newValue?.addressLine1 || '' : '');
-                            setValue('shipperAddr2', isSelection ? newValue?.addressLine2 || '' : '');
-                            setValue('shipperCity', isSelection ? newValue?.city || '' : '');
-                            setValue('shipperState', isSelection ? newValue?.state || '' : '');
-                            setValue('shipperZip', isSelection ? newValue?.zipCode || '' : '');
-                            setValue('shipperContact', isSelection ? newValue?.contactPersonName || '' : '');
-                            setValue('shipperPhone', isSelection ? newValue?.phoneNumber || '' : '');
-                          }}
-                          onInputChange={(event, newInputValue, reason) => {
-                            if (reason === 'input') {
-                              const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
-                              let formatted = newInputValue;
-
-                              if (!isDeleting) {
-                                let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
-
-                                // FIX 4: Auto-append " - " when exactly 3 digits are typed
-                                if (/^\d{3}$/.test(clean)) {
-                                  formatted = `${clean} - `;
-                                }
-
-                                // FIX 5: Auto-format airline code (Allows 2 or 3 letters before appending space-hyphen)
-                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
-                                if (match) {
-                                  formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
-                                }
+                            value={value || null}
+                            onChange={(event, newValue) => {
+                              if (typeof newValue === 'string') {
+                                // FIXED 2: Cap name segment on entry
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(newValue) });
+                              } else if (newValue && newValue.inputValue) {
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(newValue.inputValue) });
+                              } else if (newValue) {
+                                onChange(newValue);
+                              } else {
+                                onChange(null);
                               }
 
-                              onChange({ airlineId: null, airlineName: formatted });
-                            }
-                          }}
-                          getOptionLabel={(option) => {
-                            if (typeof option === 'string') return option;
-                            if (option.inputValue) return option.inputValue;
-                            if (option.airlineId) {
-                              return `${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`;
-                            }
-                            return option.airlineName || '';
-                          }}
-                          isOptionEqualToValue={(option, val) =>
-                            option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
-                          }
-                          renderOption={(props, option, state) => {
-                            const { key, ...optionProps } = props;
-                            const uniqueKey = option.airlineId
-                              ? `airline-${option.airlineId}-${state.index}`
-                              : `custom-airline-${state.index}`;
+                              const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
+                              setValue('shipperAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                              setValue('shipperAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                              setValue('shipperCity', isSelection ? newValue?.city || '' : '');
+                              setValue('shipperState', isSelection ? newValue?.state || '' : '');
+                              setValue('shipperZip', isSelection ? newValue?.zipCode || '' : '');
+                              setValue('shipperContact', isSelection ? newValue?.contactPersonName || '' : '');
+                              setValue('shipperPhone', isSelection ? newValue?.phoneNumber || '' : '');
+                            }}
+                            onInputChange={(event, newInputValue, reason) => {
+                              if (reason === 'input') {
+                                const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                                let formatted = newInputValue;
 
-                            if (option.inputValue) {
+                                if (!isDeleting) {
+                                  let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                                  if (/^\d{3}$/.test(clean)) {
+                                    formatted = `${clean} - `;
+                                  }
+
+                                  const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
+                                  if (match) {
+                                    formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                                  }
+                                }
+
+                                // FIXED 3: Enforce strict 100-character cap on name segment while actively typing
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(formatted) });
+                              }
+                            }}
+                            getOptionLabel={(option) => {
+                              if (typeof option === 'string') return option;
+                              if (option.inputValue) return option.inputValue;
+                              if (option.airlineId) {
+                                return `${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`;
+                              }
+                              return option.airlineName || '';
+                            }}
+                            isOptionEqualToValue={(option, val) =>
+                              option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
+                            }
+                            renderOption={(props, option, state) => {
+                              const { key, ...optionProps } = props;
+                              const uniqueKey = option.airlineId
+                                ? `airline-${option.airlineId}-${state.index}`
+                                : `custom-airline-${state.index}`;
+
+                              if (option.inputValue) {
+                                return (
+                                  <Box component="li" key={uniqueKey} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                    Add : "{option.inputValue}"
+                                  </Box>
+                                );
+                              }
+
                               return (
-                                <Box component="li" key={uniqueKey} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
-                                  Add : "{option.inputValue}"
+                                <Box component="li" key={uniqueKey} {...optionProps}>
+                                  {`${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`}
                                 </Box>
                               );
-                            }
+                            }}
+                            filterOptions={(options, params) => {
+                              const { inputValue } = params;
+                              const searchStr = (inputValue || '').toLowerCase().trim();
 
-                            return (
-                              <Box component="li" key={uniqueKey} {...optionProps}>
-                                {`${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`}
-                              </Box>
-                            );
-                          }}
-                          filterOptions={(options, params) => {
-                            const { inputValue } = params;
-                            const searchStr = (inputValue || '').toLowerCase().trim();
-
-                            const filtered = options.filter((option) => {
-                              return (
-                                String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                                String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                                String(option.airlineName || '').toLowerCase().includes(searchStr) ||
-                                String(option.city || '').toLowerCase().includes(searchStr) ||
-                                String(option.airportCode || '').toLowerCase().includes(searchStr)
-                              );
-                            });
-
-                            const isExisting = options.some(
-                              (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
-                            );
-
-                            if (inputValue !== '' && !isExisting) {
-                              filtered.unshift({
-                                inputValue,
-                                airlineName: inputValue,
+                              const filtered = options.filter((option) => {
+                                return (
+                                  String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                  String(option.city || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airportCode || '').toLowerCase().includes(searchStr)
+                                );
                               });
-                            }
 
-                            return filtered;
-                          }}
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              inputRef={ref}
-                              fullWidth
-                              label={`Airline Name ${watchedAirportPickupService ? ' *' : ''}`}
-                              variant="standard"
-                              error={!!errors['shipperName']}
-                              helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
-                            />
-                          )}
-                          sx={{ width: '25%' }}
-                        />
-                      )}
+                              const isExisting = options.some(
+                                (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
+                              );
+
+                              if (inputValue !== '' && !isExisting) {
+                                filtered.unshift({
+                                  // FIXED 4: Cap custom filtering suggestion text lengths
+                                  inputValue: enforceNameLimit(inputValue),
+                                  airlineName: enforceNameLimit(inputValue)
+                                });
+                              }
+
+                              return filtered;
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                inputRef={ref}
+                                fullWidth
+                                label={`Airline Name ${watchedAirportPickupService ? ' *' : ''}`}
+                                variant="standard"
+                                error={!!errors['shipperName']}
+                                helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+
+                                // FIXED 5: Set hard layout barrier to 111 (Handles 11 prefix characters + 100 character custom name)
+                                inputProps={{
+                                  ...params.inputProps,
+                                  maxLength: 111
+                                }}
+                              />
+                            )}
+                            sx={{ width: '25%' }}
+                          />
+                        );
+                      }}
                     />
 
                   )}
@@ -7226,14 +7329,20 @@ const ShipmentForm = ({ type }) => {
                     <Controller
                       name="consigneeName"
                       control={control}
-                      // 1. FIXED: Corrects logic to validate when service is true, and deeply checks the text property
                       rules={{
                         validate: (value) => {
-                          const isRequired = !!watchedAirportDeliveryService; // Required if service is true
-                          const hasText = !!value?.consigneeName?.trim();
+                          const isRequired = !!watchedAirportDeliveryService;
+                          const currentText = value?.consigneeName || "";
+                          const hasText = !!currentText.trim();
 
+                          // 1. Mandatory requirement check
                           if (isRequired && !hasText) {
                             return "This field is required";
+                          }
+
+                          // 2. FIXED: Validation rule checking for strings exceeding 100 characters
+                          if (currentText.length > 100) {
+                            return "Consignee Name cannot exceed 100 characters";
                           }
                           return true;
                         }
@@ -7258,9 +7367,10 @@ const ShipmentForm = ({ type }) => {
 
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              onChange({ consigneeId: null, consigneeName: newValue });
+                              // Truncate manual entries to 100 characters max
+                              onChange({ consigneeId: null, consigneeName: newValue.slice(0, 100) });
                             } else if (newValue && newValue.inputValue) {
-                              onChange({ consigneeId: null, consigneeName: newValue.inputValue });
+                              onChange({ consigneeId: null, consigneeName: newValue.inputValue.slice(0, 100) });
                             } else if (newValue) {
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
@@ -7286,8 +7396,8 @@ const ShipmentForm = ({ type }) => {
 
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
-                              // 2. FIXED: Keeps the form value object contract valid and functional while typing manually
-                              onChange({ consigneeId: null, consigneeName: newInputValue });
+                              // Truncate characters to enforce the 100 limit during manual typing/copy-paste
+                              onChange({ consigneeId: null, consigneeName: newInputValue.slice(0, 100) });
                               setValue('consigneeAddr1', '');
                               setValue('consigneeAddr2', '');
                               setValue('consigneeCity', '');
@@ -7308,8 +7418,8 @@ const ShipmentForm = ({ type }) => {
 
                             if (inputValue !== '' && !isExisting) {
                               filtered.unshift({
-                                inputValue,
-                                consigneeName: `${inputValue}`,
+                                inputValue: inputValue.slice(0, 100),
+                                consigneeName: `${inputValue.slice(0, 100)}`,
                               });
                             }
 
@@ -7335,19 +7445,22 @@ const ShipmentForm = ({ type }) => {
                               {...params}
                               inputRef={ref}
                               fullWidth
-                              // 3. Dynamic label accurately tracks required status matches
                               label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['consigneeName']}
-                              // 4. FIXED: Renders the precise validation string message
                               helperText={errors['consigneeName'] ? errors['consigneeName'].message : ''}
+
+                              // 3. FIXED: Hard boundary blocking native keyboard strokes past 100 characters
+                              inputProps={{
+                                ...params.inputProps,
+                                maxLength: 100
+                              }}
                             />
                           )}
                           sx={{ width: '25%' }}
                         />
                       )}
                     />
-
                   )}
 
                   {watchedAirportDeliveryService && (
@@ -7359,43 +7472,39 @@ const ShipmentForm = ({ type }) => {
                         validate: (value) => {
                           if (!value) return true;
 
-                          // 1. Skip custom text check if a valid selection was chosen from the dropdown list
+                          const textToValidate = typeof value === 'object' ? (value.airlineName || '') : (value || '');
+                          const parts = textToValidate.split('-').map(p => p.trim());
+                          const numPart = parts[0] || '';
+                          const codePart = parts[1] || '';
+                          const namePart = parts[2] || '';
+
+                          // FIXED 1: Schema-level check ensuring the name segment alone doesn't pass 100 characters
+                          if (namePart.length > 100) {
+                            return 'Airline Name cannot exceed 100 characters';
+                          }
+
                           if (typeof value === 'object' && value.airlineId) {
                             return true;
                           }
 
-                          // 2. Safe extraction of string to check manually typed custom text entries
-                          const textToValidate = typeof value === 'object' ? (value.airlineName || '') : (value || '');
-
-                          // Check if the exact full string matches an existing option's formatted text
                           const isPreExisting = consigneeAirlineDropdown.some((opt) => {
                             const fullString = `${opt.airlineNumber} - ${opt.airlineCode} - ${opt.airlineName}`;
                             return textToValidate.trim().toLowerCase() === fullString.toLowerCase();
                           });
                           if (isPreExisting) return true;
 
-                          // 3. Strict component checks for completely custom text entries
-                          const parts = textToValidate.split('-').map(p => p.trim());
-                          const numPart = parts[0] || '';
-                          const codePart = parts[1] || '';
-                          const namePart = parts[2] || '';
-
-                          // FIX 1: Validate Airline Number (Accepts exactly 3 digits)
                           if (!/^\d{3}$/.test(numPart)) {
                             return 'Airline Number must be exactly 3 digits (Ex: 176)';
                           }
 
-                          // FIX 2: Validate Airline Code (Accepts 2 or 3 letters)
                           if (!/^[A-Za-z]{2,3}$/.test(codePart)) {
                             return 'Airline Code must be 2 or 3 letters (Ex: EK or AAA)';
                           }
 
-                          // Validate Airline Name exists
                           if (!namePart) {
                             return 'Please provide the Airline Name at the end';
                           }
 
-                          // FIX 3: Final structural verification (3 Digits - 2/3 Letters - Name)
                           const formatRegex = /^\d{3} - [A-Z]{2,3} - .+$/i;
                           if (!formatRegex.test(textToValidate.trim())) {
                             return 'Format error. Use: Airline Number - Airline Code - Airline Name';
@@ -7404,158 +7513,160 @@ const ShipmentForm = ({ type }) => {
                           return true;
                         }
                       }}
-
-                      render={({ field: { onChange, value, ref } }) => (
-                        <Autocomplete
-                          freeSolo
-                          options={
-                            watchedDestinationAirport ? consigneeAirlineDropdown.filter(
-                              (item) => item.airportCode === watchedDestinationAirport
-                            ) : consigneeAirlineDropdown
+                      render={({ field: { onChange, value, ref } }) => {
+                        // Helper function to safely crop only the name portion to 100 characters max
+                        const enforceNameLimit = (text) => {
+                          if (!text) return '';
+                          const sections = text.split(' - ');
+                          if (sections.length >= 3) {
+                            const prefix = `${sections[0]} - ${sections[1]} - `;
+                            const namePart = sections.slice(2).join(' - ');
+                            return prefix + namePart.slice(0, 100);
                           }
-                          value={value || null}
+                          return text;
+                        };
 
-                          onChange={(event, newValue) => {
-                            if (typeof newValue === 'string') {
-                              onChange({ airlineId: null, airlineName: newValue });
-                            } else if (newValue && newValue.inputValue) {
-                              onChange({ airlineId: null, airlineName: newValue.inputValue });
-                            } else if (newValue) {
-                              onChange(newValue);
-                            } else {
-                              onChange(null);
+                        return (
+                          <Autocomplete
+                            freeSolo
+                            options={
+                              watchedDestinationAirport ? consigneeAirlineDropdown.filter(
+                                (item) => item.airportCode === watchedDestinationAirport
+                              ) : consigneeAirlineDropdown
                             }
-
-                            // Set address fields safely in a single batched run on explicit choice or clear
-                            const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
-                            setValue('consigneeAddr1', isSelection ? newValue?.addressLine1 || '' : '');
-                            setValue('consigneeAddr2', isSelection ? newValue?.addressLine2 || '' : '');
-                            setValue('consigneeCity', isSelection ? newValue?.city || '' : '');
-                            setValue('consigneeState', isSelection ? newValue?.state || '' : '');
-                            setValue('consigneeZip', isSelection ? newValue?.zipCode || '' : '');
-                            setValue('consigneeContact', isSelection ? newValue?.contactPersonName || '' : '');
-                            setValue('consigneePhone', isSelection ? newValue?.phoneNumber || '' : '');
-                          }}
-
-                          onInputChange={(event, newInputValue, reason) => {
-                            if (reason === 'input') {
-                              const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
-                              let formatted = newInputValue;
-
-                              if (!isDeleting) {
-                                let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
-
-                                // FIX 4: Auto-append " - " when exactly 3 digits are typed
-                                if (/^\d{3}$/.test(clean)) {
-                                  formatted = `${clean} - `;
-                                }
-
-                                // FIX 5: Auto-format airline code (Allows 2 or 3 letters before appending space-hyphen)
-                                const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
-                                if (match) {
-                                  formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
-                                }
+                            value={value || null}
+                            onChange={(event, newValue) => {
+                              if (typeof newValue === 'string') {
+                                // FIXED 2: Cap name segment on entry
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(newValue) });
+                              } else if (newValue && newValue.inputValue) {
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(newValue.inputValue) });
+                              } else if (newValue) {
+                                onChange(newValue);
+                              } else {
+                                onChange(null);
                               }
 
-                              onChange({ airlineId: null, airlineName: formatted });
+                              const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
+                              setValue('consigneeAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                              setValue('consigneeAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                              setValue('consigneeCity', isSelection ? newValue?.city || '' : '');
+                              setValue('consigneeState', isSelection ? newValue?.state || '' : '');
+                              setValue('consigneeZip', isSelection ? newValue?.zipCode || '' : '');
+                              setValue('consigneeContact', isSelection ? newValue?.contactPersonName || '' : '');
+                              setValue('consigneePhone', isSelection ? newValue?.phoneNumber || '' : '');
+                            }}
+                            onInputChange={(event, newInputValue, reason) => {
+                              if (reason === 'input') {
+                                const isDeleting = event?.nativeEvent?.inputType === 'deleteContentBackward';
+                                let formatted = newInputValue;
+
+                                if (!isDeleting) {
+                                  let clean = newInputValue.replace(/[^A-Za-z0-9\s-]/g, '');
+
+                                  if (/^\d{3}$/.test(clean)) {
+                                    formatted = `${clean} - `;
+                                  }
+
+                                  const match = clean.match(/^(\d{3})\s*-\s*([A-Za-z]{2,3})$/);
+                                  if (match) {
+                                    formatted = `${match[1]} - ${match[2].toUpperCase()} - `;
+                                  }
+                                }
+
+                                // FIXED 3: Enforce strict 100-character cap on name segment while actively typing
+                                onChange({ airlineId: null, airlineName: enforceNameLimit(formatted) });
+                              }
+                            }}
+                            getOptionLabel={(option) => {
+                              if (typeof option === 'string') return option;
+                              if (option.inputValue) return option.inputValue;
+                              if (option.airlineId) {
+                                return `${option.airlineNumber || ''} - ${option.airlineCode || ''} - ${option.airlineName || ''} - ${option.city || ''} - ${option.airportCode || ''}`;
+                              }
+                              return option.airlineName || '';
+                            }}
+                            isOptionEqualToValue={(option, val) =>
+                              option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
                             }
-                          }}
+                            renderOption={(props, option, state) => {
+                              const { key, ...optionProps } = props;
+                              const uniqueKey = option.airlineId
+                                ? `consignee-airline-${option.airlineId}-${state.index}`
+                                : `custom-consignee-airline-${state.index}`;
 
-                          getOptionLabel={(option) => {
-                            if (typeof option === 'string') return option;
-                            if (option.inputValue) return option.inputValue;
+                              if (option.inputValue) {
+                                return (
+                                  <Box component="li" key={uniqueKey} {...optionProps} sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                                    Add :  "{option.inputValue}"
+                                  </Box>
+                                );
+                              }
 
-                            if (option.airlineId) {
                               const num = option.airlineNumber || '';
                               const code = option.airlineCode || '';
                               const name = option.airlineName || '';
                               const city = option.city || '';
                               const airCode = option.airportCode || '';
-                              return `${num} - ${code} - ${name} - ${city} - ${airCode}`;
-                            }
 
-                            return option.airlineName || '';
-                          }}
-
-                          isOptionEqualToValue={(option, val) =>
-                            option.airlineId === val?.airlineId || option.airlineName === val?.airlineName
-                          }
-
-                          renderOption={(props, option, state) => {
-                            const { key, ...optionProps } = props;
-                            const uniqueKey = option.airlineId
-                              ? `consignee-airline-${option.airlineId}-${state.index}`
-                              : `custom-consignee-airline-${state.index}`;
-
-                            if (option.inputValue) {
                               return (
-                                <Box
-                                  component="li"
-                                  key={uniqueKey}
-                                  {...optionProps}
-                                  sx={{ fontWeight: 'bold', color: 'primary.main' }}
-                                >
-                                  Add :  "{option.inputValue}"
+                                <Box component="li" key={uniqueKey} {...optionProps}>
+                                  {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
                                 </Box>
                               );
-                            }
+                            }}
+                            filterOptions={(options, params) => {
+                              const { inputValue } = params;
+                              const searchStr = (inputValue || '').toLowerCase().trim();
 
-                            const num = option.airlineNumber || '';
-                            const code = option.airlineCode || '';
-                            const name = option.airlineName || '';
-                            const city = option.city || '';
-                            const airCode = option.airportCode || '';
-
-                            return (
-                              <Box component="li" key={uniqueKey} {...optionProps}>
-                                {`${num} - ${code} - ${name} - ${city} - ${airCode}`}
-                              </Box>
-                            );
-                          }}
-
-                          filterOptions={(options, params) => {
-                            const { inputValue } = params;
-                            const searchStr = (inputValue || '').toLowerCase().trim();
-
-                            const filtered = options.filter((option) => {
-                              return (
-                                String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
-                                String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
-                                String(option.airlineName || '').toLowerCase().includes(searchStr) ||
-                                String(option.city || '').toLowerCase().includes(searchStr) ||
-                                String(option.airportCode || '').toLowerCase().includes(searchStr)
-                              );
-                            });
-
-                            const isExisting = options.some(
-                              (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
-                            );
-
-                            if (inputValue !== '' && !isExisting) {
-                              filtered.unshift({
-                                inputValue,
-                                airlineName: `${inputValue}`,
+                              const filtered = options.filter((option) => {
+                                return (
+                                  String(option.airlineNumber || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airlineCode || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airlineName || '').toLowerCase().includes(searchStr) ||
+                                  String(option.city || '').toLowerCase().includes(searchStr) ||
+                                  String(option.airportCode || '').toLowerCase().includes(searchStr)
+                                );
                               });
-                            }
 
-                            return filtered;
-                          }}
+                              const isExisting = options.some(
+                                (option) => searchStr === String(option.airlineName || '').toLowerCase().trim()
+                              );
 
-                          renderInput={(params) => (
-                            <TextField
-                              {...params}
-                              inputRef={ref}
-                              fullWidth
-                              label={`Airline Name ${watchedAirportDeliveryService ? ' *' : ''}`}
-                              variant="standard"
-                              error={!!errors['consigneeName']}
-                              helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
-                            />
-                          )}
-                          sx={{ width: '25%' }}
-                        />
-                      )}
+                              if (inputValue !== '' && !isExisting) {
+                                filtered.unshift({
+                                  // FIXED 4: Cap custom filtering suggestion text lengths
+                                  inputValue: enforceNameLimit(inputValue),
+                                  airlineName: `${enforceNameLimit(inputValue)}`,
+                                });
+                              }
+
+                              return filtered;
+                            }}
+                            renderInput={(params) => (
+                              <TextField
+                                {...params}
+                                inputRef={ref}
+                                fullWidth
+                                label={`Airline Name ${watchedAirportDeliveryService ? ' *' : ''}`}
+                                variant="standard"
+                                error={!!errors['consigneeName']}
+                                helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
+
+                                // FIXED 5: Set hard layout barrier to 111 (Handles 11 prefix characters + 100 character custom name)
+                                inputProps={{
+                                  ...params.inputProps,
+                                  maxLength: 111
+                                }}
+                              />
+                            )}
+                            sx={{ width: '25%' }}
+                          />
+                        );
+                      }}
                     />
+
+
 
                   )}
 

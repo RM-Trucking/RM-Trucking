@@ -743,6 +743,9 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                 const isChecked = e.target.checked;
                                                 onChange(isChecked);
                                                 setWarehouseFlag(isChecked);
+                                                if(!isChecked){
+                                                    setValue('warehouseDetails','');
+                                                }
                                             }}
                                         />
                                     }
@@ -817,6 +820,9 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                 const isChecked = e.target.checked;
                                                 onChange(isChecked);
                                                 setHasWarehouseServiceFlag(isChecked);
+                                                if(!isChecked){
+                                                    setValue('warehouseEmails',[])
+                                                }
                                             }}
                                         />
                                     }

@@ -523,6 +523,15 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
     control,
     name: `handlingUnits.${huIndex}.items`,
   });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: '',
+    severity: 'error' // 'error' | 'warning' | 'info' | 'success'
+  });
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') return;
+    setSnackbar(prev => ({ ...prev, open: false }));
+  };
 
   // Validation: Check if the last item has pieces and description before adding a new one
   const isItemComplete = (idx) => {
@@ -701,13 +710,32 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
             append({ pieces: '', piecesUom: '', description: '', hazmatInfo: false, hazmatData: null });
           } else {
             // Trigger error if previous item isn't filled
-            alert("Please fill item details before adding more.");
+            setSnackbar({
+              open: true,
+              message: 'Please fill item details before adding more.',
+              severity: 'error'
+            });
           }
         }}
         sx={{ bgcolor: '#a22', textTransform: 'none', mt: 1, '&:hover': { bgcolor: '#811' } }}
       >
         Add Item
       </Button>
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }} // Optional position tweak
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };
@@ -1056,10 +1084,9 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
       { key: 'contactPhone', label: 'Contact Phone' }
     ];
 
+    // 1. Check for empty required fields
     const missingFields = requiredFields.filter(field => !String(localData[field.key])?.trim());
-    const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
 
-    // Check for empty required fields
     if (missingFields.length > 0) {
       const newErrors = {};
       missingFields.forEach(field => {
@@ -1075,7 +1102,20 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
       return;
     }
 
-    // Validate phone format
+    // 2. FIXED: Explicitly run the UN Number validation on submit
+    const unNumberError = validateUNNumber(localData.unNumber || "");
+    if (unNumberError) {
+      setErrors(prev => ({ ...prev, unNumber: unNumberError }));
+      setSnackbar({
+        open: true,
+        message: unNumberError, // Displays "UN Number cannot be more than 4 digits" or similar
+        severity: 'error'
+      });
+      return; // STOPS THE SAVE PATH
+    }
+
+    // 3. Validate phone format
+    const phoneRegex = /^\(\d{3}\) \d{3}-\d{4}.*$/;
     if (!phoneRegex.test(localData.contactPhone)) {
       setErrors(prev => ({ ...prev, contactPhone: 'Invalid phone format' }));
       setSnackbar({
@@ -1086,10 +1126,11 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
       return;
     }
 
-    // Success path
+    // Success path (Only runs if all above checks pass cleanly)
     setValue(`handlingUnits.${huIdx}.items.${itemIdx}.hazmatData`, localData);
     onClose();
   };
+
 
   const handleChange = (field, value) => {
     setLocalData((prev) => ({ ...prev, [field]: value }));
@@ -1105,26 +1146,86 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
     return "";
   };
   const hazmatClassOptions = [
-    "Class 1.1: Explosives - Mass explosion hazard",
-    "Class 1.2: Explosives - Projection hazard",
-    "Class 1.3: Explosives - Fire hazard",
-    "Class 1.4: Explosives - Minor explosion hazard",
-    "Class 1.5: Explosives - Very insensitive substances",
-    "Class 1.6: Explosives - Extremely insensitive articles",
-    "Class 2.1: Gases - Flammable gases",
-    "Class 2.2: Gases - Non-flammable, non-toxic compressed gases",
-    "Class 2.3: Gases - Toxic/poisonous gases by inhalation",
-    "Class 3: Flammable Liquids",
-    "Class 4.1: Flammable Solids - Self-reactive substances",
-    "Class 4.2: Spontaneously Combustible Materials",
-    "Class 4.3: Dangerous When Wet Materials",
-    "Class 5.1: Oxidizing Substances",
-    "Class 5.2: Organic Peroxides",
-    "Class 6.1: Poisonous (toxic) Materials",
-    "Class 6.2: Infectious Substances",
-    "Class 7: Radioactive Materials",
-    "Class 8: Corrosives",
-    "Class 9: Miscellaneous Dangerous Goods"
+    {
+      label: "Class 1.1: Explosives - Mass explosion hazard",
+      value: "Class 1.1"
+    },
+    {
+      label: "Class 1.2: Explosives - Projection hazard",
+      value: "Class 1.2"
+    },
+    {
+      label: "Class 1.3: Explosives - Fire hazard",
+      value: "Class 1.3"
+    },
+    {
+      label: "Class 1.4: Explosives - Minor explosion hazard",
+      value: "Class 1.4"
+    },
+    {
+      label: "Class 1.5: Explosives - Very insensitive substances",
+      value: "Class 1.5"
+    },
+    {
+      label: "Class 1.6: Explosives - Extremely insensitive articles",
+      value: "Class 1.6"
+    },
+    {
+      label: "Class 2.1: Gases - Flammable gases",
+      value: "Class 2.1"
+    },
+    {
+      label: "Class 2.2: Gases - Non-flammable, non-toxic compressed gases",
+      value: "Class 2.2"
+    },
+    {
+      label: "Class 2.3: Gases - Toxic/poisonous gases by inhalation",
+      value: "Class 2.3"
+    },
+    {
+      label: "Class 3: Flammable Liquids",
+      value: "Class 3"
+    },
+    {
+      label: "Class 4.1: Flammable Solids - Self-reactive substances",
+      value: "Class 4.1"
+    },
+    {
+      label: "Class 4.2: Spontaneously Combustible Materials",
+      value: "Class 4.2"
+    },
+    {
+      label: "Class 4.3: Dangerous When Wet Materials",
+      value: "Class 4.3"
+    },
+    {
+      label: "Class 5.1: Oxidizing Substances",
+      value: "Class 5.1"
+    },
+    {
+      label: "Class 5.2: Organic Peroxides",
+      value: "Class 5.2"
+    },
+    {
+      label: "Class 6.1: Poisonous (toxic) Materials",
+      value: "Class 6.1"
+    },
+    {
+      label: "Class 6.2: Infectious Substances",
+      value: "Class 6.2"
+    },
+    {
+      label: "Class 7: Radioactive Materials",
+      value: "Class 7"
+    },
+    {
+      label: "Class 8: Corrosives",
+      value: "Class 8"
+    },
+    {
+      label: "Class 9: Miscellaneous Dangerous Goods",
+      value: "Class 9"
+    }
   ];
 
   const allUNNumbers = Array.from({ length: 3600 }, (_, i) => `UN${(i + 1).toString().padStart(4, '0')}`);
@@ -1275,16 +1376,38 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             <Autocomplete
               freeSolo
               options={hazmatClassOptions}
-              value={localData.hazmatClass || ""}
 
-              // Handles selection from the menu or pressing Enter
-              onChange={(event, newValue) => {
-                handleChange('hazmatClass', newValue || "");
+              // 1. FIXED: Convert your plain string state back into an object so MUI can read it.
+              // If it's a manual text input, fallback to the raw text string.
+              value={
+                hazmatClassOptions.find(opt => opt.value === localData.hazmatClass) ||
+                localData.hazmatClass ||
+                ""
+              }
+
+              // 2. FIXED: Map the option object to show its user-friendly label string in the input
+              getOptionLabel={(option) => {
+                if (typeof option === 'string') return option; // Handles manual user typing
+                return option.label || ""; // Handles menu object selections
               }}
 
-              // Handles character-by-character text entry
-              onInputChange={(event, newInputValue) => {
-                handleChange('hazmatClass', newInputValue || "");
+              // 3. FIXED: Intercept selections to extract and save ONLY the string value for your API
+              onChange={(event, newValue) => {
+                if (typeof newValue === 'string') {
+                  handleChange('hazmatClass', newValue);
+                } else if (newValue && newValue.value) {
+                  handleChange('hazmatClass', newValue.value); // Saves "Class 3" instead of the whole object
+                } else {
+                  handleChange('hazmatClass', "");
+                }
+              }}
+
+              // 4. FIXED: Clean up typing input tracking so users can still type custom values freely
+              onInputChange={(event, newInputValue, reason) => {
+                // Only update on manual typing to avoid overwriting onChange selection states
+                if (reason === 'input') {
+                  handleChange('hazmatClass', newInputValue || "");
+                }
               }}
 
               renderInput={(params) => (
@@ -1294,9 +1417,12 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                   variant="standard"
                   label="Class"
                   fullWidth
+                  error={!!errors?.hazmatClass}
+                  helperText={errors?.hazmatClass || " "}
                 />
               )}
             />
+
           </Box>
         </Box>
 
@@ -5246,8 +5372,8 @@ const ShipmentForm = ({ type }) => {
             "toLocationEntityId": selectedLinehaulToCarrierObject?.terminalEntityId || null,
             "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
             "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
-            "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
-            'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+            "pieces": Number(currentValues?.carrierInfo?.lineHaul?.pcs) || null,
+            'weight': Number(currentValues?.carrierInfo?.lineHaul?.weight) || null,
             "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
             "editFromLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
@@ -5289,8 +5415,8 @@ const ShipmentForm = ({ type }) => {
             "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
             "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
-            "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
-            'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+            "pieces": Number(currentValues?.carrierInfo?.deliveryDetails?.pcs) || null,
+            'weight': Number(currentValues?.carrierInfo?.deliveryDetails?.weight) || null,
             "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
             "editFromLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
@@ -5394,8 +5520,8 @@ const ShipmentForm = ({ type }) => {
             "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.lineHaul?.etaDate,
             "etaTime": currentValues?.carrierInfo?.lineHaul?.etaTime,
-            "pieces": currentValues?.carrierInfo?.lineHaul?.pcs,
-            'weight': currentValues?.carrierInfo?.lineHaul?.weight,
+            "pieces": Number(currentValues?.carrierInfo?.lineHaul?.pcs) || null,
+            'weight': Number(currentValues?.carrierInfo?.lineHaul?.weight) || null,
             "editFromLocation": currentValues?.carrierInfo?.lineHaul?.manualFromLocation ? "Y" : "N",
             "editFromLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
@@ -5514,8 +5640,8 @@ const ShipmentForm = ({ type }) => {
             "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
             "etaDate": currentValues?.carrierInfo?.deliveryDetails?.etaDate,
             "etaTime": currentValues?.carrierInfo?.deliveryDetails?.etaTime,
-            "pieces": currentValues?.carrierInfo?.deliveryDetails?.pcs,
-            'weight': currentValues?.carrierInfo?.deliveryDetails?.weight,
+            "pieces": Number(currentValues?.carrierInfo?.deliveryDetails?.pcs) || null,
+            'weight': Number(currentValues?.carrierInfo?.deliveryDetails?.weight) || null,
             "editFromLocation": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocation ? "Y" : 'N',
             "editFromLocationDetails": {
               "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
@@ -6763,18 +6889,26 @@ const ShipmentForm = ({ type }) => {
 
                   {!watchedAirportPickupService && (
                     <Controller
-                      name="shipperName" // Note: This field will now hold an object: { shipperId, shipperName }
+                      name="shipperName"
                       control={control}
-                      rules={{ required: !watchedAirportPickupService }}
+                      // 1. FIXED: Matches requirement logic with your label condition
+                      rules={{
+                        validate: (value) => {
+                          const isRequired = !!watchedAirportPickupService; // Required if service is true
+                          const hasText = !!value?.shipperName?.trim();
+
+                          if (isRequired && !hasText) {
+                            return "This field is required";
+                          }
+                          return true;
+                        }
+                      }}
                       render={({ field: { onChange, value, ref } }) => (
                         <Autocomplete
                           freeSolo
                           options={shipperDropdown}
-
-                          // Map the current form state to the Autocomplete value
                           value={value || null}
 
-                          // Fixes the duplicate key warning by generating explicit, unique keys for each dropdown item
                           renderOption={(props, option, state) => {
                             const uniqueKey = option.shipperId
                               ? `shipper-${option.shipperId}`
@@ -6787,18 +6921,12 @@ const ShipmentForm = ({ type }) => {
                             );
                           }}
 
-                          // Update React Hook Form state when a choice is made
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              // User typed text and pressed Enter
                               onChange({ shipperId: null, shipperName: newValue });
-                              console.log('value to api', newValue);
                             } else if (newValue && newValue.inputValue) {
-                              // User clicked the "Add [Custom Text]" option
                               onChange({ shipperId: null, shipperName: newValue.inputValue });
-                              console.log('value to api', newValue.inputValue);
                             } else if (newValue) {
-                              // User selected an existing shipper object
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
                                 setValue('shipperAddr1', newValue?.addressLine1 || '');
@@ -6810,7 +6938,6 @@ const ShipmentForm = ({ type }) => {
                                 setValue('shipperPhone', newValue?.phoneNumber || '');
                               }
                             } else {
-                              // Handles cases where the clear (x) button is clicked
                               onChange(null);
                               setValue('shipperAddr1', '');
                               setValue('shipperAddr2', '');
@@ -6822,12 +6949,10 @@ const ShipmentForm = ({ type }) => {
                             }
                           }}
 
-                          // Fallback mechanism for typing text freely without selecting dropdown choices
                           onInputChange={(event, newInputValue, reason) => {
-                            // Only update as a raw string if typing manually (not clicking an option)
                             if (reason === 'input') {
-                              // onChange({ shipperId: null, shipperName: newInputValue });
-                              console.log('value to api', newInputValue);
+                              // 2. FIXED: Keeps the internal object contract intact when typing manually
+                              onChange({ shipperId: null, shipperName: newInputValue });
                               setValue('shipperAddr1', '');
                               setValue('shipperAddr2', '');
                               setValue('shipperCity', '');
@@ -6838,7 +6963,6 @@ const ShipmentForm = ({ type }) => {
                             }
                           }}
 
-                          // Generates the dynamic "Add..." option if it does not match anything
                           filterOptions={(options, params) => {
                             const filtered = filter(options, params);
                             const { inputValue } = params;
@@ -6857,7 +6981,6 @@ const ShipmentForm = ({ type }) => {
                             return filtered;
                           }}
 
-                          // Tells MUI how to read the text label out of your objects
                           getOptionLabel={(option) => {
                             if (typeof option === 'string') {
                               return option;
@@ -6868,7 +6991,6 @@ const ShipmentForm = ({ type }) => {
                             return option.shipperName || '';
                           }}
 
-                          // Useful for object comparisons to determine selection highlighting
                           isOptionEqualToValue={(option, val) =>
                             option.shipperId === val?.shipperId || option.shipperName === val?.shipperName
                           }
@@ -6876,18 +6998,21 @@ const ShipmentForm = ({ type }) => {
                           renderInput={(params) => (
                             <TextField
                               {...params}
-                              inputRef={ref} // Forwards validation focus back to React Hook Form
+                              inputRef={ref}
                               fullWidth
+                              // 3. Label accurately reflects dynamic rules tracking
                               label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['shipperName']}
-                              helperText={errors['shipperName'] ? 'This field is required' : ''}
+                              // 4. FIXED: Displays the precise dynamic error string message
+                              helperText={errors['shipperName'] ? errors['shipperName'].message : ''}
                             />
                           )}
                           sx={{ width: '25%' }}
                         />
                       )}
                     />
+
                   )}
 
                   {watchedAirportPickupService && (
@@ -7099,18 +7224,26 @@ const ShipmentForm = ({ type }) => {
 
                   {!watchedAirportDeliveryService && (
                     <Controller
-                      name="consigneeName" // This field will hold the chosen object structure
+                      name="consigneeName"
                       control={control}
-                      rules={{ required: !watchedAirportDeliveryService }}
+                      // 1. FIXED: Corrects logic to validate when service is true, and deeply checks the text property
+                      rules={{
+                        validate: (value) => {
+                          const isRequired = !!watchedAirportDeliveryService; // Required if service is true
+                          const hasText = !!value?.consigneeName?.trim();
+
+                          if (isRequired && !hasText) {
+                            return "This field is required";
+                          }
+                          return true;
+                        }
+                      }}
                       render={({ field: { onChange, value, ref } }) => (
                         <Autocomplete
                           freeSolo
                           options={consigneeDropdown}
-
-                          // Bind form state object or fallback to null
                           value={value || null}
 
-                          // Fixes the duplicate key warning by generating explicit, unique keys for each dropdown item
                           renderOption={(props, option, state) => {
                             const uniqueKey = option.consigneeId
                               ? `consignee-${option.consigneeId}`
@@ -7123,16 +7256,12 @@ const ShipmentForm = ({ type }) => {
                             );
                           }}
 
-                          // Handles selection clicks or pressing 'Enter'
                           onChange={(event, newValue) => {
                             if (typeof newValue === 'string') {
-                              // User typed text and manually hit Enter
                               onChange({ consigneeId: null, consigneeName: newValue });
                             } else if (newValue && newValue.inputValue) {
-                              // User clicked the custom dynamic 'Add "..."' option
                               onChange({ consigneeId: null, consigneeName: newValue.inputValue });
                             } else if (newValue) {
-                              // User selected an existing item from the dropdown
                               onChange(newValue);
                               if (Object.keys(newValue).length > 0) {
                                 setValue('consigneeAddr1', newValue?.addressLine1 || '');
@@ -7144,7 +7273,6 @@ const ShipmentForm = ({ type }) => {
                                 setValue('consigneePhone', newValue?.phoneNumber || '');
                               }
                             } else {
-                              // Safe fallback if the user clears out the text entirely
                               onChange(null);
                               setValue('consigneeAddr1', '');
                               setValue('consigneeAddr2', '');
@@ -7156,10 +7284,10 @@ const ShipmentForm = ({ type }) => {
                             }
                           }}
 
-                          // Captures custom text changes if user clicks away without selecting/hitting Enter
                           onInputChange={(event, newInputValue, reason) => {
                             if (reason === 'input') {
-                              // onChange({ consigneeId: null, consigneeName: newInputValue });
+                              // 2. FIXED: Keeps the form value object contract valid and functional while typing manually
+                              onChange({ consigneeId: null, consigneeName: newInputValue });
                               setValue('consigneeAddr1', '');
                               setValue('consigneeAddr2', '');
                               setValue('consigneeCity', '');
@@ -7170,7 +7298,6 @@ const ShipmentForm = ({ type }) => {
                             }
                           }}
 
-                          // Generates the "Add [Custom Text]" selection item if it is not in the array
                           filterOptions={(options, params) => {
                             const filtered = filter(options, params);
                             const { inputValue } = params;
@@ -7189,7 +7316,6 @@ const ShipmentForm = ({ type }) => {
                             return filtered;
                           }}
 
-                          // Tells MUI how to display text from your specific object structure
                           getOptionLabel={(option) => {
                             if (typeof option === 'string') {
                               return option;
@@ -7200,7 +7326,6 @@ const ShipmentForm = ({ type }) => {
                             return option.consigneeName || '';
                           }}
 
-                          // Ensures proper matching for active highlighted selections
                           isOptionEqualToValue={(option, val) =>
                             option.consigneeId === val?.consigneeId || option.consigneeName === val?.consigneeName
                           }
@@ -7208,18 +7333,21 @@ const ShipmentForm = ({ type }) => {
                           renderInput={(params) => (
                             <TextField
                               {...params}
-                              inputRef={ref} // Keeps form validation ref focus working properly
+                              inputRef={ref}
                               fullWidth
+                              // 3. Dynamic label accurately tracks required status matches
                               label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
                               variant="standard"
                               error={!!errors['consigneeName']}
-                              helperText={errors['consigneeName'] ? 'This field is required' : ''}
+                              // 4. FIXED: Renders the precise validation string message
+                              helperText={errors['consigneeName'] ? errors['consigneeName'].message : ''}
                             />
                           )}
                           sx={{ width: '25%' }}
                         />
                       )}
                     />
+
                   )}
 
                   {watchedAirportDeliveryService && (
@@ -7502,36 +7630,59 @@ const ShipmentForm = ({ type }) => {
                   {/* Handling Unit Dimensions Row */}
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
                     <Box sx={{ flex: '1 1 120px' }}>
-                      <Controller name={`handlingUnits.${huIdx}.uom`} control={control} render={({ field }) => (
-                        <TextField {...field} select fullWidth label="Handling Units UOM *" variant="standard" InputLabelProps={{ shrink: true }}
-                          SelectProps={{
-                            displayEmpty: true,
-                            MenuProps: {
-                              // Crucial: disables internal centering logic so origins work
-                              getContentAnchorEl: null,
-                              // Prevents layout shifts and menu misplacement on scroll
-                              disableScrollLock: true,
-                              anchorOrigin: {
-                                vertical: 'bottom',
-                                horizontal: 'left',
-                              },
-                              transformOrigin: {
-                                vertical: 'top',
-                                horizontal: 'left',
-                              },
-                              PaperProps: {
-                                sx: {
-                                  marginTop: '4px', // Your custom gap
-                                  maxHeight: 300,
-                                  maxWidth: 300    // Recommended to prevent long lists from going off-screen
+                      <Controller
+                        name={`handlingUnits.${huIdx}.uom`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            select
+                            fullWidth
+                            label="Handling Units UOM *"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              displayEmpty: true,
+                              // FIXED: Displays the grayed-out placeholder when the value is empty
+                              renderValue: (selected) => {
+                                if (!selected || selected === "") {
+                                  return <span style={{ color: '#aaa' }}>Select the Handling Units</span>;
                                 }
-                              }
-                            },
-                          }}
-                        >
-                          {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => <MenuItem key={u} value={u}>{u}</MenuItem>)}
-                        </TextField>
-                      )} />
+                                return selected;
+                              },
+                              MenuProps: {
+                                getContentAnchorEl: null,
+                                disableScrollLock: true,
+                                anchorOrigin: {
+                                  vertical: 'bottom',
+                                  horizontal: 'left',
+                                },
+                                transformOrigin: {
+                                  vertical: 'top',
+                                  horizontal: 'left',
+                                },
+                                PaperProps: {
+                                  sx: {
+                                    marginTop: '4px',
+                                    maxHeight: 300,
+                                    maxWidth: 300
+                                  }
+                                }
+                              },
+                            }}
+                          >
+                            {/* FIXED: Added a disabled/hidden placeholder menu option */}
+                            <MenuItem value="" disabled sx={{ display: 'none' }}>
+                              Select the Handling Units
+                            </MenuItem>
+
+                            {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => (
+                              <MenuItem key={u} value={u}>{u}</MenuItem>
+                            ))}
+                          </TextField>
+                        )}
+                      />
+
                     </Box>
                     <Box sx={{ flex: '1 1 100px' }}>
                       <Controller
@@ -8203,7 +8354,7 @@ const ShipmentForm = ({ type }) => {
                               fullWidth
                               variant="standard"
                               label="To Location *"
-                             value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
+                              value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
                               disabled // Visual indicator showing the user it cannot be changed manually
                               InputLabelProps={{ shrink: true }}
                               sx={{

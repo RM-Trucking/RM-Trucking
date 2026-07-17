@@ -638,10 +638,38 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.description`}
                   control={control}
-                  render={({ field }) => (
-                    <TextField {...field} label="Description *" variant="standard" fullWidth InputLabelProps={{ shrink: true }} />
+                  // 1. FIXED: Added validation rules to enforce the 255 character limit on submission
+                  rules={{
+                    required: "Description is required",
+                    maxLength: {
+                      value: 255,
+                      message: "Description cannot exceed 255 characters"
+                    }
+                  }}
+                  control={control}
+                  render={({ field, fieldState: { error } }) => (
+                    <TextField
+                      {...field}
+                      // 2. FIXED: Truncates pasted text immediately to a 255 character maximum limit
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        field.onChange(val.slice(0, 255));
+                      }}
+                      label="Description *"
+                      variant="standard"
+                      fullWidth
+                      InputLabelProps={{ shrink: true }}
+                      // 3. FIXED: Attaches the error indicator and string feedback message dynamically
+                      error={!!error}
+                      helperText={error ? error.message : ''}
+                      // 4. FIXED: Hard browser barrier blocking physical keyboard strokes past character 255
+                      inputProps={{
+                        maxLength: 255
+                      }}
+                    />
                   )}
                 />
+
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <FormControlLabel
@@ -1344,17 +1372,24 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
           <Box sx={{ flex: '1 1 22%' }}>
             <Autocomplete
               freeSolo
-              options={shippingNames} // Add any additional default shipping names to this array
+              options={shippingNames}
+
+              // 1. FIXED: Convert state to a string format or fallback safely
               value={localData.shippingName || ""}
 
               // Handles selection changes from the menu list or Enter press
               onChange={(event, newValue) => {
-                handleChange('shippingName', newValue || "");
+                const val = typeof newValue === 'string' ? newValue : (newValue?.label || "");
+                // 2. FIXED: Slice value to 100 characters max
+                handleChange('shippingName', val.slice(0, 100));
               }}
 
               // Handles character-by-character user text entry
-              onInputChange={(event, newInputValue) => {
-                handleChange('shippingName', newInputValue || "");
+              onInputChange={(event, newInputValue, reason) => {
+                // 3. FIXED: Only intercept on manual keyboard inputs to protect standard state updates
+                if (reason === 'input') {
+                  handleChange('shippingName', (newInputValue || "").slice(0, 100));
+                }
               }}
 
               renderInput={(params) => (
@@ -1364,13 +1399,42 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                   variant="standard"
                   label="Shipping Name"
                   fullWidth
+                  // 4. FIXED: Wire up errors dynamically if tracking via an validation error map
+                  error={!!errors?.shippingName}
+                  helperText={errors?.shippingName || " "}
+
+                  // 5. FIXED: Hard native element layout limit set to 100 characters
+                  inputProps={{
+                    ...params.inputProps,
+                    maxLength: 100
+                  }}
                 />
               )}
             />
 
+
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField label="Packaging Group" required variant="standard" fullWidth value={localData.packagingGroup} onChange={(e) => handleChange('packagingGroup', e.target.value)} />
+            <TextField
+              label="Packaging Group"
+              required
+              variant="standard"
+              fullWidth
+              value={localData.packagingGroup || ""}
+              onChange={(e) => {
+                // 1. FIXED: Truncates text instantly to a 50 character maximum limit
+                const val = e.target.value;
+                handleChange('packagingGroup', val.slice(0, 50));
+              }}
+              // 2. FIXED: Wire up errors dynamically if tracking via an validation error state map
+              error={!!errors?.packagingGroup}
+              helperText={errors?.packagingGroup || ""}
+              // 3. FIXED: Hard browser barrier blocking physical keyboard strokes at character 50
+              inputProps={{
+                maxLength: 50
+              }}
+            />
+
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
             <Autocomplete
@@ -1473,7 +1537,27 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             </Box>
           </Box>
           <Box sx={{ flex: '1 1 25%' }}>
-            <TextField label="Technical Name" required variant="standard" fullWidth value={localData.technicalName} onChange={(e) => handleChange('technicalName', e.target.value)} />
+            <TextField
+              label="Technical Name"
+              required
+              variant="standard"
+              fullWidth
+              // Fallback to empty string if value is undefined or null to prevent un-controlled input warnings
+              value={localData.technicalName || ""}
+              onChange={(e) => {
+                // 1. FIXED: Truncates pasted text immediately to a 100 character maximum limit
+                const val = e.target.value;
+                handleChange('technicalName', val.slice(0, 100));
+              }}
+              // 2. FIXED: Wire up errors dynamically if tracking via an validation error state map
+              error={!!errors?.technicalName}
+              helperText={errors?.technicalName || ""}
+              // 3. FIXED: Hard browser barrier blocking physical keyboard strokes past character 100
+              inputProps={{
+                maxLength: 100
+              }}
+            />
+
           </Box>
           <Box sx={{ flex: '1 1 28%' }}>
 
@@ -1536,11 +1620,24 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
               fullWidth
               rows={4}
               variant="standard"
+              // Safe fallback to prevent uncontrolled input console warnings
+              value={localData.description || ""}
+              onChange={(e) => {
+                // 1. FIXED: Truncates pasted text immediately to a 255 character maximum limit
+                const val = e.target.value;
+                handleChange('description', val.slice(0, 255));
+              }}
               InputProps={{ disableUnderline: true }}
-              value={localData.description}
-              onChange={(e) => handleChange('description', e.target.value)}
+              // 2. FIXED: Wire up errors dynamically if tracking via a validation error state map
+              error={!!errors?.description}
+              helperText={errors?.description || ""}
+              // 3. FIXED: Hard browser barrier blocking physical keyboard strokes past 255 characters
+              inputProps={{
+                maxLength: 255
+              }}
               sx={{ mt: 1 }}
             />
+
           </Box>
 
 
@@ -7799,34 +7896,44 @@ const ShipmentForm = ({ type }) => {
                       <Controller
                         name={`handlingUnits.${huIdx}.unitsCount`}
                         control={control}
-                        // 1. Validation rule ensuring only numeric entries are valid
                         rules={{
                           required: "Handling units count is required",
                           pattern: {
                             value: /^[0-9]+$/,
                             message: "Please enter a valid number"
+                          },
+                          // 1. FIXED: Schema validation check blocking numbers over 10 digits long
+                          maxLength: {
+                            value: 10,
+                            message: "Handling units cannot exceed 10 digits"
                           }
                         }}
                         render={({ field }) => (
                           <TextField
                             {...field}
-                            // 2. Overriding the onChange handler to physically block letters/symbols instantly
                             onChange={(e) => {
-                              const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Strips everything except digits 0-9
+                              // 2. FIXED: Strips out non-digits AND slices the value to a maximum of 10 digits
+                              const cleanValue = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
                               field.onChange(cleanValue);
                             }}
                             fullWidth
                             label="Handling Units *"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
-                            // 3. Optional: Tells mobile browsers to display a numeric keypad layout
-                            inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                            // 4. Displays error states if validation fails
+
+                            // 3. FIXED: Merged your numeric constraints with a hard browser maxLength blocker
+                            inputProps={{
+                              inputMode: 'numeric',
+                              pattern: '[0-9]*',
+                              maxLength: 10
+                            }}
+
                             error={!!errors?.handlingUnits?.[huIdx]?.unitsCount}
                             helperText={errors?.handlingUnits?.[huIdx]?.unitsCount?.message || ""}
                           />
                         )}
                       />
+
 
                     </Box>
                     <Box sx={{ flex: '1 1 80px' }}>
@@ -7996,11 +8103,40 @@ const ShipmentForm = ({ type }) => {
                   </Typography>
                   <Box sx={{ display: 'flex', gap: 3, mt: 1 }}>
                     <Box sx={{ flex: '1 1 30%' }}>
-                      <Controller name="emergencyContactName" rules={{
-                        required: 'Contact Name is required',
-                      }} control={control} render={({ field }) => (
-                        <TextField {...field} fullWidth label="Contact Name" variant="standard" required={isHazmatSelected} />
-                      )} />
+                      <Controller
+                        name="emergencyContactName"
+                        control={control}
+                        rules={{
+                          required: 'Contact Name is required',
+                          // 1. FIXED: Schema validation check blocking data payloads past 100 characters
+                          maxLength: {
+                            value: 100,
+                            message: 'Contact Name cannot exceed 100 characters'
+                          }
+                        }}
+                        render={({ field, fieldState: { error } }) => (
+                          <TextField
+                            {...field}
+                            onChange={(e) => {
+                              // 2. FIXED: Truncates pasted text immediately to a 100 character maximum limit
+                              const val = e.target.value;
+                              field.onChange(val.slice(0, 100));
+                            }}
+                            fullWidth
+                            label="Contact Name"
+                            variant="standard"
+                            required={isHazmatSelected}
+                            // 3. FIXED: Attaches the error indicator and string feedback message dynamically
+                            error={!!error}
+                            helperText={error ? error.message : ''}
+                            // 4. FIXED: Hard browser barrier blocking physical keyboard strokes at character 100
+                            inputProps={{
+                              maxLength: 100
+                            }}
+                          />
+                        )}
+                      />
+
                     </Box>
                     <Box sx={{ flex: '1 1 30%' }}>
 

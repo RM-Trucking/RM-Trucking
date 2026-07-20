@@ -646,7 +646,6 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       message: "Description cannot exceed 255 characters"
                     }
                   }}
-                  control={control}
                   render={({ field, fieldState: { error } }) => (
                     <TextField
                       {...field}
@@ -5187,7 +5186,7 @@ const ShipmentForm = ({ type }) => {
     // 1. Step-based validation fields mapping
     if (activeStep === 0) {
       fieldsToValidate = ['shipmentType', 'serviceLevel'];
-      if(watchedServiceLevel?.includes('(Date Specific)')){
+      if (watchedServiceLevel?.includes('(Date Specific)')) {
         fieldsToValidate.push('date', 'time');
       }
     } else if (activeStep === 1) {
@@ -8122,16 +8121,14 @@ const ShipmentForm = ({ type }) => {
                           />
                         )}
                       />
-
-
                     </Box>
                     <Box sx={{ flex: '1 1 80px' }}>
                       <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
                         <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
-                            <MenuItem value="in">in</MenuItem>
-                            <MenuItem value="cm">cm</MenuItem>
-                          </TextField>
-                        )}
+                          <MenuItem value="in">in</MenuItem>
+                          <MenuItem value="cm">cm</MenuItem>
+                        </TextField>
+                      )}
                       />
                     </Box>
 
@@ -9289,8 +9286,12 @@ const ShipmentForm = ({ type }) => {
                                       placeholder={selectedEmailsArray.length === 0 ? "Select or type emails..." : ""}
                                       InputLabelProps={{ shrink: true }}
                                       error={!!error}
-                                      inputProps={{ maxLength: 255 }}
                                       helperText={error ? error.message : "Separate custom entries by pressing Enter"}
+                                      // SAFE FIX: Merge your maxLength constraint into Autocomplete's core properties object
+                                      inputProps={{
+                                        ...params.inputProps,
+                                        maxLength: 255
+                                      }}
                                     />
                                   )}
                                   sx={{ mt: 2 }}
@@ -9298,6 +9299,7 @@ const ShipmentForm = ({ type }) => {
                               );
                             }}
                           />
+
 
                         </Box>
                       </Box>

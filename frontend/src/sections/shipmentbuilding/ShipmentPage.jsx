@@ -5025,9 +5025,12 @@ const ShipmentForm = ({ type }) => {
     }
 
     // 2. Validate handling units structure (Step 2 specific)
-    const isAllUnitsValid = validateHandlingUnits(getValues('handlingUnits'));
-    if (activeStep === 2 && !isAllUnitsValid) {
-      missingRequiredFields.push('Handling Units');
+
+    const validationResult = validateHandlingUnits(getValues('handlingUnits'));
+
+    if (activeStep === 2 && !validationResult.isValid) {
+      missingRequiredFields.push(validationResult.reason);
+      // This will push "Handling Units" OR "Hazmat Info Details" automatically
     }
 
     // 3. Form control execution block
@@ -5055,9 +5058,8 @@ const ShipmentForm = ({ type }) => {
           } else if (fieldPath.includes("carrierInfo.deliveryDetails.")) {
             prefix = "Delivery ";
           }
-
-          // 3. Combine them together (e.g., "Linehaul Bill Number")
-          const readableWord = `${prefix}${formattedWord}`;
+          const finalPrefix = activeStep === 3 ? prefix : '';
+          const readableWord = `${finalPrefix}${formattedWord}`;
 
           if (!missingRequiredFields.includes(readableWord)) {
             missingRequiredFields.push(readableWord);
@@ -5068,7 +5070,7 @@ const ShipmentForm = ({ type }) => {
     }
 
     // 5. Final evaluation block
-    if (isValid && validAccessorials && (activeStep !== 2 || isAllUnitsValid)) {
+    if (isValid && validAccessorials && (activeStep !== 2 || validationResult.isValid)) {
       setErrorVisible(false);
       if (activeStep < 4) {
         setActiveStep((prev) => prev + 1);
@@ -5989,32 +5991,42 @@ const ShipmentForm = ({ type }) => {
   };
 
   // Helper 2: Validate handling units array structure for step 2
+  // Helper 2: Validate handling units array structure for step 2
   const validateHandlingUnits = (units) => {
-    if (!Array.isArray(units) || units.length === 0) return false;
+    if (!Array.isArray(units) || units.length === 0) {
+      return { isValid: false, reason: 'Handling Units' };
+    }
 
-    return units.every(unit => {
+    for (const unit of units) {
       const hasTopLevelValid = !!unit?.uom?.trim() && !!unit?.unitsCount?.toString().trim();
-      if (!hasTopLevelValid) return false;
+      if (!hasTopLevelValid) return { isValid: false, reason: 'Handling Units' };
 
-      if (!Array.isArray(unit?.items) || unit.items.length === 0) return false;
+      if (!Array.isArray(unit?.items) || unit.items.length === 0) {
+        return { isValid: false, reason: 'Handling Units' };
+      }
 
-      return unit.items.every(item => {
+      for (const item of unit.items) {
         const baseFieldsValid = !!item?.pieces?.toString().trim() && !!item?.piecesUom?.trim() && !!item?.description?.trim();
-        if (!baseFieldsValid) return false;
+        if (!baseFieldsValid) return { isValid: false, reason: 'Handling Units' };
 
         if (item?.hazmatInfo === true) {
           const hazmat = item?.hazmatData;
-          return (
+          const hazmatValid = (
             !!hazmat?.unNumber?.trim() && !!hazmat?.shippingName?.trim() &&
             !!hazmat?.packagingGroup?.trim() && !!hazmat?.hazmatClass?.trim() &&
             !!hazmat?.weight?.toString().trim() && !!hazmat?.technicalName?.trim() &&
             !!hazmat?.contactPhone?.trim()
           );
+
+          // If hazmatInfo is true but details are missing, flag it uniquely
+          if (!hazmatValid) return { isValid: false, reason: 'Hazmat Info Details' };
         }
-        return true;
-      });
-    });
+      }
+    }
+
+    return { isValid: true, reason: null };
   };
+
   const onFormSubmit = async () => {
     // Your API call here
     const currentValues = getValues();

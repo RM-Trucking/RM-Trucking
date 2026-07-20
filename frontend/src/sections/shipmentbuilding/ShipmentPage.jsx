@@ -8122,14 +8122,48 @@ const ShipmentForm = ({ type }) => {
                         )}
                       />
                     </Box>
-                    <Box sx={{ flex: '1 1 80px' }}>
-                      <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
-                        <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
-                          <MenuItem value="in">in</MenuItem>
-                          <MenuItem value="cm">cm</MenuItem>
-                        </TextField>
-                      )}
+                    
+                    <Box sx={{ flex: '1 1 20px' }}>
+                      <Controller
+                        name={`handlingUnits.${huIdx}.unit`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            select
+                            fullWidth
+                            label="Unit *"
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              displayEmpty: true,
+                              MenuProps: {
+                                getContentAnchorEl: null,
+                                disableScrollLock: true,
+                                anchorOrigin: {
+                                  vertical: 'bottom',
+                                  horizontal: 'left',
+                                },
+                                transformOrigin: {
+                                  vertical: 'top',
+                                  horizontal: 'left',
+                                },
+                                PaperProps: {
+                                  sx: {
+                                    marginTop: '4px',
+                                    maxHeight: 300,
+                                    maxWidth: 100
+                                  }
+                                }
+                              },
+                            }}
+                          >
+                            <MenuItem key = 'in' value={'in'}>in</MenuItem>
+                            <MenuItem key = 'cm' value={'cm'}>cm</MenuItem>
+                          </TextField>
+                        )}
                       />
+
                     </Box>
 
                     {['Length', 'Width', 'Height'].map((dim) => {
@@ -8185,17 +8219,54 @@ const ShipmentForm = ({ type }) => {
                     })}
 
                     <Box sx={{ flex: '1 1 70px' }}>
-                      <Box display={'flex'} alignItems={'flex-end'}>
-                        <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
-                          <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
-                        )} />
-                        <Controller name={`handlingUnits.${huIdx}.weightUnit`} control={control} render={({ field }) => (
-                          <TextField {...field} select sx={{ width: '100px' }} label="" variant="standard" InputLabelProps={{ shrink: true }}>
-                            <MenuItem value="lbs">lbs</MenuItem>
-                            <MenuItem value="kgs">kgs</MenuItem>
+
+                      <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
+                        <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
+                      )} />
+
+                    </Box>
+                    
+                    <Box display={'flex'} alignItems={'flex-end'} sx={{ flex: '1 1 20px' }}>
+                      <Controller
+                        name={`handlingUnits.${huIdx}.weightUnit`}
+                        control={control}
+                        render={({ field }) => (
+                          <TextField
+                            {...field}
+                            select
+                            fullWidth
+                            label=""
+                            variant="standard"
+                            InputLabelProps={{ shrink: true }}
+                            SelectProps={{
+                              displayEmpty: true,
+                              MenuProps: {
+                                getContentAnchorEl: null,
+                                disableScrollLock: true,
+                                anchorOrigin: {
+                                  vertical: 'bottom',
+                                  horizontal: 'left',
+                                },
+                                transformOrigin: {
+                                  vertical: 'top',
+                                  horizontal: 'left',
+                                },
+                                PaperProps: {
+                                  sx: {
+                                    marginTop: '4px',
+                                    maxHeight: 300,
+                                    maxWidth: 100
+                                  }
+                                }
+                              },
+                            }}
+                          >
+                            <MenuItem key = 'lbs' value={'lbs'}>lbs</MenuItem>
+                            <MenuItem key = 'kgs' value={'kgs'}>kgs</MenuItem>
                           </TextField>
-                        )} />
-                      </Box>
+                        )}
+                      />
+
                     </Box>
                     <Box sx={{ flex: '1 1 120px' }}>
                       <Controller
@@ -9159,7 +9230,6 @@ const ShipmentForm = ({ type }) => {
                     )} */}
                       </Box>
 
-                      {/* Input field captures the "Enter" key */}
                       <Controller
                         name="carrierInfo.pickupAlertDetails.pickupNotes"
                         control={control}
@@ -9167,18 +9237,21 @@ const ShipmentForm = ({ type }) => {
                         rules={{
                           required: watchedCarrierInfo.pickupAlert ? 'Pickup notes is required' : '',
                         }}
-                        render={({ field }) => (
+                        render={({ field, fieldState: { error } }) => (
                           <TextField
                             {...field}
                             fullWidth
                             label="Notes"
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
-                            required={watchedCarrierInfo.pickupAlert}
+                            required={!!watchedCarrierInfo?.pickupAlert}
+                            error={!!error}
+                            helperText={error?.message || ""}
                             inputProps={{ maxLength: 255 }}
                           />
                         )}
                       />
+
                     </Box>
 
                     {/* --- EMAIL INFO SECTION --- */}
@@ -10300,11 +10373,12 @@ const ShipmentForm = ({ type }) => {
 
                                   // 1. PROVIDES TOTALLY UNIQUE KEYS PER LIST ITEM DOM NODE
                                   renderOption={(props, option, state) => {
-                                    const uniqueKey = `delivery-tolocation-${option.terminalId}-${option.carrierId}-${state.index}`;
+                                    // FIXED: Converted to a clean, single-line concatenation string to prevent Vite parsing crashes
+                                    const uniqueKey = "delivery-tolocation-" + option.terminalId + "-" + option.carrierId + "-" + state.index;
                                     return (
                                       <li {...props} key={uniqueKey}>
                                         {option.carrierName && option.terminalName
-                                          ? `${option.carrierName} | ${option.terminalName}`
+                                          ? option.carrierName + " | " + option.terminalName
                                           : ""}
                                       </li>
                                     );

@@ -10717,7 +10717,7 @@ const ShipmentForm = ({ type }) => {
 
 
 
-          <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
             <Alert severity="error" variant="filled">
               Please fill required fields: {Array.isArray(errorVisibleFields) ? errorVisibleFields.join(", ") : String(errorVisibleFields || "")}

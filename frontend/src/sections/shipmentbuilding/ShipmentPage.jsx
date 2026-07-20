@@ -6715,7 +6715,7 @@ const ShipmentForm = ({ type }) => {
                         error={!!errors.shipmentType}
                         // Added: Fallback to an empty string if value is null/undefined to prevent UI errors
                         value={field.value || ''}
-                        helperText={errors.shipmentType ? 'This field is required' : ''}
+                        helperText={errors.shipmentType ? 'Shipment Type is required' : ''}
                       >
                         {shipmentTypes.map((opt) => (
                           // Fixed: Pass opt.value (the string) instead of the entire object
@@ -6736,7 +6736,7 @@ const ShipmentForm = ({ type }) => {
                     name="serviceLevel"
                     control={control}
                     // 1. FIXED: Pass the explicit string message instead of just 'true'
-                    rules={{ required: "This field is required" }}
+                    rules={{ required: "Service Level is required" }}
                     render={({ field }) => (
                       <TextField
                         {...field}
@@ -6767,7 +6767,7 @@ const ShipmentForm = ({ type }) => {
                     control={control}
                     rules={{
                       // 1. Keeps your conditional required message contract intact
-                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'This field is required' : false,
+                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Date is required' : false,
 
                       validate: (value) => {
                         const isRequired = watchedServiceLevel?.includes('(Date Specific)');
@@ -6777,12 +6777,12 @@ const ShipmentForm = ({ type }) => {
 
                         // 2. FIXED: If it is empty and required, return false to let the 'required' string error show up
                         if (isEmpty) {
-                          return isRequired ? "This field is required" : true;
+                          return isRequired ? "Date is required" : true;
                         }
 
                         // If it is a Dayjs object structure but flagged invalid (like when a user clears a field manually)
                         if (dayjs.isDayjs(value) && !value.isValid()) {
-                          return isRequired ? "This field is required" : true;
+                          return isRequired ? "Date is required" : true;
                         }
 
                         const dateObj = dayjs(value);
@@ -6834,7 +6834,7 @@ const ShipmentForm = ({ type }) => {
                     control={control}
                     rules={{
                       // 1. FIXED: Pass the explicit string message instead of a boolean value
-                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'This field is required' : false,
+                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Time is required' : false,
 
                       validate: (value) => {
                         const isRequired = watchedServiceLevel?.includes('(Date Specific)');
@@ -6842,12 +6842,12 @@ const ShipmentForm = ({ type }) => {
 
                         // 2. Handle empty conditions against requirement states
                         if (isEmpty) {
-                          return isRequired ? "This field is required" : true;
+                          return isRequired ? "Time is required" : true;
                         }
 
                         // 3. Catch structural library validation failures (like typing 00:00 incorrectly or broken shapes)
                         if (dayjs.isDayjs(value) && !value.isValid()) {
-                          return isRequired ? "This field is required" : "Please enter a valid time";
+                          return isRequired ? "Time is required" : "Please enter a valid time";
                         }
 
                         return true;
@@ -6958,7 +6958,7 @@ const ShipmentForm = ({ type }) => {
                           label={`Billing Customer *`}
                           variant="standard"
                           error={!!errors['billingCustomer']}
-                          helperText={errors['billingCustomer'] ? 'This field is required' : ''}
+                          helperText={errors['billingCustomer'] ? 'Billing Customer is required' : ''}
                         />
                       )}
                       sx={{ width: '30%', mb: 2 }}
@@ -7038,7 +7038,7 @@ const ShipmentForm = ({ type }) => {
 
                           // 1. Mandatory structural baseline check
                           if (isRequired && !hasText) {
-                            return "This field is required";
+                            return "Shipper Name is required";
                           }
 
                           // 2. FIXED: Validation rule checking for strings exceeding 100 characters
@@ -7171,7 +7171,7 @@ const ShipmentForm = ({ type }) => {
                       name="shipperName"
                       control={control}
                       rules={{
-                        required: watchedAirportPickupService ? 'This field is required' : false,
+                        required: watchedAirportPickupService ? 'Shipper Name is required' : false,
                         validate: (value) => {
                           if (!value) return true;
 
@@ -7408,7 +7408,7 @@ const ShipmentForm = ({ type }) => {
 
                           // 1. Mandatory requirement check
                           if (isRequired && !hasText) {
-                            return "This field is required";
+                            return "Consignee Name is required";
                           }
 
                           // 2. FIXED: Validation rule checking for strings exceeding 100 characters
@@ -7539,7 +7539,7 @@ const ShipmentForm = ({ type }) => {
                       name="consigneeName"
                       control={control}
                       rules={{
-                        required: watchedAirportDeliveryService ? 'This field is required' : false,
+                        required: watchedAirportDeliveryService ? 'Consignee name is required' : false,
                         validate: (value) => {
                           if (!value) return true;
 

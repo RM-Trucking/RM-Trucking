@@ -285,7 +285,6 @@ const ShipmentForm = ({ type }) => {
 
   } = useForm({
     mode: 'onChange',
-
     defaultValues: {
 
       // Step 0 
@@ -729,7 +728,6 @@ const ShipmentForm = ({ type }) => {
     };
   };
 
-
   let totals = calculateTotals(watchedHU);
 
   useEffect(() => {
@@ -751,8 +749,6 @@ const ShipmentForm = ({ type }) => {
 
     return hasContactInfo || hasHandlingData;
   };
-
-
 
   const handleBack = () => {
     console.log('Current Form Values:', getValues());
@@ -900,8 +896,6 @@ const ShipmentForm = ({ type }) => {
     </Box>
 
   );
-
-
 
   // --- HELPER: RENDER PHONE FIELD --- 
 
@@ -1055,8 +1049,6 @@ const ShipmentForm = ({ type }) => {
       </Box>
     );
   };
-
-
   const labelStyle = { fontSize: '0.75rem', color: '#555' };
   const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
   const handleNotesCloseConfirm = () => {
@@ -2954,8 +2946,6 @@ const ShipmentForm = ({ type }) => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
 
-
-
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}
@@ -3463,8 +3453,6 @@ const ShipmentForm = ({ type }) => {
             </Paper>
 
           )}
-
-
 
           {/* STEP 1 */}
 
@@ -4836,7 +4824,6 @@ const ShipmentForm = ({ type }) => {
               <CommoditiesList watchedHU={watchedHU} />
             </Paper>
           )}
-
 
           {/* STEP 3 */}
 
@@ -7624,8 +7611,6 @@ const ShipmentForm = ({ type }) => {
             </Paper>)
           }
 
-
-
           <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
             <Alert severity="error" variant="filled">
@@ -7685,7 +7670,6 @@ const ShipmentForm = ({ type }) => {
               {snackbarMessage}
             </Alert>
           </Snackbar>
-
 
         </Box>
         {/* Place this at the end of your return block */}
@@ -7756,11 +7740,6 @@ const ShipmentForm = ({ type }) => {
 
       </LocalizationProvider >
     </ErrorBoundary>
-
   );
-
 };
-
-
-
 export default ShipmentForm; 

@@ -889,18 +889,20 @@ export async function createNetworkShipment(
                                         break;
                                     case 'LINE_HAUL_DELIVERY':
                                         {
+                                            console.log("[STEP] Processing LINE_HAUL_DELIVERY");
                                             // Create Linehaul Entity
                                             const linehaulEntityId = await entityDB.createEntity(
                                                 conn,
                                                 "LINEHAUL",
                                                 `Linehaul for Shipment ${shipmentId}`
                                             );
+                                            console.log("[LINEHAUL] Linehaul entity created:", linehaulEntityId);
 
                                             let fromLocationEntityId;
 
                                             if (linehaulDetails.linehaulPrimaryInfo.fromLocationType === 'Carrier') {
                                                 if (!linehaulDetails.linehaulPrimaryInfo.fromLocationEntityId)
-                                                    throw new Error("Pickup Airline entityId is required for Carrier fromLocationType");
+                                                    throw new Error("Linehaul fromLocation entityId is required for Carrier fromLocationType");
                                                 fromLocationEntityId = linehaulDetails.linehaulPrimaryInfo.fromLocationEntityId;
                                             }
 
@@ -912,6 +914,8 @@ export async function createNetworkShipment(
                                                 toLocationEntityId = consigneeEntityId || deliveryAirlineEntityId;
                                             }
 
+                                            console.log("[LINEHAUL] Creating linehaul primary info");
+
                                             // Create Linehaul Primary Info
                                             await shipmentDB.createNetworkShipmentLinehaulPrimaryInfo(conn, shipmentId, {
                                                 ...linehaulDetails.linehaulPrimaryInfo,
@@ -919,6 +923,8 @@ export async function createNetworkShipment(
                                                 fromLocationEntityId: fromLocationEntityId,
                                                 toLocationEntityId: toLocationEntityId
                                             } as LinehaulPrimaryInfo & { entityId: number });
+
+                                            console.log("[LINEHAUL] Linehaul primary info created successfully");
 
                                             // Create FROM location if editing
                                             if (linehaulDetails.linehaulPrimaryInfo.editFromLocation === 'Y' && linehaulDetails.linehaulPrimaryInfo.editFromLocationDetails) {
@@ -1564,8 +1570,8 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
         shipperDetails: shipperInfo ? {
             shipperId: shipperInfo.shipperId,
             shipperName: shipperInfo.shipperName,
-            addressLine1: shipperInfo.line1,
-            addressLine2: shipperInfo.line2,
+            addressLine1: shipperInfo.addressLine1,
+            addressLine2: shipperInfo.addressLine2,
             city: shipperInfo.city,
             state: shipperInfo.state,
             zipCode: shipperInfo.zipCode,
@@ -1576,8 +1582,8 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
         consigneeDetails: consigneeInfo ? {
             consigneeId: consigneeInfo.consigneeId,
             consigneeName: consigneeInfo.consigneeName,
-            addressLine1: consigneeInfo.line1,
-            addressLine2: consigneeInfo.line2,
+            addressLine1: consigneeInfo.addressLine1,
+            addressLine2: consigneeInfo.addressLine2,
             city: consigneeInfo.city,
             state: consigneeInfo.state,
             zipCode: consigneeInfo.zipCode,
@@ -1591,8 +1597,8 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
             airlineCode: pickupAirlineInfo.airlineCode,
             airportCode: pickupAirlineInfo.airportCode,
             airlineName: pickupAirlineInfo.airlineName,
-            addressLine1: pickupAirlineInfo.line1,
-            addressLine2: pickupAirlineInfo.line2,
+            addressLine1: pickupAirlineInfo.addressLine1,
+            addressLine2: pickupAirlineInfo.addressLine2,
             city: pickupAirlineInfo.city,
             state: pickupAirlineInfo.state,
             zipCode: pickupAirlineInfo.zipCode,
@@ -1607,8 +1613,8 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
             airlineCode: deliveryAirlineInfo.airlineCode,
             airportCode: deliveryAirlineInfo.airportCode,
             airlineName: deliveryAirlineInfo.airlineName,
-            addressLine1: deliveryAirlineInfo.line1,
-            addressLine2: deliveryAirlineInfo.line2,
+            addressLine1: deliveryAirlineInfo.addressLine1,
+            addressLine2: deliveryAirlineInfo.addressLine2,
             city: deliveryAirlineInfo.city,
             state: deliveryAirlineInfo.state,
             zipCode: deliveryAirlineInfo.zipCode,
@@ -1631,7 +1637,9 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
         pickupRouting: pickupInfo.pickupRouting,
         airportTransfer: pickupInfo.airportTransfer,
         carrierId: pickupInfo.carrierId,
+        carrierName: pickupInfo.carrierName,
         terminalId: pickupInfo.terminalId,
+        terminalName: pickupInfo.terminalName,
         fromLocationType: pickupInfo.fromLocationType,
         fromLocation: pickupInfo.fromLocation,
         fromLocationEntityId: pickupInfo.fromLocationEntityId,
@@ -1798,7 +1806,7 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
             shipmentDate: shipment.shipmentDate,
             shipmentTime: shipment.shipmentTime,
             orderReceivedPickupPending: (shipment as any).orderReceivedPickupPending,
-            shipmentStatus: (shipment as any).shipmentStatus
+            status: (shipment as any).status
         },
         customerDetails: customerDetailsResponse,
         commodityDetails: {
@@ -1883,4 +1891,10 @@ function validateMatch(existing: any, incoming: any, entity: string) {
             );
         }
     }
+}
+
+export async function updateNetworkShipment(conn: Connection, shipmentId: number, shipmentDetails: Partial<any>): Promise<any> {
+    // Delegate to DB update and return refreshed view
+    await shipmentDB.updateNetworkShipment(conn, shipmentId, shipmentDetails as any);
+    return getNetworkShipmentView(conn, shipmentId);
 }

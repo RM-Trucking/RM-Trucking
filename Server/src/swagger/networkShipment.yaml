@@ -31,7 +31,7 @@ paths:
                     shipmentDate: "2024-07-01"
                     shipmentTime: "09:00:00"
                     orderReceivedPickupPending: "N"
-                    shipmentStatus: "Active"
+                    status: "Active"
                   customerDetails:
                     customerId: 110
                     stationId: 183
@@ -284,7 +284,7 @@ paths:
                     serviceLevel: "Regular"
                     shipmentDate: "2026-07-06"
                     orderReceivedPickupPending: "N"
-                    shipmentStatus: "Active"
+                    status: "Active"
                   customerDetails:
                     customerId: 110
                     stationId: 183
@@ -334,7 +334,7 @@ paths:
                     shipmentDate: "2024-07-01"
                     shipmentTime: "10:00:00"
                     orderReceivedPickupPending: "N"
-                    shipmentStatus: "Active"
+                    status: "Active"
                   customerDetails:
                     customerId: 110
                     stationId: 183
@@ -516,7 +516,7 @@ paths:
                     shipmentDate: "2024-07-03"
                     shipmentTime: "08:30:00"
                     orderReceivedPickupPending: "N"
-                    shipmentStatus: "Active"
+                    status: "Active"
                   customerDetails:
                     customerId: 110
                     stationId: 183
@@ -690,7 +690,7 @@ paths:
                     shipmentDate: "2024-07-05"
                     shipmentTime: "11:00:00"
                     orderReceivedPickupPending: "N"
-                    shipmentStatus: "Active"
+                    status: "Active"
                   customerDetails:
                     customerId: 110
                     stationId: 183
@@ -950,6 +950,43 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
+    patch:
+      tags: [Network Shipment]
+      summary: Update a network shipment (partial update)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: shipmentId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ShipmentDetails"
+            description: "Partial shipment details to update. Only provided fields will be changed."
+      responses:
+        "200":
+          description: Shipment updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkShipment"
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Shipment not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     NetworkShipment:
@@ -980,7 +1017,7 @@ components:
         - serviceLevel
         - shipmentDate
         - shipmentTime
-        - shipmentStatus
+        - status
       properties:
         typeOfShipment:
           type: string
@@ -1000,7 +1037,7 @@ components:
           format: time
           example: "09:00:00"
           description: Time of the shipment
-        shipmentStatus:
+        status:
           type: string
           example: "Active"
           description: Status of the shipment

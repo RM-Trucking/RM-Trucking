@@ -4,7 +4,8 @@ export type ShipmentDetails = {
     shipmentDate: Date;
     shipmentTime: string;
     orderReceivedPickupPending: 'Y' | 'N';
-    shipmentStatus: string;
+    status: 'ORDER_RECEIVED_PICKUP_PENDING' | 'ORDER_RECEIVED_PICKUP_SETUP' | 'DISPATCHED_RSL' | 'PICKED' | 'AT_WAREHOUSE' | 'TO_BE_RECOVERED' | 'TO_BE_ROUTED' | 'ADDED_TO_QUEUE' | 'MANIFESTED' | 'CARRIER_PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'APPOINTMENT' | 'RECOVERED_SHORT';
+
 };
 
 export type AirlineDetails = {
@@ -18,7 +19,7 @@ export type AirlineDetails = {
     state?: string;
     city: string;
     zipCode?: string;
-    handler?: string;
+    contactPersonName?: string;
     phoneNumber?: string;
     entityId?: number;
     scenarioType: 'IMPORT' | 'EXPORT';

@@ -3,6 +3,15 @@ import { SCHEMA } from "../../config/db2";
 import { NetworkShipment, NetworkShipmentCustomerInfo, NetworkShipmentShipperInfo, NetworkCommodityInfo, NetworkShipmentConsigneeInfo, NetworkHandlingUnitInfo, NetworkHandlingUnitItemInfo, NetworkHandlingUnitItemHazmatInfo, NetworkShipmentShipperConsigneeAirlineMapping } from "../../entities/shipment";
 import { AddressDetail, AirlineDetails, CommodityDetails, ConsigneeDetails, CustomerDetails, HandlingUnitDetails, HazmatDetails, PalletDetails, PickupDetails, ShipmentDetails, ShipperDetails, Accessorial, LinehaulDetails, LinehaulPrimaryInfo, LinehaulCommonInfo, DeliveryPrimaryInfo, DeliveryCommonInfo, RateDetails, InvoiceDetails } from "../../entities/shipment/shipmentTypes";
 
+function normalizeDateTimeValue(value: unknown): string | null | undefined {
+  if (value === undefined) return undefined;
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed === '' ? null : trimmed;
+  }
+  return value as string | null;
+}
+
 export async function createNetworkShipment(
   conn: Connection,
   shipmentDetails: ShipmentDetails,
@@ -11,16 +20,20 @@ export async function createNetworkShipment(
   const query = `
     SELECT * FROM FINAL TABLE (
       INSERT INTO ${SCHEMA}."Network_Shipment"
-        ("typeOfShipment", "serviceLevel", "shipmentDate", "shipmentTime", "createdBy", "createdAt")
-      VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ("typeOfShipment", "serviceLevel", "shipmentDate", "shipmentTime", "status", "createdBy", "createdAt")
+      VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT TIMEZONE))
     )
   `;
+
+  const shipmentDateValue = normalizeDateTimeValue(shipmentDetails.shipmentDate);
+  const shipmentTimeValue = normalizeDateTimeValue(shipmentDetails.shipmentTime);
 
   const result = (await conn.query(query, [
     shipmentDetails.typeOfShipment,
     shipmentDetails.serviceLevel,
-    shipmentDetails.shipmentDate,
-    shipmentDetails.shipmentTime,
+    shipmentDateValue,
+    shipmentTimeValue,
+    shipmentDetails.status,
     userId,
   ] as any[])) as unknown as NetworkShipment[];
 
@@ -130,7 +143,7 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: Airlin
   const query = `
        SELECT * FROM FINAL TABLE (
         INSERT INTO ${SCHEMA}."Airline"
-          ("airlineNumber", "airlineCode", "airportCode", "airlineName", "addressLine1", "addressLine2", "city", "state", "zipCode", "handler", "phoneNumber", "entityId", "scenarioType")
+          ("airlineNumber", "airlineCode", "airportCode", "airlineName", "addressLine1", "addressLine2", "city", "state", "zipCode", "contactPersonName", "phoneNumber", "entityId", "scenarioType")
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        )
     `;
@@ -144,8 +157,8 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: Airlin
     airlineDetails.city,
     airlineDetails.state ?? '',
     airlineDetails.zipCode ?? '',
-    airlineDetails.handler ?? '',
     airlineDetails.phoneNumber ?? '',
+    airlineDetails.contactPersonName ?? '',
     airlineDetails.entityId,
     airlineDetails.scenarioType
   ] as any) as unknown as any[];
@@ -389,6 +402,8 @@ export async function createNetworkShipmentLinehaulPrimaryInfo(
   shipmentId: number,
   linehaulInfo: LinehaulPrimaryInfo & { entityId: number }
 ) {
+
+  console.log(linehaulInfo);
   const query = `
   SELECT * FROM FINAL TABLE (
     INSERT INTO ${SCHEMA}."Network_Shipment_Linehaul_Info"
@@ -740,8 +755,11 @@ export async function getNetworkShipmentById(conn: Connection, shipmentId: numbe
 
 export async function getNetworkShipmentCustomerInfo(conn: Connection, shipmentId: number) {
   const query = `
-    SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Info"
-    WHERE "shipmentId" = ?
+    SELECT "nsci".*, "c"."customerName" , "s"."stationName"
+    FROM ${SCHEMA}."Network_Shipment_Customer_Info" as "nsci"
+    LEFT JOIN ${SCHEMA}."Customer" "c" ON "c"."customerId" = "nsci"."customerId"
+    LEFT JOIN ${SCHEMA}."Station" "s" ON "s"."stationId" = "nsci"."stationId"
+    WHERE "nsci"."shipmentId" = ?
   `;
   const result = await conn.query(query, [shipmentId]) as any[];
   return result[0];
@@ -821,8 +839,11 @@ export async function getHazmatInfoByItemId(conn: Connection, itemId: number) {
 
 export async function getNetworkShipmentPickupInfoByShipmentId(conn: Connection, shipmentId: number) {
   const query = `
-    SELECT * FROM ${SCHEMA}."Network_Shipment_Pickup_Info"
-    WHERE "shipmentId" = ?
+    SELECT "nspi".*, "c"."carrierName", "t"."terminalName"
+    FROM ${SCHEMA}."Network_Shipment_Pickup_Info" as "nspi"
+    LEFT JOIN ${SCHEMA}."Carrier" "c" ON "c"."carrierId" = "nspi"."carrierId"
+    LEFT JOIN ${SCHEMA}."Terminal" "t" ON "t"."terminalId" = "nspi"."terminalId"
+    WHERE "nspi"."shipmentId" = ?
     FETCH FIRST 1 ROW ONLY
   `;
   const result = await conn.query(query, [shipmentId]) as any[];
@@ -860,8 +881,11 @@ export async function getNetworkShipmentPickupAccessorials(conn: Connection, shi
 
 export async function getNetworkShipmentLinehaulInfoByShipmentId(conn: Connection, shipmentId: number) {
   const query = `
-    SELECT * FROM ${SCHEMA}."Network_Shipment_Linehaul_Info"
-    WHERE "shipmentId" = ?
+    SELECT "nslhi".*, "c"."carrierName", "t"."terminalName"
+    FROM ${SCHEMA}."Network_Shipment_Linehaul_Info" as "nslhi"
+    LEFT JOIN ${SCHEMA}."Carrier" "c" ON "c"."carrierId" = "nslhi"."carrierId"
+    LEFT JOIN ${SCHEMA}."Terminal" "t" ON "t"."terminalId" = "nslhi"."terminalId"
+    WHERE "nslhi"."shipmentId" = ?
     FETCH FIRST 1 ROW ONLY
   `;
   const result = await conn.query(query, [shipmentId]) as any[];
@@ -889,8 +913,11 @@ export async function getNetworkShipmentLinehaulAccessorials(conn: Connection, s
 
 export async function getNetworkShipmentDeliveryInfoByShipmentId(conn: Connection, shipmentId: number) {
   const query = `
-    SELECT * FROM ${SCHEMA}."Network_Shipment_Delivery_Info"
-    WHERE "shipmentId" = ?
+    SELECT "nsdi".*, "c"."carrierName", "t"."terminalName" 
+    FROM ${SCHEMA}."Network_Shipment_Delivery_Info" as "nsdi"
+    LEFT JOIN ${SCHEMA}."Carrier" "c" ON "c"."carrierId" = "nsdi"."carrierId"
+    LEFT JOIN ${SCHEMA}."Terminal" "t" ON "t"."terminalId" = "nsdi"."terminalId"
+    WHERE "nsdi"."shipmentId" = ?
     FETCH FIRST 1 ROW ONLY
   `;
   const result = await conn.query(query, [shipmentId]) as any[];
@@ -1049,6 +1076,97 @@ export async function getNetworkShipmentList(conn: Connection, page: number, lim
   return { totalItems, rows: result };
 }
 
+//Update Functions
+export async function updateNetworkShipment(conn: Connection, shipmentId: number, shipmentDetails: Partial<ShipmentDetails>) {
+  const fieldsToUpdate: string[] = [];
+  const params: any[] = [];
+
+  const validColumnName = /^[A-Za-z0-9_]+$/;
+
+  for (const [key, value] of Object.entries(shipmentDetails)) {
+    if (value === undefined) continue;
+
+    if (key === 'shipmentId') continue;
+
+    if (!validColumnName.test(key)) {
+      throw new Error(`Invalid column name: ${key}`);
+    }
+
+    fieldsToUpdate.push(`"${key}" = ?`);
+
+    const normalizedValue = (key === 'shipmentDate' || key === 'shipmentTime')
+      ? normalizeDateTimeValue(value)
+      : value;
+
+    if (normalizedValue === null) {
+      params.push(null);
+    } else if (normalizedValue instanceof Date) {
+      params.push(normalizedValue.toISOString());
+    } else if (typeof normalizedValue === 'object') {
+      params.push(JSON.stringify(normalizedValue));
+    } else {
+      params.push(normalizedValue);
+    }
+  }
+
+  if (fieldsToUpdate.length === 0) {
+    throw new Error('No fields provided for update.');
+  }
+
+  params.push(shipmentId);
+
+  const query = `
+    UPDATE ${SCHEMA}."Network_Shipment"
+    SET ${fieldsToUpdate.join(', ')}
+    WHERE "shipmentId" = ?
+  `;
+
+  await conn.query(query, params);
+}
+
+
+export async function updateNetworkShipmentCustomerInfo(conn: Connection, shipmentId: number, customerDetails: Partial<CustomerDetails>) {
+  const fieldsToUpdate: string[] = [];
+  const params: any[] = [];
+
+  const validColumnName = /^[A-Za-z0-9_]+$/;
+
+  for (const [key, value] of Object.entries(customerDetails)) {
+    if (value === undefined) continue;
+
+    if (!validColumnName.test(key)) {
+      throw new Error(`Invalid column name: ${key}`);
+    }
+
+    fieldsToUpdate.push(`"${key}" = ?`);
+
+    if (value === null) {
+      params.push(null);
+    }
+    else if (value instanceof Date) {
+      params.push(value.toISOString());
+    }
+    else if (typeof value === 'object') {
+      params.push(JSON.stringify(value));
+    }
+    else {
+      params.push(value);
+    }
+  }
+
+  if (fieldsToUpdate.length === 0) {
+    throw new Error('No fields provided for update.');
+  }
+
+  params.push(shipmentId);
+
+  const query = `
+    UPDATE ${SCHEMA}."Network_Shipment_Customer_Info"
+    SET ${fieldsToUpdate.join(', ')}
+    WHERE "shipmentId" = ?
+  `;
+  await conn.query(query, params);
+}
 
 
 

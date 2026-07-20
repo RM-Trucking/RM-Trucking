@@ -65,3 +65,26 @@ export async function getNetworkShipmentForms(req: Request, res: Response, conn:
         res.status(400).json({ success: false, message: error.message });
     }
 }
+
+export async function updateNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const shipmentId = Number(req.params.shipmentId);
+        if (Number.isNaN(shipmentId) || shipmentId <= 0) {
+            res.status(400).json({ success: false, message: "Invalid shipmentId" });
+            return;
+        }
+
+        const updateReq = req.body;
+
+        const updated = await shipmentService.updateNetworkShipment(conn, shipmentId, updateReq);
+
+        res.status(200).json({
+            success: true,
+            message: "Network shipment updated successfully",
+            data: updated
+        });
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+}

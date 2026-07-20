@@ -183,20 +183,26 @@ export default function ShipmentViewTable({ }) {
         {
             field: "status",
             headerName: "Status",
-            minWidth: 100,
-            align: 'center',
-            cellClassName: 'center-status-cell',
+            minWidth: 300,
             filterable: false,
             sortable: false,
             renderCell: (params) => {
+                // 1. Safe extraction with fallback to empty string
+                const rawStatus = params?.row?.status || "";
+
+                // 2. Replace all underscores with spaces
+                const cleanStatus = rawStatus.replaceAll('_', ' ');
+
                 const element = (
                     <Box>
-                        <Chip label={params?.row?.status} sx={{ backgroundColor: 'rgba(92, 172, 105, 1)' }} />
+                        {/* 3. Display the cleaned string natively */}
+                        <Chip label={cleanStatus} sx={{ backgroundColor: 'rgba(92, 172, 105, 1)' }} />
                     </Box>
                 );
                 return element;
             },
         },
+
         {
             field: "actions",
             headerName: "Action",
@@ -278,7 +284,7 @@ export default function ShipmentViewTable({ }) {
         if (shipmentSuccess && operationalMessage) {
             setShipmentSuccessFlag(true);
         }
-    }, [shipmentSuccess,operationalMessage])
+    }, [shipmentSuccess, operationalMessage])
     const transformDataGridRows = (apiResponseArray) => {
         if (!Array.isArray(apiResponseArray)) return [];
 
@@ -294,7 +300,7 @@ export default function ShipmentViewTable({ }) {
             // 3. Build concatenated address strings helper
             const formatAddress = (details) => {
                 if (!details) return '';
-                const parts = [details.city, details.state, details.zipCode].filter(Boolean);
+                const parts = [details.addressLine1, details.addressLine2, details.city, details.state, details.zipCode].filter(Boolean);
                 return parts.join(', '); // Result: "Los Angeles, CA, 90001"
             };
 
@@ -306,7 +312,7 @@ export default function ShipmentViewTable({ }) {
                 origin: formatAddress(shipper),
                 destination: formatAddress(consignee),
                 serviceLevel: shipmentDetails?.serviceLevel ?? "",
-                pickupAgent: pickup?.carrierId ?? "",
+                pickupAgent: pickup?.carrierName ?? "",
                 pickupRouting: 'Pending',
                 linehaulRouting: 'Pending',
                 deliveryRouting: 'Pending',

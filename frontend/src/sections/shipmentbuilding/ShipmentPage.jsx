@@ -3266,7 +3266,6 @@ const ShipmentForm = ({ type }) => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
 
                 <Box sx={{ flex: '1 1 22%' }}>
-
                   <Controller
                     name="shipmentType"
                     control={control}
@@ -3292,12 +3291,9 @@ const ShipmentForm = ({ type }) => {
                       </TextField>
                     )}
                   />
-
-
                 </Box>
 
                 <Box sx={{ flex: '1 1 22%' }}>
-
                   <Controller
                     name="serviceLevel"
                     control={control}
@@ -3322,12 +3318,9 @@ const ShipmentForm = ({ type }) => {
                       </TextField>
                     )}
                   />
-
-
                 </Box>
 
                 <Box sx={{ flex: '1 1 22%' }}>
-
                   <Controller
                     name="date"
                     control={control}
@@ -3390,11 +3383,9 @@ const ShipmentForm = ({ type }) => {
                       />
                     )}
                   />
-
                 </Box>
 
                 <Box sx={{ flex: '1 1 22%' }}>
-
                   <Controller
                     name="time"
                     control={control}
@@ -3445,13 +3436,11 @@ const ShipmentForm = ({ type }) => {
                       />
                     )}
                   />
-
                 </Box>
 
               </Box>
 
             </Paper>
-
           )}
 
           {/* STEP 1 */}
@@ -7463,152 +7452,154 @@ const ShipmentForm = ({ type }) => {
           {/* step 4 */}
 
           {
-            activeStep === 4 && (<Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
-                <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
-                  Carrier Rates
-                </Typography>
-              </Box>
-              <CarrierSection
-                type={type}
-                fields={carrierRatesPickUpAccessorials}
-                sectionName={`Pickup Carrier ${watchedCarrierRateInfo.pickUp.pickUpCarrier ? `-  ${carrierTerminalDropdown.find(
-                  (item) => item.terminalId === Number(watchedSelectedPickupCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedPickupCarrier.split('-')?.[1])
-                )?.carrierName || ''}` : ''}`}
-                rate={'carrierRates.pickUp.pickUpRate'}
-                totalSubCharges={(
-                  parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
-                  watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.chargeValue) || 0;
-
-                    // Check if input exists and isn't an empty string
-                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                      const input = parseFloat(item.input) || 0;
-                      return sum + (charge * input);
-                    }
-                    // Otherwise, treat as a flat fee
-                    return sum + charge;
-                  }, 0)
-                ).toFixed(2)}
-                watchedCarrierRateInfo={watchedCarrierRateInfo}
-                setValue={setValue}
-                path="carrierRates.pickUp.pickupAccessorials"
-                control={control}
-                getValues={getValues}
-                totals={totals}
-                apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
-                invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
-              />
-              <CarrierSection
-                type={type}
-                fields={carrierRatesLineHaulAccessorials}
-                sectionName={`Line Haul Carrier ${(watchedCarrierRateInfo.lineHaul.lineHaulCarrier && (selectedRouting === 'pickup_only' && (watchedLinehaulSelectRouting === 'linehaul_only' || watchedLinehaulSelectRouting === 'linehaul_delivery'))) ? `-  ${carrierTerminalDropdown.find(
-                  (item) => item.terminalId === Number(watchedSelectedLineHaulCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedLineHaulCarrier.split('-')?.[1])
-                )?.carrierName || ''}` : ''}`}
-                rate={'carrierRates.lineHaul.lineHaulRate'}
-                totalSubCharges={(
-                  parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
-                  watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.chargeValue) || 0;
-
-                    // Check if input exists and isn't an empty string
-                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                      const input = parseFloat(item.input) || 0;
-                      return sum + (charge * input);
-                    }
-                    // Otherwise, treat as a flat fee
-                    return sum + charge;
-                  }, 0)
-                ).toFixed(2)}
-                watchedCarrierRateInfo={watchedCarrierRateInfo}
-                setValue={setValue}
-                path="carrierRates.lineHaul.lineHaulAccessorials"
-                control={control}
-                getValues={getValues}
-                totals={totals}
-                apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
-                invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
-              />
-              <CarrierSection
-                type={type}
-                fields={carrierRatesDeliveryAccessorials}
-                sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
-                  (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
-                )?.carrierName || ''}` : ''}`}
-                rate='carrierRates.delivery.deliveryRate'
-                totalSubCharges={(
-                  parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
-                  watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                    const charge = parseFloat(item.chargeValue) || 0;
-
-                    // Check if input exists and isn't an empty string
-                    if (item.input !== undefined && item.input !== "" && item.input !== null) {
-                      const input = parseFloat(item.input) || 0;
-                      return sum + (charge * input);
-                    }
-                    // Otherwise, treat as a flat fee
-                    return sum + charge;
-                  }, 0)
-                ).toFixed(2)}
-                watchedCarrierRateInfo={watchedCarrierRateInfo}
-                setValue={setValue}
-                path="carrierRates.delivery.deliveryAccessorials"
-                control={control}
-                getValues={getValues}
-                totals={totals}
-                apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
-                invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
-              />
-
-              {/* Grand total  */}
-              <Box sx={{ bgcolor: '#f5f5f5' }}>
-                <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
-                  <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
-                  <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>
-                    {(
-                      // 1. PickUp Section
-                      // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
-                      //   ? 
-                      (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
-                        watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.chargeValue) || 0;
-                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                          return sum + (input !== null ? charge * input : charge);
-                        }, 0))
-                      // : 0) 
-                      +
-
-                      // 2. LineHaul Section
-                      // ((selectedRouting === "None")
-                      //   ? 
-                      (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
-                        watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.chargeValue) || 0;
-                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                          return sum + (input !== null ? charge * input : charge);
-                        }, 0))
-                      // : 0) 
-                      +
-
-                      // 3. Delivery Section
-                      // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "None")
-                      //   ?
-                      (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
-                        watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
-                          const charge = parseFloat(item.chargeValue) || 0;
-                          const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
-                          return sum + (input !== null ? charge * input : charge);
-                        }, 0))
-                      // : 0)
-                    ).toFixed(2)}
+            activeStep === 4 && (
+              <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
+                  <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, }}>
+                    Carrier Rates
                   </Typography>
                 </Box>
-              </Box>
+                <CarrierSection
+                  type={type}
+                  fields={carrierRatesPickUpAccessorials}
+                  sectionName={`Pickup Carrier ${watchedCarrierRateInfo.pickUp.pickUpCarrier ? `-  ${carrierTerminalDropdown.find(
+                    (item) => item.terminalId === Number(watchedSelectedPickupCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedPickupCarrier.split('-')?.[1])
+                  )?.carrierName || ''}` : ''}`}
+                  rate={'carrierRates.pickUp.pickUpRate'}
+                  totalSubCharges={(
+                    parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                    watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                      const charge = parseFloat(item.chargeValue) || 0;
 
-              {/*  invoice approval section */}
+                      // Check if input exists and isn't an empty string
+                      if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                        const input = parseFloat(item.input) || 0;
+                        return sum + (charge * input);
+                      }
+                      // Otherwise, treat as a flat fee
+                      return sum + charge;
+                    }, 0)
+                  ).toFixed(2)}
+                  watchedCarrierRateInfo={watchedCarrierRateInfo}
+                  setValue={setValue}
+                  path="carrierRates.pickUp.pickupAccessorials"
+                  control={control}
+                  getValues={getValues}
+                  totals={totals}
+                  apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
+                  invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
+                />
+                <CarrierSection
+                  type={type}
+                  fields={carrierRatesLineHaulAccessorials}
+                  sectionName={`Line Haul Carrier ${(watchedCarrierRateInfo.lineHaul.lineHaulCarrier && (selectedRouting === 'pickup_only' && (watchedLinehaulSelectRouting === 'linehaul_only' || watchedLinehaulSelectRouting === 'linehaul_delivery'))) ? `-  ${carrierTerminalDropdown.find(
+                    (item) => item.terminalId === Number(watchedSelectedLineHaulCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedLineHaulCarrier.split('-')?.[1])
+                  )?.carrierName || ''}` : ''}`}
+                  rate={'carrierRates.lineHaul.lineHaulRate'}
+                  totalSubCharges={(
+                    parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                    watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                      const charge = parseFloat(item.chargeValue) || 0;
+
+                      // Check if input exists and isn't an empty string
+                      if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                        const input = parseFloat(item.input) || 0;
+                        return sum + (charge * input);
+                      }
+                      // Otherwise, treat as a flat fee
+                      return sum + charge;
+                    }, 0)
+                  ).toFixed(2)}
+                  watchedCarrierRateInfo={watchedCarrierRateInfo}
+                  setValue={setValue}
+                  path="carrierRates.lineHaul.lineHaulAccessorials"
+                  control={control}
+                  getValues={getValues}
+                  totals={totals}
+                  apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
+                  invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
+                />
+                <CarrierSection
+                  type={type}
+                  fields={carrierRatesDeliveryAccessorials}
+                  sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
+                    (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
+                  )?.carrierName || ''}` : ''}`}
+                  rate='carrierRates.delivery.deliveryRate'
+                  totalSubCharges={(
+                    parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                    watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                      const charge = parseFloat(item.chargeValue) || 0;
+
+                      // Check if input exists and isn't an empty string
+                      if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                        const input = parseFloat(item.input) || 0;
+                        return sum + (charge * input);
+                      }
+                      // Otherwise, treat as a flat fee
+                      return sum + charge;
+                    }, 0)
+                  ).toFixed(2)}
+                  watchedCarrierRateInfo={watchedCarrierRateInfo}
+                  setValue={setValue}
+                  path="carrierRates.delivery.deliveryAccessorials"
+                  control={control}
+                  getValues={getValues}
+                  totals={totals}
+                  apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
+                  invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
+                />
+
+                {/* Grand total  */}
+                <Box sx={{ bgcolor: '#f5f5f5' }}>
+                  <Box sx={{ display: 'flex', p: 1.5, borderRadius: 1, mt: 2, justifyContent: 'flex-end', gap: 12, mr: '10%' }}>
+                    <Typography variant="subtitle1" fontWeight="bold">Total</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 100 }}>
+                      {(
+                        // 1. PickUp Section
+                        // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "Line haul")
+                        //   ? 
+                        (parseFloat(watchedCarrierRateInfo.pickUp.pickUpRate || 0) +
+                          watchedCarrierRateInfo.pickUp.pickupAccessorials.reduce((sum, item) => {
+                            const charge = parseFloat(item.chargeValue) || 0;
+                            const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                            return sum + (input !== null ? charge * input : charge);
+                          }, 0))
+                        // : 0) 
+                        +
+
+                        // 2. LineHaul Section
+                        // ((selectedRouting === "None")
+                        //   ? 
+                        (parseFloat(watchedCarrierRateInfo.lineHaul.lineHaulRate || 0) +
+                          watchedCarrierRateInfo.lineHaul.lineHaulAccessorials.reduce((sum, item) => {
+                            const charge = parseFloat(item.chargeValue) || 0;
+                            const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                            return sum + (input !== null ? charge * input : charge);
+                          }, 0))
+                        // : 0) 
+                        +
+
+                        // 3. Delivery Section
+                        // ((selectedRouting === "Line haul & Delivery" || selectedRouting === "None")
+                        //   ?
+                        (parseFloat(watchedCarrierRateInfo.delivery.deliveryRate || 0) +
+                          watchedCarrierRateInfo.delivery.deliveryAccessorials.reduce((sum, item) => {
+                            const charge = parseFloat(item.chargeValue) || 0;
+                            const input = (item.input !== undefined && item.input !== "" && item.input !== null) ? parseFloat(item.input) : null;
+                            return sum + (input !== null ? charge * input : charge);
+                          }, 0))
+                        // : 0)
+                      ).toFixed(2)}
+                    </Typography>
+                  </Box>
+                </Box>
+
+                {/*  invoice approval section */}
 
 
-            </Paper>)
+              </Paper>
+            )
           }
 
           <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>

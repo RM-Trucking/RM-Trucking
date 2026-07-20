@@ -4,6 +4,7 @@ export interface NetworkShipment {
     serviceLevel: string;
     shipmentDate: Date;
     shipmentTime: string;
+    status: 'ORDER_RECEIVED_PICKUP_PENDING' | 'ORDER_RECEIVED_PICKUP_SETUP' | 'DISPATCHED_RSL' | 'PICKED' | 'AT_WAREHOUSE' | 'TO_BE_RECOVERED' | 'TO_BE_ROUTED' | 'ADDED_TO_QUEUE' | 'MANIFESTED' | 'CARRIER_PICKED_UP' | 'IN_TRANSIT' | 'DELIVERED' | 'APPOINTMENT' | 'RECOVERED_SHORT';
     createdBy: number;
     createdAt: Date;
     updatedBy?: number;

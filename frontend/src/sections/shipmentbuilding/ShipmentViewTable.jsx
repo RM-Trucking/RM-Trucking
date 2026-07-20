@@ -139,7 +139,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.pickupRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.pickupRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon={(params?.row?.pickupRouting.toLowerCase() === 'pending') ? "majesticons:clock" : "ep:success-filled"} sx={{ color: params.row.pickupRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.pickupRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -202,7 +202,6 @@ export default function ShipmentViewTable({ }) {
                 return element;
             },
         },
-
         {
             field: "actions",
             headerName: "Action",
@@ -219,12 +218,6 @@ export default function ShipmentViewTable({ }) {
                         <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
                             <IconButton>
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>
-
-                        <Tooltip title={'Edit'} arrow sx={{ mr: 1 }}>
-                            <IconButton>
-                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>
 
@@ -296,7 +289,9 @@ export default function ShipmentViewTable({ }) {
             const shipper = customerDetails?.shipperDetails;
             const consignee = customerDetails?.consigneeDetails;
             const pickup = carrierDetails?.pickupDetails;
-
+            const linehaul = carrierDetails?.linehaulDetails;
+            const delivery = carrierDetails?.deliveryDetails;
+            
             // 3. Build concatenated address strings helper
             const formatAddress = (details) => {
                 if (!details) return '';
@@ -313,9 +308,9 @@ export default function ShipmentViewTable({ }) {
                 destination: formatAddress(consignee),
                 serviceLevel: shipmentDetails?.serviceLevel ?? "",
                 pickupAgent: pickup?.carrierName ?? "",
-                pickupRouting: 'Pending',
-                linehaulRouting: 'Pending',
-                deliveryRouting: 'Pending',
+                pickupRouting: pickup?.carrierId ? "Success" : 'Pending',
+                linehaulRouting: linehaul?.linehaulPrimaryInfo?.carrierId ? 'Success' : 'Pending',
+                deliveryRouting: delivery?.deliveryPrimaryInfo?.carrierId ? "Success" : 'Pending',
                 status: shipmentDetails?.status ?? '',
                 rowDetails: row // Stores the entire original 1st object unmodified
             };

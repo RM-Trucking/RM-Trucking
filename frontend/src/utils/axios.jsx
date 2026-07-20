@@ -64,7 +64,7 @@ axiosInstance.interceptors.response.use(
         window.location.href = PATH_AUTH.login;
       }
     }
-    return Promise.reject((error.response && error.response.data) || 'Something went wrong');
+    return Promise.reject((error.response && error.response.data) || 'Something went wrong : ERR_CONNECTION_TIMED_OUT');
   }
 );
 

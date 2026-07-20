@@ -5186,7 +5186,10 @@ const ShipmentForm = ({ type }) => {
 
     // 1. Step-based validation fields mapping
     if (activeStep === 0) {
-      fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
+      fieldsToValidate = ['shipmentType', 'serviceLevel'];
+      if(watchedServiceLevel?.includes('(Date Specific)')){
+        fieldsToValidate.push('date', 'time');
+      }
     } else if (activeStep === 1) {
       fieldsToValidate = [
         'billingCustomer', 'shipperPhone', 'consigneePhone',
@@ -5310,7 +5313,7 @@ const ShipmentForm = ({ type }) => {
         ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
         : "",
       "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
-      "status": "ORDER_RECEIVED_PICKUP_PENDING",
+      "status": currentValues?.carrierInfo?.orderReceivedPending ? "ORDER_RECEIVED_PICKUP_PENDING" : "ORDER_RECEIVED_PICKUP_SETUP",
     };
     // step 1
     obj.customerDetails = {
@@ -6214,12 +6217,12 @@ const ShipmentForm = ({ type }) => {
       if (!hasTopLevelValid) return { isValid: false, reason: 'Handling Units' };
 
       if (!Array.isArray(unit?.items) || unit.items.length === 0) {
-        return { isValid: false, reason: 'Handling Units' };
+        return { isValid: false, reason: 'Handling Unit Items' };
       }
 
       for (const item of unit.items) {
         const baseFieldsValid = !!item?.pieces?.toString().trim() && !!item?.piecesUom?.trim() && !!item?.description?.trim();
-        if (!baseFieldsValid) return { isValid: false, reason: 'Handling Units' };
+        if (!baseFieldsValid) return { isValid: false, reason: 'Handling Unit Items' };
 
         if (item?.hazmatInfo === true) {
           const hazmat = item?.hazmatData;
@@ -6258,7 +6261,7 @@ const ShipmentForm = ({ type }) => {
         ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
         : "",
       "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
-      "status": "ORDER_RECEIVED_PICKUP_PENDING",
+      "status": currentValues?.carrierInfo?.orderReceivedPending ? "ORDER_RECEIVED_PICKUP_PENDING" : "ORDER_RECEIVED_PICKUP_SETUP",
     };
     // step 1
     obj.customerDetails = {
@@ -8125,11 +8128,13 @@ const ShipmentForm = ({ type }) => {
                     <Box sx={{ flex: '1 1 80px' }}>
                       <Controller name={`handlingUnits.${huIdx}.unit`} control={control} render={({ field }) => (
                         <TextField {...field} select fullWidth label="Unit *" variant="standard" InputLabelProps={{ shrink: true }}>
-                          <MenuItem value="in">in</MenuItem>
-                          <MenuItem value="cm">cm</MenuItem>
-                        </TextField>
-                      )} />
+                            <MenuItem value="in">in</MenuItem>
+                            <MenuItem value="cm">cm</MenuItem>
+                          </TextField>
+                        )}
+                      />
                     </Box>
+
                     {['Length', 'Width', 'Height'].map((dim) => {
                       const fieldName = dim.toLowerCase(); // matches 'length', 'width', 'height'
                       const fieldError = errors?.handlingUnits?.[huIdx]?.[fieldName];

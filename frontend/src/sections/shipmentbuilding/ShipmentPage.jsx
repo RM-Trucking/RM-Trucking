@@ -54,36 +54,12 @@ import CarrierSection from './CarrierSection';
 import DoDetailsDialog from './DoDetailsDialog';
 import CustomerRateDialog from './CustomerRateDialog';
 import HandleCancelDialog from './HandleCancelDialog';
+import ActiveStep0 from './ActiveStep0';
 
 // --------------------------------------------------------------
 
 // --- CONSTANTS & LISTS --- 
-const shipmentTypes = [
-  {
-    label: 'Air Import',
-    value: 'AIR_IMPORT',
-  },
-  {
-    label: 'Air Export',
-    value: 'AIR_EXPORT',
-  },
-  {
-    label: 'Ocean Import',
-    value: 'OCEAN_IMPORT',
-  },
-  {
-    label: 'Ocean Export',
-    value: 'OCEAN_EXPORT',
-  },
-  {
-    label: 'Domestic',
-    value: 'DOMESTIC',
-  },
-  {
-    label: 'Non-Forwarder Domestic',
-    value: 'NON_FORWARDER_DOMESTIC',
-  },
-];
+
 const STEPS = [
   'Shipment Details',
   'Customer Details',
@@ -91,23 +67,7 @@ const STEPS = [
   'Carrier Information',
   'Carrier Rate'
 ];
-const serviceLevels = [
 
-  'Regular',
-
-  'Dedicated Truck',
-
-  'Special Deliveries',
-
-  'Conventions',
-
-  'Weekend (Date Specific)',
-
-  'Special Deliveries (Date Specific)',
-
-  'Conventions (Date Specific)',
-
-];
 const commonBtnStyle = {
 
   height: '24px',
@@ -3259,188 +3219,7 @@ const ShipmentForm = ({ type }) => {
 
           {activeStep === 0 && (
 
-            <Paper variant="outlined" sx={{ p: 3, mt: 2, borderRadius: 2 }}>
-
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ borderBottom: '1px solid rgba(143, 143, 143, 1)', pb: 1, mb: 3 }}>Shipment Details</Typography>
-
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-
-                <Box sx={{ flex: '1 1 22%' }}>
-                  <Controller
-                    name="shipmentType"
-                    control={control}
-                    rules={{ required: true }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Type of Shipment *"
-                        variant="standard"
-                        error={!!errors.shipmentType}
-                        // Added: Fallback to an empty string if value is null/undefined to prevent UI errors
-                        value={field.value || ''}
-                        helperText={errors.shipmentType ? 'Shipment Type is required' : ''}
-                      >
-                        {shipmentTypes.map((opt) => (
-                          // Fixed: Pass opt.value (the string) instead of the entire object
-                          <MenuItem key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Box>
-
-                <Box sx={{ flex: '1 1 22%' }}>
-                  <Controller
-                    name="serviceLevel"
-                    control={control}
-                    // 1. FIXED: Pass the explicit string message instead of just 'true'
-                    rules={{ required: "Service Level is required" }}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        select
-                        fullWidth
-                        label="Service Level *"
-                        variant="standard"
-                        error={!!errors.serviceLevel}
-                        // 2. FIXED: Displays the precise validation message when an error exists
-                        helperText={errors.serviceLevel ? errors.serviceLevel.message : ''}
-                      >
-                        {serviceLevels.map((opt) => (
-                          <MenuItem key={opt} value={opt}>
-                            {opt}
-                          </MenuItem>
-                        ))}
-                      </TextField>
-                    )}
-                  />
-                </Box>
-
-                <Box sx={{ flex: '1 1 22%' }}>
-                  <Controller
-                    name="date"
-                    control={control}
-                    rules={{
-                      // 1. Keeps your conditional required message contract intact
-                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Date is required' : false,
-
-                      validate: (value) => {
-                        const isRequired = watchedServiceLevel?.includes('(Date Specific)');
-
-                        // Check if the current value is structurally empty or blank
-                        const isEmpty = !value || value === '';
-
-                        // 2. FIXED: If it is empty and required, return false to let the 'required' string error show up
-                        if (isEmpty) {
-                          return isRequired ? "Date is required" : true;
-                        }
-
-                        // If it is a Dayjs object structure but flagged invalid (like when a user clears a field manually)
-                        if (dayjs.isDayjs(value) && !value.isValid()) {
-                          return isRequired ? "Date is required" : true;
-                        }
-
-                        const dateObj = dayjs(value);
-
-                        // 3. Throw an error for '00/00/0000' strings
-                        if (!dateObj.isValid()) {
-                          return "Please enter a valid date";
-                        }
-
-                        if (dateObj.year() < 1000) {
-                          return "Year is invalid";
-                        }
-
-                        return true;
-                      }
-                    }}
-                    render={({ field: { onChange, value, ...fieldParams } }) => (
-                      <DatePicker
-                        {...fieldParams}
-                        // Allows user typing to display normally without locking or snapping back to blank midway
-                        value={value ? dayjs(value) : null}
-                        onChange={(newValue) => {
-                          // If the user cleared out the text field, explicitly push null to the state
-                          if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
-                            onChange(null);
-                          } else {
-                            onChange(newValue);
-                          }
-                        }}
-                        label={`Select Date ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
-                        slotProps={{
-                          textField: {
-                            variant: 'standard',
-                            fullWidth: true,
-                            error: !!errors.date,
-                            helperText: errors.date ? errors.date.message : ''
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-                <Box sx={{ flex: '1 1 22%' }}>
-                  <Controller
-                    name="time"
-                    control={control}
-                    rules={{
-                      // 1. FIXED: Pass the explicit string message instead of a boolean value
-                      required: watchedServiceLevel?.includes('(Date Specific)') ? 'Time is required' : false,
-
-                      validate: (value) => {
-                        const isRequired = watchedServiceLevel?.includes('(Date Specific)');
-                        const isEmpty = !value || value === '';
-
-                        // 2. Handle empty conditions against requirement states
-                        if (isEmpty) {
-                          return isRequired ? "Time is required" : true;
-                        }
-
-                        // 3. Catch structural library validation failures (like typing 00:00 incorrectly or broken shapes)
-                        if (dayjs.isDayjs(value) && !value.isValid()) {
-                          return isRequired ? "Time is required" : "Please enter a valid time";
-                        }
-
-                        return true;
-                      }
-                    }}
-                    render={({ field: { onChange, value, ...fieldParams } }) => (
-                      <TimePicker
-                        {...fieldParams}
-                        ampm={false} // Maintains 24-hour military clock layout formatting
-                        value={value ? dayjs(value) : null}
-                        onChange={(newValue) => {
-                          // If the user manually backs out characters or clears it, pass a clean null state
-                          if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
-                            onChange(null);
-                          } else {
-                            onChange(newValue);
-                          }
-                        }}
-                        label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
-                        slotProps={{
-                          textField: {
-                            variant: 'standard',
-                            fullWidth: true,
-                            error: !!errors.time,
-                            // 4. FIXED: Renders the precise validation string message underneath the input row
-                            helperText: errors.time ? errors.time.message : ''
-                          }
-                        }}
-                      />
-                    )}
-                  />
-                </Box>
-
-              </Box>
-
-            </Paper>
+            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel}/>
           )}
 
           {/* STEP 1 */}
@@ -6658,7 +6437,22 @@ const ShipmentForm = ({ type }) => {
                             <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 255 }} />} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 255 }} />} />
+                            <Controller
+                              name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2"
+                              control={control}
+                              render={({ field }) => (
+                                <StyledTextField
+                                  {...field}
+                                  fullWidth
+                                  label="Address Line 2"
+                                  variant="standard"
+                                  InputLabelProps={{ shrink: true }}
+                                  disabled={!watchedDeliveryFromLocationFlag}
+                                  inputProps={{ maxLength: 255 }}
+                                />
+                              )}
+                            />
+
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
                             <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 100 }} />} />

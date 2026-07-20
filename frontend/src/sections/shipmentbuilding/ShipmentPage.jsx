@@ -3654,6 +3654,7 @@ const ShipmentForm = ({ type }) => {
 
   const [activeStep, setActiveStep] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
+  const [errorVisibleFields, setErrorVisibleFields] = useState([]);
   // This state controls the opening, closing, and index of the Hazmat modal
   const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
   const [shipmentStatusModal, setShipmentStatusModal] = useState(false);
@@ -4970,227 +4971,117 @@ const ShipmentForm = ({ type }) => {
 
   const handleNext = async () => {
     const currentValues = getValues();
-
     let fieldsToValidate = [];
     let validAccessorials = true;
-    const obj = {};
+    let obj = {};
 
+    // Array to collect missing or invalid fields at the very end
+    const missingRequiredFields = [];
+
+    // 1. Step-based validation fields mapping
     if (activeStep === 0) {
       fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
     } else if (activeStep === 1) {
       fieldsToValidate = [
-        'billingCustomer',
-        'originAirport',
-        'destinationAirport',
-        'shipperZip',
-        'consigneeZip',
-        'shipperPhone',
-        'consigneePhone',
+        'billingCustomer', 'originAirport', 'destinationAirport',
+        'shipperZip', 'consigneeZip', 'shipperPhone', 'consigneePhone',
       ];
     } else if (activeStep === 2 && isHazmatSelected) {
       fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
     } else if (activeStep === 3) {
-      if (selectedRouting === 'pickup_only') {
-        fieldsToValidate = [
-          'carrierInfo.selectCarrier',
-          'carrierInfo.fromLocation',
-        ];
-        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
-          fieldsToValidate.push(
-            'carrierInfo.toLocationType',
-            'carrierInfo.toLocation',
-          );
-        }
+      fieldsToValidate = getRoutingFields(selectedRouting, watchedLinehaulSelectRouting);
 
-        if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
-        }
-
-        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
-          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
-        }
-
+      // Add common carrier conditional fields
+      const { carrierInfo } = currentValues || {};
+      if (!carrierInfo?.pickupAgentTerminal) {
+        fieldsToValidate.push('carrierInfo.toLocationType', 'carrierInfo.toLocation');
       }
-      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
-        fieldsToValidate = [
-          'carrierInfo.selectCarrier',
-          'carrierInfo.fromLocation',
-          'carrierInfo.lineHaul.carrier',
-          'carrierInfo.lineHaul.billNumber',
-          'carrierInfo.lineHaul.toLocationType',
-          'carrierInfo.lineHaul.toLocation',
-          'carrierInfo.deliveryDetails.carrier',
-          'carrierInfo.deliveryDetails.billNumber',
-          'carrierInfo.deliveryDetails.toLocationType',
-          'carrierInfo.deliveryDetails.toLocation',
-
-        ];
-        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
-          fieldsToValidate.push(
-            'carrierInfo.toLocationType',
-            'carrierInfo.toLocation',
-          );
-        }
-
-        if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
-        }
-
-        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
-          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
-        }
-
+      if (carrierInfo?.pickupAlert) {
+        const isSpecialRouting = selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery';
+        const prefix = isSpecialRouting ? 'carrierInfo.' : 'carrierInfo.pickupAlertDetails.';
+        fieldsToValidate.push(`${prefix}pickupNotes`, `${prefix}primaryEmail`);
       }
-      if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
-        fieldsToValidate = [
-          'carrierInfo.selectCarrier',
-          'carrierInfo.fromLocation',
-          'carrierInfo.lineHaul.carrier',
-          'carrierInfo.lineHaul.billNumber',
-          'carrierInfo.lineHaul.toLocationType',
-          'carrierInfo.lineHaul.toLocation',
-
-        ];
-        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
-          fieldsToValidate.push(
-            'carrierInfo.toLocationType',
-            'carrierInfo.toLocation',
-          );
-        }
-
-        if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupNotes', 'carrierInfo.primaryEmail');
-        }
-
-        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
-          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
-        }
-
+      if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert) {
+        fieldsToValidate.push(
+          'carrierInfo.deliveryDetails.lineHaulNotes',
+          'carrierInfo.deliveryDetails.deliveryNotes',
+          'carrierInfo.deliveryDetails.primaryEmail'
+        );
       }
-      if (selectedRouting === 'pickup_linehaul') {
-        fieldsToValidate = [
-          'carrierInfo.selectCarrier',
-          'carrierInfo.fromLocation',
-          'carrierInfo.deliveryDetails.carrier',
-          'carrierInfo.deliveryDetails.billNumber',
-          'carrierInfo.deliveryDetails.toLocationType',
-          'carrierInfo.deliveryDetails.toLocation',
 
-        ];
-        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
-          fieldsToValidate.push(
-            'carrierInfo.toLocationType',
-            'carrierInfo.toLocation',
-          );
-        }
-
-        if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
-        }
-
-        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
-          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
-        }
+      // Accessorials cross-checking & manual error tracking
+      if (carrierInfo?.addPickupAccessorial && carrierInfo?.pickupAccessorials?.length === 0) {
+        validAccessorials = false;
+        missingRequiredFields.push('Pickup Accessorials');
       }
-      if (selectedRouting === 'pickup_linehaul_delivery') {
-        fieldsToValidate = [
-          'carrierInfo.selectCarrier',
-          'carrierInfo.fromLocation',
-        ];
-        if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
-          fieldsToValidate.push(
-            'carrierInfo.toLocationType',
-            'carrierInfo.toLocation',
-          );
-        }
-
-        if (currentValues?.carrierInfo?.pickupAlert) {
-          fieldsToValidate.push('carrierInfo.pickupAlertDetails.pickupNotes', 'carrierInfo.pickupAlertDetails.primaryEmail');
-        }
-
-        if (currentValues?.carrierInfo?.deliveryDetails?.carrier && currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert) {
-          fieldsToValidate.push('carrierInfo.deliveryDetails.lineHaulNotes', 'carrierInfo.deliveryDetails.deliveryNotes', 'carrierInfo.deliveryDetails.primaryEmail');
-        }
+      if (carrierInfo?.lineHaul?.linehaulAddAcc && carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
+        validAccessorials = false;
+        missingRequiredFields.push('Linehaul Accessorials');
+      }
+      if (carrierInfo?.deliveryDetails?.deliveryAddAcc && carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
+        validAccessorials = false;
+        missingRequiredFields.push('Delivery Accessorials');
       }
     }
-    if (activeStep === 3 && currentValues?.carrierInfo?.addPickupAccessorial && currentValues?.carrierInfo?.pickupAccessorials?.length === 0) {
-      validAccessorials = false;
+
+    // 2. Validate handling units structure (Step 2 specific)
+    const isAllUnitsValid = validateHandlingUnits(getValues('handlingUnits'));
+    if (activeStep === 2 && !isAllUnitsValid) {
+      missingRequiredFields.push('Handling Units');
     }
-    if (activeStep === 3 && currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc && currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
-      validAccessorials = false;
-    }
-    if (activeStep === 3 && currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc && currentValues?.carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
-      validAccessorials = false;
-    }
-    const units = getValues('handlingUnits');
 
-    const isAllUnitsValid = Array.isArray(units) && units.length > 0 && units.every(unit => {
-      // 1. Top-level validation for the current handling unit
-      const hasTopLevelValid =
-        !!unit?.uom?.trim() &&
-        !!unit?.unitsCount?.toString().trim();
-
-      if (!hasTopLevelValid) return false;
-
-      // 2. Nested items validation for the current handling unit
-      const isItemsValid = Array.isArray(unit?.items) && unit.items.length > 0 &&
-        unit.items.every(item => {
-          // Baseline checks for every item
-          const baseFieldsValid =
-            !!item?.pieces?.toString().trim() &&
-            !!item?.piecesUom?.trim() &&
-            !!item?.description?.trim();
-
-          if (!baseFieldsValid) return false;
-
-          // Hazmat conditional check
-          if (item?.hazmatInfo === true) {
-            const hazmat = item?.hazmatData;
-            return (
-              !!hazmat?.unNumber?.trim() &&
-              !!hazmat?.shippingName?.trim() &&
-              !!hazmat?.packagingGroup?.trim() &&
-              !!hazmat?.hazmatClass?.trim() &&
-              !!hazmat?.weight?.toString().trim() &&
-              !!hazmat?.technicalName?.trim() &&
-              !!hazmat?.contactPhone?.trim()
-            );
-          }
-
-          return true;
-        });
-
-      return isItemsValid;
-    });
-
-
+    // 3. Form control execution block
     const isValid = await trigger(fieldsToValidate);
-    if (isValid) {
+
+    // 4. Collect React Hook Form native errors if validation failed
+    if (!isValid) {
+      fieldsToValidate.forEach(fieldPath => {
+        const hasError = fieldPath.split('.').reduce((obj, key) => obj?.[key], errors);
+        const actualValue = getValues(fieldPath);
+
+        // If RHF says it's invalid OR the value is blank/missing
+        if (hasError || actualValue === undefined || actualValue === "" || actualValue === null) {
+          const lastWord = fieldPath.split('.').pop();
+
+          // 1. Format the field name (e.g., "billNumber" -> "Bill Number")
+          const formattedWord = lastWord
+            .replace(/([A-Z])/g, ' $1')
+            .replace(/^./, str => str.toUpperCase());
+
+          // 2. Determine the contextual location prefix
+          let prefix = "Pickup "; // Default fallback
+          if (fieldPath.includes("carrierInfo.lineHaul.")) {
+            prefix = "Linehaul ";
+          } else if (fieldPath.includes("carrierInfo.deliveryDetails.")) {
+            prefix = "Delivery ";
+          }
+
+          // 3. Combine them together (e.g., "Linehaul Bill Number")
+          const readableWord = `${prefix}${formattedWord}`;
+
+          if (!missingRequiredFields.includes(readableWord)) {
+            missingRequiredFields.push(readableWord);
+          }
+        }
+      });
+
+    }
+
+    // 5. Final evaluation block
+    if (isValid && validAccessorials && (activeStep !== 2 || isAllUnitsValid)) {
+      setErrorVisible(false);
       if (activeStep < 4) {
-        if (activeStep === 2) {
-          if (isAllUnitsValid) {
-            setErrorVisible(false);
-            setActiveStep((prev) => prev + 1);
-          } else {
-            setErrorVisible(true);
-          }
-        }
-
-        if (activeStep === 3) {
-          if (validAccessorials) {
-            setErrorVisible(false);
-            setActiveStep((prev) => prev + 1);
-          } else {
-            setErrorVisible(true);
-          }
-        }
-
-        if (activeStep !== 2 && activeStep !== 3) {
-          setActiveStep((prev) => prev + 1);
-        }
+        setActiveStep((prev) => prev + 1);
       }
     } else {
       setErrorVisible(true);
+
+      // Output array containing all final required fields that failed
+      console.log("Required fields missing or invalid:", missingRequiredFields);
+      setErrorVisibleFields(missingRequiredFields);
+
+      // Optional: Save this to a component state if you need to print it on screen
+      // setFailedFields(missingRequiredFields);
     }
 
     // adding to object
@@ -5404,7 +5295,7 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
             "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
@@ -5458,7 +5349,7 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
             "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
@@ -5607,7 +5498,7 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
             "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
@@ -5719,7 +5610,7 @@ const ShipmentForm = ({ type }) => {
           "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
           "pickupAgentTerminalDetails": {
             "toLocationType": "Carrier",
-            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject.carrierName : selectedPickupToCarrierObject.carrierName,
+            "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
             "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
             "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
             "editToLocationDetails": {
@@ -6066,6 +5957,63 @@ const ShipmentForm = ({ type }) => {
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
       setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
     }
+  };
+  // Helper 1: Extract routing fields logic for step 3
+  const getRoutingFields = (routing, linehaulRouting) => {
+    const base = ['carrierInfo.selectCarrier', 'carrierInfo.fromLocation'];
+
+    if (routing === 'pickup_only' && linehaulRouting === 'linehaul_only') {
+      return [
+        ...base,
+        'carrierInfo.lineHaul.carrier', 'carrierInfo.lineHaul.billNumber',
+        'carrierInfo.lineHaul.toLocationType', 'carrierInfo.lineHaul.toLocation',
+        'carrierInfo.deliveryDetails.carrier', 'carrierInfo.deliveryDetails.billNumber',
+        'carrierInfo.deliveryDetails.toLocationType',
+      ];
+    }
+    if (routing === 'pickup_only' && linehaulRouting === 'linehaul_delivery') {
+      return [
+        ...base,
+        'carrierInfo.lineHaul.carrier', 'carrierInfo.lineHaul.billNumber',
+        'carrierInfo.lineHaul.toLocationType', 'carrierInfo.lineHaul.toLocation',
+      ];
+    }
+    if (routing === 'pickup_linehaul') {
+      return [
+        ...base,
+        'carrierInfo.deliveryDetails.carrier', 'carrierInfo.deliveryDetails.billNumber',
+        'carrierInfo.deliveryDetails.toLocationType',
+      ];
+    }
+    return base;
+  };
+
+  // Helper 2: Validate handling units array structure for step 2
+  const validateHandlingUnits = (units) => {
+    if (!Array.isArray(units) || units.length === 0) return false;
+
+    return units.every(unit => {
+      const hasTopLevelValid = !!unit?.uom?.trim() && !!unit?.unitsCount?.toString().trim();
+      if (!hasTopLevelValid) return false;
+
+      if (!Array.isArray(unit?.items) || unit.items.length === 0) return false;
+
+      return unit.items.every(item => {
+        const baseFieldsValid = !!item?.pieces?.toString().trim() && !!item?.piecesUom?.trim() && !!item?.description?.trim();
+        if (!baseFieldsValid) return false;
+
+        if (item?.hazmatInfo === true) {
+          const hazmat = item?.hazmatData;
+          return (
+            !!hazmat?.unNumber?.trim() && !!hazmat?.shippingName?.trim() &&
+            !!hazmat?.packagingGroup?.trim() && !!hazmat?.hazmatClass?.trim() &&
+            !!hazmat?.weight?.toString().trim() && !!hazmat?.technicalName?.trim() &&
+            !!hazmat?.contactPhone?.trim()
+          );
+        }
+        return true;
+      });
+    });
   };
   const onFormSubmit = async () => {
     // Your API call here
@@ -7868,7 +7816,7 @@ const ShipmentForm = ({ type }) => {
                               // FIXED: Displays the grayed-out placeholder when the value is empty
                               renderValue: (selected) => {
                                 if (!selected || selected === "") {
-                                  return <span style={{ color: '#aaa', fontSize : '12px' }}>Select the Handling Units</span>;
+                                  return <span style={{ color: '#aaa', fontSize: '12px' }}>Select the Handling Units</span>;
                                 }
                                 return selected;
                               },
@@ -8038,7 +7986,7 @@ const ShipmentForm = ({ type }) => {
                             SelectProps={{
                               displayEmpty: true,
                               // This ensures the input only shows the value, not the "(Recommended)" text
-                              renderValue: (selected) => selected || <em style={{fontSize : '12px'}}>Select Class</em>,
+                              renderValue: (selected) => selected || <em style={{ fontSize: '12px' }}>Select Class</em>,
                               MenuProps: {
                                 getContentAnchorEl: null,
                                 disableScrollLock: true,
@@ -9125,8 +9073,9 @@ const ShipmentForm = ({ type }) => {
                         <Box sx={{ flex: '1 1 200px' }}>
                           <Controller
                             name="carrierInfo.lineHaul.billNumber"
+                            rules={{ required: true }}
                             control={control}
-                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number" required variant="standard" />}
                           />
                         </Box>
 
@@ -9826,8 +9775,9 @@ const ShipmentForm = ({ type }) => {
                         <Box sx={{ flex: '1 1 200px' }}>
                           <Controller
                             name="carrierInfo.deliveryDetails.billNumber"
+                            rules={{ required: true }}
                             control={control}
-                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number *" variant="standard" />}
+                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number" required variant="standard" />}
                           />
                         </Box>
                         <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
@@ -10674,7 +10624,7 @@ const ShipmentForm = ({ type }) => {
               <CarrierSection
                 type={type}
                 fields={carrierRatesDeliveryAccessorials}
-                sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only'  && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
+                sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
                   (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
                 )?.carrierName || ''}` : ''}`}
                 rate='carrierRates.delivery.deliveryRate'
@@ -10755,9 +10705,11 @@ const ShipmentForm = ({ type }) => {
 
 
 
-          <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => setErrorVisible(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+          <Snackbar open={errorVisible} autoHideDuration={3000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
-            <Alert severity="error" variant="filled">Please fill required fields.</Alert>
+            <Alert severity="error" variant="filled">
+              Please fill required fields: {Array.isArray(errorVisibleFields) ? errorVisibleFields.join(", ") : String(errorVisibleFields || "")}
+            </Alert>
 
           </Snackbar>
 

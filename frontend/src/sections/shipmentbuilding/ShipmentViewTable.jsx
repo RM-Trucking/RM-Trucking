@@ -301,7 +301,7 @@ export default function ShipmentViewTable({ }) {
             // 4. Return the newly structured row object
             return {
                 shipmentId: shipmentId,
-                shipmentPRONo: "", // Kept empty as requested
+                shipmentPRONo: shipmentId, // Kept empty as requested
                 customerName: customerDetails?.customerName ?? "",
                 origin: formatAddress(shipper),
                 destination: formatAddress(consignee),
@@ -326,7 +326,7 @@ export default function ShipmentViewTable({ }) {
     return (
         <>
 
-            {/* <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
                     rows={shipmentViewTableData}
@@ -363,7 +363,7 @@ export default function ShipmentViewTable({ }) {
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 />
-            </Box> */}
+            </Box>
 
             <Snackbar
                 open={shipmentSuccessFlag}

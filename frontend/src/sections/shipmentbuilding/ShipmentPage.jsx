@@ -2430,6 +2430,8 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                     size="small"
                     disabled={!isInvoiceEditing}
                     variant="outlined"
+                    // Natively restricts typing entry to 30 characters max
+                    inputProps={{ maxLength: 30 }}
                     sx={{
                       bgcolor: isInvoiceEditing ? '#e3f2fd' : '#fff',
                       '& .MuiOutlinedInput-input': { p: '4px 8px' },
@@ -2441,12 +2443,6 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                   />
                 )}
               />
-
-
-
-
-
-
 
               {/* Toggle between Edit and Save Icons */}
               {isInvoiceEditing ? (
@@ -2505,16 +2501,42 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                 <TextField
                   {...field}
                   size="small"
-                  disabled={!isRateEditing} // Editable ONLY when isEditing is true
+                  type="number" // Ensures numeric entry behavior
+                  disabled={!isRateEditing}
                   variant="outlined"
+                  // 1. Enforces the hard maximum numeric value (16 digits before decimal, 2 after)
+                  inputProps={{
+                    max: 9999999999999999.99,
+                    step: "0.01"
+                  }}
+                  // 2. Blocks unexpected keys like 'e' or signs from breaking the entry
+                  onKeyDown={(e) => {
+                    if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                      e.preventDefault();
+                    }
+                  }}
+                  // 3. Exact regex validation check to strictly enforce (18,2) limits
+                  onChange={(e) => {
+                    const val = e.target.value;
+
+                    // Allows empty string, or up to 16 digits on the left and up to 2 digits on the right
+                    const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                    if (isValidDecimal || val === '') {
+                      field.onChange(e);
+                    } else {
+                      e.preventDefault();
+                    }
+                  }}
                   sx={{
-                    bgcolor: isRateEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                    bgcolor: isRateEditing ? '#e3f2fd' : '#fff',
                     '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                    '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                    '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                   }}
                 />
               )}
             />
+
 
             {/* Toggle between Edit and Save Icons */}
             {isRateEditing ? (
@@ -2584,20 +2606,45 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                           <TextField
                             {...field}
                             size="small"
-                            disabled={!isInputEditing} // Editable ONLY when isInputEditing is true
+                            type="number" // Forces browser numeric input behavior
+                            disabled={!isInputEditing}
                             variant="outlined"
-                            // Add this section:
                             InputProps={{
                               endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
                             }}
+                            // 1. Sets the hard ceiling value (16 whole digits + 2 decimals = 18 total)
+                            inputProps={{
+                              max: 9999999999999999.99,
+                              step: "0.01"
+                            }}
+                            // 2. Prevents exponential 'e' or signage characters from breaking the layout
+                            onKeyDown={(e) => {
+                              if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                e.preventDefault();
+                              }
+                            }}
+                            // 3. Regex boundary check to lock typing beyond 16 whole digits or 2 decimals
+                            onChange={(e) => {
+                              const val = e.target.value;
+
+                              // Match up to 16 digits before the dot and up to 2 digits after the dot
+                              const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                              if (isValidDecimal || val === '') {
+                                field.onChange(e);
+                              } else {
+                                e.preventDefault();
+                              }
+                            }}
                             sx={{
-                              bgcolor: isInputEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                              bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
                               '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                              '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                              '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                             }}
                           />
                         )}
                       />
+
 
                       {/* Toggle between Edit and Save Icons */}
                       {isInputEditing ? (
@@ -2631,11 +2678,35 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                           <TextField
                             {...field}
                             size="small"
+                            type="number" // Enforces numeric keyboard/entry rules
                             disabled={!isInputEditing}
                             variant="outlined"
-                            // Add this section:
                             InputProps={{
                               endAdornment: <InputAdornment position="end">lbs</InputAdornment>,
+                            }}
+                            // 1. Specifies max value (16 numbers before the dot, 2 after = 18 digits)
+                            inputProps={{
+                              max: 9999999999999999.99,
+                              step: "0.01"
+                            }}
+                            // 2. Blocks notation symbols from bypassing the input type
+                            onKeyDown={(e) => {
+                              if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                e.preventDefault();
+                              }
+                            }}
+                            // 3. Captures and enforces the (18,2) schema boundaries before committing to state
+                            onChange={(e) => {
+                              const val = e.target.value;
+
+                              // Limits left side to 16 digits maximum and right side to 2 digits maximum
+                              const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                              if (isValidDecimal || val === '') {
+                                field.onChange(e);
+                              } else {
+                                e.preventDefault();
+                              }
                             }}
                             sx={{
                               bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
@@ -2645,7 +2716,6 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                           />
                         )}
                       />
-
                     </>
                   )
                 }
@@ -2666,12 +2736,37 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                     <TextField
                       {...field}
                       size="small"
-                      disabled={!isEditing} // Editable ONLY when isEditing is true
+                      type="number" // Enforces numeric entry rules
+                      disabled={!isEditing}
                       variant="outlined"
+                      // 1. Sets the maximum possible value for a (18,2) database field
+                      inputProps={{
+                        max: 9999999999999999.99,
+                        step: "0.01"
+                      }}
+                      // 2. Blocks symbols that bypass standard length restrictions
+                      onKeyDown={(e) => {
+                        if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                          e.preventDefault();
+                        }
+                      }}
+                      // 3. Implements standard regex protection before updating React Hook Form
+                      onChange={(e) => {
+                        const val = e.target.value;
+
+                        // Match up to 16 digits before the dot and up to 2 digits after the dot
+                        const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                        if (isValidDecimal || val === '') {
+                          field.onChange(e);
+                        } else {
+                          e.preventDefault();
+                        }
+                      }}
                       sx={{
-                        bgcolor: isEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        bgcolor: isEditing ? '#e3f2fd' : '#fff',
                         '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                       }}
                     />
                   )}
@@ -3100,16 +3195,42 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <TextField
                       {...field}
                       size="small"
-                      disabled={!isRateEditing} // Editable ONLY when isEditing is true
+                      type="number" // Forces numeric keyboard and behavior
+                      disabled={!isRateEditing}
                       variant="outlined"
+                      // 1. Informs browsers that 2 decimal places are expected with a hard max cap
+                      inputProps={{
+                        max: 9999999999999999.99,
+                        step: "0.01"
+                      }}
+                      // 2. Prevents exponential 'e' notation or sign characters from breaking the field length
+                      onKeyDown={(e) => {
+                        if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                          e.preventDefault();
+                        }
+                      }}
+                      // 3. Intercepts the entry to guarantee it adheres perfectly to database (18,2) boundaries
+                      onChange={(e) => {
+                        const val = e.target.value;
+
+                        // Limits the integer part to 16 digits and decimal part to 2 digits max
+                        const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                        if (isValidDecimal || val === '') {
+                          field.onChange(e);
+                        } else {
+                          e.preventDefault();
+                        }
+                      }}
                       sx={{
-                        bgcolor: isRateEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        bgcolor: isRateEditing ? '#e3f2fd' : '#fff',
                         '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                       }}
                     />
                   )}
                 />
+
 
                 {/* Toggle between Edit and Save Icons */}
                 {isRateEditing ? (
@@ -3172,16 +3293,42 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <TextField
                       {...field}
                       size="small"
-                      disabled={!isFuelSurchargeEditing} // Editable ONLY when isEditing is true
+                      type="number" // Enforces native numeric browser behavior
+                      disabled={!isFuelSurchargeEditing}
                       variant="outlined"
+                      // 1. Sets a hard maximum limit for 18 total digits (16 whole, 2 fractional)
+                      inputProps={{
+                        max: 9999999999999999.99,
+                        step: "0.01"
+                      }}
+                      // 2. Disables exponential inputs or operational signs that disrupt character counts
+                      onKeyDown={(e) => {
+                        if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                          e.preventDefault();
+                        }
+                      }}
+                      // 3. Implements the standard regex guard before triggering React Hook Form state updates
+                      onChange={(e) => {
+                        const val = e.target.value;
+
+                        // Match up to 16 digits before the dot and up to 2 digits after the dot
+                        const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                        if (isValidDecimal || val === '') {
+                          field.onChange(e);
+                        } else {
+                          e.preventDefault();
+                        }
+                      }}
                       sx={{
-                        bgcolor: isFuelSurchargeEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                        bgcolor: isFuelSurchargeEditing ? '#e3f2fd' : '#fff',
                         '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                        '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                       }}
                     />
                   )}
                 />
+
 
                 {/* Toggle between Edit and Save Icons */}
                 {isFuelSurchargeEditing ? (
@@ -3233,20 +3380,45 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                                 {...field}
                                 value={field.value ?? ''}
                                 size="small"
-                                disabled={!isInputEditing} // Editable ONLY when isInputEditing is true
+                                type="number" // Enforces native browser numeric inputs
+                                disabled={!isInputEditing}
                                 variant="outlined"
-                                // Add this section:
                                 InputProps={{
                                   endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
                                 }}
+                                // 1. Sets the hard ceiling boundary (16 integer digits + 2 decimals = 18 total)
+                                inputProps={{
+                                  max: 9999999999999999.99,
+                                  step: "0.01"
+                                }}
+                                // 2. Disables exponential 'e' notation and signs that bypass text limits
+                                onKeyDown={(e) => {
+                                  if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Implements standard validation guard rules prior to committing changes
+                                onChange={(e) => {
+                                  const val = e.target.value;
+
+                                  // Limits left side to 16 digits maximum and right side to 2 digits maximum
+                                  const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                                  if (isValidDecimal || val === '') {
+                                    field.onChange(e);
+                                  } else {
+                                    e.preventDefault();
+                                  }
+                                }}
                                 sx={{
-                                  bgcolor: isInputEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                                  bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
                                   '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                                  '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                                  '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                                 }}
                               />
                             )}
                           />
+
 
                           {/* Toggle between Edit and Save Icons */}
                           {isInputEditing ? (
@@ -3281,11 +3453,35 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                                 {...field}
                                 size="small"
                                 value={field.value ?? ''}
+                                type="number" // Enforces native numeric browser behavior
                                 disabled={!isInputEditing}
                                 variant="outlined"
-                                // Add this section:
                                 InputProps={{
                                   endAdornment: <InputAdornment position="end">lbs</InputAdornment>,
+                                }}
+                                // 1. Sets a hard maximum limit for 18 total digits (16 whole, 2 fractional)
+                                inputProps={{
+                                  max: 9999999999999999.99,
+                                  step: "0.01"
+                                }}
+                                // 2. Disables exponential inputs or operational signs that disrupt character counts
+                                onKeyDown={(e) => {
+                                  if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Implements the standard regex guard before triggering React Hook Form state updates
+                                onChange={(e) => {
+                                  const val = e.target.value;
+
+                                  // Match up to 16 digits before the dot and up to 2 digits after the dot
+                                  const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                                  if (isValidDecimal || val === '') {
+                                    field.onChange(e);
+                                  } else {
+                                    e.preventDefault();
+                                  }
                                 }}
                                 sx={{
                                   bgcolor: isInputEditing ? '#e3f2fd' : '#fff',
@@ -3295,6 +3491,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                               />
                             )}
                           />
+
 
                         </>
                       )
@@ -3317,16 +3514,42 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                           {...field}
                           value={field.value ?? ''}
                           size="small"
-                          disabled={!isEditing} // Editable ONLY when isEditing is true
+                          type="number" // Enforces native numeric browser behavior
+                          disabled={!isEditing}
                           variant="outlined"
+                          // 1. Sets a hard maximum limit for 18 total digits (16 whole, 2 fractional)
+                          inputProps={{
+                            max: 9999999999999999.99,
+                            step: "0.01"
+                          }}
+                          // 2. Disables exponential inputs or operational signs that disrupt character counts
+                          onKeyDown={(e) => {
+                            if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                              e.preventDefault();
+                            }
+                          }}
+                          // 3. Implements the standard regex guard before triggering React Hook Form state updates
+                          onChange={(e) => {
+                            const val = e.target.value;
+
+                            // Match up to 16 digits before the dot and up to 2 digits after the dot
+                            const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+
+                            if (isValidDecimal || val === '') {
+                              field.onChange(e);
+                            } else {
+                              e.preventDefault();
+                            }
+                          }}
                           sx={{
-                            bgcolor: isEditing ? '#e3f2fd' : '#fff', // Visual cue for editing
+                            bgcolor: isEditing ? '#e3f2fd' : '#fff',
                             '& .MuiOutlinedInput-input': { p: '4px 8px' },
-                            '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' } // Keep text black when disabled
+                            '& .Mui-disabled': { WebkitTextFillColor: '#000', cursor: 'default' }
                           }}
                         />
                       )}
                     />
+
 
                     {/* Toggle between Edit and Save Icons */}
                     {isEditing ? (
@@ -4323,15 +4546,10 @@ const ShipmentForm = ({ type }) => {
   // --- HELPER: RENDER PHONE FIELD --- 
 
   const renderPhoneField = (name, label) => (
-
     <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
-
       <Controller
-
         name={name}
-
         control={control}
-
         rules={{
           required: 'Phone number is required',
           maxLength: {
@@ -4339,63 +4557,48 @@ const ShipmentForm = ({ type }) => {
             message: 'Phone number cannot exceed 20 characters'
           },
           validate: (value) => {
-            if (!value) return true; // Allow empty
-
-            // 1. Check for all zeros (strips formatting and checks if only 0s remain)
+            if (!value) return true;
             const digitsOnly = value.replace(/\D/g, '');
             const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
-
             if (isAllZeros) return 'Phone number cannot be all zeros';
-
-            // 2. Format validation (Optional: adjust regex if you want a specific pattern for 20 chars)
-            // If you just want to allow any 20 chars, the maxLength rule above handles it.
-
             return true;
           }
         }}
-
-        render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-
+        render={({ field, fieldState: { error } }) => (
           <TextField
-
             {...field}
-
-            value={value || ''}
-
+            value={field.value || ''}
             variant="standard"
-
             fullWidth
-
             label={`${label} *`}
-
             inputProps={{ maxLength: 20 }}
-
             error={!!error}
-
             helperText={error ? error.message : ''}
-
             onChange={(e) => {
               const val = e.target.value;
 
               // 1. Prevent initial empty space
               if (val.startsWith(' ')) return;
 
-              // 2. Format and enforce 20-character string limit
+              // 2. CRITICAL FIX: If deleting trailing formatting symbols, don't re-apply them immediately
+              const isDeletingFormatting =
+                e.nativeEvent.inputType === 'deleteContentBackward' &&
+                (val.endsWith(')') || val.endsWith(' ') || val.endsWith('-'));
+
+              if (isDeletingFormatting) {
+                field.onChange(val); // Let the raw deletion pass through to the state safely
+                return;
+              }
+
+              // 3. Format and enforce string limit
               const formattedValue = formatPhoneNumber(val).slice(0, 20);
-              onChange(formattedValue);
+              field.onChange(formattedValue);
             }}
-
           />
-
         )}
-
       />
-
     </Box>
-
   );
-
-
 
   const renderTextField = (name, label, required = false) => {
     const labelLower = label.toLowerCase();
@@ -4913,6 +5116,10 @@ const ShipmentForm = ({ type }) => {
         }
       }
     }
+
+  }, [watchedLineHaulToggledAddress, watchedSelectedLineHaulCarrier]);
+
+  useEffect(() => {
     if (watchedSelectedPickupCarrier) {
       const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
       if (terminalId && carrierId) {
@@ -4925,9 +5132,8 @@ const ShipmentForm = ({ type }) => {
           setValue('carrierInfo.pickupAlert', true);
         }
       }
-
     }
-  }, [watchedLineHaulToggledAddress, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier]);
+  }, [watchedSelectedPickupCarrier])
   // useeffect for updating primary mail and additional mails
   useEffect(() => {
     // updating primary mail
@@ -4983,9 +5189,15 @@ const ShipmentForm = ({ type }) => {
       fieldsToValidate = ['shipmentType', 'serviceLevel', 'date', 'time'];
     } else if (activeStep === 1) {
       fieldsToValidate = [
-        'billingCustomer', 'originAirport', 'destinationAirport',
-        'shipperZip', 'consigneeZip', 'shipperPhone', 'consigneePhone',
+        'billingCustomer', 'shipperPhone', 'consigneePhone',
       ];
+      if (watchedAirportPickupService) {
+        fieldsToValidate.push('originAirport');
+      }
+      if (watchedAirportDeliveryService) {
+        fieldsToValidate.push('destinationAirport');
+      }
+
     } else if (activeStep === 2 && isHazmatSelected) {
       fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
     } else if (activeStep === 3) {
@@ -8353,6 +8565,9 @@ const ShipmentForm = ({ type }) => {
                               if (reason !== "reset") {
                                 setSelectCarrierPickupSearchValue(newInputValue);
                               }
+                              // if(reason === 'input'){
+                              //   dispatch(getCarrierTerminalDropdown(newInputValue));
+                              // }
                             }}
 
                             loading={isLoading}
@@ -8413,16 +8628,80 @@ const ShipmentForm = ({ type }) => {
                     </Typography>
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                        <Controller
+                          name="carrierInfo.manualAddress.line1"
+                          control={control}
+                          render={({ field }) => (
+                            <StyledTextField
+                              {...field}
+                              fullWidth
+                              label="Address Line 1"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              // This enforces a hard limit of 255 characters at the HTML input element level
+                              inputProps={{ maxLength: 255 }}
+                            />
+                          )}
+                          disabled={!watchedFromLocationFlag}
+                        />
+
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedFromLocationFlag} />} />
+                        <Controller
+                          name="carrierInfo.manualAddress.line2"
+                          control={control}
+                          render={({ field }) => (
+                            <StyledTextField
+                              {...field}
+                              fullWidth
+                              label="Address Line 2"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              disabled={!watchedFromLocationFlag}
+                              // This natively blocks typing beyond 255 characters
+                              inputProps={{ maxLength: 255 }}
+                            />
+                          )}
+                        />
+
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                        <Controller
+                          name="carrierInfo.manualAddress.city"
+                          control={control}
+                          render={({ field }) => (
+                            <StyledTextField
+                              {...field}
+                              fullWidth
+                              label="City"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              // Hard cap typing at 100 characters natively
+                              inputProps={{ maxLength: 100 }}
+                            />
+                          )}
+                          disabled={!watchedFromLocationFlag}
+                        />
+
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
-                        <Controller name="carrierInfo.manualAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedFromLocationFlag} />
+                        <Controller
+                          name="carrierInfo.manualAddress.state"
+                          control={control}
+                          render={({ field }) => (
+                            <StyledTextField
+                              {...field}
+                              fullWidth
+                              label="State"
+                              variant="standard"
+                              InputLabelProps={{ shrink: true }}
+                              // Limits input length to 100 characters natively
+                              inputProps={{ maxLength: 100 }}
+                            />
+                          )}
+                          disabled={!watchedFromLocationFlag}
+                        />
+
                       </Box>
                       <Box sx={{ flex: '1 1 18%' }}>
                         {renderZipCodeFieldCarrierInfo('carrierInfo.manualAddress.zip', !watchedFromLocationFlag)}
@@ -8604,16 +8883,80 @@ const ShipmentForm = ({ type }) => {
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.manualToAddress.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                          <Controller
+                            name="carrierInfo.manualToAddress.line1"
+                            control={control}
+                            render={({ field }) => (
+                              <StyledTextField
+                                {...field}
+                                fullWidth
+                                label="Address Line 1"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                // Hard cap typing at 255 characters natively
+                                inputProps={{ maxLength: 255 }}
+                              />
+                            )}
+                            disabled={!watchedToLocationFlag}
+                          />
+
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.manualToAddress.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                          <Controller
+                            name="carrierInfo.manualToAddress.line2"
+                            control={control}
+                            render={({ field }) => (
+                              <StyledTextField
+                                {...field}
+                                fullWidth
+                                label="Address Line 2"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                // Hard cap typing at 255 characters natively
+                                inputProps={{ maxLength: 255 }}
+                              />
+                            )}
+                            disabled={!watchedToLocationFlag}
+                          />
+
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.manualToAddress.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                          <Controller
+                            name="carrierInfo.manualToAddress.city"
+                            control={control}
+                            render={({ field }) => (
+                              <StyledTextField
+                                {...field}
+                                fullWidth
+                                label="City"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                // Hard cap typing at 100 characters natively
+                                inputProps={{ maxLength: 100 }}
+                              />
+                            )}
+                            disabled={!watchedToLocationFlag}
+                          />
+
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
-                          <Controller name="carrierInfo.manualToAddress.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedToLocationFlag} />
+                          <Controller
+                            name="carrierInfo.manualToAddress.state"
+                            control={control}
+                            render={({ field }) => (
+                              <StyledTextField
+                                {...field}
+                                fullWidth
+                                label="State"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                // Hard cap typing at 100 characters natively
+                                inputProps={{ maxLength: 100 }}
+                              />
+                            )}
+                            disabled={!watchedToLocationFlag}
+                          />
+
                         </Box>
                         <Box sx={{ flex: '1 1 18%' }}>
                           {renderZipCodeFieldCarrierInfo('carrierInfo.manualToAddress.zip', !watchedToLocationFlag)}
@@ -8830,6 +9173,7 @@ const ShipmentForm = ({ type }) => {
                             variant="standard"
                             InputLabelProps={{ shrink: true }}
                             required={watchedCarrierInfo.pickupAlert}
+                            inputProps={{ maxLength: 255 }}
                           />
                         )}
                       />
@@ -8866,9 +9210,12 @@ const ShipmentForm = ({ type }) => {
                                 error={!!error}
                                 helperText={error?.message}
                                 required={watchedCarrierInfo.pickupAlert}
+                                // Natively restricts entry to 255 characters max
+                                inputProps={{ maxLength: 255 }}
                               />
                             )}
                           />
+
                         </Box>
 
                         <Box sx={{ flex: 2 }}>
@@ -8937,6 +9284,7 @@ const ShipmentForm = ({ type }) => {
                                       placeholder={selectedEmailsArray.length === 0 ? "Select or type emails..." : ""}
                                       InputLabelProps={{ shrink: true }}
                                       error={!!error}
+                                      inputProps={{ maxLength: 255 }}
                                       helperText={error ? error.message : "Separate custom entries by pressing Enter"}
                                     />
                                   )}
@@ -9087,8 +9435,19 @@ const ShipmentForm = ({ type }) => {
                             name="carrierInfo.lineHaul.billNumber"
                             rules={{ required: true }}
                             control={control}
-                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number" required variant="standard" />}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Carrier's Bill Number"
+                                required
+                                variant="standard"
+                                // Natively restricts entry to 50 characters max
+                                inputProps={{ maxLength: 50 }}
+                              />
+                            )}
                           />
+
                         </Box>
 
                       </Box>
@@ -9148,16 +9507,16 @@ const ShipmentForm = ({ type }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulFromLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
                             {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualFromLocationDetails.zip', !watchedLinehaulFromLocationFlag)}
@@ -9331,16 +9690,16 @@ const ShipmentForm = ({ type }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} />
+                            <Controller name="carrierInfo.lineHaul.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedLinehaulToLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
                             {renderZipCodeFieldCarrierInfo('carrierInfo.lineHaul.manualToLocationDetails.zip', !watchedLinehaulToLocationFlag)}
@@ -9455,9 +9814,28 @@ const ShipmentForm = ({ type }) => {
                                 label="Pcs"
                                 variant="standard"
                                 InputLabelProps={{ shrink: true }}
+                                // 1. Sets a hard maximum value of 10 nines (9,999,999,999) 
+                                // 2. Blocks the decimal point key "." from being pressed
+                                inputProps={{
+                                  max: 9999999999
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === '.' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Optional: Extra insurance to slice text if pasted over 10 digits
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (value.length > 10) {
+                                    e.target.value = value.slice(0, 10);
+                                  }
+                                  field.onChange(e);
+                                }}
                               />
                             )}
                           />
+
                         </Box>
                         <Box sx={{ flex: 1.5 }}>
                           <Controller
@@ -9471,9 +9849,36 @@ const ShipmentForm = ({ type }) => {
                                 type="number"
                                 variant="standard"
                                 InputLabelProps={{ shrink: true }}
+                                // 1. Enforces the hard maximum numeric value (8 digits before decimal)
+                                inputProps={{
+                                  max: 99999999.99,
+                                  step: "0.01" // Signals to browsers that 2 decimal places are expected
+                                }}
+                                // 2. Blocks exponent characters 'e', '+', or '-' from breaking the number
+                                onKeyDown={(e) => {
+                                  if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Regex check: Enforces a maximum of 10 total digits and 2 decimal places
+                                onChange={(e) => {
+                                  const val = e.target.value;
+
+                                  // Allows empty string, or any number that matches up to 8 digits and up to 2 decimals
+                                  // Total maximum string length (including dot) will be 11 characters
+                                  const isValidDecimal = /^\d{0,8}(\.\d{0,2})?$/.test(val);
+
+                                  if (isValidDecimal || val === '') {
+                                    field.onChange(e);
+                                  } else {
+                                    // If the typed character violates (10,2), block it by ignoring the change
+                                    e.preventDefault();
+                                  }
+                                }}
                               />
                             )}
                           />
+
                         </Box>
                       </Box>
 
@@ -9645,6 +10050,7 @@ const ShipmentForm = ({ type }) => {
                             variant="standard"
                             placeholder="Type and press Enter"
                             InputLabelProps={{ shrink: true }}
+                            inputProps={{ maxLength: 255 }}
                           />
                         )}
                       />
@@ -9789,8 +10195,19 @@ const ShipmentForm = ({ type }) => {
                             name="carrierInfo.deliveryDetails.billNumber"
                             rules={{ required: true }}
                             control={control}
-                            render={({ field }) => <TextField {...field} fullWidth label="Carrier's Bill Number" required variant="standard" />}
+                            render={({ field }) => (
+                              <TextField
+                                {...field}
+                                fullWidth
+                                label="Carrier's Bill Number"
+                                required
+                                variant="standard"
+                                // Natively restricts entry to 50 characters max
+                                inputProps={{ maxLength: 50 }}
+                              />
+                            )}
                           />
+
                         </Box>
                         <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
                           {/* <Controller
@@ -9820,16 +10237,16 @@ const ShipmentForm = ({ type }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 255 }} />} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 255 }} />} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 100 }} />} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} />} />
+                            <Controller name="carrierInfo.deliveryDetails.manualFromLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 100 }} />} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
                             {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', !watchedDeliveryFromLocationFlag)}
@@ -10002,16 +10419,16 @@ const ShipmentForm = ({ type }) => {
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line1" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.line2" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 255 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.city" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
-                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} />
+                            <Controller name="carrierInfo.deliveryDetails.manualToLocationDetails.state" control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 100 }} />
                           </Box>
                           <Box sx={{ flex: '1 1 18%' }}>
                             {renderZipCodeFieldCarrierInfo('carrierInfo.deliveryDetails.manualToLocationDetails.zip', !watchedDeliveryToLocationFlag)}
@@ -10136,9 +10553,28 @@ const ShipmentForm = ({ type }) => {
                                 label="Pcs"
                                 variant="standard"
                                 InputLabelProps={{ shrink: true }}
+                                // 1. Sets a hard maximum numeric value of 10 digits
+                                inputProps={{
+                                  max: 9999999999
+                                }}
+                                // 2. Blocks decimal points and scientific notation keys to force integers
+                                onKeyDown={(e) => {
+                                  if (e.key === '.' || e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Crops pasted or scrolled inputs immediately if they exceed 10 digits
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  if (value.length > 10) {
+                                    e.target.value = value.slice(0, 10);
+                                  }
+                                  field.onChange(e);
+                                }}
                               />
                             )}
                           />
+
                         </Box>
                         <Box sx={{ flex: 1.5 }}>
                           <Controller
@@ -10152,9 +10588,34 @@ const ShipmentForm = ({ type }) => {
                                 label="Weight"
                                 variant="standard"
                                 InputLabelProps={{ shrink: true }}
+                                // 1. Sets the hard maximum numeric limit for 8 whole digits and 2 decimals
+                                inputProps={{
+                                  max: 99999999.99,
+                                  step: "0.01"
+                                }}
+                                // 2. Prevents unexpected exponential or sign inputs
+                                onKeyDown={(e) => {
+                                  if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                                    e.preventDefault();
+                                  }
+                                }}
+                                // 3. Natively locks down the 10 total digits and 2-decimal maximum limit
+                                onChange={(e) => {
+                                  const val = e.target.value;
+
+                                  // Matches up to 8 digits before the dot and up to 2 digits after the dot
+                                  const isValidDecimal = /^\d{0,8}(\.\d{0,2})?$/.test(val);
+
+                                  if (isValidDecimal || val === '') {
+                                    field.onChange(e);
+                                  } else {
+                                    e.preventDefault();
+                                  }
+                                }}
                               />
                             )}
                           />
+
                         </Box>
                         {/* <Box sx={{ flex: 1.5 }}>
                       <Controller
@@ -10368,6 +10829,7 @@ const ShipmentForm = ({ type }) => {
                               placeholder="Type and press Enter"
                               InputLabelProps={{ shrink: true }}
                               required={watchedDeliveryAlert}
+                              inputProps={{ maxLength: 255 }}
                             />
                           )}
                         />
@@ -10430,6 +10892,7 @@ const ShipmentForm = ({ type }) => {
                               placeholder="Type and press Enter"
                               InputLabelProps={{ shrink: true }}
                               required={watchedDeliveryAlert}
+                              inputProps={{ maxLength: 255 }}
                             />
                           )}
                         />
@@ -10466,9 +10929,12 @@ const ShipmentForm = ({ type }) => {
                                   error={!!error}
                                   helperText={error?.message}
                                   required={watchedDeliveryAlert}
+                                  // Natively restricts entry to 255 characters max
+                                  inputProps={{ maxLength: 255 }}
                                 />
                               )}
                             />
+
                           </Box>
 
                           <Box sx={{ flex: 2 }}>

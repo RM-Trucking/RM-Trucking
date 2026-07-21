@@ -2398,33 +2398,48 @@ const ShipmentForm = ({ type }) => {
       const factor = Number(item.input) || 0;
       const value = Number(item.chargeValue) || 0;
 
+      // 1. Calculate raw totalRate based on your factor condition
+      const rawTotal = factor === 0 ? value : factor * value;
+
       return {
         rateType: item.chargeType,
         multiplicationFactor: factor,
-        multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '', // 
-        rateValue: value,
-        // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
-        totalRate: factor === 0 ? value : factor * value
+        multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '',
+
+        // 2. Format both outputs to exactly 2 decimal precision numbers
+        rateValue: Number(value.toFixed(2)),
+        totalRate: Number(rawTotal.toFixed(2))
       };
     });
+
     if (currentValues?.customerRate?.rate) {
+      const formattedRate = Number(
+        Number(currentValues?.customerRate?.rate).toFixed(2)
+      );
       transformedCustomerArray.push({
         rateType: 'Rate',
         multiplicationFactor: null,
         multiplicationFactorUOM: '',
-        rateValue: Number(currentValues?.customerRate?.rate),
-        totalRate: Number(currentValues?.customerRate?.rate),
+        rateValue: formattedRate,
+        totalRate: formattedRate,
       });
     }
     if (currentValues?.customerRate?.fuelSurchargeRate) {
+      // 1. Convert to number, force exactly 2 decimal precision, and parse back safely
+      const formattedRate = Number(
+        Number(currentValues.customerRate.fuelSurchargeRate).toFixed(2)
+      );
+
       transformedCustomerArray.push({
         rateType: 'Fuel Surcharge (35% charge)',
         multiplicationFactor: null,
         multiplicationFactorUOM: '',
-        rateValue: Number(currentValues?.customerRate?.fuelSurchargeRate),
-        totalRate: Number(currentValues?.customerRate?.fuelSurchargeRate),
+        // 2. Assign the safely bounded decimal numbers to your data objects
+        rateValue: formattedRate,
+        totalRate: formattedRate,
       });
     }
+
 
 
     obj.shipmentRateDetails = {
@@ -2541,7 +2556,7 @@ const ShipmentForm = ({ type }) => {
           const hazmatValid = (
             !!hazmat?.unNumber?.trim() && !!hazmat?.shippingName?.trim() &&
             !!hazmat?.packagingGroup?.trim() && !!hazmat?.hazmatClass?.trim() &&
-            !!hazmat?.weight?.toString().trim() && !!hazmat?.technicalName?.trim() &&
+            !!hazmat?.weight?.toString().trim() &&
             !!hazmat?.contactPhone?.trim()
           );
 
@@ -2881,7 +2896,10 @@ const ShipmentForm = ({ type }) => {
     // 2. Convert to a number and calculate 35%
     const zipRateNum = Number(zipRateString) || 0;
     const calculatedPercentage = zipRateNum * 0.35;
-    setValue('customerRate.fuelSurchargeRate', calculatedPercentage);
+    const roundedPercentage = Number(calculatedPercentage.toFixed(2));
+
+    // 2. Set the perfectly rounded numeric value into your form state
+    setValue('customerRate.fuelSurchargeRate', roundedPercentage);
     // }
   }, [customerZipRate])
 
@@ -3219,7 +3237,7 @@ const ShipmentForm = ({ type }) => {
 
           {activeStep === 0 && (
 
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel}/>
+            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} />
           )}
 
           {/* STEP 1 */}

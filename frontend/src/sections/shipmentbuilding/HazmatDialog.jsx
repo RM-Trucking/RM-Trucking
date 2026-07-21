@@ -75,7 +75,11 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
   const handleCloseSnackbar = (event, reason) => {
     if (reason === 'clickaway') return;
-    setSnackbar(prev => ({ ...prev, open: false }));
+    setSnackbar({
+      open: false,
+      message: '',
+      severity: 'error'
+    });
   };
 
   const emptyHazmat = {
@@ -101,6 +105,11 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
     if (open) {
       // 1. Clear any previous errors from the last item
       setErrors({});
+      setSnackbar({
+        open: false,
+        message: '',
+        severity: 'error'
+      });
       // 2. Fetch data for the SPECIFIC item currently being edited 
       const existingData = getValues(`handlingUnits.${huIdx}.items.${itemIdx}.hazmatData`);
       if (existingData) {

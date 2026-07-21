@@ -3627,8 +3627,6 @@ const ShipmentForm = ({ type }) => {
                 </Paper>
               ))}
 
-
-
               {/* Add Handling Unit Button */}
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
                 <Button
@@ -3639,8 +3637,6 @@ const ShipmentForm = ({ type }) => {
                   Add Handling Unit
                 </Button>
               </Box>
-
-
 
               {/* Emergency Contact: Conditional Render */}
               {isHazmatSelected && (
@@ -6558,9 +6554,7 @@ const ShipmentForm = ({ type }) => {
                     </Typography>
                   </Box>
                 </Box>
-
                 {/*  invoice approval section */}
-
 
               </Paper>
             )

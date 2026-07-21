@@ -41,3 +41,6 @@ h1 {
   display: flex !important;
   align-items: center !important;     /* Centers the inner Box vertically */
 }
+html {
+  scrollbar-gutter: stable both-edges; /* Modern, robust layout anchor */
+}

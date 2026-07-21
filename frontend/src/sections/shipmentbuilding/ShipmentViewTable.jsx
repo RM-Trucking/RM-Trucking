@@ -160,7 +160,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.linehaulRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.linehaulRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon={(params?.row?.linehaulRouting.toLowerCase() === 'pending') ? "majesticons:clock" : "ep:success-filled"} sx={{ color: params.row.linehaulRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.linehaulRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -177,7 +177,7 @@ export default function ShipmentViewTable({ }) {
             renderCell: (params) => {
                 const element = (
                     <IconButton >
-                        <Iconify icon="majesticons:clock" sx={{ color: params.row.deliveryRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.deliveryRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
+                        <Iconify icon={(params?.row?.deliveryRouting.toLowerCase() === 'pending') ? "majesticons:clock" : "ep:success-filled"} sx={{ color: params.row.deliveryRouting?.toLowerCase() === 'pending' ? 'rgba(230, 181, 4, 1)' : params.row.deliveryRouting?.toLowerCase() === 'success' ? 'rgba(92, 172, 105, 1)' : '', pointerEvents: 'none' }} />
                     </IconButton>
 
                 );
@@ -313,8 +313,8 @@ export default function ShipmentViewTable({ }) {
                 serviceLevel: shipmentDetails?.serviceLevel ?? "",
                 pickupAgent: pickup?.carrierName ?? "",
                 pickupRouting: pickup?.carrierId ? "Success" : 'Pending',
-                linehaulRouting: linehaul?.linehaulPrimaryInfo?.carrierId ? 'Success' : 'Pending',
-                deliveryRouting: delivery?.deliveryPrimaryInfo?.carrierId ? "Success" : 'Pending',
+                linehaulRouting: ((pickup?.pickupRouting === 'PICKUP_LINE_HAUL' || pickup?.pickupRouting === 'PICKUP_LINE_HAUL_DELIVERY') && (pickup?.carrierId)) ? 'Success' : ((linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_ONLY' || linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_DELIVERY') && linehaul?.linehaulPrimaryInfo?.carrierId) ? 'Success' : 'Pending',
+                deliveryRouting: (pickup?.pickupRouting === 'PICKUP_LINE_HAUL_DELIVERY' && pickup?.carrierId) ? 'Success' : (linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_DELIVERY' && linehaul?.linehaulPrimaryInfo?.carrierId) ? 'Success' : delivery?.deliveryPrimaryInfo?.carrierId ? "Success" : 'Pending',
                 status: shipmentDetails?.status ?? '',
                 rowDetails: row // Stores the entire original 1st object unmodified
             };
@@ -329,7 +329,7 @@ export default function ShipmentViewTable({ }) {
     }, [shipmentViewData])
     useEffect(() => {
         if (error) {
-            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${ error.message || error}`}`);
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.message || error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])
@@ -397,7 +397,7 @@ export default function ShipmentViewTable({ }) {
                     New shipment created successfully.
                 </Alert>
             </Snackbar>
-           
+
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={3000}
@@ -411,8 +411,8 @@ export default function ShipmentViewTable({ }) {
                 <Alert
                     onClose={() => {
                         setSnackbarOpen(false);
-                    dispatch(setOperationalMessage());
-                    dispatch(setError());
+                        dispatch(setOperationalMessage());
+                        dispatch(setError());
                     }}
                     severity="error"
                     variant="filled"

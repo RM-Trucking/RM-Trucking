@@ -1877,7 +1877,7 @@ const ShipmentForm = ({ type }) => {
         },
         "linehaulDetails": {
           "linehaulPrimaryInfo": {
-            "linehaulRouting": "LINE_HAUL",
+            "linehaulRouting": "LINE_HAUL_ONLY",
             "carrierId": Number(linehaulCarrierId),
             "terminalId": Number(linehaulTerminalId),
             "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
@@ -2542,7 +2542,7 @@ const ShipmentForm = ({ type }) => {
   const onFormSubmit = async () => {
     // Your API call here
     const currentValues = getValues();
-
+    const missingRequiredFields = [];
     let valid = false;
     const obj = {};
 
@@ -2708,6 +2708,7 @@ const ShipmentForm = ({ type }) => {
           valid = true;
         } else {
           valid = false;
+          missingRequiredFields.push('Pickup Location Type','Pickup To Location');
         }
       }
 
@@ -2716,11 +2717,13 @@ const ShipmentForm = ({ type }) => {
           valid = true;
         } else {
           valid = false;
+          missingRequiredFields.push('Pickup Notes','Pickup Primary Email');
         }
       }
 
       if (currentValues?.carrierInfo?.addPickupAccessorial && currentValues?.carrierInfo?.pickupAccessorials?.length === 0) {
         valid = false;
+        missingRequiredFields.push('Pickup Accessorials');
       } else {
         valid = true;
       }
@@ -2780,6 +2783,7 @@ const ShipmentForm = ({ type }) => {
         dispatch(postStep1(obj));
       } else {
         setErrorVisible(true);
+        setErrorVisibleFields(missingRequiredFields);
       }
     }
   };

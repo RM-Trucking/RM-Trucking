@@ -34,6 +34,7 @@ export default function ShipmentViewTable({ }) {
     const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
     const shipmentSuccess = useSelector((state) => state?.shipmentdata?.shipmentSuccess);
     const shipmentBuildSearchStr = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildSearchStr);
+    const error = useSelector((state) => state?.shipmentbuildingdata?.error);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -43,6 +44,9 @@ export default function ShipmentViewTable({ }) {
     const [shipmentViewTableData, setShipmentViewTableData] = useState([]);
     const [openPopover, setOpenPopover] = useState(false);
     const [anchorEl, setAnchorEl] = useState(null);
+    // snackbar
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
 
     const handleUserMenu = (event) => {
         setOpenPopover(true);
@@ -202,67 +206,67 @@ export default function ShipmentViewTable({ }) {
                 return element;
             },
         },
-        {
-            field: "actions",
-            headerName: "Action",
-            minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
-            flex: 1,
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => {
-                // Safe access to your underlying row data if needed
-                const rowId = params.id;
+        // {
+        //     field: "actions",
+        //     headerName: "Action",
+        //     minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
+        //     flex: 1,
+        //     sortable: false,
+        //     filterable: false,
+        //     renderCell: (params) => {
+        //         // Safe access to your underlying row data if needed
+        //         const rowId = params.id;
 
-                return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                        <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
-                            <IconButton>
-                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
-                            </IconButton>
-                        </Tooltip>
+        //         return (
+        //             <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+        //                 <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
+        //                     <IconButton>
+        //                         <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+        //                     </IconButton>
+        //                 </Tooltip>
 
-                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
-                            <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton>
+        //                 <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+        //                     <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
+        //                 </IconButton>
 
-                        {/* Checkbox with Delete Label */}
-                        <FormControlLabel
-                            label="Del"
-                            control={
-                                <Checkbox
-                                    size="small"
-                                    sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
-                                    // Checked state should ideally bind to a tracking state array in your component
-                                    onChange={(event) => {
-                                        event.stopPropagation(); // Stops DataGrid row-click selection triggers
-                                        handleCheckboxDelete(rowId, event.target.checked);
-                                    }}
-                                />
-                            }
-                            sx={{
-                                ml: 1,
-                                '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
-                            }}
-                        />
+        //                 {/* Checkbox with Delete Label */}
+        //                 <FormControlLabel
+        //                     label="Del"
+        //                     control={
+        //                         <Checkbox
+        //                             size="small"
+        //                             sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+        //                             // Checked state should ideally bind to a tracking state array in your component
+        //                             onChange={(event) => {
+        //                                 event.stopPropagation(); // Stops DataGrid row-click selection triggers
+        //                                 handleCheckboxDelete(rowId, event.target.checked);
+        //                             }}
+        //                         />
+        //                     }
+        //                     sx={{
+        //                         ml: 1,
+        //                         '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
+        //                     }}
+        //                 />
 
-                        {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
-                        <MenuPopover
-                            open={openPopover}
-                            anchorEl={anchorEl}
-                            onClose={handleClosePopover}
-                            sx={{ width: 150, p: 0, bgcolor: '#A22' }}
-                            disableScrollLock
-                        >
-                            <Stack sx={{ p: 1 }}>
-                                <MenuItem key="1" onClick={() => handleClickedItem(rowId)} id={"delete"} sx={{ color: "#fff" }}>
-                                    Delete
-                                </MenuItem>
-                            </Stack>
-                        </MenuPopover>
-                    </Box>
-                );
-            },
-        }
+        //                 {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
+        //                 <MenuPopover
+        //                     open={openPopover}
+        //                     anchorEl={anchorEl}
+        //                     onClose={handleClosePopover}
+        //                     sx={{ width: 150, p: 0, bgcolor: '#A22' }}
+        //                     disableScrollLock
+        //                 >
+        //                     <Stack sx={{ p: 1 }}>
+        //                         <MenuItem key="1" onClick={() => handleClickedItem(rowId)} id={"delete"} sx={{ color: "#fff" }}>
+        //                             Delete
+        //                         </MenuItem>
+        //                     </Stack>
+        //                 </MenuPopover>
+        //             </Box>
+        //         );
+        //     },
+        // }
     ];
 
     // get call for notes
@@ -291,7 +295,7 @@ export default function ShipmentViewTable({ }) {
             const pickup = carrierDetails?.pickupDetails;
             const linehaul = carrierDetails?.linehaulDetails;
             const delivery = carrierDetails?.deliveryDetails;
-            
+
             // 3. Build concatenated address strings helper
             const formatAddress = (details) => {
                 if (!details) return '';
@@ -323,11 +327,17 @@ export default function ShipmentViewTable({ }) {
         console.log(dataGridRows);
         setShipmentViewTableData(dataGridRows);
     }, [shipmentViewData])
+    useEffect(() => {
+        if (error) {
+            setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${ error.message || error}`}`);
+            setSnackbarOpen(true);
+        }
+    }, [error])
 
     return (
         <>
 
-            <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
+            <Box sx={{ height: 600, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
                     rows={shipmentViewTableData}
@@ -385,6 +395,30 @@ export default function ShipmentViewTable({ }) {
                     sx={{ width: '100%' }}
                 >
                     New shipment created successfully.
+                </Alert>
+            </Snackbar>
+           
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={3000}
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    dispatch(setOperationalMessage());
+                    dispatch(setError());
+                }}
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+                <Alert
+                    onClose={() => {
+                        setSnackbarOpen(false);
+                    dispatch(setOperationalMessage());
+                    dispatch(setError());
+                    }}
+                    severity="error"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
                 </Alert>
             </Snackbar>
         </>

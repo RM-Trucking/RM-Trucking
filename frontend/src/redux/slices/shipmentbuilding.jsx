@@ -38,7 +38,8 @@ const slice = createSlice({
     reducers: {
         hasError(state, action) {
             state.isLoading = false;
-            state.error = action?.payload;
+            state.error = action.payload || action.payload.error;
+            state.shipmentViewData = [];
         },
         // START LOADING
         startLoading(state) {

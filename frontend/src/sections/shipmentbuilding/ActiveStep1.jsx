@@ -179,7 +179,7 @@ const ActiveStep1 = ({ control,
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
                                         />
                                     )}
                                 />
@@ -201,7 +201,7 @@ const ActiveStep1 = ({ control,
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
                                         />
                                     )}
                                 />

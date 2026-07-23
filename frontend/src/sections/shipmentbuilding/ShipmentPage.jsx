@@ -2507,39 +2507,63 @@ const ShipmentForm = ({ type }) => {
   // Helper 2: Validate handling units array structure for step 2
   // Helper 2: Validate handling units array structure for step 2
   const validateHandlingUnits = (units) => {
-    if (!Array.isArray(units) || units.length === 0) {
-      return { isValid: false, reason: 'Handling Units' };
+  if (!Array.isArray(units) || units.length === 0) {
+    return { isValid: false, reason: 'Handling Units - Array Empty' };
+  }
+
+  for (const unit of units) {
+    // 1. Top-Level Unit Field Checks
+    if (!unit?.uom?.trim()) {
+      return { isValid: false, reason: 'Handling Units - UOM' };
+    }
+    if (!unit?.unitsCount?.toString().trim()) {
+      return { isValid: false, reason: 'Handling Units - Units' };
     }
 
-    for (const unit of units) {
-      const hasTopLevelValid = !!unit?.uom?.trim() && !!unit?.unitsCount?.toString().trim();
-      if (!hasTopLevelValid) return { isValid: false, reason: 'Handling Units' };
+    if (!Array.isArray(unit?.items) || unit.items.length === 0) {
+      return { isValid: false, reason: 'Handling Unit Items - Array Empty' };
+    }
 
-      if (!Array.isArray(unit?.items) || unit.items.length === 0) {
-        return { isValid: false, reason: 'Handling Unit Items' };
+    for (const item of unit.items) {
+      // 2. Base Item Field Checks
+      if (!item?.pieces?.toString().trim()) {
+        return { isValid: false, reason: 'Handling Unit Items - Pieces' };
+      }
+      if (!item?.piecesUom?.trim()) {
+        return { isValid: false, reason: 'Handling Unit Items - Pieces Uom' };
+      }
+      if (!item?.description?.trim()) {
+        return { isValid: false, reason: 'Handling Unit Items - Description' };
       }
 
-      for (const item of unit.items) {
-        const baseFieldsValid = !!item?.pieces?.toString().trim() && !!item?.piecesUom?.trim() && !!item?.description?.trim();
-        if (!baseFieldsValid) return { isValid: false, reason: 'Handling Unit Items' };
-
-        if (item?.hazmatInfo === true) {
-          const hazmat = item?.hazmatData;
-          const hazmatValid = (
-            !!hazmat?.unNumber?.trim() && !!hazmat?.shippingName?.trim() &&
-            !!hazmat?.packagingGroup?.trim() && !!hazmat?.hazmatClass?.trim() &&
-            !!hazmat?.weight?.toString().trim() &&
-            !!hazmat?.contactPhone?.trim()
-          );
-
-          // If hazmatInfo is true but details are missing, flag it uniquely
-          if (!hazmatValid) return { isValid: false, reason: 'Hazmat Info Details' };
+      // 3. Hazmat Sub-Field Checks
+      if (item?.hazmatInfo === true) {
+        const hazmat = item?.hazmatData;
+        
+        if (!hazmat?.unNumber?.trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - UN Number' };
+        }
+        if (!hazmat?.shippingName?.trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - Shipping Name' };
+        }
+        if (!hazmat?.packagingGroup?.trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - Packaging Group' };
+        }
+        if (!hazmat?.hazmatClass?.trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - Hazmat Class' };
+        }
+        if (!hazmat?.weight?.toString().trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - Weight' };
+        }
+        if (!hazmat?.contactPhone?.trim()) {
+          return { isValid: false, reason: 'Hazmat Info Details - Contact Phone' };
         }
       }
     }
+  }
+  return { isValid: true, reason: null };
+};
 
-    return { isValid: true, reason: null };
-  };
 
   const onFormSubmit = async () => {
     // Your API call here

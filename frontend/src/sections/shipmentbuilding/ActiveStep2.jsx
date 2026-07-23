@@ -152,7 +152,7 @@ const ActiveStep2 = ({
 
 
                         {/* Handling Unit Dimensions Row */}
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3 }}>
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, pb: 2.5 }}>
                             <Box sx={{ flex: '1 1 120px' }}>
                                 <Controller
                                     name={`handlingUnits.${huIdx}.uom`}
@@ -218,7 +218,6 @@ const ActiveStep2 = ({
                                             value: /^[0-9]+$/,
                                             message: "Please enter a valid number"
                                         },
-                                        // 1. FIXED: Schema validation check blocking numbers over 10 digits long
                                         maxLength: {
                                             value: 10,
                                             message: "Handling units cannot exceed 10 digits"
@@ -228,7 +227,6 @@ const ActiveStep2 = ({
                                         <TextField
                                             {...field}
                                             onChange={(e) => {
-                                                // 2. FIXED: Strips out non-digits AND slices the value to a maximum of 10 digits
                                                 const cleanValue = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
                                                 field.onChange(cleanValue);
                                             }}
@@ -236,19 +234,21 @@ const ActiveStep2 = ({
                                             label="Handling Units *"
                                             variant="standard"
                                             InputLabelProps={{ shrink: true }}
-
-                                            // 3. FIXED: Merged your numeric constraints with a hard browser maxLength blocker
                                             inputProps={{
                                                 inputMode: 'numeric',
                                                 pattern: '[0-9]*',
                                                 maxLength: 10
                                             }}
-
                                             error={!!errors?.handlingUnits?.[huIdx]?.unitsCount}
                                             helperText={errors?.handlingUnits?.[huIdx]?.unitsCount?.message || ""}
+                                            // FIX: Forces error text to absolute position to stop layout shifting
+                                            FormHelperTextProps={{
+                                                sx: { position: 'absolute', bottom: -20, left: 0, whiteSpace: 'nowrap' }
+                                            }}
                                         />
                                     )}
                                 />
+
                             </Box>
 
                             <Box sx={{ flex: '1 1 20px' }}>

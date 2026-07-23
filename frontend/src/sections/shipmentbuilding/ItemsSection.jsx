@@ -74,17 +74,21 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
 
         return (
           <Box key={item.id} sx={{ mb: 3 }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 2, flexWrap: 'wrap' }}>
-              <Iconify icon="solar:box-bold" />
-              <Typography variant="caption" sx={{ minWidth: 100, fontWeight: 'bold' }}>
-                {/* Logic: Label as "Pallet Details" if it's the only item in the first unit, else "Item X" */}
-                {fields.length === 1 ? "Pallet Details" : `Item ${itemIndex + 1}`}
-              </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap', pb: 2.5 }}>
+              {/* 1. Changed alignItems to 'flex-start' so inputs don't stretch vertically when an error appears */}
+              {/* 2. Added pb: 2.5 (padding-bottom) to make permanent safe space for the absolute positioned text below */}
+
+              <Box sx={{ display: 'flex', alignItems: 'center', pt: 2 }}>
+                <Iconify icon="solar:box-bold" />
+                <Typography variant="caption" sx={{ minWidth: 100, fontWeight: 'bold', ml: 1 }}>
+                  {fields.length === 1 ? "Pallet Details" : `Item ${itemIndex + 1}`}
+                </Typography>
+              </Box>
+
               <Box sx={{ flex: '0 1 120px' }}>
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.pieces`}
                   control={control}
-                  // 1. Core validation rules for whole numbers
                   rules={{
                     required: "Pieces count is required",
                     pattern: {
@@ -92,33 +96,31 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       message: "Must be a whole number"
                     }
                   }}
-                  // Extract field AND formState directly from the controller render arguments
                   render={({ field, formState }) => {
-                    // 2. Safely extract the deeply nested error using formState.errors
                     const pieceError = formState.errors?.handlingUnits?.[huIndex]?.items?.[itemIndex]?.pieces;
 
                     return (
                       <TextField
                         {...field}
-                        // 3. Instantly strips out any typed letters, symbols, or decimals
                         onChange={(e) => {
-                          const cleanValue = e.target.value.replace(/[^0-9]/g, ''); // Allows 0-9 digits only
+                          const cleanValue = e.target.value.replace(/[^0-9]/g, '');
                           field.onChange(cleanValue);
                         }}
                         label="Pieces *"
                         variant="standard"
                         fullWidth
                         InputLabelProps={{ shrink: true }}
-                        // 4. Prompts virtual mobile keyboards to default to the number pad
                         inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }}
-                        // 5. Safely flags errors and renders the message text
                         error={!!pieceError}
                         helperText={pieceError?.message || ""}
+                        // FIX: Forces error text to absolute position to stop row stretching
+                        FormHelperTextProps={{
+                          sx: { position: 'absolute', bottom: -20, left: 0, whiteSpace: 'nowrap' }
+                        }}
                       />
                     );
                   }}
                 />
-
               </Box>
 
               <Box sx={{ flex: '1 1 80px' }}>
@@ -130,25 +132,11 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       SelectProps={{
                         displayEmpty: true,
                         MenuProps: {
-                          // Crucial: disables internal centering logic so origins work
                           getContentAnchorEl: null,
-                          // Prevents layout shifts and menu misplacement on scroll
                           disableScrollLock: true,
-                          anchorOrigin: {
-                            vertical: 'bottom',
-                            horizontal: 'left',
-                          },
-                          transformOrigin: {
-                            vertical: 'top',
-                            horizontal: 'left',
-                          },
-                          PaperProps: {
-                            sx: {
-                              marginTop: '4px', // Your custom gap
-                              maxHeight: 300,
-                              maxWidth: 300    // Recommended to prevent long lists from going off-screen
-                            }
-                          }
+                          anchorOrigin: { vertical: 'bottom', horizontal: 'left' },
+                          transformOrigin: { vertical: 'top', horizontal: 'left' },
+                          PaperProps: { sx: { marginTop: '4px', maxHeight: 300, maxWidth: 300 } }
                         },
                       }}
                     >
@@ -164,18 +152,13 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                 <Controller
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.description`}
                   control={control}
-                  // 1. FIXED: Added validation rules to enforce the 255 character limit on submission
                   rules={{
                     required: "Description is required",
-                    maxLength: {
-                      value: 255,
-                      message: "Description cannot exceed 255 characters"
-                    }
+                    maxLength: { value: 255, message: "Description cannot exceed 255 characters" }
                   }}
                   render={({ field, fieldState: { error } }) => (
                     <TextField
                       {...field}
-                      // 2. FIXED: Truncates pasted text immediately to a 255 character maximum limit
                       onChange={(e) => {
                         const val = e.target.value;
                         field.onChange(val.slice(0, 255));
@@ -184,17 +167,16 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       variant="standard"
                       fullWidth
                       InputLabelProps={{ shrink: true }}
-                      // 3. FIXED: Attaches the error indicator and string feedback message dynamically
                       error={!!error}
                       helperText={error ? error.message : ''}
-                      // 4. FIXED: Hard browser barrier blocking physical keyboard strokes past character 255
-                      inputProps={{
-                        maxLength: 255
+                      inputProps={{ maxLength: 255 }}
+                      // FIX: Forces error text to absolute position to stop row stretching
+                      FormHelperTextProps={{
+                        sx: { position: 'absolute', bottom: -20, left: 0 }
                       }}
                     />
                   )}
                 />
-
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 <FormControlLabel

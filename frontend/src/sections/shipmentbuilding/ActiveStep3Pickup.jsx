@@ -100,7 +100,7 @@ const ActiveStep3Pickup = ({
     setCarrierTerminalSelectError,
     watchedLineHaulToggledAddress,
     watchedPickupAdditionalMails,
-
+    carrierPickupSearchValue,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here

@@ -246,8 +246,8 @@ const ShipmentForm = ({ type }) => {
     trigger,
     formState: { errors },
     reset,
-    getValues, setValue, handleSubmit
-
+    getValues, setValue, handleSubmit,
+    clearErrors,
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -3212,7 +3212,7 @@ const ShipmentForm = ({ type }) => {
 
           {activeStep === 0 && (
 
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} />
+            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors = {clearErrors} />
           )}
 
           {/* STEP 1 */}
@@ -3315,6 +3315,7 @@ const ShipmentForm = ({ type }) => {
                 setCarrierTerminalSelectError={setCarrierTerminalSelectError}
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
+                carrierPickupSearchValue = {carrierPickupSearchValue}
               />
               <ActiveStep3Linehaul
                 dispatch={dispatch}
@@ -3363,6 +3364,7 @@ const ShipmentForm = ({ type }) => {
                 isLoading={isLoading}
                 setValue={setValue}
                 watchedCarrierInfo={watchedCarrierInfo}
+                watchedToLocation = {watchedToLocation}
               />
               <ActiveStep3Delivery
                 dispatch={dispatch}

@@ -93,12 +93,23 @@ const serviceLevels = [
 
 const ActiveStep0 = ({ control,
     errors,
-    watchedServiceLevel }) => {
+    watchedServiceLevel, clearErrors }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
     };
+    
+    useEffect(() => {
+        const isRequired = watchedServiceLevel?.includes('(Date Specific)');
+
+        // If the service level no longer requires a date, wipe out any existing error message immediately
+        if (!isRequired) {
+            clearErrors("date");
+            clearErrors("time");
+        }
+    }, [watchedServiceLevel, clearErrors]);
+
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -182,20 +193,16 @@ const ActiveStep0 = ({ control,
 
                                     // Check if the current value is structurally empty or blank
                                     const isEmpty = !value || value === '';
+                                    const isInvalidDayjs = dayjs.isDayjs(value) && !value.isValid();
 
-                                    // 2. FIXED: If it is empty and required, return false to let the 'required' string error show up
-                                    if (isEmpty) {
-                                        return isRequired ? "Date is required" : true;
-                                    }
-
-                                    // If it is a Dayjs object structure but flagged invalid (like when a user clears a field manually)
-                                    if (dayjs.isDayjs(value) && !value.isValid()) {
+                                    // FIX: If the field is empty/invalid but NOT required, pass validation immediately
+                                    if (isEmpty || isInvalidDayjs) {
                                         return isRequired ? "Date is required" : true;
                                     }
 
                                     const dateObj = dayjs(value);
 
-                                    // 3. Throw an error for '00/00/0000' strings
+                                    // 3. Throw an error for completely broken strings if a user typed something
                                     if (!dateObj.isValid()) {
                                         return "Please enter a valid date";
                                     }
@@ -210,10 +217,8 @@ const ActiveStep0 = ({ control,
                             render={({ field: { onChange, value, ...fieldParams } }) => (
                                 <DatePicker
                                     {...fieldParams}
-                                    // Allows user typing to display normally without locking or snapping back to blank midway
                                     value={value ? dayjs(value) : null}
                                     onChange={(newValue) => {
-                                        // If the user cleared out the text field, explicitly push null to the state
                                         if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
                                             onChange(null);
                                         } else {
@@ -232,6 +237,7 @@ const ActiveStep0 = ({ control,
                                 />
                             )}
                         />
+
                     </Box>
 
                     <Box sx={{ flex: '1 1 22%' }}>

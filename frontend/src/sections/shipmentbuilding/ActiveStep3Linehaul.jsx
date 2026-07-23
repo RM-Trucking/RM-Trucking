@@ -93,6 +93,7 @@ const ActiveStep3Linehaul = ({
     isLoading,
     setValue,
     watchedCarrierInfo,
+    watchedToLocation,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here

@@ -471,40 +471,30 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             <Autocomplete
               freeSolo
               options={hazmatClassOptions}
-
-              // 1. FIXED: Convert your plain string state back into an object so MUI can read it.
-              // If it's a manual text input, fallback to the raw text string.
               value={
                 hazmatClassOptions.find(opt => opt.value === localData.hazmatClass) ||
                 localData.hazmatClass ||
                 ""
               }
-
-              // 2. FIXED: Map the option object to show its user-friendly label string in the input
               getOptionLabel={(option) => {
-                if (typeof option === 'string') return option; // Handles manual user typing
-                return option.label || ""; // Handles menu object selections
+                if (typeof option === 'string') return option;
+                return option.label || "";
               }}
-
-              // 3. FIXED: Intercept selections to extract and save ONLY the string value for your API
               onChange={(event, newValue) => {
                 if (typeof newValue === 'string') {
-                  handleChange('hazmatClass', newValue);
+                  handleChange('hazmatClass', newValue.slice(0, 50)); // Truncates option if string is somehow long
                 } else if (newValue && newValue.value) {
-                  handleChange('hazmatClass', newValue.value); // Saves "Class 3" instead of the whole object
+                  handleChange('hazmatClass', newValue.value);
                 } else {
                   handleChange('hazmatClass', "");
                 }
               }}
-
-              // 4. FIXED: Clean up typing input tracking so users can still type custom values freely
               onInputChange={(event, newInputValue, reason) => {
-                // Only update on manual typing to avoid overwriting onChange selection states
                 if (reason === 'input') {
-                  handleChange('hazmatClass', newInputValue || "");
+                  // FIXED: Prevents state from saving typed characters past index 50
+                  handleChange('hazmatClass', (newInputValue || "").slice(0, 50));
                 }
               }}
-
               renderInput={(params) => (
                 <TextField
                   {...params}
@@ -514,9 +504,15 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                   fullWidth
                   error={!!errors?.hazmatClass}
                   helperText={errors?.hazmatClass || " "}
+                  // FIXED: Hard browser barrier blocking physical keyboard strokes past 50 characters
+                  inputProps={{
+                    ...params.inputProps,
+                    maxLength: 50
+                  }}
                 />
               )}
             />
+
 
           </Box>
         </Box>

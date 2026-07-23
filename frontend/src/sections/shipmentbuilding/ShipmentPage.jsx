@@ -2797,6 +2797,7 @@ const ShipmentForm = ({ type }) => {
   useEffect(() => {
     if (watchedAirportPickupService !== undefined) {
       // if they check or uncheck the values have to be empty for the new select
+      setValue('shipperName','');
       setValue('shipperAddr1', '');
       setValue('shipperAddr2', '');
       setValue('shipperCity', '');
@@ -2809,6 +2810,7 @@ const ShipmentForm = ({ type }) => {
   useEffect(() => {
     if (watchedAirportDeliveryService !== undefined) {
       // if they check or uncheck the values have to be empty for the new select
+      setValue('consigneeName','');
       setValue('consigneeAddr1', '');
       setValue('consigneeAddr2', '');
       setValue('consigneeCity', '');

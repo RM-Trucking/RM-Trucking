@@ -73,11 +73,13 @@ const ActiveStep1 = ({ control,
     useEffect(() => {
         if (!watchedAirportPickupService) {
             clearErrors("originAirport");
+            setValue('shipperName',"");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
         if (!watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
+            setValue('consigneeName','');
         }
     }, [watchedAirportDeliveryService, clearErrors]);
     return (

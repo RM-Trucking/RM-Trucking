@@ -46,7 +46,7 @@ import {
 
 
 const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddAccModal, addAccModal,
-  actionType, MASTER_ACCESSORIALS, setMASTER_Accessorials }) => {
+  actionType, MASTER_ACCESSORIALS, setMASTER_Accessorials, AccFields }) => {
   const dispatch = useDispatch();
   // const [list, setList] = useState(MASTER_ACCESSORIALS);
   // const [editAccIndex, setEditAccIndex] = useState(null);
@@ -64,16 +64,26 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
   };
 
   const handleCancelAllSelections = () => {
-    // 1. Map through the entire array and explicitly set 'selected' to false for every item
-    const resetList = MASTER_ACCESSORIALS.map((item) => ({
-      ...item,
-      selected: false, // Forces all items from true to false
-    }));
+    const resetList = MASTER_ACCESSORIALS.map((item) => {
+      // 1. Check if AccFields exists and contains an object with a matching entityAccessorialId
+      const isMatched = AccFields && AccFields.some(
+        (field) => field.entityAccessorialId === item.entityAccessorialId
+      );
 
-    // 2. Push the completely cleaned list back into your React state
+      // 2. Return the item with the updated selected property
+      return {
+        ...item,
+        selected: isMatched ? true : false, // sets true if matched, false otherwise
+      };
+    });
+
+    // 3. Update the state with the newly mapped array
     setMASTER_Accessorials(resetList);
+
+    // 4. Close the interface
     onClose();
   };
+
 
   return (
     <>

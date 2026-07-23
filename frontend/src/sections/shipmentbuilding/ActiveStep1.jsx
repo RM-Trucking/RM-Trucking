@@ -206,7 +206,7 @@ const ActiveStep1 = ({ control,
 
                 <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, mb: 4, position: 'relative' }}>
 
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Shipper Details</Typography>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Shipper {watchedAirportPickupService ? "Airline" : ''} Details</Typography>
 
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 
@@ -575,7 +575,7 @@ const ActiveStep1 = ({ control,
 
                 <Box sx={{ border: '1px solid #ccc', borderRadius: 1, p: 2, position: 'relative' }}>
 
-                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Consignee Details</Typography>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>Consignee {watchedAirportDeliveryService ? "Airline" : ""} Details</Typography>
 
                     <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1 }}>
 

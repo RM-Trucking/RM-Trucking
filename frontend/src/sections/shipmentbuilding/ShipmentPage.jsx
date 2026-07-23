@@ -3362,6 +3362,7 @@ const ShipmentForm = ({ type }) => {
                 editAccIndex={editAccIndex}
                 isLoading={isLoading}
                 setValue={setValue}
+                watchedCarrierInfo={watchedCarrierInfo}
               />
               <ActiveStep3Delivery
                 dispatch={dispatch}
@@ -3412,7 +3413,7 @@ const ShipmentForm = ({ type }) => {
                 renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
                 watchedDeliveryToLocationFlag={watchedDeliveryToLocationFlag}
                 editAccIndex={editAccIndex}
-
+                watchedCarrierInfo={watchedCarrierInfo}
               />
             </>
           )}

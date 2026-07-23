@@ -754,7 +754,26 @@ const ActiveStep3Pickup = ({
                                                             setActionType('Edit');
                                                             setAddPickUpAccModal(true);
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
-                                                        <IconButton onClick={() => removePickupAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                                        <IconButton onClick={() => {
+                                                            const selectedObj = watchedCarrierInfo?.pickupAccessorials[index];
+                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            // If there is no valid ID, stop the function early
+                                                            if (!targetId) return;
+                                                            const updatedMasterList = PICKUP_MASTER_ACCESSORIALS.map((item) => {
+                                                                if (item.entityAccessorialId === targetId) {
+                                                                    return {
+                                                                        ...item,
+                                                                        selected: false // Explicitly uncheck this item
+                                                                    };
+                                                                }
+                                                                return item; // Leave all other items exactly as they are
+                                                            });
+
+
+                                                            // 4. Update the master accessorials state
+                                                            setPICKUP_MASTER_Accessorials(updatedMasterList);
+                                                            removePickupAcc(index);
+                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
                                                 </TableCell>
                                             </TableRow>
@@ -780,6 +799,7 @@ const ActiveStep3Pickup = ({
                         actionType={actionType}
                         MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS}
                         setMASTER_Accessorials={setPICKUP_MASTER_Accessorials}
+                        AccFields={pickupAccFields}
                     />
                     <AddAccessorialDialog
                         open={addPickUpAccModal}

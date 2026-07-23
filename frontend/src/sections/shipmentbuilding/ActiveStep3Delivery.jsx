@@ -95,7 +95,7 @@ const ActiveStep3Delivery = ({
     renderZipCodeFieldCarrierInfo,
     watchedDeliveryToLocationFlag,
     editAccIndex,
-
+    watchedCarrierInfo,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -763,7 +763,24 @@ const ActiveStep3Delivery = ({
                                                             setAddDeliveryAccModal(true);
 
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
-                                                        <IconButton onClick={() => removeDeliveryAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                                        <IconButton onClick={() => {
+                                                            const selectedObj = watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials[index];
+                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            // If there is no valid ID, stop the function early
+                                                            if (!targetId) return;
+                                                            const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS.map((item) => {
+                                                                if (item.entityAccessorialId === targetId) {
+                                                                    return {
+                                                                        ...item,
+                                                                        selected: false // Explicitly uncheck this item
+                                                                    };
+                                                                }
+                                                                return item; // Leave all other items exactly as they are
+                                                            });
+                                                            // 4. Update the master accessorials state
+                                                            setDELIVERY_MASTER_Accessorials(updatedMasterList);
+                                                            removeDeliveryAcc(index);
+                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
                                                 </TableCell>
                                             </TableRow>
@@ -788,6 +805,7 @@ const ActiveStep3Delivery = ({
                         actionType={actionType}
                         MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
                         setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
+                        AccFields={deliveryAccFields}
                     />
                     <AddAccessorialDialog
                         open={addDeliveryAccModal}

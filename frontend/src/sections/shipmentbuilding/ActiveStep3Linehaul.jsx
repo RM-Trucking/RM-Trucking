@@ -92,7 +92,7 @@ const ActiveStep3Linehaul = ({
     editAccIndex,
     isLoading,
     setValue,
-
+    watchedCarrierInfo,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -758,7 +758,25 @@ const ActiveStep3Linehaul = ({
                                                             setActionType('Edit');
                                                             setAddLineHaulAccModal(true);
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
-                                                        <IconButton onClick={() => removeLineHaulAcc(index)} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                                        <IconButton onClick={() => {
+                                                            const selectedObj = watchedCarrierInfo?.lineHaul?.linehaulAccessorials[index];
+                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            // If there is no valid ID, stop the function early
+                                                            if (!targetId) return;
+                                                            const updatedMasterList = LINEHAUL_MASTER_ACCESSORIALS.map((item) => {
+                                                                if (item.entityAccessorialId === targetId) {
+                                                                    return {
+                                                                        ...item,
+                                                                        selected: false // Explicitly uncheck this item
+                                                                    };
+                                                                }
+                                                                return item; // Leave all other items exactly as they are
+                                                            });
+                                                            // 4. Update the master accessorials state
+                                                            setLINEHAUL_MASTER_Accessorials(updatedMasterList);
+                                                            removeLineHaulAcc(index);
+                                                            
+                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
                                                 </TableCell>
                                             </TableRow>
@@ -783,6 +801,7 @@ const ActiveStep3Linehaul = ({
                         actionType={actionType}
                         MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
                         setMASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
+                        AccFields={lineHaulAccFields}
                     />
                     <AddAccessorialDialog
                         open={addLineHaulAccModal}

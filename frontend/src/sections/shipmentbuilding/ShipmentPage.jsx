@@ -911,12 +911,13 @@ const ShipmentForm = ({ type }) => {
       validationRules = {
         required: required ? `${label} is required` : false,
         maxLength: {
-          value: 10,
-          message: `${label} cannot exceed 10 characters`
+          value: 4,
+          message: `${label} cannot exceed 4 characters`
         },
         pattern: {
-          value: /^[A-Z]{3,10}$/,
-          message: 'Must be between 3 and 10 letters'
+          // FIXED: Restricts uppercase letter string count between 3 and 4 
+          value: /^[A-Z]{3,4}$/,
+          message: 'Must be 3 or 4 letters'
         },
         validate: (value) => !value || value.trim().length > 0 || `${label} cannot be only spaces`
       };
@@ -972,7 +973,7 @@ const ShipmentForm = ({ type }) => {
 
               // FIXED 4: Inject the calculated maxLength attribute straight into the underlying HTML input node
               inputProps={{
-                ...(isAirport && { maxLength: 10 }),
+                ...(isAirport && { maxLength: 4 }),
                 ...(!isAirport && maxCharLimit && { maxLength: maxCharLimit })
               }}
             />
@@ -1476,7 +1477,7 @@ const ShipmentForm = ({ type }) => {
       }
     } else if (activeStep === 1) {
       fieldsToValidate = [
-        'billingCustomer',];
+        'billingCustomer', 'consigneeName', 'shipperName'];
       if (watchedAirportPickupService) {
         fieldsToValidate.push('originAirport');
       }
@@ -3212,7 +3213,7 @@ const ShipmentForm = ({ type }) => {
 
           {activeStep === 0 && (
 
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors = {clearErrors} />
+            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} />
           )}
 
           {/* STEP 1 */}
@@ -3236,6 +3237,7 @@ const ShipmentForm = ({ type }) => {
               navigate={navigate}
               location={location}
               setValue={setValue}
+              clearErrors={clearErrors}
             />
 
           )}
@@ -3315,7 +3317,7 @@ const ShipmentForm = ({ type }) => {
                 setCarrierTerminalSelectError={setCarrierTerminalSelectError}
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
-                carrierPickupSearchValue = {carrierPickupSearchValue}
+                carrierPickupSearchValue={carrierPickupSearchValue}
               />
               <ActiveStep3Linehaul
                 dispatch={dispatch}
@@ -3364,7 +3366,7 @@ const ShipmentForm = ({ type }) => {
                 isLoading={isLoading}
                 setValue={setValue}
                 watchedCarrierInfo={watchedCarrierInfo}
-                watchedToLocation = {watchedToLocation}
+                watchedToLocation={watchedToLocation}
               />
               <ActiveStep3Delivery
                 dispatch={dispatch}

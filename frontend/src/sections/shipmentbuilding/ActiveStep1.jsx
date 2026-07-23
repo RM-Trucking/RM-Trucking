@@ -62,6 +62,7 @@ const ActiveStep1 = ({ control,
     navigate,
     location,
     setValue,
+    clearErrors,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -69,6 +70,16 @@ const ActiveStep1 = ({ control,
         console.log(error);
     };
     const filter = createFilterOptions();
+    useEffect(() => {
+        if (!watchedAirportPickupService) {
+            clearErrors("originAirport");
+        }
+    }, [watchedAirportPickupService, clearErrors]);
+    useEffect(() => {
+        if (!watchedAirportDeliveryService) {
+            clearErrors("destinationAirport");
+        }
+    }, [watchedAirportDeliveryService, clearErrors]);
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -215,8 +226,9 @@ const ActiveStep1 = ({ control,
                                 name="shipperName"
                                 control={control}
                                 rules={{
+                                    required: 'Shipper is required',
                                     validate: (value) => {
-                                        const isRequired = !!watchedAirportPickupService;
+                                        const isRequired = true;
                                         const currentText = value?.shipperName || "";
                                         const hasText = !!currentText.trim();
 
@@ -330,7 +342,8 @@ const ActiveStep1 = ({ control,
                                                 {...params}
                                                 inputRef={ref}
                                                 fullWidth
-                                                label={`Shipper Name ${watchedAirportPickupService ? ' *' : ''}`}
+                                                required
+                                                label={`Shipper Name`}
                                                 variant="standard"
                                                 error={!!errors['shipperName']}
                                                 helperText={errors['shipperName'] ? errors['shipperName'].message : ''}
@@ -346,8 +359,6 @@ const ActiveStep1 = ({ control,
                                     />
                                 )}
                             />
-
-
                         )}
 
                         {watchedAirportPickupService && (
@@ -355,7 +366,7 @@ const ActiveStep1 = ({ control,
                                 name="shipperName"
                                 control={control}
                                 rules={{
-                                    required: watchedAirportPickupService ? 'Shipper Name is required' : false,
+                                    required: watchedAirportPickupService ? 'Shipper is required' : false,
                                     validate: (value) => {
                                         if (!value) return true;
 
@@ -585,8 +596,9 @@ const ActiveStep1 = ({ control,
                                 name="consigneeName"
                                 control={control}
                                 rules={{
+                                    required: 'Consignee is required',
                                     validate: (value) => {
-                                        const isRequired = !!watchedAirportDeliveryService;
+                                        const isRequired = true;
                                         const currentText = value?.consigneeName || "";
                                         const hasText = !!currentText.trim();
 
@@ -700,8 +712,9 @@ const ActiveStep1 = ({ control,
                                                 {...params}
                                                 inputRef={ref}
                                                 fullWidth
-                                                label={`Consignee Name ${watchedAirportDeliveryService ? ' *' : ''}`}
+                                                label={`Consignee Name`}
                                                 variant="standard"
+                                                required
                                                 error={!!errors['consigneeName']}
                                                 helperText={errors['consigneeName'] ? errors['consigneeName'].message : ''}
 
@@ -723,7 +736,7 @@ const ActiveStep1 = ({ control,
                                 name="consigneeName"
                                 control={control}
                                 rules={{
-                                    required: watchedAirportDeliveryService ? 'Consignee name is required' : false,
+                                    required: watchedAirportDeliveryService ? 'Consignee is required' : false,
                                     validate: (value) => {
                                         if (!value) return true;
 

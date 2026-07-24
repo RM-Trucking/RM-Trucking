@@ -715,7 +715,7 @@ const ActiveStep3Pickup = ({
                             </Box>
                             <Box sx={{ flex: '0 1 150px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                                     label={<Typography variant="body2">Pickup Alert</Typography>}
                                 />
                             </Box>

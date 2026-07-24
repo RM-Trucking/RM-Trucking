@@ -299,7 +299,7 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mt: '3%', whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -483,7 +483,7 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -694,7 +694,7 @@ const ActiveStep3Linehaul = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>} />}
                             label={<Typography variant="body2">Add Linehaul Accessorials</Typography>}
                         />
                     </Box>

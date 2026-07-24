@@ -187,6 +187,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       render={({ field }) => (
                         <Checkbox
                           checked={field.value}
+                          sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
                           onChange={(e) => {
                             field.onChange(e.target.checked);
                             if (e.target.checked) { openHazmat(huIndex, itemIndex) }

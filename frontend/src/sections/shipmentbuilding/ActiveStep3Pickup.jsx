@@ -123,7 +123,7 @@ const ActiveStep3Pickup = ({
                         Carrier Information
                     </Typography>
                     <FormControlLabel
-                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
                     />
                 </Box>
@@ -181,7 +181,7 @@ const ActiveStep3Pickup = ({
                                                     {...field}
                                                     checked={field.value}
                                                     size="small"
-                                                    sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                                    sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
                                                 />
                                             )}
                                         />
@@ -318,13 +318,44 @@ const ActiveStep3Pickup = ({
 
                             </Box>
                             <Box sx={{ flex: '1 1 200px' }}>
-                                <Controller name="carrierInfo.fromLocation" control={control} render={({ field }) => (
-                                    <TextField {...field} fullWidth label="From Location *" variant="standard" InputLabelProps={{ shrink: true }} />
-                                )} />
+                                <Controller
+                                    name="carrierInfo.fromLocation"
+                                    control={control}
+                                    // 1. Adds validation rules to enforce the 50-character limit on form submission
+                                    rules={{
+                                        required: "From Location is required",
+                                        maxLength: {
+                                            value: 50,
+                                            message: "From Location cannot exceed 50 characters"
+                                        }
+                                    }}
+                                    render={({ field, fieldState: { error } }) => (
+                                        <TextField
+                                            {...field}
+                                            // 2. Programmatically truncates pasted text down to 50 characters maximum
+                                            onChange={(e) => {
+                                                const val = e.target.value;
+                                                field.onChange(val.slice(0, 50));
+                                            }}
+                                            fullWidth
+                                            label="From Location *"
+                                            variant="standard"
+                                            InputLabelProps={{ shrink: true }}
+                                            // 3. Hard browser barrier blocking physical keyboard strokes past 50 characters
+                                            inputProps={{
+                                                maxLength: 50
+                                            }}
+                                            // 4. Safely flags validation errors and displays the message text layout
+                                            error={!!error}
+                                            helperText={error ? error.message : ''}
+                                        />
+                                    )}
+                                />
+
                             </Box>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                                     label={<Typography variant="body2">Edit From Location</Typography>}
                                 />
                             </Box>
@@ -424,7 +455,7 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                                     label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
                                 />
                             </Box>
@@ -579,7 +610,7 @@ const ActiveStep3Pickup = ({
                                 </Box>
                                 <Box sx={{ flex: '0 1 200px' }}>
                                     <FormControlLabel
-                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                                         label={<Typography variant="body2">Edit To Location</Typography>}
                                     />
                                 </Box>
@@ -678,7 +709,7 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
                                     label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
                                 />
                             </Box>

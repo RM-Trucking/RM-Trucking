@@ -248,7 +248,7 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -447,7 +447,7 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" />}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -680,7 +680,7 @@ const ActiveStep3Delivery = ({
 
                     <Box display={'flex'} alignItems={'center'}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>} />}
                             label={<Typography variant="body2">Add Delivery Accessorials</Typography>}
                         />
                         <Box sx={{ display: 'flex', gap: 4 }}>
@@ -691,7 +691,7 @@ const ActiveStep3Delivery = ({
                                 render={({ field }) => (
                                     <FormControlLabel
                                         sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                        control={<Checkbox {...field} checked={field.value} size="small" />}
+                                        control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>}
                                         label={<Typography variant="body2">Airport Transfer</Typography>}
                                     />
                                 )}
@@ -828,7 +828,7 @@ const ActiveStep3Delivery = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" />} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}/>} />}
                             label={<Typography variant="body2">Delivery Alert </Typography>}
                         />
                     </Box>

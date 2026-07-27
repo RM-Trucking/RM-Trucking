@@ -306,6 +306,8 @@ const ShipmentForm = ({ type }) => {
 
       consigneePhone: '',
 
+      referenceTableRows : [], 
+
       // Step 2 - Handling Units 
 
       handlingUnits: [{

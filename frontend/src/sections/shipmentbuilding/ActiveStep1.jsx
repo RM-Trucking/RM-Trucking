@@ -43,6 +43,7 @@ import {
     getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
 } from '../../redux/slices/shipment';
+import ReferenceTable from './ReferenceTable';
 
 const ActiveStep1 = ({ control,
     errors,
@@ -73,13 +74,13 @@ const ActiveStep1 = ({ control,
     useEffect(() => {
         if (!watchedAirportPickupService) {
             clearErrors("originAirport");
-            setValue('shipperName',"");
+            setValue('shipperName', "");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
         if (!watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
-            setValue('consigneeName','');
+            setValue('consigneeName', '');
         }
     }, [watchedAirportDeliveryService, clearErrors]);
     return (
@@ -958,6 +959,13 @@ const ActiveStep1 = ({ control,
                     </Box>
 
                 </Box>
+
+                {/* reference table */}
+                <ReferenceTable 
+                    control={control}
+                    errors={errors}
+                    setValue={setValue}
+                    clearErrors={clearErrors} />
 
             </Paper>
         </ErrorBoundary>

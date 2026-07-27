@@ -961,11 +961,11 @@ const ActiveStep1 = ({ control,
                 </Box>
 
                 {/* reference table */}
-                <ReferenceTable 
+                {/* <ReferenceTable 
                     control={control}
                     errors={errors}
                     setValue={setValue}
-                    clearErrors={clearErrors} />
+                    clearErrors={clearErrors} /> */}
 
             </Paper>
         </ErrorBoundary>

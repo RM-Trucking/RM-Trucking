@@ -89,6 +89,7 @@ export type HazmatDetails = {
     hazardClass: string;
     packingGroup: string;
     weight: number;
+    weightUnit: string;
     technicalName: string;
     contactPhoneNumber: string;
     hazmatDescription: string;

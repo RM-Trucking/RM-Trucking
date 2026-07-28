@@ -127,7 +127,7 @@ const PickupAccessorialDialog = ({ open, onClose, onSave, setActionType, setAddA
                         size="small"
                         checked={item?.selected || false}
                         onChange={() => handleToggle(index)}
-                        sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+                        sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
                       />
                     </TableCell>
                     <TableCell sx={{ fontSize: '0.8rem' }}>{item.accessorialName}</TableCell>

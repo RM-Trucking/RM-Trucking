@@ -123,7 +123,7 @@ const ActiveStep3Pickup = ({
                         Carrier Information
                     </Typography>
                     <FormControlLabel
-                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
                     />
                 </Box>
@@ -181,7 +181,7 @@ const ActiveStep3Pickup = ({
                                                     {...field}
                                                     checked={field.value}
                                                     size="small"
-                                                    sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+                                                    sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
                                                 />
                                             )}
                                         />
@@ -355,7 +355,7 @@ const ActiveStep3Pickup = ({
                             </Box>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                                     label={<Typography variant="body2">Edit From Location</Typography>}
                                 />
                             </Box>
@@ -455,7 +455,7 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                                     label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
                                 />
                             </Box>
@@ -610,7 +610,7 @@ const ActiveStep3Pickup = ({
                                 </Box>
                                 <Box sx={{ flex: '0 1 200px' }}>
                                     <FormControlLabel
-                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                                         label={<Typography variant="body2">Edit To Location</Typography>}
                                     />
                                 </Box>
@@ -709,13 +709,13 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                                     label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
                                 />
                             </Box>
                             <Box sx={{ flex: '0 1 150px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} />} />}
+                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                                     label={<Typography variant="body2">Pickup Alert</Typography>}
                                 />
                             </Box>

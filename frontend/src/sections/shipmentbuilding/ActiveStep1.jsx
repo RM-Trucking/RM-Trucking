@@ -180,7 +180,7 @@ const ActiveStep1 = ({ control,
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+                                            sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
                                         />
                                     )}
                                 />
@@ -202,7 +202,7 @@ const ActiveStep1 = ({ control,
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+                                            sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
                                         />
                                     )}
                                 />
@@ -961,11 +961,11 @@ const ActiveStep1 = ({ control,
                 </Box>
 
                 {/* reference table */}
-                {/* <ReferenceTable 
+                <ReferenceTable 
                     control={control}
                     errors={errors}
                     setValue={setValue}
-                    clearErrors={clearErrors} /> */}
+                    clearErrors={clearErrors} />
 
             </Paper>
         </ErrorBoundary>

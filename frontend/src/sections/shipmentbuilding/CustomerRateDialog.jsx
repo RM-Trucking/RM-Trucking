@@ -201,9 +201,9 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                         checked={spotRateFlag}
                         onChange={(event) => { setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked); }}
                         sx={{
-                          color: '#a22',
+                          color: 'rgba(0, 25, 76, 1)',
                           '&.Mui-checked': {
-                            color: '#a22', // Keeps the color consistent when checked
+                            color: 'rgba(0, 25, 76, 1)', // Keeps the color consistent when checked
                           },
                         }}
                       />

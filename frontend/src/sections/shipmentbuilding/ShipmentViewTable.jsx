@@ -235,7 +235,7 @@ export default function ShipmentViewTable({ }) {
         //                     control={
         //                         <Checkbox
         //                             size="small"
-        //                             sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }}
+        //                             sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
         //                             // Checked state should ideally bind to a tracking state array in your component
         //                             onChange={(event) => {
         //                                 event.stopPropagation(); // Stops DataGrid row-click selection triggers

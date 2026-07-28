@@ -685,17 +685,17 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
           {/* Checkbox Column 1 */}
           <Box sx={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column' }}>
-            <FormControlLabel control={<Checkbox sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} size="small" checked={localData.limitedQuality} onChange={(e) => handleChange('limitedQuality', e.target.checked)} />} label={<Typography variant="body2">Limited Quality</Typography>} />
-            <FormControlLabel control={<Checkbox sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} size="small" checked={localData.marinePollutant} onChange={(e) => handleChange('marinePollutant', e.target.checked)} />} label={<Typography variant="body2">Marine Pollutant</Typography>} />
-            <FormControlLabel control={<Checkbox sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} size="small" checked={localData.residueLastContained} onChange={(e) => handleChange('residueLastContained', e.target.checked)} />} label={<Typography variant="body2">Residue Last Contained</Typography>} />
+            <FormControlLabel control={<Checkbox sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} size="small" checked={localData.limitedQuality} onChange={(e) => handleChange('limitedQuality', e.target.checked)} />} label={<Typography variant="body2">Limited Quality</Typography>} />
+            <FormControlLabel control={<Checkbox sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} size="small" checked={localData.marinePollutant} onChange={(e) => handleChange('marinePollutant', e.target.checked)} />} label={<Typography variant="body2">Marine Pollutant</Typography>} />
+            <FormControlLabel control={<Checkbox sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} size="small" checked={localData.residueLastContained} onChange={(e) => handleChange('residueLastContained', e.target.checked)} />} label={<Typography variant="body2">Residue Last Contained</Typography>} />
           </Box>
 
 
 
           {/* Checkbox Column 2 */}
           <Box sx={{ flex: '1 1 180px', display: 'flex', flexDirection: 'column' }}>
-            <FormControlLabel control={<Checkbox sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} size="small" checked={localData.reportableQuantity} onChange={(e) => handleChange('reportableQuantity', e.target.checked)} />} label={<Typography variant="body2">Reportable Quantity</Typography>} />
-            <FormControlLabel control={<Checkbox sx={{ color: '#A22', '&.Mui-checked': { color: '#A22' } }} size="small" checked={localData.dotExemption} onChange={(e) => handleChange('dotExemption', e.target.checked)} />} label={<Typography variant="body2">DOT Exemption</Typography>} />
+            <FormControlLabel control={<Checkbox sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} size="small" checked={localData.reportableQuantity} onChange={(e) => handleChange('reportableQuantity', e.target.checked)} />} label={<Typography variant="body2">Reportable Quantity</Typography>} />
+            <FormControlLabel control={<Checkbox sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} size="small" checked={localData.dotExemption} onChange={(e) => handleChange('dotExemption', e.target.checked)} />} label={<Typography variant="body2">DOT Exemption</Typography>} />
           </Box>
         </Box>
 

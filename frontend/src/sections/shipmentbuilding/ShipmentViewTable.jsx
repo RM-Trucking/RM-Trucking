@@ -349,10 +349,18 @@ export default function ShipmentViewTable({ }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     hideFooterSelectedRowCount
-                    // Targets the checkbox container specifically in the header row
                     sx={{
+                        // 1. Keeps your existing code to hide the "Select All" header checkbox
                         '& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-checkboxInput': {
                             display: 'none',
+                        },
+                        // 2. Targets the row checkboxes when they are NOT checked
+                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root': {
+                            color: 'rgba(0, 25, 76, 1)',
+                        },
+                        // 3. Targets the row checkboxes when they ARE checked
+                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root.Mui-checked': {
+                            color: 'rgba(0, 25, 76, 1)',
                         },
                     }}
                     paginationMode="server"
@@ -374,6 +382,7 @@ export default function ShipmentViewTable({ }) {
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}
                 />
+
             </Box>
 
             <Snackbar

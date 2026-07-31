@@ -9,8 +9,8 @@ const TYPE_OPTIONS = [
     "Customer Number", "BOL", "Other"
 ];
 
-// FIXED: Clean destructured parameters with proper layout positioning
-const ReferenceTable = ({ control, errors, setValue, clearErrors }) => {
+// FIXED: Removed TypeScript annotations to match plain JS .jsx files
+export default function ReferenceTable({ control, errors, setValue, clearErrors }) {
     
     // Explicit array state structure initializes safely
     const [rows, setRows] = useState([
@@ -141,6 +141,4 @@ const ReferenceTable = ({ control, errors, setValue, clearErrors }) => {
             <ToastContainer />
         </div>
     );
-};
-
-export default ReferenceTable;
+}

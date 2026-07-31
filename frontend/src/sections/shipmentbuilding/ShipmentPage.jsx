@@ -306,7 +306,7 @@ const ShipmentForm = ({ type }) => {
 
       consigneePhone: '',
 
-      referenceTableRows : [], 
+      referenceTableRows: [],
 
       // Step 2 - Handling Units 
 
@@ -2509,62 +2509,62 @@ const ShipmentForm = ({ type }) => {
   // Helper 2: Validate handling units array structure for step 2
   // Helper 2: Validate handling units array structure for step 2
   const validateHandlingUnits = (units) => {
-  if (!Array.isArray(units) || units.length === 0) {
-    return { isValid: false, reason: 'Handling Units - Array Empty' };
-  }
-
-  for (const unit of units) {
-    // 1. Top-Level Unit Field Checks
-    if (!unit?.uom?.trim()) {
-      return { isValid: false, reason: 'Handling Units - UOM' };
-    }
-    if (!unit?.unitsCount?.toString().trim()) {
-      return { isValid: false, reason: 'Handling Units - Units' };
+    if (!Array.isArray(units) || units.length === 0) {
+      return { isValid: false, reason: 'Handling Units - Array Empty' };
     }
 
-    if (!Array.isArray(unit?.items) || unit.items.length === 0) {
-      return { isValid: false, reason: 'Handling Unit Items - Array Empty' };
-    }
-
-    for (const item of unit.items) {
-      // 2. Base Item Field Checks
-      if (!item?.pieces?.toString().trim()) {
-        return { isValid: false, reason: 'Handling Unit Items - Pieces' };
+    for (const unit of units) {
+      // 1. Top-Level Unit Field Checks
+      if (!unit?.uom?.trim()) {
+        return { isValid: false, reason: 'Handling Units - UOM' };
       }
-      if (!item?.piecesUom?.trim()) {
-        return { isValid: false, reason: 'Handling Unit Items - Pieces Uom' };
-      }
-      if (!item?.description?.trim()) {
-        return { isValid: false, reason: 'Handling Unit Items - Description' };
+      if (!unit?.unitsCount?.toString().trim()) {
+        return { isValid: false, reason: 'Handling Units - Units' };
       }
 
-      // 3. Hazmat Sub-Field Checks
-      if (item?.hazmatInfo === true) {
-        const hazmat = item?.hazmatData;
-        
-        if (!hazmat?.unNumber?.trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - UN Number' };
+      if (!Array.isArray(unit?.items) || unit.items.length === 0) {
+        return { isValid: false, reason: 'Handling Unit Items - Array Empty' };
+      }
+
+      for (const item of unit.items) {
+        // 2. Base Item Field Checks
+        if (!item?.pieces?.toString().trim()) {
+          return { isValid: false, reason: 'Handling Unit Items - Pieces' };
         }
-        if (!hazmat?.shippingName?.trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - Shipping Name' };
+        if (!item?.piecesUom?.trim()) {
+          return { isValid: false, reason: 'Handling Unit Items - Pieces Uom' };
         }
-        if (!hazmat?.packagingGroup?.trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - Packaging Group' };
+        if (!item?.description?.trim()) {
+          return { isValid: false, reason: 'Handling Unit Items - Description' };
         }
-        if (!hazmat?.hazmatClass?.trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - Hazmat Class' };
-        }
-        if (!hazmat?.weight?.toString().trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - Weight' };
-        }
-        if (!hazmat?.contactPhone?.trim()) {
-          return { isValid: false, reason: 'Hazmat Info Details - Contact Phone' };
+
+        // 3. Hazmat Sub-Field Checks
+        if (item?.hazmatInfo === true) {
+          const hazmat = item?.hazmatData;
+
+          if (!hazmat?.unNumber?.trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - UN Number' };
+          }
+          if (!hazmat?.shippingName?.trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - Shipping Name' };
+          }
+          if (!hazmat?.packagingGroup?.trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - Packaging Group' };
+          }
+          if (!hazmat?.hazmatClass?.trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - Hazmat Class' };
+          }
+          if (!hazmat?.weight?.toString().trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - Weight' };
+          }
+          if (!hazmat?.contactPhone?.trim()) {
+            return { isValid: false, reason: 'Hazmat Info Details - Contact Phone' };
+          }
         }
       }
     }
-  }
-  return { isValid: true, reason: null };
-};
+    return { isValid: true, reason: null };
+  };
 
 
   const onFormSubmit = async () => {
@@ -2823,7 +2823,7 @@ const ShipmentForm = ({ type }) => {
   useEffect(() => {
     if (watchedAirportPickupService !== undefined) {
       // if they check or uncheck the values have to be empty for the new select
-      setValue('shipperName','');
+      setValue('shipperName', '');
       setValue('shipperAddr1', '');
       setValue('shipperAddr2', '');
       setValue('shipperCity', '');
@@ -2836,7 +2836,7 @@ const ShipmentForm = ({ type }) => {
   useEffect(() => {
     if (watchedAirportDeliveryService !== undefined) {
       // if they check or uncheck the values have to be empty for the new select
-      setValue('consigneeName','');
+      setValue('consigneeName', '');
       setValue('consigneeAddr1', '');
       setValue('consigneeAddr2', '');
       setValue('consigneeCity', '');
@@ -3062,7 +3062,7 @@ const ShipmentForm = ({ type }) => {
             {type !== 'Edit' && <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, mb: 2 }}>
               {/* Action Buttons Row */}
               <Stack direction="row" spacing={1} alignItems="center">
-                {activeStep === 2 && <Button
+                {activeStep === 2 && type === 'Edit' && <Button
                   variant="contained"
                   size="small"
                   // startIcon={<Iconify icon="solar:document-bold" />}
@@ -3347,56 +3347,61 @@ const ShipmentForm = ({ type }) => {
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
               />
-              <ActiveStep3Linehaul
-                dispatch={dispatch}
-                navigate={navigate}
-                location={location}
-                control={control}
-                errors={errors}
-                selectedRouting={selectedRouting}
-                carrierTerminalDropdown={carrierTerminalDropdown}
-                isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
-                setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
-                selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
-                watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
-                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                watchedLinehaulToLocationType={watchedLinehaulToLocationType}
-                isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
-                setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
-                carrierLinehaulSearchValue={carrierLinehaulSearchValue}
-                watchedConsigneeName={watchedConsigneeName}
-                watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
-                watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-                setLineHaulAccModal={setLineHaulAccModal}
-                lineHaulAccFields={lineHaulAccFields}
-                setActiveAccType={setActiveAccType}
-                notesRefArray={notesRefArray}
-                notesRefArrayIndex={notesRefArrayIndex}
-                notesRefArrayObj={notesRefArrayObj}
-                setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
-                setEditAccIndex={setEditAccIndex}
-                setActionType={setActionType}
-                setAddLineHaulAccModal={setAddLineHaulAccModal}
-                removeLineHaulAcc={removeLineHaulAcc}
-                lineHaulAccModal={lineHaulAccModal}
-                replaceLineHaulAcc={replaceLineHaulAcc}
-                addLineHaulAccModal={addLineHaulAccModal}
-                actionType={actionType}
-                LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
-                setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
-                appendLineHaulAccFields={appendLineHaulAccFields}
-                lineHaulNotesArr={lineHaulNotesArr}
-                watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
-                onSaveOfEdit={onSaveOfEdit}
-                editAccIndex={editAccIndex}
-                isLoading={isLoading}
-                setValue={setValue}
-                watchedCarrierInfo={watchedCarrierInfo}
-                watchedToLocation={watchedToLocation}
-              />
-              <ActiveStep3Delivery
+              {
+
+                isPickupPending === false &&
+                <ActiveStep3Linehaul
+                  dispatch={dispatch}
+                  navigate={navigate}
+                  location={location}
+                  control={control}
+                  errors={errors}
+                  selectedRouting={selectedRouting}
+                  carrierTerminalDropdown={carrierTerminalDropdown}
+                  isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
+                  setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
+                  selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
+                  watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                  watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                  renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                  watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                  watchedLinehaulToLocationType={watchedLinehaulToLocationType}
+                  isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
+                  setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
+                  carrierLinehaulSearchValue={carrierLinehaulSearchValue}
+                  watchedConsigneeName={watchedConsigneeName}
+                  watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
+                  watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                  setLineHaulAccModal={setLineHaulAccModal}
+                  lineHaulAccFields={lineHaulAccFields}
+                  setActiveAccType={setActiveAccType}
+                  notesRefArray={notesRefArray}
+                  notesRefArrayIndex={notesRefArrayIndex}
+                  notesRefArrayObj={notesRefArrayObj}
+                  setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
+                  setEditAccIndex={setEditAccIndex}
+                  setActionType={setActionType}
+                  setAddLineHaulAccModal={setAddLineHaulAccModal}
+                  removeLineHaulAcc={removeLineHaulAcc}
+                  lineHaulAccModal={lineHaulAccModal}
+                  replaceLineHaulAcc={replaceLineHaulAcc}
+                  addLineHaulAccModal={addLineHaulAccModal}
+                  actionType={actionType}
+                  LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
+                  setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
+                  appendLineHaulAccFields={appendLineHaulAccFields}
+                  lineHaulNotesArr={lineHaulNotesArr}
+                  watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
+                  onSaveOfEdit={onSaveOfEdit}
+                  editAccIndex={editAccIndex}
+                  isLoading={isLoading}
+                  setValue={setValue}
+                  watchedCarrierInfo={watchedCarrierInfo}
+                  watchedToLocation={watchedToLocation}
+                  isPickupPending={isPickupPending}
+                />
+              }
+              {isPickupPending === false && <ActiveStep3Delivery
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
@@ -3446,7 +3451,9 @@ const ShipmentForm = ({ type }) => {
                 watchedDeliveryToLocationFlag={watchedDeliveryToLocationFlag}
                 editAccIndex={editAccIndex}
                 watchedCarrierInfo={watchedCarrierInfo}
+                isPickupPending={isPickupPending}
               />
+              }
             </>
           )}
 

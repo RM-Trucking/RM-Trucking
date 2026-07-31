@@ -72,13 +72,13 @@ const ActiveStep1 = ({ control,
     };
     const filter = createFilterOptions();
     useEffect(() => {
-        if (!watchedAirportPickupService) {
+        if (watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
             clearErrors("originAirport");
             setValue('shipperName', "");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
-        if (!watchedAirportDeliveryService) {
+        if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
             setValue('consigneeName', '');
         }

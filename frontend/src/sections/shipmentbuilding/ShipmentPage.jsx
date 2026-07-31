@@ -238,6 +238,7 @@ const ShipmentForm = ({ type }) => {
   const [carrierTerminalSelectError, setCarrierTerminalSelectError] = useState(false);
   const [shipmentErrorFlag, setShipmentErrorFlag] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const filter = createFilterOptions();
 
@@ -2467,9 +2468,16 @@ const ShipmentForm = ({ type }) => {
       delete obj.shipmentRateDetails;
     }
     if (activeStep === 4) {
-      dispatch(postStep1(obj));
+      setIsSubmitting(true);
+      try {
+        // 2. Trigger your API call
+        dispatch(postStep1(obj));
+      } catch (error) {
+        console.error("Submission failed:", error);
+        // 4. Unlock button if API fails so they can retry
+        setIsSubmitting(false);
+      }
     }
-
     if (activeStep === 2 && hasInitialData()) {
       setValue('doDetails.handlingUnits', currentValues.handlingUnits);
       setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
@@ -2573,9 +2581,7 @@ const ShipmentForm = ({ type }) => {
     const missingRequiredFields = [];
     let valid = false;
     const obj = {};
-
-    // adding to object
-    // step 0
+    // adding to object - step 0
     obj.shipmentDetails = {
       "typeOfShipment": currentValues.shipmentType,
       "serviceLevel": currentValues.serviceLevel,
@@ -2712,25 +2718,26 @@ const ShipmentForm = ({ type }) => {
     // step 3
     console.log(selectedRouting, watchedLinehaulSelectRouting);
     const [pickupTerminalId, pickupCarrierId] = watchedSelectedPickupCarrier.split('-');
-
     const [pickupToLocTerminalId, pickupToLocCarrierId] = watchedToLocation.split('-');
-
     // From Location
     const selectedPickupCarrierObject = carrierTerminalDropdown.find(
       (item) => item.terminalId === Number(pickupTerminalId) && item.carrierId === Number(pickupCarrierId)
     );
-
     // To Location
     const selectedPickupToCarrierObject = carrierTerminalDropdown.find(
       (item) => item.terminalId === Number(pickupToLocTerminalId) && item.carrierId === Number(pickupToLocCarrierId)
     );
-
     if (isPickupPending) {
-      dispatch(postStep1(obj));
+      setIsSubmitting(true);
+      try {
+        // 2. Execute your API call
+        await dispatch(postStep1(obj));
+      } catch (error) {
+        console.error("Submission failed:", error);
+        setIsSubmitting(false);
+      }
     }
     if (selectedRouting === 'pickup_only' && watchedSelectedPickupCarrier && !isPickupPending) {
-      // obj to send
-
       if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
         if (currentValues?.carrierInfo?.toLocationType && currentValues?.carrierInfo.toLocation) {
           valid = true;
@@ -2739,7 +2746,6 @@ const ShipmentForm = ({ type }) => {
           missingRequiredFields.push('Pickup Location Type', 'Pickup To Location');
         }
       }
-
       if (currentValues?.carrierInfo?.pickupAlert) {
         if (currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes && currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail) {
           valid = true;
@@ -2748,15 +2754,12 @@ const ShipmentForm = ({ type }) => {
           missingRequiredFields.push('Pickup Notes', 'Pickup Primary Email');
         }
       }
-
       if (currentValues?.carrierInfo?.addPickupAccessorial && currentValues?.carrierInfo?.pickupAccessorials?.length === 0) {
         valid = false;
         missingRequiredFields.push('Pickup Accessorials');
       } else {
         valid = true;
       }
-
-
       if (valid) {
         setErrorVisible(false);
         obj.carrierDetails = {
@@ -2808,7 +2811,14 @@ const ShipmentForm = ({ type }) => {
             }
           },
         }
-        dispatch(postStep1(obj));
+        setIsSubmitting(true);
+        try {
+          // 2. Execute your API call
+          await dispatch(postStep1(obj));
+        } catch (error) {
+          console.error("Submission failed:", error);
+          setIsSubmitting(false);
+        }
       } else {
         setErrorVisible(true);
         setErrorVisibleFields(missingRequiredFields);
@@ -3025,39 +3035,49 @@ const ShipmentForm = ({ type }) => {
                 {activeStep === 3 && isPickupPending &&
                   <Button
                     variant="contained"
-                    onClick={onFormSubmit} // Your final submit function
-                    sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                    onClick={onFormSubmit}
+                    disabled={isSubmitting} // 👈 This disables the button instantly on click
+                    sx={{
+                      ...commonBtnStyle,
+                      bgcolor: '#a22',
+                      '&:hover': { bgcolor: '#811' }
+                    }}
                   >
-                    Submit
+                    {isSubmitting ? 'Submitting...' : 'Submit'}
                   </Button>}
-
                 {
                   activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') &&
                   <>
                     <Button
                       variant="contained"
-                      onClick={onFormSubmit} // Your final submit function
-                      sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                      onClick={onFormSubmit}
+                      disabled={isSubmitting} // 👈 This disables the button instantly on click
+                      sx={{
+                        ...commonBtnStyle,
+                        bgcolor: '#a22',
+                        '&:hover': { bgcolor: '#811' }
+                      }}
                     >
-                      Submit
+                      {isSubmitting ? 'Submitting...' : 'Submit'}
                     </Button>
-
                   </>
                 }
                 {
                   activeStep === 3 && !isPickupPending && <Button
                     variant="contained"
                     onClick={handleNext}
-                    sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                    disabled={isSubmitting}
+                    sx={{
+                      ...commonBtnStyle,
+                      bgcolor: '#a22',
+                      '&:hover': { bgcolor: '#811' },
+                      '&:disabled': { bgcolor: '#cca' }
+                    }}
                   >
-                    {activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
+                    {isSubmitting ? 'Submitting...' : activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
                   </Button>
                 }
-
-
-
               </Box>
-
             </Box>
             {type !== 'Edit' && <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, mb: 2 }}>
               {/* Action Buttons Row */}

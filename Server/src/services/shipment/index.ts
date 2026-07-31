@@ -1471,7 +1471,7 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
             );
             return {
                 handlingUnitId: hu.handlingUnitId,
-                commodityId: hu.commodityId,
+                shipmentId: hu.shipmentId,
                 handlingUnitUOM: hu.handlingUnitUOM,
                 handlingUnits: hu.handlingUnits,
                 unit: hu.unit,
@@ -1810,9 +1810,9 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
         },
         customerDetails: customerDetailsResponse,
         commodityDetails: {
-            commodityId: commodityInfo.commodityId,
-            emergencyContactName: commodityInfo.emergencyContactName,
-            emergencyContactPhone: commodityInfo.emergencyContactPhone,
+            commodityId: commodityInfo?.commodityId,
+            emergencyContactName: commodityInfo?.emergencyContactName,
+            emergencyContactPhone: commodityInfo?.emergencyContactPhone,
             handlingUnits: handlingUnitsResponse
         },
         carrierDetails,

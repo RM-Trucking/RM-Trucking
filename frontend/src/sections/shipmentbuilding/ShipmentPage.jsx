@@ -63,6 +63,7 @@ import ActiveStep3Linehaul from './ActiveStep3Linehaul';
 import ActiveStep3Delivery from './ActiveStep3Delivery';
 import ActiveStep4 from './ActiveStep4';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
+import { updateControls } from './UpdateControls';
 
 // --------------------------------------------------------------
 
@@ -602,18 +603,6 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     totals = calculateTotals(watchedHU);
   }, [watchedHU]);
-
-
-  const handleBack = () => {
-    console.log('Current Form Values:', getValues());
-    setActiveStep((prev) => prev - 1);
-    if (activeStep === 2 && hasInitialData(getValues)) {
-      const currentValues = getValues();
-      setValue('doDetails.handlingUnits', currentValues.handlingUnits);
-      setValue('doDetails.emergencyContactName', currentValues.emergencyContactName);
-      setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
-    }
-  };
 
   // --- HELPER: RENDER ZIP CODE --- 
 
@@ -1492,6 +1481,11 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
+  useEffect(() => {
+    if (type === 'View' || type === 'Edit') {
+      updateControls();
+    }
+  }, [type])
 
   return (
     <ErrorBoundary
@@ -1510,7 +1504,6 @@ const ShipmentPage = ({ type }) => {
           <StepperHeader location={location} navigate={navigate}
             PATH_DASHBOARD={PATH_DASHBOARD}
             setHandleCancelModal={setHandleCancelModal}
-            handleBack={handleBack}
             hasInitialData={hasInitialData}
             handleNext={handleNext}
             onFormSubmit={onFormSubmit}

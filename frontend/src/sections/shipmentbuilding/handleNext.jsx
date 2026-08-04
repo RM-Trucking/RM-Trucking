@@ -7,6 +7,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
 ) => {
     const currentValues = getValues();
     let fieldsToValidate = [];
+    let validReferenceTable = true;
     let validAccessorials = true;
     let obj = {};
 
@@ -27,6 +28,17 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         }
         if (watchedAirportDeliveryService) {
             fieldsToValidate.push('destinationAirport');
+        }
+        // check for reference number table with no values
+        if (currentValues?.referenceTableRows?.length > 1) {
+            const hasEmptyValue = currentValues?.referenceTableRows?.some(obj =>
+                Object.values(obj).some(value => typeof value === 'string' ? value.trim() === '' : value === '')
+            ) || false;
+            if (hasEmptyValue) {
+                validReferenceTable = false;
+                fieldsToValidate.push('referenceTableRows');
+                missingRequiredFields.push('Fill both Reference type and number');
+            }
         }
 
     } else if (activeStep === 2 && isHazmatSelected) {
@@ -113,7 +125,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     }
 
     // 5. Final evaluation block
-    if (isValid && validAccessorials && (activeStep !== 2 || validationResult.isValid)) {
+    if (isValid && validAccessorials && validReferenceTable && (activeStep !== 2 || validationResult.isValid)) {
         setErrorVisible(false);
         if (activeStep < 4) {
             setActiveStep((prev) => prev + 1);
@@ -210,20 +222,18 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             'entityId': currentValues?.consigneeName?.entityId || null,
             "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
         },
-        "customerReferenceNumbers": currentValues?.referenceTableRows?.map(({ id, ...rest }) => rest) || [],
+        "customerReferenceNumbers": getValidReferenceNumbers(currentValues?.referenceTableRows),
     };
     if (watchedAirportPickupService) {
         delete obj.customerDetails.shipperDetails;
     } else {
         delete obj.customerDetails.pickupAirlineDetails;
     }
-
     if (watchedAirportDeliveryService) {
         delete obj.customerDetails.consigneeDetails;
     } else {
         delete obj.customerDetails.deliveryAirlineDetails;
     }
-
     // step 2
     if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
         obj.commodityDetails = {
@@ -265,7 +275,6 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             }))
         };
     }
-
     // step 3
     console.log(selectedRouting, watchedLinehaulSelectRouting);
     const [pickupTerminalId, pickupCarrierId] = watchedSelectedPickupCarrier.split('-');
@@ -316,11 +325,9 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         dispatch(getZipToZipCarrierDeliveryRate(deliveryFromZip, deliveryToZip, Number(totals.totalWeight), selectedDeliveryCarrierObject?.terminalId));
     }
 
-
     if (selectedRouting === 'pickup_only') {
         // obj to send
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
-        // fromLocationEntityId not there in from location
         obj.carrierDetails = {
 
             "pickupDetails": {
@@ -374,7 +381,6 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
         // obj to send
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
-        // fromLocationEntityId not there in from location
         obj.carrierDetails = {
 
             "pickupDetails": {
@@ -958,8 +964,6 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         });
     }
 
-
-
     obj.shipmentRateDetails = {
         "carrierRateDetails": {
             "pickupRateDetails": {
@@ -1134,6 +1138,14 @@ export const hasInitialData = (getValues) => {
     return hasContactInfo || hasHandlingData;
 };
 
+export const getValidReferenceNumbers = (rows) => {
+    return rows
+        ?.filter(obj =>
+            !Object.values(obj).some(val => typeof val === 'string' ? val.trim() === '' : val === '')
+        )
+        ?.map(({ id, ...rest }) => rest) || [];
+};
+
 export const onFormSubmit = async (dispatch, setValue, getValues, trigger, errors,
     activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
     selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
@@ -1225,6 +1237,7 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
             'entityId': currentValues?.consigneeName?.entityId || null,
             "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
         },
+        "customerReferenceNumbers": getValidReferenceNumbers(currentValues?.referenceTableRows),
     };
     if (watchedAirportPickupService) {
         delete obj.customerDetails.shipperDetails;

@@ -787,11 +787,11 @@ const ActiveStep3Pickup = ({
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
                                                         <IconButton onClick={() => {
                                                             const selectedObj = watchedCarrierInfo?.pickupAccessorials[index];
-                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;
                                                             // If there is no valid ID, stop the function early
                                                             if (!targetId) return;
                                                             const updatedMasterList = PICKUP_MASTER_ACCESSORIALS.map((item) => {
-                                                                if (item.entityAccessorialId === targetId) {
+                                                                if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
                                                                     return {
                                                                         ...item,
                                                                         selected: false // Explicitly uncheck this item

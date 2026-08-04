@@ -248,7 +248,7 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -447,7 +447,7 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -680,7 +680,7 @@ const ActiveStep3Delivery = ({
 
                     <Box display={'flex'} alignItems={'center'}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                             label={<Typography variant="body2">Add Delivery Accessorials</Typography>}
                         />
                         <Box sx={{ display: 'flex', gap: 4 }}>
@@ -691,7 +691,7 @@ const ActiveStep3Delivery = ({
                                 render={({ field }) => (
                                     <FormControlLabel
                                         sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                        control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>}
+                                        control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
                                         label={<Typography variant="body2">Airport Transfer</Typography>}
                                     />
                                 )}
@@ -765,11 +765,11 @@ const ActiveStep3Delivery = ({
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
                                                         <IconButton onClick={() => {
                                                             const selectedObj = watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials[index];
-                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;;
                                                             // If there is no valid ID, stop the function early
                                                             if (!targetId) return;
                                                             const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS.map((item) => {
-                                                                if (item.entityAccessorialId === targetId) {
+                                                                if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
                                                                     return {
                                                                         ...item,
                                                                         selected: false // Explicitly uncheck this item
@@ -828,7 +828,7 @@ const ActiveStep3Delivery = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                             label={<Typography variant="body2">Delivery Alert </Typography>}
                         />
                     </Box>

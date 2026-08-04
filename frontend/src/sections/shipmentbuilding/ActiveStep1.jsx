@@ -64,6 +64,8 @@ const ActiveStep1 = ({ control,
     location,
     setValue,
     clearErrors,
+    getValues,
+    watch,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -369,7 +371,7 @@ const ActiveStep1 = ({ control,
                                 name="shipperName"
                                 control={control}
                                 rules={{
-                                    required: watchedAirportPickupService ? 'Shipper is required' : false,
+                                    required: watchedAirportPickupService ? 'Airline is required' : false,
                                     validate: (value) => {
                                         if (!value) return true;
 
@@ -739,7 +741,7 @@ const ActiveStep1 = ({ control,
                                 name="consigneeName"
                                 control={control}
                                 rules={{
-                                    required: watchedAirportDeliveryService ? 'Consignee is required' : false,
+                                    required: watchedAirportDeliveryService ? 'Airline is required' : false,
                                     validate: (value) => {
                                         if (!value) return true;
 
@@ -961,11 +963,13 @@ const ActiveStep1 = ({ control,
                 </Box>
 
                 {/* reference table */}
-                {/* <ReferenceTable 
+                <ReferenceTable
                     control={control}
                     errors={errors}
                     setValue={setValue}
-                    clearErrors={clearErrors} /> */}
+                    clearErrors={clearErrors}
+                    getValues = {getValues}
+                    watch = {watch} />
 
             </Paper>
         </ErrorBoundary>

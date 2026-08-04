@@ -299,7 +299,7 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mt: '3%', whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -483,7 +483,7 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>}
+                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -694,7 +694,7 @@ const ActiveStep3Linehaul = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}/>} />}
+                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
                             label={<Typography variant="body2">Add Linehaul Accessorials</Typography>}
                         />
                     </Box>
@@ -761,11 +761,11 @@ const ActiveStep3Linehaul = ({
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
                                                         <IconButton onClick={() => {
                                                             const selectedObj = watchedCarrierInfo?.lineHaul?.linehaulAccessorials[index];
-                                                            const targetId = selectedObj?.entityAccessorialId;
+                                                            const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;
                                                             // If there is no valid ID, stop the function early
                                                             if (!targetId) return;
                                                             const updatedMasterList = LINEHAUL_MASTER_ACCESSORIALS.map((item) => {
-                                                                if (item.entityAccessorialId === targetId) {
+                                                                if (item?.entityAccessorialId === targetId || item?.accessorialId === targetId) {
                                                                     return {
                                                                         ...item,
                                                                         selected: false // Explicitly uncheck this item
@@ -776,7 +776,7 @@ const ActiveStep3Linehaul = ({
                                                             // 4. Update the master accessorials state
                                                             setLINEHAUL_MASTER_Accessorials(updatedMasterList);
                                                             removeLineHaulAcc(index);
-                                                            
+
                                                         }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
                                                 </TableCell>

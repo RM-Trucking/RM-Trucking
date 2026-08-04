@@ -249,7 +249,7 @@ const ShipmentPage = ({ type }) => {
     formState: { errors },
     reset,
     getValues, setValue, handleSubmit,
-    clearErrors,
+    clearErrors, watch,
   } = useForm({
     mode: 'onChange',
     defaultValues: {
@@ -1926,6 +1926,8 @@ const ShipmentPage = ({ type }) => {
               location={location}
               setValue={setValue}
               clearErrors={clearErrors}
+              getValues = {getValues}
+              watch = {watch}
             />
 
           )}

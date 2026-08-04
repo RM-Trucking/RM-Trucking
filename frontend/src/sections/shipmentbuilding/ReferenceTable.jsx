@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; 
+import {
+    IconButton,
+} from '@mui/material';
+import 'react-toastify/dist/ReactToastify.css';
 import './ReferenceTable.css';
+import Iconify from '../../components/iconify';
 
 const TYPE_OPTIONS = [
     "MAWB", "HWB", "Ocean BOL", "Booking", "Pick up", "IT", "Load", "GO",
@@ -10,26 +14,37 @@ const TYPE_OPTIONS = [
 ];
 
 // FIXED: Removed TypeScript annotations to match plain JS .jsx files
-export default function ReferenceTable({ control, errors, setValue, clearErrors }) {
-    
-    // Explicit array state structure initializes safely
-    const [rows, setRows] = useState([
-        { id: 1, referenceType: '', referenceNumber: '' }
-    ]);
+export default function ReferenceTable({ control, errors, setValue, clearErrors, getValues, watch }) {
 
     // Handle updates for dropdowns and text values smoothly
     const handleInputChange = (id, field, value) => {
-        setRows(prevRows =>
-            prevRows.map(row => (row.id === id ? { ...row, [field]: value } : row))
+        // 1. Get the current array from the form state
+        const currentRows = watch('referenceTableRows') || [];
+
+        // 2. Map through and update the specific field in the matching row
+        const updatedRows = currentRows.map(row =>
+            row.id === id ? { ...row, [field]: value } : row
         );
+
+        // 3. Update the form value and trigger validation/dirty state
+        setValue('referenceTableRows', updatedRows, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
+
 
     // Add a new empty row with robust string fallback layers
     const handleAddRow = () => {
-        const hasEmptyFields = rows.some(
+        // 1. Get the current array from the form state
+        const currentRows = watch('referenceTableRows') || [];
+
+        // 2. Check if any existing row has empty fields (using trim)
+        const hasEmptyFields = currentRows.some(
             row => !(row.referenceType || '').toString().trim() || !(row.referenceNumber || '').toString().trim()
         );
 
+        // 3. Block addition and show toast if empty fields are found
         if (hasEmptyFields) {
             toast.error('Please fill out all fields before adding a new row.', {
                 position: "top-right",
@@ -44,33 +59,46 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
             return;
         }
 
+        // 4. Create the new row object
         const newRow = {
             id: Date.now(),
             referenceType: '',
             referenceNumber: ''
         };
-        setRows([...rows, newRow]);
+
+        // 5. Append the new row and update the form value
+        setValue('referenceTableRows', [...currentRows, newRow], {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
+
 
     // Safe deletion configuration
     const handleDeleteRow = (id) => {
-        setRows(rows.filter(row => row.id !== id));
+        // 1. Get the current array from the form state
+        const currentRows = watch('referenceTableRows') || [];
+
+        // 2. Filter out the row with the matching id
+        const updatedRows = currentRows.filter(row => row.id !== id);
+
+        // 3. Update the form value and sync the form's state
+        setValue('referenceTableRows', updatedRows, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     };
 
-    // Synchronizes the local data arrays to react-hook-form
-    useEffect(() => {
-        if (setValue) {
-            setValue('referenceTableRows', rows);
-        }
 
-        const hasEmptyFields = rows.some(
+    useEffect(() => {
+        const currentRows = watch('referenceTableRows') || [];
+        const hasEmptyFields = currentRows.some(
             row => !(row.referenceType || '').toString().trim() || !(row.referenceNumber || '').toString().trim()
         );
-
         if (!hasEmptyFields && clearErrors) {
             clearErrors('referenceTableRows');
         }
-    }, [rows, setValue, clearErrors]);
+    }, [watch('referenceTableRows'), setValue, clearErrors]);
 
     return (
         <div className="table-container">
@@ -84,7 +112,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
                     </tr>
                 </thead>
                 <tbody style={{ backgroundColor: 'white' }}>
-                    {rows.map((row, index) => (
+                    {getValues('referenceTableRows')?.map((row, index) => (
                         <tr key={row.id}>
                             <td className="sno-cell">
                                 {String(index + 1).padStart(2, '0')}
@@ -110,17 +138,16 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
                                     onChange={(e) => handleInputChange(row.id, 'referenceNumber', e.target.value)}
                                     placeholder="Enter Reference #"
                                     className="table-input"
+                                    maxLength={100}
                                 />
+
                             </td>
                             <td className="action-cell">
-                                <button
-                                    type="button"
-                                    onClick={() => handleDeleteRow(row.id)}
-                                    className="delete-btn"
-                                    title="Delete Row"
-                                >
-                                    🗑️
-                                </button>
+                                <IconButton onClick={() => {
+                                    handleDeleteRow(row.id)
+                                }} >
+                                    <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
+                                </IconButton>
                             </td>
                         </tr>
                     ))}

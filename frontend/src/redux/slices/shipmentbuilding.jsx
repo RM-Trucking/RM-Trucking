@@ -48,10 +48,6 @@ const slice = createSlice({
             state.error = null;
         },
 
-        postStep1Success(state, action) {
-            state.isLoading = false;
-            state.shipmentSuccess = true;
-        },
         getCustomerStationDropdownSuccess(state, action) {
             state.isLoading = false;
             state.shipmentSuccess = true;

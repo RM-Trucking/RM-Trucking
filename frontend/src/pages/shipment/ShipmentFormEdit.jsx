@@ -1,10 +1,10 @@
 import ShipmentPage from "../../sections/shipmentbuilding/ShipmentPage";
 // ----------------------------------------------------------------------
 
-export default function ShipmentForm() {
+export default function ShipmentFormEdit() {
   return (
     <>
-      <ShipmentPage />
+      <ShipmentPage type = "Edit"/>
     </>
   );
 }

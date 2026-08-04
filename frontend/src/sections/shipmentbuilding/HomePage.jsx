@@ -99,7 +99,7 @@ export default function HomePage() {
 
     const onClickOfNewDashboard = () => {
         // route to shipment
-        navigate(PATH_DASHBOARD.shipmentBuilding.shipmentView);
+        navigate(PATH_DASHBOARD.shipmentBuilding.shipmentAdd);
     }
     const handleConsolidate = () => {
         console.log('handle consolidate');

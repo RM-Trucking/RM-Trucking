@@ -206,67 +206,67 @@ export default function ShipmentViewTable({ }) {
                 return element;
             },
         },
-        // {
-        //     field: "actions",
-        //     headerName: "Action",
-        //     minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
-        //     flex: 1,
-        //     sortable: false,
-        //     filterable: false,
-        //     renderCell: (params) => {
-        //         // Safe access to your underlying row data if needed
-        //         const rowId = params.id;
+        {
+            field: "actions",
+            headerName: "Action",
+            minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
+            flex: 1,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                // Safe access to your underlying row data if needed
+                const rowId = params.id;
 
-        //         return (
-        //             <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-        //                 <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
-        //                     <IconButton>
-        //                         <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
-        //                     </IconButton>
-        //                 </Tooltip>
+                return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+                        <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
+                            <IconButton>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
+                        </Tooltip>
 
-        //                 <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
-        //                     <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-        //                 </IconButton>
+                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                            <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
+                        </IconButton> */}
 
-        //                 {/* Checkbox with Delete Label */}
-        //                 <FormControlLabel
-        //                     label="Del"
-        //                     control={
-        //                         <Checkbox
-        //                             size="small"
-        //                             sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
-        //                             // Checked state should ideally bind to a tracking state array in your component
-        //                             onChange={(event) => {
-        //                                 event.stopPropagation(); // Stops DataGrid row-click selection triggers
-        //                                 handleCheckboxDelete(rowId, event.target.checked);
-        //                             }}
-        //                         />
-        //                     }
-        //                     sx={{
-        //                         ml: 1,
-        //                         '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
-        //                     }}
-        //                 />
+                        {/* Checkbox with Delete Label */}
+                        {/* <FormControlLabel
+                            label="Del"
+                            control={
+                                <Checkbox
+                                    size="small"
+                                    sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
+                                    // Checked state should ideally bind to a tracking state array in your component
+                                    onChange={(event) => {
+                                        event.stopPropagation(); // Stops DataGrid row-click selection triggers
+                                        handleCheckboxDelete(rowId, event.target.checked);
+                                    }}
+                                />
+                            }
+                            sx={{
+                                ml: 1,
+                                '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
+                            }}
+                        /> */}
 
-        //                 {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
-        //                 <MenuPopover
-        //                     open={openPopover}
-        //                     anchorEl={anchorEl}
-        //                     onClose={handleClosePopover}
-        //                     sx={{ width: 150, p: 0, bgcolor: '#A22' }}
-        //                     disableScrollLock
-        //                 >
-        //                     <Stack sx={{ p: 1 }}>
-        //                         <MenuItem key="1" onClick={() => handleClickedItem(rowId)} id={"delete"} sx={{ color: "#fff" }}>
-        //                             Delete
-        //                         </MenuItem>
-        //                     </Stack>
-        //                 </MenuPopover>
-        //             </Box>
-        //         );
-        //     },
-        // }
+                        {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
+                        {/* <MenuPopover
+                            open={openPopover}
+                            anchorEl={anchorEl}
+                            onClose={handleClosePopover}
+                            sx={{ width: 150, p: 0, bgcolor: '#A22' }}
+                            disableScrollLock
+                        >
+                            <Stack sx={{ p: 1 }}>
+                                <MenuItem key="1" onClick={() => handleClickedItem(rowId)} id={"delete"} sx={{ color: "#fff" }}>
+                                    Delete
+                                </MenuItem>
+                            </Stack>
+                        </MenuPopover> */}
+                    </Box>
+                );
+            },
+        }
     ];
 
     // get call for notes

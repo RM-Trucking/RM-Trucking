@@ -27,7 +27,7 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import {
-    postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
+    getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
     getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
     getConsigneeAirlineDropdown, setPickupAccessorials,
     setLinehaulAccessorials,

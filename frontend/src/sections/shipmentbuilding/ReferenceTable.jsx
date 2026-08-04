@@ -14,7 +14,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
     
     // Explicit array state structure initializes safely
     const [rows, setRows] = useState([
-        { id: 1, type: '', referenceNo: '' }
+        { id: 1, referenceType: '', referenceNumber: '' }
     ]);
 
     // Handle updates for dropdowns and text values smoothly
@@ -27,7 +27,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
     // Add a new empty row with robust string fallback layers
     const handleAddRow = () => {
         const hasEmptyFields = rows.some(
-            row => !(row.type || '').toString().trim() || !(row.referenceNo || '').toString().trim()
+            row => !(row.referenceType || '').toString().trim() || !(row.referenceNumber || '').toString().trim()
         );
 
         if (hasEmptyFields) {
@@ -46,8 +46,8 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
 
         const newRow = {
             id: Date.now(),
-            type: '',
-            referenceNo: ''
+            referenceType: '',
+            referenceNumber: ''
         };
         setRows([...rows, newRow]);
     };
@@ -64,7 +64,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
         }
 
         const hasEmptyFields = rows.some(
-            row => !(row.type || '').toString().trim() || !(row.referenceNo || '').toString().trim()
+            row => !(row.referenceType || '').toString().trim() || !(row.referenceNumber || '').toString().trim()
         );
 
         if (!hasEmptyFields && clearErrors) {
@@ -91,8 +91,8 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
                             </td>
                             <td>
                                 <select
-                                    value={row.type || ""}
-                                    onChange={(e) => handleInputChange(row.id, 'type', e.target.value)}
+                                    value={row.referenceType || ""}
+                                    onChange={(e) => handleInputChange(row.id, 'referenceType', e.target.value)}
                                     className="table-input"
                                 >
                                     <option value="" disabled>Select Type</option>
@@ -106,8 +106,8 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors 
                             <td>
                                 <input
                                     type="text"
-                                    value={row.referenceNo || ""}
-                                    onChange={(e) => handleInputChange(row.id, 'referenceNo', e.target.value)}
+                                    value={row.referenceNumber || ""}
+                                    onChange={(e) => handleInputChange(row.id, 'referenceNumber', e.target.value)}
                                     placeholder="Enter Reference #"
                                     className="table-input"
                                 />

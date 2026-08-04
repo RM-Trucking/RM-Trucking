@@ -175,6 +175,17 @@ export function postStep1(obj) {
     }
   };
 }
+export function postNetworkShipment(obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.post('network-shipment/flow', obj);
+      dispatch(slice.actions.postStep1Success(response));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
 export function getCustomerStationDropdown() {
   return async () => {
     dispatch(slice.actions.startLoading());

@@ -38,7 +38,9 @@ export const CarrierMaintenancePage = Loadable(lazy(() => import('../pages/carri
 export const FuelSurchargeMaintenancePage = Loadable(lazy(() => import('../pages/fuelsurcharge/FuelChargeMaintenance')));
 export const AccesorialMaintenancePage = Loadable(lazy(() => import('../pages/accesorial/AccesorialMaintenance')));
 export const DashboardHomeLayout = Loadable(lazy(() => import('../pages/dashboard/DashboardHomeLayout')));
-export const ShipmentForm = Loadable(lazy(() => import('../pages/shipment/ShipmentForm')));
+export const ShipmentFormAdd = Loadable(lazy(() => import('../pages/shipment/ShipmentFormAdd')));
+export const ShipmentFormEdit = Loadable(lazy(() => import('../pages/shipment/ShipmentFormEdit')));
+export const ShipmentFormView = Loadable(lazy(() => import('../pages/shipment/ShipmentFormView')));
 export const ShipmentBuildingHomeLayout = Loadable(lazy(() => import('../pages/shipment/ShipmentBuildingHomeLayout')));
 export const ShipmentBuildingPage = Loadable(lazy (() => import('../pages/shipment/ShipmentBuildingPage')));
 

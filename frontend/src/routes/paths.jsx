@@ -37,11 +37,12 @@ export const PATH_DASHBOARD = {
   general: {
     dashboard: {
       root: path(ROOTS_DASHBOARD, '/dashboard'),
-      shipmentView: path(ROOTS_DASHBOARD, '/dashboard/shipment-view'),
     }
   },
   shipmentBuilding: {
     root: path(ROOTS_DASHBOARD, '/shipment-building'),
+    shipmentAdd: path(ROOTS_DASHBOARD, '/shipment-building/shipment-add'),
+    shipmentEdit: path(ROOTS_DASHBOARD, '/shipment-building/shipment-edit'),
     shipmentView: path(ROOTS_DASHBOARD, '/shipment-building/shipment-view'),
   },
   warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),

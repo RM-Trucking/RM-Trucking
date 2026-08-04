@@ -1,5 +1,6 @@
 import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Stack, Typography, Button, Dialog,
     DialogContent, Tooltip, Divider, IconButton, Chip, Snackbar, Alert,
@@ -16,11 +17,12 @@ import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
 import {
-    getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage,
+    getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage, setSelectedShipmentBuildObj
 } from '../../redux/slices/shipmentbuilding';
 import {
     setOperationalMessage,
 } from '../../redux/slices/shipment';
+import { PATH_DASHBOARD } from '../../routes/paths';
 
 ShipmentViewTable.PropTypes = {
 
@@ -28,6 +30,7 @@ ShipmentViewTable.PropTypes = {
 
 export default function ShipmentViewTable({ }) {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const isLoading = useSelector((state) => state?.shipmentbuildingdata?.isLoading);
     const shipmentViewData = useSelector((state) => state?.shipmentbuildingdata?.shipmentViewData);
     const pagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
@@ -220,7 +223,10 @@ export default function ShipmentViewTable({ }) {
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                         <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
-                            <IconButton>
+                            <IconButton onClick={() => {
+                                dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
+                                navigate(PATH_DASHBOARD.shipmentBuilding.shipmentView);
+                            }}>
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>

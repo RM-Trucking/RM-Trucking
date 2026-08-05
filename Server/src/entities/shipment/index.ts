@@ -22,6 +22,13 @@ export interface NetworkShipmentCustomerInfo {
     destinationAirportCode: string;
 }
 
+export interface NetworkShipmentCutomerReferenceNumber {
+    referenceNumberId: number;
+    shipmentId: number;
+    referenceType: string;
+    referenceNumber: string;
+}
+
 export interface NetworkShipmentShipperInfo {
     shipperId: number;
     shipperName: string;
@@ -314,3 +321,5 @@ export interface NetworkShipmentCustomerRateMap {
     customerRateId: number;
     rateId: number;
 }
+
+export * from './createShipmentPayload';

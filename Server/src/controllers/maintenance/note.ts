@@ -25,7 +25,7 @@ export async function addNote(req: Request, res: Response, conn: Connection): Pr
 export async function getNotesByThread(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { noteThreadId } = req.params;
-        const notes = await noteService.getNotesByThreadService(conn, parseInt(noteThreadId, 10));
+        const notes = await noteService.getNotesByThreadService(conn, Number(noteThreadId));
         res.status(200).json({ success: true, data: notes });
     } catch (error) {
         res.status(400).json({

@@ -26,8 +26,8 @@ export async function createGeneralFuelSurcharge(req: Request, res: Response, co
 // ✅ Get All General Fuel Surcharges (with pagination)
 export async function getGeneralFuelSurcharges(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const page = parseInt((req.query.page as string) || '1', 10);
-        const pageSize = parseInt((req.query.pageSize as string) || '10', 10);
+        const page = Number((req.query.page as string) || '1');
+        const pageSize = Number((req.query.pageSize as string) || '10');
 
         const result = await generalFuelService.getGeneralFuelSurcharges(conn, page, pageSize);
 
@@ -52,7 +52,7 @@ export async function getGeneralFuelSurcharges(req: Request, res: Response, conn
 export async function getGeneralFuelSurchargeById(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { fuelSurchargeId } = req.params;
-        const result = await generalFuelService.getGeneralFuelSurchargeById(conn, parseInt(fuelSurchargeId, 10));
+        const result = await generalFuelService.getGeneralFuelSurchargeById(conn, Number(fuelSurchargeId));
 
         res.status(200).json({
             success: true,
@@ -72,7 +72,7 @@ export async function updateGeneralFuelSurcharge(req: Request, res: Response, co
         const { fuelSurchargeId } = req.params;
         await generalFuelService.updateGeneralFuelSurcharge(
             conn,
-            parseInt(fuelSurchargeId, 10),
+            Number(fuelSurchargeId),
             req.body,
             req.user?.userId || 1
         );
@@ -93,7 +93,7 @@ export async function updateGeneralFuelSurcharge(req: Request, res: Response, co
 export async function deleteGeneralFuelSurcharge(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { fuelSurchargeId } = req.params;
-        await generalFuelService.deleteGeneralFuelSurcharge(conn, parseInt(fuelSurchargeId, 10));
+        await generalFuelService.deleteGeneralFuelSurcharge(conn, Number(fuelSurchargeId));
 
         res.status(200).json({
             success: true,

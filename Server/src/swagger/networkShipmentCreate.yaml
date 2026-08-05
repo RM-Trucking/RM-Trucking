@@ -1,0 +1,388 @@
+openapi: 3.0.0
+info:
+  title: Network Shipment Create API
+  version: 1.0.0
+  description: Swagger documentation for the new generic shipment creation flow endpoint
+
+tags:
+  - name: Network Shipment Create
+    description: Generic shipment creation flow operations
+
+paths:
+  /api/network-shipment/flow:
+    post:
+      tags: [Network Shipment Create]
+      summary: Create a shipment using the generic shipment flow
+      description: Creates a shipment and its related customer, commodity, carrier, rate, and accessorial records through the new generic payload flow.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateShipmentFlowRequest"
+            examples:
+              genericFlow:
+                summary: Example of the generic shipment creation payload
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "AIR_IMPORT"
+                    serviceLevel: "Regular"
+                    shipmentDate: "2024-07-01"
+                    shipmentTime: "09:00:00"
+                    status: "ORDER_RECEIVED_PICKUP_PENDING"
+                  customerDetails:
+                    customerId: 110
+                    stationId: 183
+                    airportPickupService: "N"
+                    airportDeliveryService: "N"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    customerReferenceNumbers:
+                      - referenceType: "PO"
+                        referenceNumber: "PO-12345"
+                      - referenceType: "BOL"
+                        referenceNumber: "BOL-67890"
+                    shipperDetails:
+                      shipperName: "ABC Shipper"
+                      addressLine1: "123 Shipper Way"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90001"
+                      contactPersonName: "John Shipper"
+                      phoneNumber: "+1-555-0123"
+                    consigneeDetails:
+                      consigneeName: "XYZ Consignee"
+                      addressLine1: "456 Consignee Lane"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "10001"
+                      contactPersonName: "Jane Consignee"
+                      phoneNumber: "+1-555-0456"
+                  commodityDetails:
+                    emergencyContactName: "Mike Johnson"
+                    emergencyContactPhone: "+1-555-0789"
+                    handlingUnits:
+                      - handlingUnitUOM: "PALLET"
+                        handlingUnits: 2
+                        unit: "EA"
+                        handlingLength: 120
+                        handlingWidth: 100
+                        handlingHeight: 80
+                        handlingWeight: 500
+                        handlingWeightUnit: "LB"
+                        class: "CLASS_1"
+                        palletDetails:
+                          - pieces: 10
+                            piecesUOM: "EA"
+                            description: "Electronics"
+                            hazmat: "Y"
+                            hazmatDetails:
+                              unNumber: "UN3480"
+                              properShippingName: "Lithium Ion Batteries"
+                              hazardClass: "9"
+                              packingGroup: "II"
+                              weight: 100
+                              weightUnit: "LB"
+                              technicalName: "Lithium Battery"
+                              contactPhoneNumber: "+1-555-0900"
+                              hazmatDescription: "Battery-powered equipment"
+                              limitedQuantity: "Y"
+                              marinePollutant: "N"
+                              residueLastContained: "N"
+                              reportableQuantity: "N"
+                              dotExemption: "N"
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_ONLY"
+                      fromLocationType: "Shipper"
+                      fromLocation: "ABC Shipper Warehouse"
+                      airportTransfer: "N"
+                      carrierId: 146
+                      terminalId: 148
+                      editFromLocation: "N"
+                      pickupAgentTerminal: "N"
+                      pickupAlert: "Y"
+                      pickupAlertDetails:
+                        inboundNotes: "Please notify before arrival"
+                        emailInfo:
+                          primaryEmail: "ops@example.com"
+                          additionalEmails:
+                            - "backup@example.com"
+                      pickupAccessorial: "Y"
+                      pickupAccessorialDetails:
+                        accessorials:
+                          - accessorialId: 7001
+                            accessorialName: "Residential Pickup"
+                            chargeType: "FLAT"
+                            chargeValue: 75
+                    linehaulDetails:
+                      linehaulPrimaryInfo:
+                        linehaulRouting: "LINE_HAUL_ONLY"
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "LH-001-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "ABC Shipper Warehouse"
+                        fromLocationEntityId: 1730
+                        toLocationType: "Carrier"
+                        toLocation: "Carrier Hub Terminal NYC"
+                        toLocationEntityId: 1730
+                        etaDate: "2024-07-01"
+                        etaTime: "15:00:00"
+                        pieces: 20
+                        editFromLocation: "N"
+                        editToLocation: "N"
+                      linehaulCommonInfo:
+                        linehaulNotes: "Handle carefully"
+                        linehaulAccessorial: "Y"
+                        linehaulAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 8001
+                              accessorialName: "Expedited Linehaul"
+                              chargeType: "PER_PIECE"
+                              chargeValue: 12
+                    deliveryDetails:
+                      deliveryPrimaryInfo:
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "DL-001-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Carrier Hub Terminal NYC"
+                        fromLocationEntityId: 1730
+                        toLocationType: "Consignee"
+                        toLocation: "XYZ Consignee Warehouse"
+                        toLocationEntityId: 1730
+                        etaDate: "2024-07-02"
+                        etaTime: "10:00:00"
+                        pieces: 20
+                        editFromLocation: "N"
+                        editToLocation: "N"
+                      deliveryCommonInfo:
+                        airportTransfer: "N"
+                        deliveryAccessorial: "Y"
+                        deliveryAccessorialDetails:
+                          accessorials:
+                            - accessorialId: 9001
+                              accessorialName: "Inside Delivery"
+                              chargeType: "FLAT"
+                              chargeValue: 90
+                        deliveryAlert: "Y"
+                        deliveryAlertDetails:
+                          linehaulNotes: "Delivery notice required"
+                          deliveryNotes: "Call before arrival"
+                          emailInfo:
+                            primaryEmail: "delivery@example.com"
+                            additionalEmails:
+                              - "ops@example.com"
+                  shipmentRateDetails:
+                    carrierRateDetails:
+                      pickupRateDetails:
+                        invoiceNumber: "PU-INV-2024-001"
+                        rateDetails:
+                          - rateType: "BASE_RATE"
+                            multiplicationFactor: 1500.0
+                            multiplicationFactorUOM: "LB"
+                            rateValue: 0.50
+                            totalRate: 750.00
+                        pickupSubTotalRate: 750.00
+                        invoiceApprovalStatus: "N"
+                      linehaulRateDetails:
+                        invoiceNumber: "LH-INV-2024-001"
+                        rateDetails:
+                          - rateType: "BASE_RATE"
+                            multiplicationFactor: 500.0
+                            multiplicationFactorUOM: "MILE"
+                            rateValue: 1.50
+                            totalRate: 750.00
+                        linehaulSubTotalRate: 750.00
+                        invoiceApprovalStatus: "N"
+                      deliveryRateDetails:
+                        invoiceNumber: "DL-INV-2024-001"
+                        rateDetails:
+                          - rateType: "BASE_RATE"
+                            multiplicationFactor: 300.0
+                            multiplicationFactorUOM: "LB"
+                            rateValue: 0.60
+                            totalRate: 180.00
+                        deliverySubTotalRate: 180.00
+                        invoiceApprovalStatus: "N"
+                      totalCarrierRate: 1680.00
+                    customerRateDetails:
+                      totalCustomerRate: 1680.00
+                      rateDetails:
+                        - rateType: "CUSTOMER_BASE"
+                          multiplicationFactor: 1680.0
+                          multiplicationFactorUOM: "EA"
+                          rateValue: 1.00
+                          totalRate: 1680.00
+              pickupAirlineFlow:
+                summary: Example using pickup airline details
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "AIR_IMPORT"
+                    serviceLevel: "Priority"
+                    shipmentDate: "2024-07-03"
+                    shipmentTime: "08:30:00"
+                    status: "ORDER_RECEIVED_PICKUP_PENDING"
+                  customerDetails:
+                    customerId: 220
+                    stationId: 188
+                    airportPickupService: "Y"
+                    airportDeliveryService: "N"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    pickupAirlineDetails:
+                      airlineId: 301
+                      airlineNumber: 111
+                      airlineCode: "AA"
+                      airportCode: "LAX"
+                      airlineName: "American Airlines"
+                      addressLine1: "100 Airline Blvd"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90045"
+                      contactPersonName: "Mike Airline"
+                      phoneNumber: "+1-555-0101"
+                      scenarioType: "IMPORT"
+                    shipperDetails:
+                      shipperName: "Global Shipper"
+                      addressLine1: "88 Cargo Ave"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90001"
+                      contactPersonName: "Laura Shipper"
+                      phoneNumber: "+1-555-0150"
+                  commodityDetails:
+                    emergencyContactName: "Ravi Patel"
+                    emergencyContactPhone: "+1-555-0800"
+                    handlingUnits: []
+              deliveryAirlineFlow:
+                summary: Example using delivery airline details
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "AIR_EXPORT"
+                    serviceLevel: "Express"
+                    shipmentDate: "2024-07-04"
+                    shipmentTime: "10:00:00"
+                    status: "PICKED"
+                  customerDetails:
+                    customerId: 330
+                    stationId: 190
+                    airportPickupService: "N"
+                    airportDeliveryService: "Y"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    deliveryAirlineDetails:
+                      airlineId: 401
+                      airlineNumber: 222
+                      airlineCode: "DL"
+                      airportCode: "JFK"
+                      airlineName: "Delta Air Lines"
+                      addressLine1: "200 Airport Road"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "11430"
+                      contactPersonName: "Sara Airline"
+                      phoneNumber: "+1-555-0202"
+                      scenarioType: "EXPORT"
+                    consigneeDetails:
+                      consigneeName: "North Hub Consignee"
+                      addressLine1: "55 Delivery Lane"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "10001"
+                      contactPersonName: "Nick Consignee"
+                      phoneNumber: "+1-555-0250"
+                  commodityDetails:
+                    emergencyContactName: "Nina Brooks"
+                    emergencyContactPhone: "+1-555-0850"
+                    handlingUnits: []
+              mixedAirlineFlow:
+                summary: Example using both pickup and delivery airline details
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "AIR_IMPORT"
+                    serviceLevel: "Urgent"
+                    shipmentDate: "2024-07-05"
+                    shipmentTime: "12:00:00"
+                    status: "MANIFESTED"
+                  customerDetails:
+                    customerId: 440
+                    stationId: 195
+                    airportPickupService: "Y"
+                    airportDeliveryService: "Y"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    pickupAirlineDetails:
+                      airlineId: 501
+                      airlineNumber: 333
+                      airlineCode: "UA"
+                      airportCode: "LAX"
+                      airlineName: "United Airlines"
+                      addressLine1: "300 Airport Plaza"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90045"
+                      contactPersonName: "Chris Airline"
+                      phoneNumber: "+1-555-0303"
+                      scenarioType: "IMPORT"
+                    deliveryAirlineDetails:
+                      airlineId: 601
+                      airlineNumber: 444
+                      airlineCode: "BA"
+                      airportCode: "JFK"
+                      airlineName: "British Airways"
+                      addressLine1: "400 Terminal Way"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "11430"
+                      contactPersonName: "Emma Airline"
+                      phoneNumber: "+1-555-0404"
+                      scenarioType: "EXPORT"
+      responses:
+        "201":
+          description: Shipment flow created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateShipmentFlowResponse"
+        "400":
+          description: Invalid request payload or shipment creation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    CreateShipmentFlowRequest:
+      allOf:
+        - $ref: "#/components/schemas/CreateShipmentRequest"
+
+    CreateShipmentFlowResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Shipment flow created successfully
+        data:
+          type: object
+          properties:
+            shipmentId:
+              type: integer
+              example: 1001
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Invalid request payload

@@ -89,7 +89,7 @@ sshpass -p "$password" ssh "$REMOTE_USER"@"$REMOTE_HOST" << EOF
 export PATH=/QOpenSys/pkgs/bin:\$PATH
 cd $REMOTE_BASE || exit 0
   cd dist/server || exit 0
-  npx pm2 stop uat || true
+  npx pm2 delete "Network-UAT" || true
 cd $REMOTE_BASE
 rm -rf server frontend || true
 EOF
@@ -111,7 +111,8 @@ export PATH=/QOpenSys/pkgs/bin:\$PATH
 cd $REMOTE_BASE/dist/server
 npm ci --omit=dev
 export NODE_ENV=production
-npx pm2 start index.js --name uat
+npx pm2 start index.js --name "Network-UAT"
+npx pm2 save
 EOF
 
 echo "Server started..."

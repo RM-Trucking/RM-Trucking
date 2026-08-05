@@ -2,8 +2,7 @@ import './config/env'; // load env first
 import express, { Express, Request, Response, NextFunction } from 'express';
 import { Server } from 'http';
 import swaggerUi from 'swagger-ui-express';
-import swaggerJsdoc from 'swagger-jsdoc';
-import { swaggerOptions } from './config/swagger';
+import { swaggerSpec } from './config/swagger';
 import { join } from 'path';
 import { existsSync } from 'fs';
 import routes from './routes';
@@ -151,7 +150,6 @@ const use = (fn: any) => (req: any, res: any, next: any) =>
 // ============================================================================
 // SWAGGER SETUP
 // ============================================================================
-const swaggerSpec = swaggerJsdoc(swaggerOptions);
 app.use('/api/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // ============================================================================

@@ -47,7 +47,7 @@ export async function createCustomer(req: Request, res: Response, conn: Connecti
 export async function getCustomer(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { customerId } = req.params;
-        const customer = await customerService.getCustomerDetails(conn, parseInt(customerId, 10));
+        const customer = await customerService.getCustomerDetails(conn, Number(customerId));
 
         res.status(200).json({
             success: true,
@@ -123,8 +123,8 @@ export async function getStationDropdown(req: Request, res: Response, conn: Conn
 export async function getAllCustomers(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const searchTerm = (req.query.search as string) || null;
-        const page = parseInt((req.query.page as string) || '1', 10);
-        const pageSize = parseInt((req.query.pageSize as string) || '10', 10);
+        const page = Number((req.query.page as string) || '1');
+        const pageSize = Number((req.query.pageSize as string) || '10');
 
         const result = await customerService.getAllCustomersService(conn, searchTerm, page, pageSize);
 
@@ -163,7 +163,7 @@ export async function updateCustomer(req: Request, res: Response, conn: Connecti
 
         const updatedCustomer = await customerService.updateCustomer(
             conn,
-            parseInt(customerId, 10),
+            Number(customerId),
             updateReq,
             adminId
         );
@@ -191,7 +191,7 @@ export async function toggleCustomerStatus(req: Request, res: Response, conn: Co
 
         const updated = await customerService.toggleCustomerStatus(
             conn,
-            parseInt(customerId, 10),
+            Number(customerId),
             userId,
             activeStatus
         );
@@ -211,7 +211,7 @@ export async function toggleCustomerStatus(req: Request, res: Response, conn: Co
 
 export async function getCustomersByRateId(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rateId = parseInt(req.params.rateId, 10);
+        const rateId = Number(req.params.rateId);
         const customers = await customerService.getCustomersByRateIdService(conn, rateId);
 
         res.status(200).json({

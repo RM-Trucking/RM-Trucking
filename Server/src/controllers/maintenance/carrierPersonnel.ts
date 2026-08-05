@@ -28,7 +28,7 @@ export async function createPersonnel(req: Request, res: Response, conn: Connect
 export async function getCarrierPersonnelById(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { personnelId } = req.params;
-        const personnel = await personnelService.getCarrierPersonnelByIdService(conn, parseInt(personnelId, 10));
+        const personnel = await personnelService.getCarrierPersonnelByIdService(conn, Number(personnelId));
         if (!personnel) {
             res.status(404).json({ error: 'Personnel not found' });
             return;
@@ -45,13 +45,13 @@ export async function getCarrierPersonnelById(req: Request, res: Response, conn:
 export async function getCarrierPersonnelByTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { terminalId } = req.params;
-        const page = parseInt(req.query.page as string, 10) || 1;
-        const pageSize = parseInt(req.query.pageSize as string, 10) || 20;
+        const page = Number(req.query.page as string) || 1;
+        const pageSize = Number(req.query.pageSize as string) || 20;
         const searchTerm = (req.query.searchTerm as string) || null;
 
         const result = await personnelService.getCarrierPersonnelByTerminalService(
             conn,
-            parseInt(terminalId, 10),
+            Number(terminalId),
             page,
             pageSize,
             searchTerm
@@ -88,7 +88,7 @@ export async function updateCarrierPersonnel(req: Request, res: Response, conn: 
         const { personnelId } = req.params;
         const updated = await personnelService.updateCarrierPersonnelService(
             conn,
-            parseInt(personnelId, 10),
+            Number(personnelId),
             req.body,
             userId
         );
@@ -105,7 +105,7 @@ export async function deleteCarrierPersonnel(req: Request, res: Response, conn: 
     try {
         const userId = (req as any).user?.userId || 1;
         const { personnelId } = req.params;
-        await personnelService.deleteCarrierPersonnelService(conn, parseInt(personnelId, 10), userId);
+        await personnelService.deleteCarrierPersonnelService(conn, Number(personnelId), userId);
         res.status(200).json({ success: true, message: 'Personnel deleted (soft delete)' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete personnel', message: (error as Error).message });

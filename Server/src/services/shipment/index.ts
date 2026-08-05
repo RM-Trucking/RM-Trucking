@@ -53,6 +53,7 @@ export function buildPaginationMeta(totalItems: number, page: number, limit: num
     };
 }
 
+
 export async function createNetworkShipment(
     conn: Connection,
     shipment: CreateNetworkShipmentRequest,
@@ -1429,421 +1430,421 @@ export async function createNetworkShipment(
     }
 }
 
-export async function getNetworkShipmentView(conn: Connection, shipmentId: number): Promise<any> {
-    const shipment = await shipmentDB.getNetworkShipmentById(conn, shipmentId);
-    if (!shipment) return null;
+// export async function getNetworkShipmentView(conn: Connection, shipmentId: number): Promise<any> {
+//     const shipment = await shipmentDB.getNetworkShipmentById(conn, shipmentId);
+//     if (!shipment) return null;
 
-    const customerInfo = await shipmentDB.getNetworkShipmentCustomerInfo(conn, shipmentId);
-    const commodityInfo = await shipmentDB.getNetworkShipmentCommodityInfo(conn, shipmentId);
+//     const customerInfo = await shipmentDB.getNetworkShipmentCustomerInfo(conn, shipmentId);
+//     const commodityInfo = await shipmentDB.getNetworkShipmentCommodityInfo(conn, shipmentId);
 
-    const shipperInfo = await shipmentDB.getNetworkShipmentShipperInfoByShipmentId(conn, shipmentId);
-    const consigneeInfo = await shipmentDB.getNetworkShipmentConsigneeInfoByShipmentId(conn, shipmentId);
-    const airlineRows = await shipmentDB.getNetworkShipmentAirlinesByShipmentId(conn, shipmentId);
+//     const shipperInfo = await shipmentDB.getNetworkShipmentShipperInfoByShipmentId(conn, shipmentId);
+//     const consigneeInfo = await shipmentDB.getNetworkShipmentConsigneeInfoByShipmentId(conn, shipmentId);
+//     const airlineRows = await shipmentDB.getNetworkShipmentAirlinesByShipmentId(conn, shipmentId);
 
-    const pickupAirlineInfo = customerInfo?.airportPickupService === 'Y'
-        ? airlineRows.find((airline: any) => airline.airportCode === customerInfo.originAirportCode)
-        : null;
-    const deliveryAirlineInfo = customerInfo?.airportDeliveryService === 'Y'
-        ? airlineRows.find((airline: any) => airline.airportCode === customerInfo.destinationAirportCode)
-        : null;
+//     const pickupAirlineInfo = customerInfo?.airportPickupService === 'Y'
+//         ? airlineRows.find((airline: any) => airline.airportCode === customerInfo.originAirportCode)
+//         : null;
+//     const deliveryAirlineInfo = customerInfo?.airportDeliveryService === 'Y'
+//         ? airlineRows.find((airline: any) => airline.airportCode === customerInfo.destinationAirportCode)
+//         : null;
 
-    const handlingUnits = await shipmentDB.getHandlingUnitsByShipmentId(conn, shipmentId);
-    const handlingUnitsResponse = await Promise.all(
-        handlingUnits.map(async (hu: any) => {
-            const items = await shipmentDB.getHandlingUnitItemsByHandlingUnitId(conn, hu.handlingUnitId);
-            const palletDetails = await Promise.all(
-                items.map(async (item: any) => {
-                    const hazmat = item.hazmat === 'Y'
-                        ? await shipmentDB.getHazmatInfoByItemId(conn, item.itemId)
-                        : undefined;
-                    return {
-                        itemId: item.itemId,
-                        handlingUnitId: item.handlingUnitId,
-                        pieces: item.pieces,
-                        piecesUOM: item.piecesUOM,
-                        description: item.description,
-                        hazmat: item.hazmat,
-                        hazmatDetails: hazmat ? {
-                            ...hazmat
-                        } : undefined
-                    };
-                })
-            );
-            return {
-                handlingUnitId: hu.handlingUnitId,
-                shipmentId: hu.shipmentId,
-                handlingUnitUOM: hu.handlingUnitUOM,
-                handlingUnits: hu.handlingUnits,
-                unit: hu.unit,
-                handlingLength: hu.handlingLength,
-                handlingWidth: hu.handlingWidth,
-                handlingHeight: hu.handlingHeight,
-                handlingWeight: hu.handlingWeight,
-                handlingWeightUnit: hu.handlingWeightUnit,
-                class: hu.class,
-                palletDetails
-            };
-        })
-    );
+//     const handlingUnits = await shipmentDB.getHandlingUnitsByShipmentId(conn, shipmentId);
+//     const handlingUnitsResponse = await Promise.all(
+//         handlingUnits.map(async (hu: any) => {
+//             const items = await shipmentDB.getHandlingUnitItemsByHandlingUnitId(conn, hu.handlingUnitId);
+//             const palletDetails = await Promise.all(
+//                 items.map(async (item: any) => {
+//                     const hazmat = item.hazmat === 'Y'
+//                         ? await shipmentDB.getHazmatInfoByItemId(conn, item.itemId)
+//                         : undefined;
+//                     return {
+//                         itemId: item.itemId,
+//                         handlingUnitId: item.handlingUnitId,
+//                         pieces: item.pieces,
+//                         piecesUOM: item.piecesUOM,
+//                         description: item.description,
+//                         hazmat: item.hazmat,
+//                         hazmatDetails: hazmat ? {
+//                             ...hazmat
+//                         } : undefined
+//                     };
+//                 })
+//             );
+//             return {
+//                 handlingUnitId: hu.handlingUnitId,
+//                 shipmentId: hu.shipmentId,
+//                 handlingUnitUOM: hu.handlingUnitUOM,
+//                 handlingUnits: hu.handlingUnits,
+//                 unit: hu.unit,
+//                 handlingLength: hu.handlingLength,
+//                 handlingWidth: hu.handlingWidth,
+//                 handlingHeight: hu.handlingHeight,
+//                 handlingWeight: hu.handlingWeight,
+//                 handlingWeightUnit: hu.handlingWeightUnit,
+//                 class: hu.class,
+//                 palletDetails
+//             };
+//         })
+//     );
 
-    const pickupInfo = await shipmentDB.getNetworkShipmentPickupInfoByShipmentId(conn, shipmentId);
-    const pickupAgentTerminalInfo = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAgentTerminalInfo(conn, shipmentId) : null;
-    const pickupAlertInfo = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAlertInfo(conn, shipmentId) : null;
-    const pickupAccessorials = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAccessorials(conn, shipmentId) : [];
+//     const pickupInfo = await shipmentDB.getNetworkShipmentPickupInfoByShipmentId(conn, shipmentId);
+//     const pickupAgentTerminalInfo = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAgentTerminalInfo(conn, shipmentId) : null;
+//     const pickupAlertInfo = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAlertInfo(conn, shipmentId) : null;
+//     const pickupAccessorials = pickupInfo ? await shipmentDB.getNetworkShipmentPickupAccessorials(conn, shipmentId) : [];
 
-    const linehaulInfo = await shipmentDB.getNetworkShipmentLinehaulInfoByShipmentId(conn, shipmentId);
-    const linehaulCommonInfo = linehaulInfo ? await shipmentDB.getNetworkShipmentLinehaulCommonInfo(conn, shipmentId) : null;
-    const linehaulAccessorials = linehaulInfo ? await shipmentDB.getNetworkShipmentLinehaulAccessorials(conn, shipmentId) : [];
+//     const linehaulInfo = await shipmentDB.getNetworkShipmentLinehaulInfoByShipmentId(conn, shipmentId);
+//     const linehaulCommonInfo = linehaulInfo ? await shipmentDB.getNetworkShipmentLinehaulCommonInfo(conn, shipmentId) : null;
+//     const linehaulAccessorials = linehaulInfo ? await shipmentDB.getNetworkShipmentLinehaulAccessorials(conn, shipmentId) : [];
 
-    const deliveryInfo = await shipmentDB.getNetworkShipmentDeliveryInfoByShipmentId(conn, shipmentId);
-    const deliveryCommonInfo = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryCommonInfo(conn, shipmentId) : null;
-    const deliveryAccessorials = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryAccessorials(conn, shipmentId) : [];
-    const deliveryAlertInfo = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryAlertInfo(conn, shipmentId) : null;
+//     const deliveryInfo = await shipmentDB.getNetworkShipmentDeliveryInfoByShipmentId(conn, shipmentId);
+//     const deliveryCommonInfo = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryCommonInfo(conn, shipmentId) : null;
+//     const deliveryAccessorials = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryAccessorials(conn, shipmentId) : [];
+//     const deliveryAlertInfo = deliveryInfo ? await shipmentDB.getNetworkShipmentDeliveryAlertInfo(conn, shipmentId) : null;
 
-    const pickupRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'PICKUP');
-    const linehaulRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'LINE_HAUL');
-    const deliveryRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'DELIVERY');
-    const customerRateInfo = await shipmentDB.getNetworkShipmentCustomerRateInfoByShipmentId(conn, shipmentId);
-    const carrierRateInfo = await shipmentDB.getNetworkShipmentCarrierRateInfoByShipmentId(conn, shipmentId);
+//     const pickupRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'PICKUP');
+//     const linehaulRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'LINE_HAUL');
+//     const deliveryRateInvoice = await shipmentDB.getNetworkShipmentInvoiceInfoByShipmentIdAndType(conn, shipmentId, 'DELIVERY');
+//     const customerRateInfo = await shipmentDB.getNetworkShipmentCustomerRateInfoByShipmentId(conn, shipmentId);
+//     const carrierRateInfo = await shipmentDB.getNetworkShipmentCarrierRateInfoByShipmentId(conn, shipmentId);
 
-    const buildRateDetails = async (invoice: any) => {
-        if (!invoice) return null;
-        const mappings = await shipmentDB.getNetworkShipmentInvoiceRateMapByInvoiceId(conn, invoice.invoiceId);
-        const rateDetails = await Promise.all(
-            mappings.map(async (map: any) => {
-                const rate = await shipmentDB.getNetworkShipmentRateInfoByRateId(conn, map.rateId);
-                return {
-                    rateId: rate.rateId,
-                    rateType: rate.rateType,
-                    multiplicationFactor: rate.multiplicationFactor,
-                    multiplicationFactorUOM: rate.multiplicationFactorUOM,
-                    rateValue: rate.rateValue,
-                    totalRate: rate.totalRate
-                };
-            })
-        );
-        return {
-            invoiceId: invoice.invoiceId,
-            invoiceNumber: invoice.invoiceNumber,
-            rateDetails,
-            subTotalRate: invoice.subTotalRate,
-            invoiceApprovalStatus: invoice.approvalStatus,
-            approvedBy: invoice.approvedBy,
-            approvedDate: invoice.approvalDate
-        };
-    };
+//     const buildRateDetails = async (invoice: any) => {
+//         if (!invoice) return null;
+//         const mappings = await shipmentDB.getNetworkShipmentInvoiceRateMapByInvoiceId(conn, invoice.invoiceId);
+//         const rateDetails = await Promise.all(
+//             mappings.map(async (map: any) => {
+//                 const rate = await shipmentDB.getNetworkShipmentRateInfoByRateId(conn, map.rateId);
+//                 return {
+//                     rateId: rate.rateId,
+//                     rateType: rate.rateType,
+//                     multiplicationFactor: rate.multiplicationFactor,
+//                     multiplicationFactorUOM: rate.multiplicationFactorUOM,
+//                     rateValue: rate.rateValue,
+//                     totalRate: rate.totalRate
+//                 };
+//             })
+//         );
+//         return {
+//             invoiceId: invoice.invoiceId,
+//             invoiceNumber: invoice.invoiceNumber,
+//             rateDetails,
+//             subTotalRate: invoice.subTotalRate,
+//             invoiceApprovalStatus: invoice.approvalStatus,
+//             approvedBy: invoice.approvedBy,
+//             approvedDate: invoice.approvalDate
+//         };
+//     };
 
-    const pickupRateDetails = await buildRateDetails(pickupRateInvoice);
-    const linehaulRateDetails = await buildRateDetails(linehaulRateInvoice);
-    const deliveryRateDetails = await buildRateDetails(deliveryRateInvoice);
+//     const pickupRateDetails = await buildRateDetails(pickupRateInvoice);
+//     const linehaulRateDetails = await buildRateDetails(linehaulRateInvoice);
+//     const deliveryRateDetails = await buildRateDetails(deliveryRateInvoice);
 
-    const customerRateDetails = customerRateInfo
-        ? {
-            customerRateId: customerRateInfo.customerRateId,
-            totalCustomerRate: customerRateInfo.totalCustomerRate,
-            rateDetails: await Promise.all(
-                (await shipmentDB.getNetworkShipmentCustomerRateMapByCustomerRateId(conn, customerRateInfo.customerRateId)).map(async (map: any) => {
-                    const rate = await shipmentDB.getNetworkShipmentRateInfoByRateId(conn, map.rateId);
-                    return {
-                        rateId: rate.rateId,
-                        rateType: rate.rateType,
-                        multiplicationFactor: rate.multiplicationFactor,
-                        multiplicationFactorUOM: rate.multiplicationFactorUOM,
-                        rateValue: rate.rateValue,
-                        totalRate: rate.totalRate
-                    };
-                })
-            )
-        }
-        : null;
+//     const customerRateDetails = customerRateInfo
+//         ? {
+//             customerRateId: customerRateInfo.customerRateId,
+//             totalCustomerRate: customerRateInfo.totalCustomerRate,
+//             rateDetails: await Promise.all(
+//                 (await shipmentDB.getNetworkShipmentCustomerRateMapByCustomerRateId(conn, customerRateInfo.customerRateId)).map(async (map: any) => {
+//                     const rate = await shipmentDB.getNetworkShipmentRateInfoByRateId(conn, map.rateId);
+//                     return {
+//                         rateId: rate.rateId,
+//                         rateType: rate.rateType,
+//                         multiplicationFactor: rate.multiplicationFactor,
+//                         multiplicationFactorUOM: rate.multiplicationFactorUOM,
+//                         rateValue: rate.rateValue,
+//                         totalRate: rate.totalRate
+//                     };
+//                 })
+//             )
+//         }
+//         : null;
 
-    const shipmentRateDetails: any = {};
-    if (pickupRateDetails) shipmentRateDetails.pickupRateDetails = pickupRateDetails;
-    if (linehaulRateDetails) shipmentRateDetails.linehaulRateDetails = linehaulRateDetails;
-    if (deliveryRateDetails) shipmentRateDetails.deliveryRateDetails = deliveryRateDetails;
-    if (carrierRateInfo) shipmentRateDetails.carrierRateId = carrierRateInfo.carrierRateId;
-    if (carrierRateInfo) shipmentRateDetails.totalCarrierRate = carrierRateInfo.totalCarrierRate;
-    if (customerRateDetails) shipmentRateDetails.customerRateDetails = customerRateDetails;
+//     const shipmentRateDetails: any = {};
+//     if (pickupRateDetails) shipmentRateDetails.pickupRateDetails = pickupRateDetails;
+//     if (linehaulRateDetails) shipmentRateDetails.linehaulRateDetails = linehaulRateDetails;
+//     if (deliveryRateDetails) shipmentRateDetails.deliveryRateDetails = deliveryRateDetails;
+//     if (carrierRateInfo) shipmentRateDetails.carrierRateId = carrierRateInfo.carrierRateId;
+//     if (carrierRateInfo) shipmentRateDetails.totalCarrierRate = carrierRateInfo.totalCarrierRate;
+//     if (customerRateDetails) shipmentRateDetails.customerRateDetails = customerRateDetails;
 
-    const customerDetailsResponse: any = {
-        ...customerInfo,
-        shipperDetails: shipperInfo ? {
-            shipperId: shipperInfo.shipperId,
-            shipperName: shipperInfo.shipperName,
-            addressLine1: shipperInfo.addressLine1,
-            addressLine2: shipperInfo.addressLine2,
-            city: shipperInfo.city,
-            state: shipperInfo.state,
-            zipCode: shipperInfo.zipCode,
-            contactPersonName: shipperInfo.contactPersonName,
-            phoneNumber: shipperInfo.phoneNumber,
-            entityId: shipperInfo.entityId
-        } : undefined,
-        consigneeDetails: consigneeInfo ? {
-            consigneeId: consigneeInfo.consigneeId,
-            consigneeName: consigneeInfo.consigneeName,
-            addressLine1: consigneeInfo.addressLine1,
-            addressLine2: consigneeInfo.addressLine2,
-            city: consigneeInfo.city,
-            state: consigneeInfo.state,
-            zipCode: consigneeInfo.zipCode,
-            contactPersonName: consigneeInfo.contactPersonName,
-            phoneNumber: consigneeInfo.phoneNumber,
-            entityId: consigneeInfo.entityId
-        } : undefined,
-        pickupAirlineDetails: pickupAirlineInfo ? {
-            airlineId: pickupAirlineInfo.airlineId,
-            airlineNumber: pickupAirlineInfo.airlineNumber,
-            airlineCode: pickupAirlineInfo.airlineCode,
-            airportCode: pickupAirlineInfo.airportCode,
-            airlineName: pickupAirlineInfo.airlineName,
-            addressLine1: pickupAirlineInfo.addressLine1,
-            addressLine2: pickupAirlineInfo.addressLine2,
-            city: pickupAirlineInfo.city,
-            state: pickupAirlineInfo.state,
-            zipCode: pickupAirlineInfo.zipCode,
-            handler: pickupAirlineInfo.handler,
-            phoneNumber: pickupAirlineInfo.phoneNumber,
-            entityId: pickupAirlineInfo.entityId,
-            scenarioType: pickupAirlineInfo.scenarioType
-        } : undefined,
-        deliveryAirlineDetails: deliveryAirlineInfo ? {
-            airlineId: deliveryAirlineInfo.airlineId,
-            airlineNumber: deliveryAirlineInfo.airlineNumber,
-            airlineCode: deliveryAirlineInfo.airlineCode,
-            airportCode: deliveryAirlineInfo.airportCode,
-            airlineName: deliveryAirlineInfo.airlineName,
-            addressLine1: deliveryAirlineInfo.addressLine1,
-            addressLine2: deliveryAirlineInfo.addressLine2,
-            city: deliveryAirlineInfo.city,
-            state: deliveryAirlineInfo.state,
-            zipCode: deliveryAirlineInfo.zipCode,
-            handler: deliveryAirlineInfo.handler,
-            phoneNumber: deliveryAirlineInfo.phoneNumber,
-            entityId: deliveryAirlineInfo.entityId,
-            scenarioType: deliveryAirlineInfo.scenarioType
-        } : undefined
-    };
+//     const customerDetailsResponse: any = {
+//         ...customerInfo,
+//         shipperDetails: shipperInfo ? {
+//             shipperId: shipperInfo.shipperId,
+//             shipperName: shipperInfo.shipperName,
+//             addressLine1: shipperInfo.addressLine1,
+//             addressLine2: shipperInfo.addressLine2,
+//             city: shipperInfo.city,
+//             state: shipperInfo.state,
+//             zipCode: shipperInfo.zipCode,
+//             contactPersonName: shipperInfo.contactPersonName,
+//             phoneNumber: shipperInfo.phoneNumber,
+//             entityId: shipperInfo.entityId
+//         } : undefined,
+//         consigneeDetails: consigneeInfo ? {
+//             consigneeId: consigneeInfo.consigneeId,
+//             consigneeName: consigneeInfo.consigneeName,
+//             addressLine1: consigneeInfo.addressLine1,
+//             addressLine2: consigneeInfo.addressLine2,
+//             city: consigneeInfo.city,
+//             state: consigneeInfo.state,
+//             zipCode: consigneeInfo.zipCode,
+//             contactPersonName: consigneeInfo.contactPersonName,
+//             phoneNumber: consigneeInfo.phoneNumber,
+//             entityId: consigneeInfo.entityId
+//         } : undefined,
+//         pickupAirlineDetails: pickupAirlineInfo ? {
+//             airlineId: pickupAirlineInfo.airlineId,
+//             airlineNumber: pickupAirlineInfo.airlineNumber,
+//             airlineCode: pickupAirlineInfo.airlineCode,
+//             airportCode: pickupAirlineInfo.airportCode,
+//             airlineName: pickupAirlineInfo.airlineName,
+//             addressLine1: pickupAirlineInfo.addressLine1,
+//             addressLine2: pickupAirlineInfo.addressLine2,
+//             city: pickupAirlineInfo.city,
+//             state: pickupAirlineInfo.state,
+//             zipCode: pickupAirlineInfo.zipCode,
+//             handler: pickupAirlineInfo.handler,
+//             phoneNumber: pickupAirlineInfo.phoneNumber,
+//             entityId: pickupAirlineInfo.entityId,
+//             scenarioType: pickupAirlineInfo.scenarioType
+//         } : undefined,
+//         deliveryAirlineDetails: deliveryAirlineInfo ? {
+//             airlineId: deliveryAirlineInfo.airlineId,
+//             airlineNumber: deliveryAirlineInfo.airlineNumber,
+//             airlineCode: deliveryAirlineInfo.airlineCode,
+//             airportCode: deliveryAirlineInfo.airportCode,
+//             airlineName: deliveryAirlineInfo.airlineName,
+//             addressLine1: deliveryAirlineInfo.addressLine1,
+//             addressLine2: deliveryAirlineInfo.addressLine2,
+//             city: deliveryAirlineInfo.city,
+//             state: deliveryAirlineInfo.state,
+//             zipCode: deliveryAirlineInfo.zipCode,
+//             handler: deliveryAirlineInfo.handler,
+//             phoneNumber: deliveryAirlineInfo.phoneNumber,
+//             entityId: deliveryAirlineInfo.entityId,
+//             scenarioType: deliveryAirlineInfo.scenarioType
+//         } : undefined
+//     };
 
-    if (!customerDetailsResponse.shipperDetails) delete customerDetailsResponse.shipperDetails;
-    if (!customerDetailsResponse.consigneeDetails) delete customerDetailsResponse.consigneeDetails;
-    if (!customerDetailsResponse.pickupAirlineDetails) delete customerDetailsResponse.pickupAirlineDetails;
-    if (!customerDetailsResponse.deliveryAirlineDetails) delete customerDetailsResponse.deliveryAirlineDetails;
+//     if (!customerDetailsResponse.shipperDetails) delete customerDetailsResponse.shipperDetails;
+//     if (!customerDetailsResponse.consigneeDetails) delete customerDetailsResponse.consigneeDetails;
+//     if (!customerDetailsResponse.pickupAirlineDetails) delete customerDetailsResponse.pickupAirlineDetails;
+//     if (!customerDetailsResponse.deliveryAirlineDetails) delete customerDetailsResponse.deliveryAirlineDetails;
 
-    const pickupDetailsResponse = pickupInfo ? {
-        pickupInfoId: pickupInfo.pickupInfoId,
-        shipmentId: pickupInfo.shipmentId,
-        entityId: pickupInfo.entityId,
-        pickupRouting: pickupInfo.pickupRouting,
-        airportTransfer: pickupInfo.airportTransfer,
-        carrierId: pickupInfo.carrierId,
-        carrierName: pickupInfo.carrierName,
-        terminalId: pickupInfo.terminalId,
-        terminalName: pickupInfo.terminalName,
-        fromLocationType: pickupInfo.fromLocationType,
-        fromLocation: pickupInfo.fromLocation,
-        fromLocationEntityId: pickupInfo.fromLocationEntityId,
-        editFromLocation: pickupInfo.editFromLocation,
-        pickupAgentTerminal: pickupInfo.pickupAgentTerminal,
-        pickupAccessorial: pickupInfo.pickupAccessorial,
-        pickupAlert: pickupInfo.pickupAlert,
-        editFromLocationDetails: pickupInfo.editFromLocation === 'Y'
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, 'PICKUP', 'FROM')
-            : undefined,
-        pickupAgentTerminalDetails: pickupAgentTerminalInfo ? {
-            pickupAgentTerminalId: pickupAgentTerminalInfo.pickupAgentTerminalId,
-            shipmentId: pickupAgentTerminalInfo.shipmentId,
-            entityId: pickupAgentTerminalInfo.entityId,
-            toLocationType: pickupAgentTerminalInfo.toLocationType,
-            toLocation: pickupAgentTerminalInfo.toLocation,
-            toLocationEntityId: pickupAgentTerminalInfo.toLocationEntityId,
-            editToLocation: pickupAgentTerminalInfo.editToLocation,
-            editToLocationDetails: pickupAgentTerminalInfo.editToLocation === 'Y'
-                ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, 'PICKUP', 'TO')
-                : undefined
-        } : undefined,
-        pickupAccessorialDetails: pickupAccessorials.length > 0 ? {
-            accessorials: pickupAccessorials.map((row: any) => ({
-                pickupAccessorialId: row.pickupAccessorialId,
-                shipmentId: row.shipmentId,
-                accessorialId: row.accessorialId,
-                accessorialName: row.accessorialName,
-                chargeType: row.chargeType,
-                chargeValue: row.chargeValue,
-                entityId: row.entityId,
-                noteThreadId: row.noteThreadId
-            }))
-        } : undefined,
-        pickupAlertDetails: pickupAlertInfo ? {
-            pickupAlertId: pickupAlertInfo.pickupAlertId,
-            shipmentId: pickupAlertInfo.shipmentId,
-            inboundNotes: pickupAlertInfo.inboundNotes,
-            emailInfo: {
-                primaryEmail: pickupAlertInfo.primaryEmail,
-                additionalEmails: parseEmailArray(pickupAlertInfo.additionalEmail)
-            }
-        } : undefined
-    } : undefined;
+//     const pickupDetailsResponse = pickupInfo ? {
+//         pickupInfoId: pickupInfo.pickupInfoId,
+//         shipmentId: pickupInfo.shipmentId,
+//         entityId: pickupInfo.entityId,
+//         pickupRouting: pickupInfo.pickupRouting,
+//         airportTransfer: pickupInfo.airportTransfer,
+//         carrierId: pickupInfo.carrierId,
+//         carrierName: pickupInfo.carrierName,
+//         terminalId: pickupInfo.terminalId,
+//         terminalName: pickupInfo.terminalName,
+//         fromLocationType: pickupInfo.fromLocationType,
+//         fromLocation: pickupInfo.fromLocation,
+//         fromLocationEntityId: pickupInfo.fromLocationEntityId,
+//         editFromLocation: pickupInfo.editFromLocation,
+//         pickupAgentTerminal: pickupInfo.pickupAgentTerminal,
+//         pickupAccessorial: pickupInfo.pickupAccessorial,
+//         pickupAlert: pickupInfo.pickupAlert,
+//         editFromLocationDetails: pickupInfo.editFromLocation === 'Y'
+//             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, 'PICKUP', 'FROM')
+//             : undefined,
+//         pickupAgentTerminalDetails: pickupAgentTerminalInfo ? {
+//             pickupAgentTerminalId: pickupAgentTerminalInfo.pickupAgentTerminalId,
+//             shipmentId: pickupAgentTerminalInfo.shipmentId,
+//             entityId: pickupAgentTerminalInfo.entityId,
+//             toLocationType: pickupAgentTerminalInfo.toLocationType,
+//             toLocation: pickupAgentTerminalInfo.toLocation,
+//             toLocationEntityId: pickupAgentTerminalInfo.toLocationEntityId,
+//             editToLocation: pickupAgentTerminalInfo.editToLocation,
+//             editToLocationDetails: pickupAgentTerminalInfo.editToLocation === 'Y'
+//                 ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, 'PICKUP', 'TO')
+//                 : undefined
+//         } : undefined,
+//         pickupAccessorialDetails: pickupAccessorials.length > 0 ? {
+//             accessorials: pickupAccessorials.map((row: any) => ({
+//                 pickupAccessorialId: row.pickupAccessorialId,
+//                 shipmentId: row.shipmentId,
+//                 accessorialId: row.accessorialId,
+//                 accessorialName: row.accessorialName,
+//                 chargeType: row.chargeType,
+//                 chargeValue: row.chargeValue,
+//                 entityId: row.entityId,
+//                 noteThreadId: row.noteThreadId
+//             }))
+//         } : undefined,
+//         pickupAlertDetails: pickupAlertInfo ? {
+//             pickupAlertId: pickupAlertInfo.pickupAlertId,
+//             shipmentId: pickupAlertInfo.shipmentId,
+//             inboundNotes: pickupAlertInfo.inboundNotes,
+//             emailInfo: {
+//                 primaryEmail: pickupAlertInfo.primaryEmail,
+//                 additionalEmails: parseEmailArray(pickupAlertInfo.additionalEmail)
+//             }
+//         } : undefined
+//     } : undefined;
 
-    const linehaulDetailsResponse = linehaulInfo ? {
-        linehaulInfoId: linehaulInfo.linehaulInfoId,
-        shipmentId: linehaulInfo.shipmentId,
-        entityId: linehaulInfo.entityId,
-        linehaulRouting: linehaulInfo.linehaulRouting,
-        carrierId: linehaulInfo.carrierId,
-        terminalId: linehaulInfo.terminalId,
-        carrierBillNumber: linehaulInfo.carrierBillNumber,
-        editFromLocation: linehaulInfo.editFromLocation,
-        fromLocationType: linehaulInfo.fromLocationType,
-        fromLocation: linehaulInfo.fromLocation,
-        fromLocationEntityId: linehaulInfo.fromLocationEntityId,
-        editToLocation: linehaulInfo.editToLocation,
-        toLocationType: linehaulInfo.toLocationType,
-        toLocation: linehaulInfo.toLocation,
-        toLocationEntityId: linehaulInfo.toLocationEntityId,
-        etaDate: linehaulInfo.etaDate,
-        etaTime: linehaulInfo.etaTime,
-        pieces: linehaulInfo.pieces,
-        weight: linehaulInfo.weight,
-        editFromLocationDetails: linehaulInfo.editFromLocation === 'Y'
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, 'LINE_HAUL', 'FROM')
-            : undefined,
-        editToLocationDetails: linehaulInfo.editToLocation === 'Y'
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, 'LINE_HAUL', 'TO')
-            : undefined,
-        linehaulCommonInfo: linehaulCommonInfo ? {
-            linehaulCommonInfoId: linehaulCommonInfo.linehaulCommonInfoId,
-            shipmentId: linehaulCommonInfo.shipmentId,
-            linehaulAccessorial: linehaulCommonInfo.linehaulAccessorial,
-            linehaulNotes: linehaulCommonInfo.linehaulNotes,
-            linehaulAccessorialDetails: linehaulAccessorials.length > 0 ? {
-                accessorials: linehaulAccessorials.map((row: any) => ({
-                    linehaulAccessorialId: row.linehaulAccessorialId,
-                    shipmentId: row.shipmentId,
-                    accessorialId: row.accessorialId,
-                    accessorialName: row.accessorialName,
-                    chargeType: row.chargeType,
-                    chargeValue: row.chargeValue,
-                    entityId: row.entityId,
-                    noteThreadId: row.noteThreadId
-                }))
-            } : undefined
-        } : undefined
-    } : undefined;
+//     const linehaulDetailsResponse = linehaulInfo ? {
+//         linehaulInfoId: linehaulInfo.linehaulInfoId,
+//         shipmentId: linehaulInfo.shipmentId,
+//         entityId: linehaulInfo.entityId,
+//         linehaulRouting: linehaulInfo.linehaulRouting,
+//         carrierId: linehaulInfo.carrierId,
+//         terminalId: linehaulInfo.terminalId,
+//         carrierBillNumber: linehaulInfo.carrierBillNumber,
+//         editFromLocation: linehaulInfo.editFromLocation,
+//         fromLocationType: linehaulInfo.fromLocationType,
+//         fromLocation: linehaulInfo.fromLocation,
+//         fromLocationEntityId: linehaulInfo.fromLocationEntityId,
+//         editToLocation: linehaulInfo.editToLocation,
+//         toLocationType: linehaulInfo.toLocationType,
+//         toLocation: linehaulInfo.toLocation,
+//         toLocationEntityId: linehaulInfo.toLocationEntityId,
+//         etaDate: linehaulInfo.etaDate,
+//         etaTime: linehaulInfo.etaTime,
+//         pieces: linehaulInfo.pieces,
+//         weight: linehaulInfo.weight,
+//         editFromLocationDetails: linehaulInfo.editFromLocation === 'Y'
+//             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, 'LINE_HAUL', 'FROM')
+//             : undefined,
+//         editToLocationDetails: linehaulInfo.editToLocation === 'Y'
+//             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, 'LINE_HAUL', 'TO')
+//             : undefined,
+//         linehaulCommonInfo: linehaulCommonInfo ? {
+//             linehaulCommonInfoId: linehaulCommonInfo.linehaulCommonInfoId,
+//             shipmentId: linehaulCommonInfo.shipmentId,
+//             linehaulAccessorial: linehaulCommonInfo.linehaulAccessorial,
+//             linehaulNotes: linehaulCommonInfo.linehaulNotes,
+//             linehaulAccessorialDetails: linehaulAccessorials.length > 0 ? {
+//                 accessorials: linehaulAccessorials.map((row: any) => ({
+//                     linehaulAccessorialId: row.linehaulAccessorialId,
+//                     shipmentId: row.shipmentId,
+//                     accessorialId: row.accessorialId,
+//                     accessorialName: row.accessorialName,
+//                     chargeType: row.chargeType,
+//                     chargeValue: row.chargeValue,
+//                     entityId: row.entityId,
+//                     noteThreadId: row.noteThreadId
+//                 }))
+//             } : undefined
+//         } : undefined
+//     } : undefined;
 
-    const deliveryDetailsResponse = deliveryInfo ? {
-        deliveryInfoId: deliveryInfo.deliveryInfoId,
-        shipmentId: deliveryInfo.shipmentId,
-        entityId: deliveryInfo.entityId,
-        carrierId: deliveryInfo.carrierId,
-        terminalId: deliveryInfo.terminalId,
-        carrierBillNumber: deliveryInfo.carrierBillNumber,
-        editFromLocation: deliveryInfo.editFromLocation,
-        fromLocationType: deliveryInfo.fromLocationType,
-        fromLocation: deliveryInfo.fromLocation,
-        fromLocationEntityId: deliveryInfo.fromLocationEntityId,
-        editToLocation: deliveryInfo.editToLocation,
-        toLocationType: deliveryInfo.toLocationType,
-        toLocation: deliveryInfo.toLocation,
-        toLocationEntityId: deliveryInfo.toLocationEntityId,
-        etaDate: deliveryInfo.etaDate,
-        etaTime: deliveryInfo.etaTime,
-        pieces: deliveryInfo.pieces,
-        weight: deliveryInfo.weight,
-        editFromLocationDetails: deliveryInfo.editFromLocation === 'Y'
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, 'DELIVERY', 'FROM')
-            : undefined,
-        editToLocationDetails: deliveryInfo.editToLocation === 'Y'
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, 'DELIVERY', 'TO')
-            : undefined,
-        deliveryCommonInfo: deliveryCommonInfo ? {
-            deliveryCommonInfoId: deliveryCommonInfo.deliveryCommonInfoId,
-            shipmentId: deliveryCommonInfo.shipmentId,
-            deliveryAccessorial: deliveryCommonInfo.deliveryAccessorial,
-            airportTransfer: deliveryCommonInfo.airportTransfer,
-            deliveryAlert: deliveryCommonInfo.deliveryAlert,
-            deliveryAccessorialDetails: deliveryAccessorials.length > 0 ? {
-                accessorials: deliveryAccessorials.map((row: any) => ({
-                    deliveryAccessorialId: row.deliveryAccessorialId,
-                    shipmentId: row.shipmentId,
-                    accessorialId: row.accessorialId,
-                    accessorialName: row.accessorialName,
-                    chargeType: row.chargeType,
-                    chargeValue: row.chargeValue,
-                    entityId: row.entityId,
-                    noteThreadId: row.noteThreadId
-                }))
-            } : undefined,
-            deliveryAlertDetails: deliveryAlertInfo ? {
-                deliveryAlertId: deliveryAlertInfo.deliveryAlertId,
-                shipmentId: deliveryAlertInfo.shipmentId,
-                linehaulNotes: deliveryAlertInfo.linehaulNotes,
-                deliveryNotes: deliveryAlertInfo.deliveryNotes,
-                emailInfo: {
-                    primaryEmail: deliveryAlertInfo.primaryEmail,
-                    additionalEmails: parseEmailArray(deliveryAlertInfo.additionalEmail)
-                }
-            } : undefined
-        } : undefined
-    } : undefined;
+//     const deliveryDetailsResponse = deliveryInfo ? {
+//         deliveryInfoId: deliveryInfo.deliveryInfoId,
+//         shipmentId: deliveryInfo.shipmentId,
+//         entityId: deliveryInfo.entityId,
+//         carrierId: deliveryInfo.carrierId,
+//         terminalId: deliveryInfo.terminalId,
+//         carrierBillNumber: deliveryInfo.carrierBillNumber,
+//         editFromLocation: deliveryInfo.editFromLocation,
+//         fromLocationType: deliveryInfo.fromLocationType,
+//         fromLocation: deliveryInfo.fromLocation,
+//         fromLocationEntityId: deliveryInfo.fromLocationEntityId,
+//         editToLocation: deliveryInfo.editToLocation,
+//         toLocationType: deliveryInfo.toLocationType,
+//         toLocation: deliveryInfo.toLocation,
+//         toLocationEntityId: deliveryInfo.toLocationEntityId,
+//         etaDate: deliveryInfo.etaDate,
+//         etaTime: deliveryInfo.etaTime,
+//         pieces: deliveryInfo.pieces,
+//         weight: deliveryInfo.weight,
+//         editFromLocationDetails: deliveryInfo.editFromLocation === 'Y'
+//             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, 'DELIVERY', 'FROM')
+//             : undefined,
+//         editToLocationDetails: deliveryInfo.editToLocation === 'Y'
+//             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, 'DELIVERY', 'TO')
+//             : undefined,
+//         deliveryCommonInfo: deliveryCommonInfo ? {
+//             deliveryCommonInfoId: deliveryCommonInfo.deliveryCommonInfoId,
+//             shipmentId: deliveryCommonInfo.shipmentId,
+//             deliveryAccessorial: deliveryCommonInfo.deliveryAccessorial,
+//             airportTransfer: deliveryCommonInfo.airportTransfer,
+//             deliveryAlert: deliveryCommonInfo.deliveryAlert,
+//             deliveryAccessorialDetails: deliveryAccessorials.length > 0 ? {
+//                 accessorials: deliveryAccessorials.map((row: any) => ({
+//                     deliveryAccessorialId: row.deliveryAccessorialId,
+//                     shipmentId: row.shipmentId,
+//                     accessorialId: row.accessorialId,
+//                     accessorialName: row.accessorialName,
+//                     chargeType: row.chargeType,
+//                     chargeValue: row.chargeValue,
+//                     entityId: row.entityId,
+//                     noteThreadId: row.noteThreadId
+//                 }))
+//             } : undefined,
+//             deliveryAlertDetails: deliveryAlertInfo ? {
+//                 deliveryAlertId: deliveryAlertInfo.deliveryAlertId,
+//                 shipmentId: deliveryAlertInfo.shipmentId,
+//                 linehaulNotes: deliveryAlertInfo.linehaulNotes,
+//                 deliveryNotes: deliveryAlertInfo.deliveryNotes,
+//                 emailInfo: {
+//                     primaryEmail: deliveryAlertInfo.primaryEmail,
+//                     additionalEmails: parseEmailArray(deliveryAlertInfo.additionalEmail)
+//                 }
+//             } : undefined
+//         } : undefined
+//     } : undefined;
 
-    const carrierDetails: any = {};
-    if (pickupDetailsResponse) carrierDetails.pickupDetails = pickupDetailsResponse;
-    if (linehaulDetailsResponse) carrierDetails.linehaulDetails = {
-        linehaulPrimaryInfo: linehaulDetailsResponse,
-        linehaulCommonInfo: linehaulDetailsResponse.linehaulCommonInfo
-    };
-    if (deliveryDetailsResponse) carrierDetails.deliveryDetails = {
-        deliveryPrimaryInfo: deliveryDetailsResponse,
-        deliveryCommonInfo: deliveryDetailsResponse.deliveryCommonInfo
-    };
+//     const carrierDetails: any = {};
+//     if (pickupDetailsResponse) carrierDetails.pickupDetails = pickupDetailsResponse;
+//     if (linehaulDetailsResponse) carrierDetails.linehaulDetails = {
+//         linehaulPrimaryInfo: linehaulDetailsResponse,
+//         linehaulCommonInfo: linehaulDetailsResponse.linehaulCommonInfo
+//     };
+//     if (deliveryDetailsResponse) carrierDetails.deliveryDetails = {
+//         deliveryPrimaryInfo: deliveryDetailsResponse,
+//         deliveryCommonInfo: deliveryDetailsResponse.deliveryCommonInfo
+//     };
 
-    const response: any = {
-        shipmentId: shipment.shipmentId,
-        shipmentDetails: {
-            typeOfShipment: shipment.typeOfShipment,
-            serviceLevel: shipment.serviceLevel,
-            shipmentDate: shipment.shipmentDate,
-            shipmentTime: shipment.shipmentTime,
-            orderReceivedPickupPending: (shipment as any).orderReceivedPickupPending,
-            status: (shipment as any).status
-        },
-        customerDetails: customerDetailsResponse,
-        commodityDetails: {
-            commodityId: commodityInfo?.commodityId,
-            emergencyContactName: commodityInfo?.emergencyContactName,
-            emergencyContactPhone: commodityInfo?.emergencyContactPhone,
-            handlingUnits: handlingUnitsResponse
-        },
-        carrierDetails,
-        shipmentRateDetails
-    };
+//     const response: any = {
+//         shipmentId: shipment.shipmentId,
+//         shipmentDetails: {
+//             typeOfShipment: shipment.typeOfShipment,
+//             serviceLevel: shipment.serviceLevel,
+//             shipmentDate: shipment.shipmentDate,
+//             shipmentTime: shipment.shipmentTime,
+//             orderReceivedPickupPending: (shipment as any).orderReceivedPickupPending,
+//             status: (shipment as any).status
+//         },
+//         customerDetails: customerDetailsResponse,
+//         commodityDetails: {
+//             commodityId: commodityInfo?.commodityId,
+//             emergencyContactName: commodityInfo?.emergencyContactName,
+//             emergencyContactPhone: commodityInfo?.emergencyContactPhone,
+//             handlingUnits: handlingUnitsResponse
+//         },
+//         carrierDetails,
+//         shipmentRateDetails
+//     };
 
-    if (!Object.keys(carrierDetails).length) delete response.carrierDetails;
-    if (!Object.keys(shipmentRateDetails).length) delete response.shipmentRateDetails;
+//     if (!Object.keys(carrierDetails).length) delete response.carrierDetails;
+//     if (!Object.keys(shipmentRateDetails).length) delete response.shipmentRateDetails;
 
-    return response;
-}
+//     return response;
+// }
 
-export async function getNetworkShipmentForms(
-    conn: Connection,
-    pagination: ShipmentPaginationParams = { page: 1, limit: 10 }
-): Promise<{ items: Array<any>; pagination: ShipmentPaginationMeta }> {
-    const normalized = normalizePaginationParams(pagination?.page, pagination?.limit);
-    const { totalItems, rows } = await shipmentDB.getNetworkShipmentList(conn, normalized.page, normalized.limit);
+// export async function getNetworkShipmentForms(
+//     conn: Connection,
+//     pagination: ShipmentPaginationParams = { page: 1, limit: 10 }
+// ): Promise<{ items: Array<any>; pagination: ShipmentPaginationMeta }> {
+//     const normalized = normalizePaginationParams(pagination?.page, pagination?.limit);
+//     const { totalItems, rows } = await shipmentDB.getNetworkShipmentList(conn, normalized.page, normalized.limit);
 
-    const items = await Promise.all(
-        rows.map(async (row: any) => {
-            if (!row?.shipmentId) return null;
-            return getNetworkShipmentView(conn, row.shipmentId);
-        })
-    );
+//     const items = await Promise.all(
+//         rows.map(async (row: any) => {
+//             if (!row?.shipmentId) return null;
+//             return getNetworkShipmentView(conn, row.shipmentId);
+//         })
+//     );
 
-    return {
-        items: items.filter(Boolean),
-        pagination: buildPaginationMeta(totalItems, normalized.page, normalized.limit)
-    };
-}
+//     return {
+//         items: items.filter(Boolean),
+//         pagination: buildPaginationMeta(totalItems, normalized.page, normalized.limit)
+//     };
+// }
 
 function parseApplicableFor(value: any): string[] {
     if (!value) return [];
@@ -1893,8 +1894,12 @@ function validateMatch(existing: any, incoming: any, entity: string) {
     }
 }
 
-export async function updateNetworkShipment(conn: Connection, shipmentId: number, shipmentDetails: Partial<any>): Promise<any> {
-    // Delegate to DB update and return refreshed view
-    await shipmentDB.updateNetworkShipment(conn, shipmentId, shipmentDetails as any);
-    return getNetworkShipmentView(conn, shipmentId);
-}
+// export async function updateNetworkShipment(conn: Connection, shipmentId: number, shipmentDetails: Partial<any>): Promise<any> {
+//     // Delegate to DB update and return refreshed view
+//     await shipmentDB.updateNetworkShipment(conn, shipmentId, shipmentDetails as any);
+//     return getNetworkShipmentView(conn, shipmentId);
+// }
+
+
+export { createShipmentFlow } from './createShipmentFlow';
+export { getNetworkShipmentView, getNetworkShipmentForms } from './getShipmentFlow';

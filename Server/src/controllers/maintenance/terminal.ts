@@ -18,7 +18,7 @@ export async function createTerminal(req: Request, res: Response, conn: Connecti
 
 export async function getTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const terminalId = parseInt(req.params.terminalId, 10);
+        const terminalId = Number(req.params.terminalId);
         const terminal = await terminalService.getTerminalById(conn, terminalId);
         if (!terminal) {
             res.status(404).json({ success: false, message: 'Terminal not found' });
@@ -36,9 +36,9 @@ export async function getTerminal(req: Request, res: Response, conn: Connection)
 
 export async function getTerminalsForCarrier(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const carrierId = parseInt(req.params.carrierId, 10);
-        const page = parseInt(req.query.page as string, 10) || 1;
-        const limit = parseInt(req.query.pageSize as string, 10) || 10;
+        const carrierId = Number(req.params.carrierId);
+        const page = Number(req.query.page as string) || 1;
+        const limit = Number(req.query.pageSize as string) || 10;
 
         const { terminals, total } = await terminalService.getTerminalsForCarrier(conn, carrierId, page, limit);
 
@@ -63,7 +63,7 @@ export async function getTerminalsForCarrier(req: Request, res: Response, conn: 
 
 export async function updateTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const terminalId = parseInt(req.params.terminalId, 10);
+        const terminalId = Number(req.params.terminalId);
         const adminId = (req as any).user?.userId || 1;
         const terminal = await terminalService.updateTerminalService(conn, terminalId, req.body, adminId);
         res.status(200).json({ success: true, data: terminal });
@@ -92,7 +92,7 @@ export async function toggleTerminalStatus(req: Request, res: Response, conn: Co
 
 export async function deleteTerminal(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const terminalId = parseInt(req.params.terminalId, 10);
+        const terminalId = Number(req.params.terminalId);
         const adminId = (req as any).user?.userId || 1;
         await terminalService.deleteTerminal(conn, terminalId, adminId);
         res.status(200).json({ success: true, message: 'Terminal deleted successfully' });

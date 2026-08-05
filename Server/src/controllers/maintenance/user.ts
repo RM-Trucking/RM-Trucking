@@ -85,7 +85,7 @@ export async function createUser(req: Request, res: Response, conn: Connection):
 export async function getUser(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { userId } = req.params;
-        const user = await userService.getUserDetails(conn, parseInt(userId, 10));
+        const user = await userService.getUserDetails(conn, Number(userId));
 
         res.status(200).json({
             success: true,
@@ -108,7 +108,7 @@ export async function updateUser(req: Request, res: Response, conn: Connection):
         const { userId } = req.params;
         const updateReq: UpdateUserRequest = req.body;
 
-        const user = await userService.updateUserDetails(conn, parseInt(userId, 10), updateReq);
+        const user = await userService.updateUserDetails(conn, Number(userId), updateReq);
 
         res.status(200).json({
             success: true,
@@ -137,7 +137,7 @@ export async function changePassword(req: Request, res: Response, conn: Connecti
             return;
         }
 
-        await userService.changeUserPassword(conn, parseInt(userId, 10), oldPassword, newPassword);
+        await userService.changeUserPassword(conn, Number(userId), oldPassword, newPassword);
 
         res.status(200).json({
             success: true,
@@ -158,7 +158,7 @@ export async function changePassword(req: Request, res: Response, conn: Connecti
 export async function resetPassword(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { userId } = req.params;
-        const newPassword = await userService.resetUserPassword(conn, parseInt(userId, 10));
+        const newPassword = await userService.resetUserPassword(conn, Number(userId));
 
         res.status(200).json({
             success: true,
@@ -183,7 +183,7 @@ export async function resetPassword(req: Request, res: Response, conn: Connectio
 export async function deleteUser(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { userId } = req.params;
-        await userService.deleteUserAccount(conn, parseInt(userId, 10));
+        await userService.deleteUserAccount(conn, Number(userId));
 
         res.status(200).json({
             success: true,
@@ -203,8 +203,8 @@ export async function deleteUser(req: Request, res: Response, conn: Connection):
  */
 export async function getAllUsers(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : undefined;
-        const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+        const limit = req.query.limit ? Number(req.query.limit as string) : undefined;
+        const offset = req.query.offset ? Number(req.query.offset as string) : undefined;
         const search = req.query.search ? (req.query.search as string) : undefined;
 
         const { users, total } = await userService.listAllUsers(conn, limit, offset, search);
@@ -237,7 +237,7 @@ export async function getAllUsers(req: Request, res: Response, conn: Connection)
 export async function getUsersByRole(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { roleId } = req.params;
-        const users = await userService.listUsersByRole(conn, parseInt(roleId, 10));
+        const users = await userService.listUsersByRole(conn, Number(roleId));
 
         res.status(200).json({
             success: true,

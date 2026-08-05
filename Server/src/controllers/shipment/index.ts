@@ -2,20 +2,39 @@ import { Request, Response } from "express";
 import { Connection } from "odbc";
 import * as shipmentService from "../../services/shipment";
 
+// export async function createNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
+//     try {
+//         const createReq = req.body;
+//         const userId = (req as any).user?.userId || 1;
 
-export async function createNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
+//         console.log("Received create network shipment request:", createReq, userId);
+
+//         const shipment = await shipmentService.createNetworkShipment(conn, createReq, userId);
+
+//         res.status(201).json({
+//             success: true,
+//             message: "Network shipment created successfully",
+//             data: shipment
+//         });
+//     } catch (error: any) {
+//         console.log(error);
+//         res.status(400).json({ success: false, message: error.message });
+//     }
+// }
+
+export async function createShipmentFlow(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const createReq = req.body;
-        const userId = (req as any).user?.userId || 1; // fallback if auth not provided
+        const payload = req.body;
+        const userId = (req as any).user?.userId || 1;
 
-        console.log("Received create network shipment request:", createReq, userId);
+        console.log("Received create shipment flow request:", payload, userId);
 
-        const shipment = await shipmentService.createNetworkShipment(conn, createReq, userId);
+        const result = await shipmentService.createShipmentFlow(conn, payload, userId);
 
         res.status(201).json({
             success: true,
-            message: "Network shipment created successfully",
-            data: shipment
+            message: "Shipment flow created successfully",
+            data: result
         });
     } catch (error: any) {
         console.log(error);
@@ -74,14 +93,9 @@ export async function updateNetworkShipment(req: Request, res: Response, conn: C
             return;
         }
 
-        const updateReq = req.body;
-
-        const updated = await shipmentService.updateNetworkShipment(conn, shipmentId, updateReq);
-
-        res.status(200).json({
-            success: true,
-            message: "Network shipment updated successfully",
-            data: updated
+        res.status(501).json({
+            success: false,
+            message: "Shipment update is not implemented for the new flow yet"
         });
     } catch (error: any) {
         console.log(error);

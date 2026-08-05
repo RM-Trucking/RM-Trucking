@@ -1,0 +1,165 @@
+openapi: 3.0.0
+info:
+  title: Network Shipment Get APIs
+  version: 1.0.0
+  description: Swagger documentation for the network shipment GET endpoints
+
+tags:
+  - name: Network Shipment Get
+    description: Read operations for network shipment forms and shipment details
+
+paths:
+  /api/network-shipment:
+    get:
+      tags: [Network Shipment Get]
+      summary: Get network shipment forms
+      description: Returns a paginated list of network shipment forms for processing and compliance workflows.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+          description: Page number to retrieve.
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+          description: Number of shipments to return per page.
+      responses:
+        "200":
+          description: Shipment forms retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkShipmentFormsResponse"
+              example:
+                success: true
+                message: Shipments retrieved successfully
+                data:
+                  - shipmentId: 1001
+                    shipmentNumber: SHP-1001
+                    shipmentDate: "2024-07-01"
+                    status: ORDER_RECEIVED_PICKUP_PENDING
+                    customerName: ABC Shipper
+                    consigneeName: XYZ Consignee
+                pagination:
+                  page: 1
+                  limit: 25
+                  total: 1
+        "400":
+          description: Invalid pagination parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /api/network-shipment/{shipmentId}:
+    get:
+      tags: [Network Shipment Get]
+      summary: Get a network shipment by ID
+      description: Returns the full shipment view for the specified shipment identifier.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shipmentId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Numeric shipment identifier.
+      responses:
+        "200":
+          description: Shipment retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NetworkShipmentDetailResponse"
+              example:
+                success: true
+                message: Network shipment retrieved successfully
+                data:
+                  shipmentId: 1001
+                  shipmentNumber: SHP-1001
+                  typeOfShipment: AIR_IMPORT
+                  shipmentDate: "2024-07-01"
+                  shipmentTime: "09:00:00"
+                  status: ORDER_RECEIVED_PICKUP_PENDING
+                  customerName: ABC Shipper
+                  consigneeName: XYZ Consignee
+                  shipperName: ABC Shipper
+                  commodityDescription: Electronics
+        "404":
+          description: Shipment not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "400":
+          description: Invalid shipment ID.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Shipment not found
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 1
+        limit:
+          type: integer
+          example: 25
+        total:
+          type: integer
+          example: 1
+
+    NetworkShipmentFormsResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Shipments retrieved successfully
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+
+    NetworkShipmentDetailResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Network shipment retrieved successfully
+        data:
+          type: object
+          additionalProperties: true

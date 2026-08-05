@@ -29,7 +29,7 @@ export async function createStation(req: Request, res: Response, conn: Connectio
 export async function getStation(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { stationId } = req.params;
-        const station = await stationService.getStationService(conn, parseInt(stationId, 10));
+        const station = await stationService.getStationService(conn, Number(stationId));
         if (!station) {
             res.status(404).json({ error: 'Station not found' });
             return;
@@ -50,14 +50,14 @@ export async function getStationsForCustomer(req: Request, res: Response, conn: 
     try {
         const { customerId } = req.params;
         const searchTerm = (req.query.search as string) || null;
-        const page = parseInt((req.query.page as string) || '1', 10);
-        const pageSize = parseInt((req.query.pageSize as string) || '10', 10);
+        const page = Number((req.query.page as string) || '1');
+        const pageSize = Number((req.query.pageSize as string) || '10');
         console.log(req.query);
 
 
         const result = await stationService.getStationsForCustomerService(
             conn,
-            parseInt(customerId, 10),
+            Number(customerId),
             page,
             pageSize,
             searchTerm
@@ -88,7 +88,7 @@ export async function updateStation(req: Request, res: Response, conn: Connectio
     try {
         const { stationId } = req.params;
         const userId = (req as any).user?.userId || 1;
-        const updated = await stationService.updateStationService(conn, parseInt(stationId, 10), req.body, userId);
+        const updated = await stationService.updateStationService(conn, Number(stationId), req.body, userId);
         res.status(200).json({
             success: true,
             message: 'Station updated successfully',
@@ -112,7 +112,7 @@ export async function updateStation(req: Request, res: Response, conn: Connectio
 export async function deleteStation(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { stationId } = req.params;
-        await stationService.deleteStationService(conn, parseInt(stationId, 10));
+        await stationService.deleteStationService(conn, Number(stationId));
         res.status(200).json({
             success: true,
             message: 'Station deleted successfully'

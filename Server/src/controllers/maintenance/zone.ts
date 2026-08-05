@@ -85,8 +85,8 @@ export async function listZonesDropdown(req: Request, res: Response, conn: Conne
 
 export async function listZones(req: Request, res: Response, conn: Connection) {
     try {
-        const page = parseInt(req.query.page as string, 10) || 1;
-        const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+        const page = Number(req.query.page as string) || 1;
+        const pageSize = Number(req.query.pageSize as string) || 10;
         const searchTerm = req.query.search as string | undefined;
 
         const result = await listZonesService(conn, page, pageSize, searchTerm);
@@ -110,7 +110,7 @@ export async function listZones(req: Request, res: Response, conn: Connection) {
 // -------------------- Get Zone By Id --------------------
 export async function getZone(req: Request, res: Response, conn: Connection) {
     try {
-        const zoneId = parseInt(req.params.zoneId, 10);
+        const zoneId = Number(req.params.zoneId);
         const zone = await getZoneService(conn, zoneId);
 
         res.json({ success: true, data: zone });
@@ -122,7 +122,7 @@ export async function getZone(req: Request, res: Response, conn: Connection) {
 // -------------------- Update Zone --------------------
 export async function updateZone(req: Request, res: Response, conn: Connection) {
     try {
-        const zoneId = parseInt(req.params.zoneId, 10);
+        const zoneId = Number(req.params.zoneId);
         const userId = req.user?.userId || 0;
         const force = req.query.force === "true";
         const zoneReq: UpdateZoneRequest & { zipCodes?: string[]; ranges?: string[]; note?: { noteId?: number; messageText: string } } = req.body;
@@ -157,7 +157,7 @@ export async function updateZone(req: Request, res: Response, conn: Connection) 
 // -------------------- Delete Zone --------------------
 export async function deleteZone(req: Request, res: Response, conn: Connection) {
     try {
-        const zoneId = parseInt(req.params.zoneId, 10);
+        const zoneId = Number(req.params.zoneId);
 
         await deleteZoneService(conn, zoneId);
 
@@ -182,8 +182,8 @@ export async function checkZipZone(req: Request, res: Response, conn: Connection
         if ((zipCode as string).includes("-")) {
             // Handle range input like "12345-12349"
             const [start, end] = (zipCode as string).split("-");
-            const startNum = parseInt(start);
-            const endNum = parseInt(end);
+            const startNum = Number(start);
+            const endNum = Number(end);
 
             if (isNaN(startNum) || isNaN(endNum)) {
                 res.status(400).json({ success: false, message: "Invalid range format" });

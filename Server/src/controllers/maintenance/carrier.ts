@@ -46,8 +46,8 @@ export async function updateCarrier(req: Request, res: Response, conn: Connectio
 // GET ALL
 export async function listCarriers(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const page = parseInt(req.query.page as string, 10) || 1;
-        const pageSize = parseInt(req.query.pageSize as string, 10) || 10;
+        const page = Number(req.query.page as string) || 1;
+        const pageSize = Number(req.query.pageSize as string) || 10;
         const searchTerm = req.query.search as string;
         const status = req.query.status as 'Active' | 'Inactive' | 'Incomplete';
 
@@ -124,7 +124,7 @@ export async function toggleCarrierStatus(req: Request, res: Response, conn: Con
 
 export async function getCarriersByRateId(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const rateId = parseInt(req.params.rateId, 10);
+        const rateId = Number(req.params.rateId);
         const customers = await carrierService.getCarriersByRateIdService(conn, rateId);
 
         res.status(200).json({

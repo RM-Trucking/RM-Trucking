@@ -78,7 +78,7 @@ export async function updateAccessorial(req: Request, res: Response, conn: Conne
 
         const updated = await accessorialService.updateAccessorialService(
             conn,
-            parseInt(accessorialId, 10),
+            Number(accessorialId),
             accessorialName,
             userId
         );
@@ -100,7 +100,7 @@ export async function softDeleteAccessorial(req: Request, res: Response, conn: C
         const { accessorialId } = req.params;
         const userId = (req as any).user?.userId || 1;
 
-        await accessorialService.softDeleteAccessorialService(conn, parseInt(accessorialId, 10), userId);
+        await accessorialService.softDeleteAccessorialService(conn, Number(accessorialId), userId);
 
         res.status(200).json({ success: true, message: 'Accessorial deleted successfully' });
     } catch (error) {

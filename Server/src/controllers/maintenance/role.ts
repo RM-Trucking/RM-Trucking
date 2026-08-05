@@ -58,7 +58,7 @@ export async function createRole(req: Request, res: Response, conn: Connection):
 export async function getRole(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { roleId } = req.params;
-        const role = await roleService.getRoleDetails(conn, parseInt(roleId, 10));
+        const role = await roleService.getRoleDetails(conn, Number(roleId));
 
         res.status(200).json({
             success: true,
@@ -83,7 +83,7 @@ export async function updateRole(req: Request, res: Response, conn: Connection):
 
         const role = await roleService.updateRoleDetails(
             conn,
-            parseInt(roleId, 10),
+            Number(roleId),
             updateReq,
             updateReq.permissions
         );
@@ -108,7 +108,7 @@ export async function updateRole(req: Request, res: Response, conn: Connection):
 export async function deleteRole(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { roleId } = req.params;
-        await roleService.deleteRoleAccount(conn, parseInt(roleId, 10));
+        await roleService.deleteRoleAccount(conn, Number(roleId));
 
         res.status(200).json({
             success: true,
@@ -128,8 +128,8 @@ export async function deleteRole(req: Request, res: Response, conn: Connection):
  */
 export async function getAllRoles(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const limit = parseInt(req.query.limit as string, 10) || 10;
-        const offset = parseInt(req.query.offset as string, 10) || 0;
+        const limit = Number(req.query.limit as string) || 10;
+        const offset = Number(req.query.offset as string) || 0;
 
         const { roles, total } = await roleService.listAllRoles(conn, limit, offset);
 

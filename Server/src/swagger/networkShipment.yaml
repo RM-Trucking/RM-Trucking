@@ -1089,6 +1089,17 @@ components:
         consigneeDetails:
           $ref: "#/components/schemas/ConsigneeDetails"
           description: "Required when airportDeliveryService = 'N'. Contains consignee information."
+    CustomerReferenceNumber:
+      type: object
+      properties:
+        referenceType:
+          type: string
+          example: "PO"
+          description: "Type of customer reference number"
+        referenceNumber:
+          type: string
+          example: "PO-12345"
+          description: "Customer reference number"
     AirlineDetails:
       type: object
       required:

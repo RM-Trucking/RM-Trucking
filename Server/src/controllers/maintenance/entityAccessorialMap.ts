@@ -26,7 +26,7 @@ export async function getAccessorialsForEntity(req: Request, res: Response, conn
     try {
         const { entityId } = req.params;
         const checkCarrierType = req.query.checkCarrierType as string | undefined;
-        const maps = await entityAccessorialMapService.getAccessorialsForEntityService(conn, parseInt(entityId, 10), checkCarrierType);
+        const maps = await entityAccessorialMapService.getAccessorialsForEntityService(conn, Number(entityId), checkCarrierType);
         res.status(200).json({ success: true, data: maps });
     } catch (error) {
         res.status(400).json({
@@ -46,7 +46,7 @@ export async function updateEntityAccessorialMap(req: Request, res: Response, co
 
         const updated = await entityAccessorialMapService.updateEntityAccessorialMapService(
             conn,
-            parseInt(entityAccessorialId, 10),
+            Number(entityAccessorialId),
             req.body,
             userId
         );
@@ -62,7 +62,7 @@ export async function updateEntityAccessorialMap(req: Request, res: Response, co
 
 export async function updateServiceNotOffered(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        const entityAccessorialId = parseInt(req.params.entityAccessorialId, 10);
+        const entityAccessorialId = Number(req.params.entityAccessorialId);
         const { serviceNotOffered } = req.body; // expecting boolean or 'Y'/'N'
 
         await entityAccessorialMapService.updateServiceNotOffered(conn, entityAccessorialId, serviceNotOffered);
@@ -88,7 +88,7 @@ export async function updateServiceNotOffered(req: Request, res: Response, conn:
 export async function deleteEntityAccessorialMap(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { entityAccessorialId } = req.params;
-        await entityAccessorialMapService.deleteEntityAccessorialMapService(conn, parseInt(entityAccessorialId, 10));
+        await entityAccessorialMapService.deleteEntityAccessorialMapService(conn, Number(entityAccessorialId));
         res.status(200).json({ success: true, message: 'Entity-accessorial mapping deleted successfully' });
     } catch (error) {
         res.status(400).json({

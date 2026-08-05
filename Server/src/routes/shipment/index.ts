@@ -5,10 +5,17 @@ import * as shipmentController from '../../controllers/shipment';
 
 const router = Router();
 
-// ✅ Create a new shipment
-router.post('/', authenticateJWT, async (req: Request, res: Response) => {
+// // ✅ Create a new shipment
+// router.post('/', authenticateJWT, async (req: Request, res: Response) => {
+//     const conn = await db();
+//     await shipmentController.createNetworkShipment(req, res, conn);
+//     if (conn) conn.close();
+// });
+
+// ✅ Create a shipment using the new generic flow
+router.post('/flow', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
-    await shipmentController.createNetworkShipment(req, res, conn);
+    await shipmentController.createShipmentFlow(req, res, conn);
     if (conn) conn.close();
 });
 
@@ -26,11 +33,11 @@ router.get('/:shipmentId', authenticateJWT, async (req: Request, res: Response) 
     if (conn) conn.close();
 });
 
-// ✅ Update a shipment (partial)
-router.patch('/:shipmentId', authenticateJWT, async (req: Request, res: Response) => {
-    const conn = await db();
-    await shipmentController.updateNetworkShipment(req, res, conn);
-    if (conn) conn.close();
-});
+// // ✅ Update a shipment (partial)
+// router.patch('/:shipmentId', authenticateJWT, async (req: Request, res: Response) => {
+//     const conn = await db();
+//     await shipmentController.updateNetworkShipment(req, res, conn);
+//     if (conn) conn.close();
+// });
 
 export default router;

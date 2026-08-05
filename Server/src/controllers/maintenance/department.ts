@@ -34,7 +34,7 @@ export async function createDepartment(req: Request, res: Response, conn: Connec
 export async function getDepartment(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { departmentId } = req.params;
-        const department = await departmentService.getDepartmentService(conn, parseInt(departmentId, 10));
+        const department = await departmentService.getDepartmentService(conn, Number(departmentId));
         if (!department) {
             res.status(404).json({ error: 'Department not found' });
             return;
@@ -54,7 +54,7 @@ export async function getDepartment(req: Request, res: Response, conn: Connectio
 export async function getDepartmentsForStation(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const { stationId } = req.params;
-        const departments = await departmentService.getDepartmentsForStationService(conn, parseInt(stationId, 10));
+        const departments = await departmentService.getDepartmentsForStationService(conn, Number(stationId));
         res.status(200).json({ success: true, data: departments });
     } catch (error) {
         res.status(400).json({
@@ -71,7 +71,7 @@ export async function updateDepartment(req: Request, res: Response, conn: Connec
     try {
         const { departmentId } = req.params;
         const userId = (req as any).user?.userId || 1;
-        const updated = await departmentService.updateDepartmentService(conn, parseInt(departmentId, 10), req.body, userId);
+        const updated = await departmentService.updateDepartmentService(conn, Number(departmentId), req.body, userId);
         res.status(200).json({
             success: true,
             message: 'Department updated successfully',
@@ -93,7 +93,7 @@ export async function deleteDepartment(req: Request, res: Response, conn: Connec
     try {
         const { departmentId } = req.params;
         const userId = (req as any).user?.userId || 1;
-        await departmentService.deleteDepartmentService(conn, parseInt(departmentId, 10), userId);
+        await departmentService.deleteDepartmentService(conn, Number(departmentId), userId);
         res.status(200).json({
             success: true,
             message: 'Department deleted successfully'

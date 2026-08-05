@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import {
-    IconButton,
+    IconButton,Box
 } from '@mui/material';
 import 'react-toastify/dist/ReactToastify.css';
 import './ReferenceTable.css';
@@ -14,7 +14,7 @@ const TYPE_OPTIONS = [
 ];
 
 // FIXED: Removed TypeScript annotations to match plain JS .jsx files
-export default function ReferenceTable({ control, errors, setValue, clearErrors, getValues, watch }) {
+export default function ReferenceTable({ type, control, errors, setValue, clearErrors, getValues, watch }) {
 
     // Handle updates for dropdowns and text values smoothly
     const handleInputChange = (id, field, value) => {
@@ -122,6 +122,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors,
                                     value={row.referenceType || ""}
                                     onChange={(e) => handleInputChange(row.id, 'referenceType', e.target.value)}
                                     className="table-input"
+                                    disabled={type === 'View'}
                                 >
                                     <option value="" disabled>Select Type</option>
                                     {TYPE_OPTIONS.map((opt) => (
@@ -139,22 +140,26 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors,
                                     placeholder="Enter Reference #"
                                     className="table-input"
                                     maxLength={100}
+                                    disabled={type === 'View'}
                                 />
 
                             </td>
                             <td className="action-cell">
-                                <IconButton onClick={() => {
+                                {type !== 'View' && <IconButton onClick={() => {
                                     handleDeleteRow(row.id)
-                                }} >
+                                }}>
                                     <Iconify icon="material-symbols:delete-rounded" sx={{ color: '#000', pointerEvents: 'none' }} />
-                                </IconButton>
+                                </IconButton>}
                             </td>
                         </tr>
                     ))}
                 </tbody>
             </table>
+            {
+                watch('referenceTableRows').length === 0 && <Box sx={{p:1.5, textAlign : 'center', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderRadius : '12px'}}>No Rows</Box>
+            }
 
-            <div className="add-btn-container">
+            {type !== 'View' && <div className="add-btn-container">
                 <button
                     type="button"
                     onClick={handleAddRow}
@@ -163,7 +168,7 @@ export default function ReferenceTable({ control, errors, setValue, clearErrors,
                 >
                     +
                 </button>
-            </div>
+            </div>}
 
             <ToastContainer />
         </div>

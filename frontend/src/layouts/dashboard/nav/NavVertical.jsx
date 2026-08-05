@@ -73,7 +73,7 @@ export default function NavVertical({ }) {
           "path": "/app/maintenance/zone-maintenance"
         },
         {
-          "title": "Accesorial Maintenance",
+          "title": "Accessorial Maintenance",
           "path": "/app/maintenance/accesorial-maintenance"
         },
         {

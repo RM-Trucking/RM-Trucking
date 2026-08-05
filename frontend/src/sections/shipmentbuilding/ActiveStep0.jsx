@@ -93,13 +93,13 @@ const serviceLevels = [
 
 const ActiveStep0 = ({ control,
     errors,
-    watchedServiceLevel, clearErrors }) => {
+    watchedServiceLevel, clearErrors, type }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
     };
-    
+
     useEffect(() => {
         const isRequired = watchedServiceLevel?.includes('(Date Specific)');
 
@@ -131,7 +131,7 @@ const ActiveStep0 = ({ control,
                             control={control}
                             rules={{ required: true }}
                             render={({ field }) => (
-                                <TextField
+                                <StyledTextField
                                     {...field}
                                     select
                                     fullWidth
@@ -141,6 +141,7 @@ const ActiveStep0 = ({ control,
                                     // Added: Fallback to an empty string if value is null/undefined to prevent UI errors
                                     value={field.value || ''}
                                     helperText={errors.shipmentType ? 'Shipment Type is required' : ''}
+                                    disabled={type === "View"}
                                 >
                                     {shipmentTypes.map((opt) => (
                                         // Fixed: Pass opt.value (the string) instead of the entire object
@@ -148,7 +149,7 @@ const ActiveStep0 = ({ control,
                                             {opt.label}
                                         </MenuItem>
                                     ))}
-                                </TextField>
+                                </StyledTextField>
                             )}
                         />
                     </Box>
@@ -160,7 +161,7 @@ const ActiveStep0 = ({ control,
                             // 1. FIXED: Pass the explicit string message instead of just 'true'
                             rules={{ required: "Service Level is required" }}
                             render={({ field }) => (
-                                <TextField
+                                <StyledTextField
                                     {...field}
                                     select
                                     fullWidth
@@ -169,13 +170,14 @@ const ActiveStep0 = ({ control,
                                     error={!!errors.serviceLevel}
                                     // 2. FIXED: Displays the precise validation message when an error exists
                                     helperText={errors.serviceLevel ? errors.serviceLevel.message : ''}
+                                    disabled={type === "View"}
                                 >
                                     {serviceLevels.map((opt) => (
                                         <MenuItem key={opt} value={opt}>
                                             {opt}
                                         </MenuItem>
                                     ))}
-                                </TextField>
+                                </StyledTextField>
                             )}
                         />
                     </Box>
@@ -231,10 +233,24 @@ const ActiveStep0 = ({ control,
                                             variant: 'standard',
                                             fullWidth: true,
                                             error: !!errors.date,
-                                            helperText: errors.date ? errors.date.message : ''
+                                            helperText: errors.date ? errors.date.message : '',
+                                            sx: {
+                                                '& .MuiInputBase-input.Mui-disabled': {
+                                                    WebkitTextFillColor: '#000000',
+                                                    color: '#000000',
+                                                },
+                                                '& .MuiInputLabel-root.Mui-disabled': {
+                                                    color: '#000000',
+                                                },
+                                                '& .MuiInput-root.Mui-disabled:before': {
+                                                    borderBottomColor: '#000000',
+                                                }
+                                            }
                                         }
                                     }}
+                                    disabled={type === "View"}
                                 />
+
                             )}
                         />
 
@@ -245,19 +261,15 @@ const ActiveStep0 = ({ control,
                             name="time"
                             control={control}
                             rules={{
-                                // 1. FIXED: Pass the explicit string message instead of a boolean value
                                 required: watchedServiceLevel?.includes('(Date Specific)') ? 'Time is required' : false,
-
                                 validate: (value) => {
                                     const isRequired = watchedServiceLevel?.includes('(Date Specific)');
                                     const isEmpty = !value || value === '';
 
-                                    // 2. Handle empty conditions against requirement states
                                     if (isEmpty) {
                                         return isRequired ? "Time is required" : true;
                                     }
 
-                                    // 3. Catch structural library validation failures (like typing 00:00 incorrectly or broken shapes)
                                     if (dayjs.isDayjs(value) && !value.isValid()) {
                                         return isRequired ? "Time is required" : "Please enter a valid time";
                                     }
@@ -268,10 +280,9 @@ const ActiveStep0 = ({ control,
                             render={({ field: { onChange, value, ...fieldParams } }) => (
                                 <TimePicker
                                     {...fieldParams}
-                                    ampm={false} // Maintains 24-hour military clock layout formatting
+                                    ampm={false}
                                     value={value ? dayjs(value) : null}
                                     onChange={(newValue) => {
-                                        // If the user manually backs out characters or clears it, pass a clean null state
                                         if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
                                             onChange(null);
                                         } else {
@@ -284,13 +295,26 @@ const ActiveStep0 = ({ control,
                                             variant: 'standard',
                                             fullWidth: true,
                                             error: !!errors.time,
-                                            // 4. FIXED: Renders the precise validation string message underneath the input row
-                                            helperText: errors.time ? errors.time.message : ''
+                                            helperText: errors.time ? errors.time.message : '',
+                                            sx: {
+                                                '& .MuiInputBase-input.Mui-disabled': {
+                                                    WebkitTextFillColor: '#000000',
+                                                    color: '#000000',
+                                                },
+                                                '& .MuiInputLabel-root.Mui-disabled': {
+                                                    color: '#000000',
+                                                },
+                                                '& .MuiInput-root.Mui-disabled:before': {
+                                                    borderBottomColor: '#000000',
+                                                }
+                                            }
                                         }
                                     }}
+                                    disabled={type === "View"}
                                 />
                             )}
                         />
+
                     </Box>
 
                 </Box>

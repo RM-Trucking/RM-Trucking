@@ -188,7 +188,7 @@ const StepperHeader = ({ location, navigate,
                         }}>
                             <Iconify icon="weui:back-filled" sx={{ mr: 1 }} />
                         </IconButton>
-                        <Typography variant="subtitle2" fontWeight="bold">New Shipment</Typography>
+                        <Typography variant="subtitle2" fontWeight="bold">{type === 'Add' ? 'New Shipment' : type === 'Edit' ? 'Edit Shipment' : "View Shipment"}</Typography>
                     </Box>
 
                     <Stepper

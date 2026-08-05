@@ -46,7 +46,7 @@ import {
 import ReferenceTable from './ReferenceTable';
 
 const ActiveStep1 = ({ control,
-    errors,
+    errors, type,
     customerStationDropdown,
     renderTextField,
     renderZipCodeField,
@@ -74,14 +74,16 @@ const ActiveStep1 = ({ control,
     };
     const filter = createFilterOptions();
     useEffect(() => {
-        if (watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
+        if (type !=='View' && watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
             clearErrors("originAirport");
+            // if type === 'Edit' make the selected object build value here insted of ""
             setValue('shipperName', "");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
-        if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
+        if (type !=='View' && watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
+            // if type === 'Edit' make the selected object build value here insted of ""
             setValue('consigneeName', '');
         }
     }, [watchedAirportDeliveryService, clearErrors]);
@@ -151,7 +153,7 @@ const ActiveStep1 = ({ control,
                                 }
 
                                 renderInput={(params) => (
-                                    <TextField
+                                    <StyledTextField
                                         {...params}
                                         inputRef={ref}
                                         fullWidth
@@ -162,11 +164,10 @@ const ActiveStep1 = ({ control,
                                     />
                                 )}
                                 sx={{ width: '30%', mb: 2 }}
+                                disabled={type === 'View'}
                             />
                         )}
                     />
-
-
                 </Box>
 
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 6 }}>
@@ -175,15 +176,25 @@ const ActiveStep1 = ({ control,
                         <FormControlLabel
                             control={
                                 <Controller
-                                    name="carrierInfo.airportPickupService"
+                                    name="airportPickupService"
                                     control={control}
                                     render={({ field }) => (
                                         <Checkbox
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
+                                            disabled={type === 'View'}
+                                            sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }}
                                         />
+
                                     )}
                                 />
                             }
@@ -197,14 +208,23 @@ const ActiveStep1 = ({ control,
                         <FormControlLabel
                             control={
                                 <Controller
-                                    name="carrierInfo.airportDeliveryService"
+                                    name="airportDeliveryService"
                                     control={control}
                                     render={({ field }) => (
                                         <Checkbox
                                             {...field}
                                             checked={field.value}
                                             size="small"
-                                            sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
+                                            disabled={type === 'View'}
+                                            sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }}
                                         />
                                     )}
                                 />
@@ -343,7 +363,7 @@ const ActiveStep1 = ({ control,
                                         }
 
                                         renderInput={(params) => (
-                                            <TextField
+                                            <StyledTextField
                                                 {...params}
                                                 inputRef={ref}
                                                 fullWidth
@@ -361,6 +381,7 @@ const ActiveStep1 = ({ control,
                                             />
                                         )}
                                         sx={{ width: '25%' }}
+                                        disabled = {type === 'View'}
                                     />
                                 )}
                             />
@@ -542,7 +563,7 @@ const ActiveStep1 = ({ control,
                                                 return filtered;
                                             }}
                                             renderInput={(params) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...params}
                                                     inputRef={ref}
                                                     fullWidth
@@ -559,6 +580,7 @@ const ActiveStep1 = ({ control,
                                                 />
                                             )}
                                             sx={{ width: '25%' }}
+                                            disabled = {type === 'View'}
                                         />
                                     );
                                 }}
@@ -713,7 +735,7 @@ const ActiveStep1 = ({ control,
                                         }
 
                                         renderInput={(params) => (
-                                            <TextField
+                                            <StyledTextField
                                                 {...params}
                                                 inputRef={ref}
                                                 fullWidth
@@ -731,6 +753,7 @@ const ActiveStep1 = ({ control,
                                             />
                                         )}
                                         sx={{ width: '25%' }}
+                                        disabled = {type === 'View'}
                                     />
                                 )}
                             />
@@ -917,7 +940,7 @@ const ActiveStep1 = ({ control,
                                                 return filtered;
                                             }}
                                             renderInput={(params) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...params}
                                                     inputRef={ref}
                                                     fullWidth
@@ -934,13 +957,11 @@ const ActiveStep1 = ({ control,
                                                 />
                                             )}
                                             sx={{ width: '25%' }}
+                                            disabled = {type === 'View'}
                                         />
                                     );
                                 }}
                             />
-
-
-
                         )}
 
 
@@ -964,12 +985,13 @@ const ActiveStep1 = ({ control,
 
                 {/* reference table */}
                 <ReferenceTable
+                    type = {type}
                     control={control}
                     errors={errors}
                     setValue={setValue}
                     clearErrors={clearErrors}
-                    getValues = {getValues}
-                    watch = {watch} />
+                    getValues={getValues}
+                    watch={watch} />
 
             </Paper>
         </ErrorBoundary>

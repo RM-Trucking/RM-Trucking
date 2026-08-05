@@ -63,7 +63,7 @@ import ActiveStep3Linehaul from './ActiveStep3Linehaul';
 import ActiveStep3Delivery from './ActiveStep3Delivery';
 import ActiveStep4 from './ActiveStep4';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
-import { updateControls } from './UpdateControls';
+import { updateControls, updateStep2Controls } from './UpdateControls';
 
 // --------------------------------------------------------------
 
@@ -632,7 +632,7 @@ const ShipmentPage = ({ type }) => {
         }}
 
         render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-          <TextField
+          <StyledTextField
             {...field}
             variant="standard"
             fullWidth
@@ -653,6 +653,7 @@ const ShipmentPage = ({ type }) => {
             }}
             // Maximum length updated to 10 characters for #####-#### layout
             inputProps={{ maxLength: 10, inputMode: 'numeric' }}
+            disabled={type === 'View'}
           />
         )}
       />
@@ -730,7 +731,7 @@ const ShipmentPage = ({ type }) => {
               onChange(raw.slice(0, 11));
             }}
             inputProps={{ maxLength: 11, inputMode: 'numeric' }}
-            disabled={flag}
+            disabled={type === 'View' || flag}
           />
         )}
       />
@@ -761,7 +762,7 @@ const ShipmentPage = ({ type }) => {
           }
         }}
         render={({ field, fieldState: { error } }) => (
-          <TextField
+          <StyledTextField
             {...field}
             value={field.value || ''}
             variant="standard"
@@ -790,6 +791,7 @@ const ShipmentPage = ({ type }) => {
               const formattedValue = formatPhoneNumber(val).slice(0, 20);
               field.onChange(formattedValue);
             }}
+            disabled={type === 'View'}
           />
         )}
       />
@@ -851,7 +853,7 @@ const ShipmentPage = ({ type }) => {
           control={control}
           rules={validationRules}
           render={({ field }) => (
-            <TextField
+            <StyledTextField
               {...field}
               value={field.value || ''}
               onChange={(e) => {
@@ -880,6 +882,7 @@ const ShipmentPage = ({ type }) => {
               variant="standard"
               error={!!errors[name]}
               helperText={errors[name]?.message || ""}
+              disabled={type === 'View'}
 
               // FIXED 4: Inject the calculated maxLength attribute straight into the underlying HTML input node
               inputProps={{
@@ -933,10 +936,15 @@ const ShipmentPage = ({ type }) => {
   }, [watchedHU]);
 
   useEffect(() => {
-    dispatch(getCustomerStationDropdown());
-    dispatch(getCarrierTerminalDropdown());
-    dispatch(getShipperDropdown());
-    dispatch(getConsigneeDropdown());
+    const fetchDropdownData = async () => {
+      await Promise.all([
+        dispatch(getCustomerStationDropdown()),
+        dispatch(getCarrierTerminalDropdown()),
+        dispatch(getShipperDropdown()),
+        dispatch(getConsigneeDropdown())
+      ]);
+    };
+    fetchDropdownData();
   }, [])
   useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
@@ -1225,8 +1233,8 @@ const ShipmentPage = ({ type }) => {
   const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
   const watchedDeliveryAddAcc = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAddAcc" });
   const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
-  const watchedAirportPickupService = useWatch({ control, name: "carrierInfo.airportPickupService" });
-  const watchedAirportDeliveryService = useWatch({ control, name: "carrierInfo.airportDeliveryService" });
+  const watchedAirportPickupService = useWatch({ control, name: "airportPickupService" });
+  const watchedAirportDeliveryService = useWatch({ control, name: "airportDeliveryService" });
 
   const watchedOriginAirport = useWatch({ control, name: "originAirport" });
   const watchedDestinationAirport = useWatch({ control, name: "destinationAirport" });
@@ -1360,12 +1368,12 @@ const ShipmentPage = ({ type }) => {
   }, [watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier])
 
   useEffect(() => {
-    if (watchedOriginAirport.length > 2) {
+    if (watchedOriginAirport?.length > 2) {
       dispatch(getShipperAirlineDropdown(watchedOriginAirport, ''));
     }
   }, [watchedOriginAirport])
   useEffect(() => {
-    if (watchedDestinationAirport.length > 2)
+    if (watchedDestinationAirport?.length > 2)
       dispatch(getConsigneeAirlineDropdown(watchedDestinationAirport, ''));
   }, [watchedDestinationAirport])
 
@@ -1483,9 +1491,16 @@ const ShipmentPage = ({ type }) => {
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
     if (type === 'View' || type === 'Edit') {
-      updateControls();
+      updateControls(setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,);
     }
   }, [type])
+  useEffect(() => {
+    if (type === 'View' || type === 'Edit') {
+      updateStep2Controls(setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,);
+    }
+  }, [type, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown])
 
   return (
     <ErrorBoundary
@@ -1609,15 +1624,14 @@ const ShipmentPage = ({ type }) => {
           {/* STEP 0 */}
 
           {activeStep === 0 && (
-
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} />
+            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} type={type} />
           )}
 
           {/* STEP 1 */}
 
           {activeStep === 1 && (
 
-            <ActiveStep1 control={control} errors={errors}
+            <ActiveStep1 control={control} errors={errors} type={type}
               customerStationDropdown={customerStationDropdown}
               renderTextField={renderTextField}
               renderZipCodeField={renderZipCodeField}

@@ -186,72 +186,43 @@ const ShipmentPage = ({ type }) => {
   } = useForm({
     mode: 'onChange',
     defaultValues: {
-
       // Step 0 
-
       shipmentType: '',
-
       serviceLevel: '',
-
       date: null,
-
       time: null,
-
       // Step 1 - Customer 
-
       billingCustomer: '',
       airportPickupService: false,
       originAirport: '',
       airportDeliveryService: false,
       destinationAirport: '',
-
       // Step 1 - Shipper 
-
       shipperName: '',
-
       shipperAddr1: '',
-
       shipperAddr2: '',
-
       shipperCity: '',
-
       shipperState: '',
-
       shipperZip: '',
-
       shipperContact: '',
-
       shipperPhone: '',
-
       // Step 1 - Consignee 
-
       consigneeName: '',
-
       consigneeAddr1: '',
-
       consigneeAddr2: '',
-
       consigneeCity: '',
-
       consigneeState: '',
-
       consigneeZip: '',
-
       consigneeContact: '',
-
       consigneePhone: '',
-
       referenceTableRows: [],
-
       // Step 2 - Handling Units 
-
       handlingUnits: [{
         uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
       emergencyContactPhone: '',
-
       doDetails: {
         handlingUnits: [{
           uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
@@ -278,7 +249,6 @@ const ShipmentPage = ({ type }) => {
         emergencyContactName: '',
         emergencyContactPhone: '',
       },
-
       // shipment status
       shipmentStatus: {
         status: 'New Shipment',
@@ -293,7 +263,6 @@ const ShipmentPage = ({ type }) => {
         appointmentTime: null,
         shipmentStatusTable: []
       },
-
       // step 3 - Carrier Information
       carrierInfo: {
         orderReceivedPending: false,
@@ -418,7 +387,6 @@ const ShipmentPage = ({ type }) => {
           airportTransfer: false,
         }
       },
-
       // step 4 - Carrier Rates
       carrierRates: {
         pickUp: {
@@ -452,9 +420,7 @@ const ShipmentPage = ({ type }) => {
         customerAccessorials: [],
         selectedAccToAdd: null,
       },
-
     },
-
   });
 
   const logError = (error, info) => {
@@ -1659,6 +1625,7 @@ const ShipmentPage = ({ type }) => {
 
           {activeStep === 2 && (
             <ActiveStep2
+              type={type}
               control={control}
               dispatch={dispatch}
               navigate={navigate}

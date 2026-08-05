@@ -48,6 +48,7 @@ import CommoditiesList from './CommoditiesList';
 
 
 const ActiveStep2 = ({
+    type,
     control,
     errors,
     dispatch,
@@ -124,7 +125,7 @@ const ActiveStep2 = ({
 
 
                         {/* Clear/Remove Logic */}
-                        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                        {type !== 'View' && <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
                             {huIdx === 0 ? (
                                 <Button
                                     variant="outlined"
@@ -147,7 +148,7 @@ const ActiveStep2 = ({
                                     Remove
                                 </Button>
                             )}
-                        </Box>
+                        </Box>}
 
 
 
@@ -158,7 +159,7 @@ const ActiveStep2 = ({
                                     name={`handlingUnits.${huIdx}.uom`}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
@@ -194,6 +195,7 @@ const ActiveStep2 = ({
                                                     }
                                                 },
                                             }}
+                                            disabled={type === 'View'}
                                         >
                                             {/* FIXED: Added a disabled/hidden placeholder menu option */}
                                             <MenuItem value="" disabled sx={{ display: 'none' }}>
@@ -203,7 +205,7 @@ const ActiveStep2 = ({
                                             {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map(u => (
                                                 <MenuItem key={u} value={u}>{u}</MenuItem>
                                             ))}
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
 
@@ -224,7 +226,7 @@ const ActiveStep2 = ({
                                         }
                                     }}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             onChange={(e) => {
                                                 const cleanValue = e.target.value.replace(/[^0-9]/g, '').slice(0, 10);
@@ -245,6 +247,7 @@ const ActiveStep2 = ({
                                             FormHelperTextProps={{
                                                 sx: { position: 'absolute', bottom: -20, left: 0, whiteSpace: 'nowrap' }
                                             }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -256,7 +259,7 @@ const ActiveStep2 = ({
                                     name={`handlingUnits.${huIdx}.unit`}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
@@ -285,10 +288,11 @@ const ActiveStep2 = ({
                                                     }
                                                 },
                                             }}
+                                            disabled={type === 'View'}
                                         >
                                             <MenuItem key='in' value={'in'}>in</MenuItem>
                                             <MenuItem key='cm' value={'cm'}>cm</MenuItem>
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
 
@@ -312,7 +316,7 @@ const ActiveStep2 = ({
                                                     }
                                                 }}
                                                 render={({ field }) => (
-                                                    <TextField
+                                                    <StyledTextField
                                                         {...field}
                                                         // 2. Instantly strips out alphabets and symbols on keypress
                                                         onChange={(e) => {
@@ -338,6 +342,7 @@ const ActiveStep2 = ({
                                                         // 4. Connects validation state to the UI layout
                                                         error={!!fieldError}
                                                         helperText={fieldError?.message || ""}
+                                                        disabled={type === 'View'}
                                                     />
                                                 )}
                                             />
@@ -349,7 +354,7 @@ const ActiveStep2 = ({
                             <Box sx={{ flex: '1 1 70px' }}>
 
                                 <Controller name={`handlingUnits.${huIdx}.weight`} control={control} render={({ field }) => (
-                                    <TextField {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
+                                    <StyledTextField disabled={type === 'View'} {...field} fullWidth label="Weight" variant="standard" InputLabelProps={{ shrink: true }} />
                                 )} />
 
                             </Box>
@@ -359,7 +364,7 @@ const ActiveStep2 = ({
                                     name={`handlingUnits.${huIdx}.weightUnit`}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
@@ -388,10 +393,11 @@ const ActiveStep2 = ({
                                                     }
                                                 },
                                             }}
+                                            disabled={type === 'View'}
                                         >
                                             <MenuItem key='lbs' value={'lbs'}>lbs</MenuItem>
                                             <MenuItem key='kgs' value={'kgs'}>kgs</MenuItem>
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
 
@@ -401,7 +407,7 @@ const ActiveStep2 = ({
                                     name={`handlingUnits.${huIdx}.class`}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
@@ -423,6 +429,7 @@ const ActiveStep2 = ({
                                                 },
                                                 inputProps: { maxLength: 255 },
                                             }}
+                                            disabled={type === 'View'}
                                         >
                                             {watchedHU[huIdx]?.freightClass?.length > 0 ? (
                                                 watchedHU[huIdx]?.freightClass?.map((fc) => {
@@ -447,7 +454,7 @@ const ActiveStep2 = ({
                                             ) : (
                                                 <MenuItem value="" disabled>No freight classes available</MenuItem>
                                             )}
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
 
@@ -458,6 +465,7 @@ const ActiveStep2 = ({
 
                         {/* Dynamic Items List */}
                         <ItemsSection
+                            type={type}
                             huIndex={huIdx}
                             control={control}
                             watchedHU={watchedHU}
@@ -468,7 +476,7 @@ const ActiveStep2 = ({
                 ))}
 
                 {/* Add Handling Unit Button */}
-                <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
+                {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
                     <Button
                         variant="contained"
                         onClick={handleAddHU}
@@ -476,7 +484,7 @@ const ActiveStep2 = ({
                     >
                         Add Handling Unit
                     </Button>
-                </Box>
+                </Box>}
 
                 {/* Emergency Contact: Conditional Render */}
                 {isHazmatSelected && (
@@ -498,7 +506,7 @@ const ActiveStep2 = ({
                                         }
                                     }}
                                     render={({ field, fieldState: { error } }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             onChange={(e) => {
                                                 // 2. FIXED: Truncates pasted text immediately to a 100 character maximum limit
@@ -516,6 +524,7 @@ const ActiveStep2 = ({
                                             inputProps={{
                                                 maxLength: 100
                                             }}
+                                            disabled = {type === 'View'}
                                         />
                                     )}
                                 />
@@ -553,7 +562,7 @@ const ActiveStep2 = ({
 
                                     render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
 
-                                        <TextField
+                                        <StyledTextField
 
                                             {...field}
 
@@ -583,6 +592,7 @@ const ActiveStep2 = ({
                                             }}
 
                                             required={isHazmatSelected}
+                                            disabled = {type === 'View'}
 
                                         />
 

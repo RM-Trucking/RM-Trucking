@@ -44,7 +44,7 @@ import {
 
 } from '../../redux/slices/shipment';
 
-const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => {
+const ItemsSection = ({ type, huIndex, control, watchedHU, openHazmat, setValue }) => {
   const { fields, append, remove } = useFieldArray({
     control,
     name: `handlingUnits.${huIndex}.items`,
@@ -100,7 +100,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                     const pieceError = formState.errors?.handlingUnits?.[huIndex]?.items?.[itemIndex]?.pieces;
 
                     return (
-                      <TextField
+                      <StyledTextField
                         {...field}
                         onChange={(e) => {
                           const cleanValue = e.target.value.replace(/[^0-9]/g, '');
@@ -117,6 +117,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                         FormHelperTextProps={{
                           sx: { position: 'absolute', bottom: -20, left: 0, whiteSpace: 'nowrap' }
                         }}
+                        disabled={type === 'View'}
                       />
                     );
                   }}
@@ -128,7 +129,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                   name={`handlingUnits.${huIndex}.items.${itemIndex}.piecesUom`}
                   control={control}
                   render={({ field }) => (
-                    <TextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}
+                    <StyledTextField {...field} select label="Pieces UOM *" variant="standard" fullWidth InputLabelProps={{ shrink: true }}
                       SelectProps={{
                         displayEmpty: true,
                         MenuProps: {
@@ -139,11 +140,12 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                           PaperProps: { sx: { marginTop: '4px', maxHeight: 300, maxWidth: 300 } }
                         },
                       }}
+                      disabled={type === 'View'}
                     >
                       {['Crate', 'Skid', 'Drum', 'Pail', 'Bundle', 'Bag', 'Barrel', 'Basket', 'Box', 'Carton', 'Jerrican', 'Package', 'Pallet', 'Cylinder', 'Tote', 'Roll', 'Reel', 'Tube'].map((u) => (
                         <MenuItem key={u} value={u}>{u}</MenuItem>
                       ))}
-                    </TextField>
+                    </StyledTextField>
                   )}
                 />
               </Box>
@@ -157,7 +159,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                     maxLength: { value: 255, message: "Description cannot exceed 255 characters" }
                   }}
                   render={({ field, fieldState: { error } }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       onChange={(e) => {
                         const val = e.target.value;
@@ -174,6 +176,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       FormHelperTextProps={{
                         sx: { position: 'absolute', bottom: -20, left: 0 }
                       }}
+                      disabled={type === 'View'}
                     />
                   )}
                 />
@@ -187,7 +190,15 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                       render={({ field }) => (
                         <Checkbox
                           checked={field.value}
-                          sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
+                          sx={{
+                            color: 'rgba(0, 25, 76, 1)',
+                            '&.Mui-checked': {
+                              color: 'rgba(0, 25, 76, 1)'
+                            },
+                            '&.Mui-disabled': {
+                              color: 'rgba(0, 25, 76, 1) !important'
+                            }
+                          }}
                           onChange={(e) => {
                             field.onChange(e.target.checked);
                             if (e.target.checked) { openHazmat(huIndex, itemIndex) }
@@ -197,13 +208,14 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                             };
                           }}
                           size="small"
+                          disabled={type === 'View'}
                         />
                       )}
                     />
                   }
                   label={<Typography variant="caption">Hazmat Info</Typography>}
                 />
-                {currentItem?.hazmatInfo && (
+                {type !== 'View' && currentItem?.hazmatInfo && (
                   <IconButton onClick={() => openHazmat(huIndex, itemIndex)} size="small">
                     <Iconify icon="solar:pen-bold" sx={{ fontSize: 16 }} />
                   </IconButton>
@@ -211,9 +223,9 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
               </Box>
 
               {/* Red Delete Icon for items - disabled if only one item remains */}
-              <IconButton onClick={() => remove(itemIndex)} disabled={fields.length === 1}>
+              {type !== 'View' && <IconButton onClick={() => remove(itemIndex)} disabled={fields.length === 1}>
                 <Iconify icon="tabler:circle-x-filled" sx={{ color: fields.length === 1 ? '#ccc' : '#A22' }} />
-              </IconButton>
+              </IconButton>}
             </Box>
 
             {/* --- HAZMAT SUMMARY BOX --- */}
@@ -231,6 +243,14 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
                 </Typography>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#555' }}>
                   {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
+                  {type === 'View' && [
+                    hazData?.limitedQuality && 'Limited Quality',
+                    hazData?.marinePollutant && 'Marine Pollutant',
+                    hazData?.residueLastContained && 'Residue Last Contained',
+                    hazData?.reportableQuantity && 'Reportable Quantity',
+                    hazData?.dotExemption && 'Dot Exemption'
+                  ].filter(Boolean).join(', ')}
+
                 </Typography>
               </Box>
             )}
@@ -238,7 +258,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
         );
       })}
 
-      <Button
+      {type !== 'View' && <Button
         variant="contained"
         size="small"
         onClick={() => {
@@ -256,7 +276,7 @@ const ItemsSection = ({ huIndex, control, watchedHU, openHazmat, setValue }) => 
         sx={{ bgcolor: '#a22', textTransform: 'none', mt: 1, '&:hover': { bgcolor: '#811' } }}
       >
         Add Item
-      </Button>
+      </Button>}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={6000}

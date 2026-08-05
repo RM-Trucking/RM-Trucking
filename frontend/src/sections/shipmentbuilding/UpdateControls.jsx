@@ -88,6 +88,56 @@ export const updateControls = (setValue, selectedObj,
             setValue('consigneePhone', customerDetails?.consigneeDetails?.phoneNumber);
         }
     }
+    // step 3
+    if (commodityDetails && Object.keys(commodityDetails).length > 0) {
+        setValue('emergencyContactName', commodityDetails?.emergencyContactName);
+        setValue('emergencyContactPhone', commodityDetails?.emergencyContactPhone);
+        setValue('emergencyContactPhone', commodityDetails?.emergencyContactPhone);
+        const mappedHandlingUnits = (commodityDetails?.handlingUnits || []).map((hu, huIndex) => ({
+            id: Date.now() + huIndex, // Added unique ID for key tracking
+            uom: hu.handlingUnitUOM || '',
+            unitsCount: hu.handlingUnits || '',
+            unit: hu.unit || 'in',
+            length: hu.handlingLength || '',
+            width: hu.handlingWidth || '',
+            height: hu.handlingHeight || '',
+            weight: hu.handlingWeight || '',
+            weightUnit: (hu.handlingWeightUnit || 'lbs').toLowerCase(),
+            class: hu.class || '',
+            calculatedFC: '',
+            freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
+            items: (hu.palletDetails || []).map((pallet, pIndex) => ({
+                id: Date.now() + huIndex + pIndex + 1000, // Added unique ID for nested items
+                pieces: pallet.pieces || '',
+                piecesUom: pallet.piecesUOM || '',
+                description: pallet.description || '',
+                hazmatInfo: pallet.hazmat === 'Y',
+                // Optional: spread hazmatDetails if your form schema tracks them at this level
+                hazmatData: (pallet.hazmatDetails && {
+                    unNumber: pallet.hazmatDetails.unNumber || '',
+                    shippingName: pallet.hazmatDetails.properShippingName || '',
+                    hazmatClass: pallet.hazmatDetails.hazardClass || '',
+                    packagingGroup: pallet.hazmatDetails.packingGroup || '',
+                    weight: pallet.hazmatDetails.weight || '',
+                    weightUnit: pallet.hazmatDetails.weightUnit || 'lbs',
+                    technicalName: pallet.hazmatDetails.technicalName || '',
+                    contactPhone: pallet.hazmatDetails.contactPhoneNumber || '',
+                    description: pallet.hazmatDetails.hazmatDescription || '',
+                    limitedQuality: pallet.hazmatDetails.limitedQuantity === 'Y',
+                    marinePollutant: pallet.hazmatDetails.marinePollutant === 'Y',
+                    residueLastContained: pallet.hazmatDetails.residueLastContained === 'Y',
+                    reportableQuantity: pallet.hazmatDetails.reportableQuantity === 'Y',
+                    dotExemption: pallet.hazmatDetails.dotExemption === 'Y'
+                })
+            }))
+        }));
+
+        setValue('handlingUnits', mappedHandlingUnits, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
+
+    }
 };
 export const updateStep2Controls = (setValue, selectedObj,
     customerStationDropdown, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,
@@ -99,34 +149,34 @@ export const updateStep2Controls = (setValue, selectedObj,
             (item) => item?.customerId === customerDetails?.customerId && item?.stationId === customerDetails?.stationId
         ) || null;
         setValue('billingCustomer', selectedStation);
-        
+
         if (customerDetails?.airportPickupService === 'Y') {
             const selectedAirline = shipperAirlineDropdown?.find(
                 (item) => item?.airlineId === customerDetails?.pickupAirlineDetails?.airlineId
             ) || null;
             setValue('shipperName', selectedAirline);
-            
+
         }
         else if (customerDetails?.airportPickupService === 'N') {
             const selectedShipper = shipperDropdown?.find(
                 (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
             ) || null;
             setValue('shipperName', selectedShipper);
-           
+
         }
         if (customerDetails?.airportDeliveryService === 'Y') {
             const selectedAirline = consigneeAirlineDropdown?.find(
                 (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
             ) || null;
             setValue('consigneeName', selectedAirline);
-            
+
         }
         else if (customerDetails?.airportDeliveryService === 'N') {
             const selectedConsignee = consigneeDropdown?.find(
                 (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
             ) || null;
             setValue('consigneeName', selectedConsignee);
-           
+
         }
     }
 };

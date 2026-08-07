@@ -42,6 +42,7 @@ import {
     getZipToZipCarrierLinehaulRate,
     getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
+
 } from '../../redux/slices/shipment';
 import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
@@ -97,6 +98,7 @@ const ActiveStep3Delivery = ({
     watchedDeliveryToLocationFlag,
     editAccIndex,
     watchedCarrierInfo,
+    watchedPickupAgentTerminal,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -212,7 +214,7 @@ const ActiveStep3Delivery = ({
                                                 />
                                             )}
                                             sx={{ width: '100% !important' }}
-                                            disabled={(watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1]) || type === 'View'}
+                                            disabled={!watchedPickupAgentTerminal && ((watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1]) || type === 'View')}
                                         />
                                     )}
                                 />

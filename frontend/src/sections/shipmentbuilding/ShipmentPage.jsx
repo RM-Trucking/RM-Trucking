@@ -1168,6 +1168,7 @@ const ShipmentPage = ({ type }) => {
       }
       if (selectedRouting === 'pickup_linehaul_delivery') {
         setValue('carrierInfo.toLocationType', 'Consignee');
+        setValue('carrierInfo.pickupAgentTerminal', false);
       }
       if (selectedRouting === 'pickup_linehaul') {
         const [terminalId, carrierId] = watchedToLocation.split('-');
@@ -1182,6 +1183,7 @@ const ShipmentPage = ({ type }) => {
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
         }
+        setValue('carrierInfo.pickupAgentTerminal', false);
       }
       if (selectedRouting === 'pickup_only') {
         // setValue('carrierInfo.lineHaul.selectRouting', 'linehaul_only');
@@ -1795,6 +1797,7 @@ const ShipmentPage = ({ type }) => {
                 editAccIndex={editAccIndex}
                 watchedCarrierInfo={watchedCarrierInfo}
                 isPickupPending={isPickupPending}
+                watchedPickupAgentTerminal = {watchedPickupAgentTerminal}
               />
               }
             </>

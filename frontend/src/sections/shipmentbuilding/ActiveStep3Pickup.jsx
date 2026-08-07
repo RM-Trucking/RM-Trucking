@@ -480,7 +480,7 @@ const ActiveStep3Pickup = ({
 
                         {/*  adding pickup agent terminal check box */}
 
-                        <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
+                        {selectedRouting === 'pickup_only' && <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
                                     control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
@@ -495,7 +495,7 @@ const ActiveStep3Pickup = ({
                                     label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
                                 />
                             </Box>
-                        </Box>
+                        </Box>}
 
                         {/* adding a condition such that when pickup agent terminal was checked we will not show location type  */}
                         {watchedPickupAgentTerminal === false && <>

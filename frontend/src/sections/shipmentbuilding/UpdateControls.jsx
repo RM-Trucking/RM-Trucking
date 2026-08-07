@@ -326,6 +326,7 @@ export const updateStep2Controls = (dispatch, setValue, selectedObj,
         const selectedStation = customerStationDropdown?.find(
             (item) => item?.customerId === customerDetails?.customerId && item?.stationId === customerDetails?.stationId
         ) || null;
+        dispatch(getStationAccessorialData(selectedStation?.stationEntityId));
         setValue('billingCustomer', selectedStation);
 
         if (customerDetails?.airportPickupService === 'Y') {

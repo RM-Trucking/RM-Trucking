@@ -47,6 +47,7 @@ import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
 
 const ActiveStep3Linehaul = ({
+    type,
     dispatch,
     navigate,
     location,
@@ -125,17 +126,18 @@ const ActiveStep3Linehaul = ({
                                     name="carrierInfo.lineHaul.selectRouting"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             select
                                             fullWidth
                                             label="Select Routing *"
                                             variant="standard"
                                             {...field}
                                             InputLabelProps={{ shrink: true }}
+                                            disabled={type === 'View'}
                                         >
                                             <MenuItem value="linehaul_only">Line-haul only</MenuItem>
                                             <MenuItem value="linehaul_delivery">Line haul & Delivery</MenuItem>
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
                             </Box>
@@ -206,7 +208,7 @@ const ActiveStep3Linehaul = ({
                                             noOptionsText={selectCarrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                             renderInput={(params) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...params}
                                                     inputRef={ref} // Keeps React Hook Form field validation focus scrolling intact
                                                     variant="standard"
@@ -232,7 +234,7 @@ const ActiveStep3Linehaul = ({
                                                 />
                                             )}
                                             // disabled={!watchedPickupAgentTerminal}
-                                            disabled={!watchedPickupAgentTerminal && (watchedSelectedPickupCarrier?.split('-')[1] !== watchedToLocation?.split('-')[1])}
+                                            disabled={(!watchedPickupAgentTerminal && (watchedSelectedPickupCarrier?.split('-')[1] !== watchedToLocation?.split('-')[1])) || type === 'View'}
                                         />
                                     )}
                                 />
@@ -244,7 +246,7 @@ const ActiveStep3Linehaul = ({
                                     rules={{ required: true }}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             label="Carrier's Bill Number"
@@ -252,6 +254,7 @@ const ActiveStep3Linehaul = ({
                                             variant="standard"
                                             // Natively restricts entry to 50 characters max
                                             inputProps={{ maxLength: 50 }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -280,6 +283,7 @@ const ActiveStep3Linehaul = ({
                                                 }}
                                                 color="primary"
                                                 aria-label="Address or From location"
+                                                disabled={type === 'View'}
                                             >
                                                 <ToggleButton value="pickup" sx={{ textTransform: 'none', px: 3 }}>
                                                     Pickup agents dock
@@ -299,7 +303,15 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mt: '3%', whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
+                                            control={<Checkbox {...field} checked={field.value} size="small" disabled={type === 'View'} sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -339,13 +351,14 @@ const ActiveStep3Linehaul = ({
                                     control={control}
                                     defaultValue={[]}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
                                             label="Select To Type *"
                                             variant="standard"
                                             InputLabelProps={{ shrink: true }}
+                                            disabled={type === 'View'}
                                         >
                                             {watchedLinehaulSelectRouting === 'linehaul_only' && <MenuItem value="Carrier">
                                                 Carrier
@@ -354,7 +367,7 @@ const ActiveStep3Linehaul = ({
                                             {watchedLinehaulSelectRouting === 'linehaul_delivery' && <MenuItem value="Consignee">
                                                 Consignee
                                             </MenuItem>}
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
                             </Box>
@@ -422,7 +435,7 @@ const ActiveStep3Linehaul = ({
                                                 noOptionsText={carrierLinehaulSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                                 renderInput={(params) => (
-                                                    <TextField
+                                                    <StyledTextField
                                                         {...params}
                                                         inputRef={ref} // Forwards validation focusing capabilities accurately to your React Hook Form setup
                                                         variant="standard"
@@ -447,6 +460,7 @@ const ActiveStep3Linehaul = ({
                                                         }}
                                                     />
                                                 )}
+                                                disabled={type === 'View'}
                                             />
                                         )}
                                     />
@@ -458,7 +472,7 @@ const ActiveStep3Linehaul = ({
                                         control={control}
                                         rules={{ required: true }}
                                         render={({ field: { onChange, value, ...fieldProps } }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 fullWidth
                                                 variant="standard"
                                                 label="To Location *"
@@ -483,7 +497,15 @@ const ActiveStep3Linehaul = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
+                                            control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -548,27 +570,36 @@ const ActiveStep3Linehaul = ({
                                                 }
                                             }}
                                             label="ETA Date"
+                                            disabled={type === 'View'}
                                             slotProps={{
                                                 textField: {
                                                     variant: 'standard',
                                                     fullWidth: true,
                                                     error: !!error,
                                                     helperText: error ? error.message : '',
-
-                                                    // FIXED: Intercept keystrokes immediately to block "00/00/0000" layouts
+                                                    sx: {
+                                                        '& .MuiInputBase-input.Mui-disabled': {
+                                                            WebkitTextFillColor: '#000000',
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInputLabel-root.Mui-disabled': {
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInput-root.Mui-disabled:before': {
+                                                            borderBottomStyle: 'solid !important',
+                                                            borderBottomColor: '#000000 !important',
+                                                        }
+                                                    },
                                                     onBeforeInput: (e) => {
                                                         const target = e.target;
                                                         const inputVal = target.value;
                                                         const insertedChar = e.data;
 
-                                                        // 1. Block '0' if it is the very first character typed
                                                         if (insertedChar === '0' && (!inputVal || inputVal.trim() === '')) {
                                                             e.preventDefault();
                                                             return;
                                                         }
 
-                                                        // 2. Block '0' if they are typing it directly after a slash (e.g., "12/0" for month/day filler)
-                                                        // This stops patterns like "12/00/0000" or "01/00/2024"
                                                         if (insertedChar === '0' && inputVal.endsWith('/')) {
                                                             e.preventDefault();
                                                             return;
@@ -580,6 +611,7 @@ const ActiveStep3Linehaul = ({
                                         />
                                     )}
                                 />
+
                             </Box>
 
                             {/* ETA time */}
@@ -593,29 +625,40 @@ const ActiveStep3Linehaul = ({
                                             {...field}
                                             label="ETA Time"
                                             ampm={false}
+                                            disabled={type === 'View'}
                                             slotProps={{
                                                 textField: {
                                                     variant: 'standard',
                                                     fullWidth: true,
-                                                    // FIX: Automatically extracts the correct field error state 
-                                                    // and only displays it after a user interaction (isTouched)
-                                                    error: !!error && isTouched
+                                                    error: !!error && isTouched,
+                                                    sx: {
+                                                        '& .MuiInputBase-input.Mui-disabled': {
+                                                            WebkitTextFillColor: '#000000',
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInputLabel-root.Mui-disabled': {
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInput-root.Mui-disabled:before': {
+                                                            borderBottomStyle: 'solid !important',
+                                                            borderBottomColor: '#000000 !important',
+                                                        }
+                                                    }
                                                 }
                                             }}
                                             InputLabelProps={{ shrink: true }}
                                         />
                                     )}
                                 />
+
                             </Box>
-
-
                             {/* Pcs / Wght */}
                             <Box sx={{ flex: 1.5 }}>
                                 <Controller
                                     name="carrierInfo.lineHaul.pcs"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             type="number"
@@ -640,6 +683,7 @@ const ActiveStep3Linehaul = ({
                                                 }
                                                 field.onChange(e);
                                             }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -650,7 +694,7 @@ const ActiveStep3Linehaul = ({
                                     name="carrierInfo.lineHaul.weight"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             label="Weight"
@@ -683,6 +727,7 @@ const ActiveStep3Linehaul = ({
                                                     e.preventDefault();
                                                 }
                                             }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -694,7 +739,15 @@ const ActiveStep3Linehaul = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                color: 'rgba(0, 25, 76, 1)',
+                                '&.Mui-checked': {
+                                    color: 'rgba(0, 25, 76, 1)'
+                                },
+                                '&.Mui-disabled': {
+                                    color: 'rgba(0, 25, 76, 1) !important'
+                                }
+                            }} />} />}
                             label={<Typography variant="body2">Add Linehaul Accessorials</Typography>}
                         />
                     </Box>
@@ -708,7 +761,7 @@ const ActiveStep3Linehaul = ({
                             <Typography variant="subtitle1" fontWeight="bold">Linehaul Accessorial Details</Typography>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                            {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                                 <Button
                                     variant="contained"
                                     size="small"
@@ -717,7 +770,7 @@ const ActiveStep3Linehaul = ({
                                 >
                                     Add Accessorial
                                 </Button>
-                            </Box>
+                            </Box>}
 
                             <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
                                 <Table size="small">
@@ -747,7 +800,7 @@ const ActiveStep3Linehaul = ({
                                                         <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
                                                     </IconButton>
                                                 </TableCell>
-                                                <TableCell align="right">
+                                                {type !== 'View' && <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                         {/* <IconButton size="small" onClick={() => {
                                       setActionType('View');
@@ -779,7 +832,7 @@ const ActiveStep3Linehaul = ({
 
                                                         }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
-                                                </TableCell>
+                                                </TableCell>}
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -830,7 +883,7 @@ const ActiveStep3Linehaul = ({
                             Line-haul Notes
                         </Typography>
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                            {lineHaulNotesArr.map((note, idx) => (
+                            {lineHaulNotesArr?.map((note, idx) => (
                                 <Box
                                     key={idx}
                                     sx={{
@@ -844,7 +897,9 @@ const ActiveStep3Linehaul = ({
                                         border: '1px solid #bbdefb'
                                     }}
                                     onClick={() => {
-                                        setValue('carrierInfo.lineHaul.lineHaulNotes', note);
+                                        if (type !== 'View') {
+                                            setValue('carrierInfo.lineHaul.lineHaulNotes', note);
+                                        }
                                     }}
                                 >
                                     {note}
@@ -870,13 +925,14 @@ const ActiveStep3Linehaul = ({
                             control={control}
                             defaultValue=""
                             render={({ field }) => (
-                                <TextField
+                                <StyledTextField
                                     {...field}
                                     fullWidth
                                     label="Notes"
                                     variant="standard"
                                     placeholder="Type and press Enter"
                                     InputLabelProps={{ shrink: true }}
+                                    disabled={type === 'View'}
                                     inputProps={{ maxLength: 255 }}
                                 />
                             )}

@@ -47,6 +47,7 @@ import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
 
 const ActiveStep3Delivery = ({
+    type,
     dispatch,
     navigate,
     location,
@@ -185,7 +186,7 @@ const ActiveStep3Delivery = ({
                                             noOptionsText={selectCarrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                             renderInput={(params) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...params}
                                                     inputRef={ref} // Keeps React Hook Form field focus tracking operational on error click
                                                     variant="standard"
@@ -211,7 +212,7 @@ const ActiveStep3Delivery = ({
                                                 />
                                             )}
                                             sx={{ width: '100% !important' }}
-                                            disabled={(watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1])}
+                                            disabled={(watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1]) || type === 'View'}
                                         />
                                     )}
                                 />
@@ -223,7 +224,7 @@ const ActiveStep3Delivery = ({
                                     rules={{ required: true }}
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             label="Carrier's Bill Number"
@@ -231,6 +232,7 @@ const ActiveStep3Delivery = ({
                                             variant="standard"
                                             // Natively restricts entry to 50 characters max
                                             inputProps={{ maxLength: 50 }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -248,7 +250,15 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
+                                            control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
                                         />
                                     )}
@@ -303,13 +313,14 @@ const ActiveStep3Delivery = ({
                                     control={control}
                                     defaultValue={[]}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             select
                                             fullWidth
                                             label="Select To Type *"
                                             variant="standard"
                                             InputLabelProps={{ shrink: true }}
+                                            disabled={type === 'View'}
                                         >
                                             {/* <MenuItem value="Carrier">
                                 Carrier
@@ -317,7 +328,7 @@ const ActiveStep3Delivery = ({
                                             <MenuItem value="Consignee">
                                                 Consignee
                                             </MenuItem>
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
                             </Box>
@@ -386,7 +397,7 @@ const ActiveStep3Delivery = ({
                                                 noOptionsText={carrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                                 renderInput={(params) => (
-                                                    <TextField
+                                                    <StyledTextField
                                                         {...params}
                                                         inputRef={ref} // Forwards focal references safely back to React Hook Form validation routines
                                                         variant="standard"
@@ -412,6 +423,7 @@ const ActiveStep3Delivery = ({
                                                     />
                                                 )}
                                                 sx={{ width: '100% !important', mt: 2 }}
+                                                disabled={type === 'View'}
                                             />
                                         )}
                                     />
@@ -422,7 +434,7 @@ const ActiveStep3Delivery = ({
                                         control={control}
                                         rules={{ required: true }}
                                         render={({ field: { onChange, value, ...fieldProps } }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 fullWidth
                                                 variant="standard"
                                                 label="To Location *"
@@ -447,7 +459,15 @@ const ActiveStep3Delivery = ({
                                     render={({ field }) => (
                                         <FormControlLabel
                                             sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
+                                            control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }} />}
                                             label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
                                         />
                                     )}
@@ -489,14 +509,11 @@ const ActiveStep3Delivery = ({
                                     control={control}
                                     rules={{
                                         validate: (value) => {
-                                            // 1. FIXED: If there is no value, return true instantly (No error is shown)
                                             if (!value || value === '') return true;
 
                                             const dateObj = dayjs(value);
 
-                                            // 2. If it's a Dayjs object but not fully typed out yet, check if it's completely invalid
                                             if (dayjs.isDayjs(value) && !value.isValid()) {
-                                                // If the user cleared the text box entirely, let it pass as valid
                                                 return "Please enter a valid date";
                                             }
 
@@ -504,7 +521,6 @@ const ActiveStep3Delivery = ({
                                                 return "Please enter a valid date";
                                             }
 
-                                            // 3. Catches invalid partial years like 202 or 0202
                                             if (dateObj.year() < 1000) {
                                                 return "Year is invalid";
                                             }
@@ -515,10 +531,8 @@ const ActiveStep3Delivery = ({
                                     render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => (
                                         <DatePicker
                                             {...fieldParams}
-                                            // 4. FIXED: Do not force null on partial text inputs, allow the user to type out the year
                                             value={value ? dayjs(value) : null}
                                             onChange={(newValue) => {
-                                                // 5. FIXED: If the field is manually wiped out cleanly, send null to the form state
                                                 if (!newValue) {
                                                     onChange(null);
                                                 } else {
@@ -526,13 +540,26 @@ const ActiveStep3Delivery = ({
                                                 }
                                             }}
                                             label="ETA Date"
+                                            disabled={type === 'View'}
                                             slotProps={{
                                                 textField: {
                                                     variant: 'standard',
                                                     fullWidth: true,
                                                     error: !!error,
                                                     helperText: error ? error.message : '',
-
+                                                    sx: {
+                                                        '& .MuiInputBase-input.Mui-disabled': {
+                                                            WebkitTextFillColor: '#000000',
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInputLabel-root.Mui-disabled': {
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInput-root.Mui-disabled:before': {
+                                                            borderBottomStyle: 'solid !important',
+                                                            borderBottomColor: '#000000 !important',
+                                                        }
+                                                    },
                                                     onBeforeInput: (e) => {
                                                         const target = e.target;
                                                         const inputVal = target.value;
@@ -554,6 +581,7 @@ const ActiveStep3Delivery = ({
                                         />
                                     )}
                                 />
+
                             </Box>
 
                             {/* ETA time  */}
@@ -567,19 +595,32 @@ const ActiveStep3Delivery = ({
                                             {...field}
                                             label="ETA Time"
                                             ampm={false}
+                                            disabled={type === 'View'}
                                             slotProps={{
                                                 textField: {
                                                     variant: 'standard',
                                                     fullWidth: true,
-                                                    // FIX: Targets the specific error state for delivery details time
-                                                    // and suppresses layout red-lines on page load
-                                                    error: !!error && isTouched
+                                                    error: !!error && isTouched,
+                                                    sx: {
+                                                        '& .MuiInputBase-input.Mui-disabled': {
+                                                            WebkitTextFillColor: '#000000',
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInputLabel-root.Mui-disabled': {
+                                                            color: '#000000',
+                                                        },
+                                                        '& .MuiInput-root.Mui-disabled:before': {
+                                                            borderBottomStyle: 'solid !important',
+                                                            borderBottomColor: '#000000 !important',
+                                                        }
+                                                    }
                                                 }
                                             }}
                                             InputLabelProps={{ shrink: true }}
                                         />
                                     )}
                                 />
+
                             </Box>
 
 
@@ -589,7 +630,7 @@ const ActiveStep3Delivery = ({
                                     name="carrierInfo.deliveryDetails.pcs"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             type="number"
@@ -614,6 +655,7 @@ const ActiveStep3Delivery = ({
                                                 }
                                                 field.onChange(e);
                                             }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -624,7 +666,7 @@ const ActiveStep3Delivery = ({
                                     name="carrierInfo.deliveryDetails.weight"
                                     control={control}
                                     render={({ field }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             type="number"
@@ -655,6 +697,7 @@ const ActiveStep3Delivery = ({
                                                     e.preventDefault();
                                                 }
                                             }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -680,7 +723,15 @@ const ActiveStep3Delivery = ({
 
                     <Box display={'flex'} alignItems={'center'}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAddAcc" control={control} render={({ field }) => <Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                color: 'rgba(0, 25, 76, 1)',
+                                '&.Mui-checked': {
+                                    color: 'rgba(0, 25, 76, 1)'
+                                },
+                                '&.Mui-disabled': {
+                                    color: 'rgba(0, 25, 76, 1) !important'
+                                }
+                            }} />} />}
                             label={<Typography variant="body2">Add Delivery Accessorials</Typography>}
                         />
                         <Box sx={{ display: 'flex', gap: 4 }}>
@@ -691,7 +742,16 @@ const ActiveStep3Delivery = ({
                                 render={({ field }) => (
                                     <FormControlLabel
                                         sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                        control={<Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />}
+                                        control={<Checkbox {...field} disabled = {type === 'View'} checked={field.value} size="small" 
+                                        sx={{
+                                            color: 'rgba(0, 25, 76, 1)',
+                                            '&.Mui-checked': {
+                                                color: 'rgba(0, 25, 76, 1)'
+                                            },
+                                            '&.Mui-disabled': {
+                                                color: 'rgba(0, 25, 76, 1) !important'
+                                            }
+                                        }} />}
                                         label={<Typography variant="body2">Airport Transfer</Typography>}
                                     />
                                 )}
@@ -711,7 +771,7 @@ const ActiveStep3Delivery = ({
                             <Typography variant="subtitle1" fontWeight="bold">Delivery Accessorial Details</Typography>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                            {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                                 <Button
                                     variant="contained"
                                     size="small"
@@ -720,7 +780,7 @@ const ActiveStep3Delivery = ({
                                 >
                                     Add Accessorial
                                 </Button>
-                            </Box>
+                            </Box>}
 
                             <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
                                 <Table size="small">
@@ -750,7 +810,7 @@ const ActiveStep3Delivery = ({
                                                         <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
                                                     </IconButton>
                                                 </TableCell>
-                                                <TableCell align="right">
+                                                {type !== 'View' && <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                         {/* <IconButton size="small" onClick={() => {
                                       setActionType('View');
@@ -782,7 +842,7 @@ const ActiveStep3Delivery = ({
                                                             removeDeliveryAcc(index);
                                                         }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
-                                                </TableCell>
+                                                </TableCell>}
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -828,7 +888,15 @@ const ActiveStep3Delivery = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                            control={<Controller name="carrierInfo.deliveryDetails.deliveryAlert" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                color: 'rgba(0, 25, 76, 1)',
+                                '&.Mui-checked': {
+                                    color: 'rgba(0, 25, 76, 1)'
+                                },
+                                '&.Mui-disabled': {
+                                    color: 'rgba(0, 25, 76, 1) !important'
+                                }
+                            }} />} />}
                             label={<Typography variant="body2">Delivery Alert </Typography>}
                         />
                     </Box>
@@ -853,7 +921,7 @@ const ActiveStep3Delivery = ({
                                             border: '1px solid #bbdefb'
                                         }}
                                         onClick={() => {
-                                            setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
+                                            if (type !== 'View') setValue('carrierInfo.deliveryDetails.lineHaulNotes', note);
                                         }}
                                     >
                                         {note}
@@ -882,7 +950,7 @@ const ActiveStep3Delivery = ({
                                     required: watchedDeliveryAlert ? 'Line-haul notes is required' : '',
                                 }}
                                 render={({ field }) => (
-                                    <TextField
+                                    <StyledTextField
                                         {...field}
                                         fullWidth
                                         label="Notes"
@@ -891,6 +959,7 @@ const ActiveStep3Delivery = ({
                                         InputLabelProps={{ shrink: true }}
                                         required={watchedDeliveryAlert}
                                         inputProps={{ maxLength: 255 }}
+                                        disabled={type === 'View'}
                                     />
                                 )}
                             />
@@ -916,7 +985,7 @@ const ActiveStep3Delivery = ({
                                             border: '1px solid #bbdefb'
                                         }}
                                         onClick={() => {
-                                            setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
+                                            if (type !== 'View') setValue('carrierInfo.deliveryDetails.deliveryNotes', note);
                                         }}
                                     >
                                         {note}
@@ -945,7 +1014,7 @@ const ActiveStep3Delivery = ({
                                     required: watchedDeliveryAlert ? 'Delivery notes is required' : '',
                                 }}
                                 render={({ field }) => (
-                                    <TextField
+                                    <StyledTextField
                                         {...field}
                                         fullWidth
                                         label="Notes"
@@ -954,6 +1023,7 @@ const ActiveStep3Delivery = ({
                                         InputLabelProps={{ shrink: true }}
                                         required={watchedDeliveryAlert}
                                         inputProps={{ maxLength: 255 }}
+                                        disabled={type === 'View'}
                                     />
                                 )}
                             />
@@ -981,7 +1051,7 @@ const ActiveStep3Delivery = ({
                                             }
                                         }}
                                         render={({ field, fieldState: { error } }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 {...field}
                                                 fullWidth
                                                 label="Primary Email"
@@ -992,6 +1062,7 @@ const ActiveStep3Delivery = ({
                                                 required={watchedDeliveryAlert}
                                                 // Natively restricts entry to 255 characters max
                                                 inputProps={{ maxLength: 255 }}
+                                                disabled={type === 'View'}
                                             />
                                         )}
                                     />
@@ -1057,7 +1128,7 @@ const ActiveStep3Delivery = ({
                                                     }}
 
                                                     renderInput={(params) => (
-                                                        <TextField
+                                                        <StyledTextField
                                                             {...params}
                                                             variant="standard"
                                                             label="Additional Email"
@@ -1068,6 +1139,7 @@ const ActiveStep3Delivery = ({
                                                         />
                                                     )}
                                                     sx={{ mt: 2 }}
+                                                    disabled={type === 'View'}
                                                 />
                                             );
                                         }}

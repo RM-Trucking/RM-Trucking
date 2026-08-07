@@ -936,17 +936,17 @@ const ShipmentPage = ({ type }) => {
     });
   }, [watchedHU, setValue])
   useEffect(() => {
-    if (watchedCarrierInfo.selectCarrier) {
+    if (watchedCarrierInfo?.selectCarrier) {
       setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
     }
-    if (watchedCarrierInfo.lineHaul.carrier) {
+    if (watchedCarrierInfo?.lineHaul?.carrier) {
       setValue('carrierRates.lineHaul.lineHaulCarrier', watchedCarrierInfo.lineHaul.carrier);
     }
-    if (watchedCarrierInfo.deliveryDetails.carrier) {
+    if (watchedCarrierInfo?.deliveryDetails?.carrier) {
       setValue('carrierRates.delivery.deliveryCarrier', watchedCarrierInfo.deliveryDetails.carrier);
     }
     // apply accessorial details
-    if (watchedCarrierInfo.pickupAccessorials.length > 0) {
+    if (watchedCarrierInfo?.pickupAccessorials?.length > 0) {
       const updatedPickupAcc = watchedCarrierInfo.pickupAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
@@ -955,7 +955,7 @@ const ShipmentPage = ({ type }) => {
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
-    if (watchedCarrierInfo.lineHaul.linehaulAccessorials.length > 0) {
+    if (watchedCarrierInfo?.lineHaul?.linehaulAccessorials?.length > 0) {
       const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
@@ -964,7 +964,7 @@ const ShipmentPage = ({ type }) => {
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
-    if (watchedCarrierInfo.deliveryDetails.deliveryAccessorials.length > 0) {
+    if (watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials?.length > 0) {
       const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
@@ -1289,7 +1289,10 @@ const ShipmentPage = ({ type }) => {
 
   useEffect(() => {
     if (watchedSelectedPickupCarrier) {
-      const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
+      const [terminalId, carrierId] = typeof watchedSelectedPickupCarrier === 'string'
+        ? watchedSelectedPickupCarrier.split('-')
+        : [];
+
       if (terminalId && carrierId) {
         const selectedObject = carrierTerminalDropdown.find(
           (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
@@ -1306,7 +1309,9 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     // updating primary mail
     if (watchedSelectedPickupCarrier) {
-      const [terminalId, carrierId] = watchedSelectedPickupCarrier.split('-');
+      const [terminalId, carrierId] = typeof watchedSelectedPickupCarrier === 'string'
+        ? watchedSelectedPickupCarrier.split('-')
+        : [];
       if (terminalId && carrierId) {
         const selectedObject = carrierTerminalDropdown.find(
           (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
@@ -1457,16 +1462,16 @@ const ShipmentPage = ({ type }) => {
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
     if (type === 'View' || type === 'Edit') {
-      updateControls(setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,);
+      updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
   }, [type])
   useEffect(() => {
     if (type === 'View' || type === 'Edit') {
-      updateStep2Controls(setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,);
+      updateStep2Controls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
-  }, [type, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown])
+  }, [type, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, customerStationDropdown, carrierTerminalDropdown])
 
   return (
     <ErrorBoundary
@@ -1478,9 +1483,7 @@ const ShipmentPage = ({ type }) => {
       }}
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-
         <Box sx={{ p: 2, mt: 2 }}>
-
           {/* HEADER & STEPPER */}
           <StepperHeader location={location} navigate={navigate}
             PATH_DASHBOARD={PATH_DASHBOARD}
@@ -1529,7 +1532,6 @@ const ShipmentPage = ({ type }) => {
             setActiveStep={setActiveStep}
             totals={totals}
           />
-
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog
             open={shipmentStatusModal}
@@ -1540,7 +1542,6 @@ const ShipmentPage = ({ type }) => {
             errors={errors}
             liveShipmentStatus={liveShipmentStatus}
           />
-
           {/* dialog for DO details */}
           <DoDetailsDialog
             open={doDetailsModal}
@@ -1551,9 +1552,9 @@ const ShipmentPage = ({ type }) => {
             doDetailsFields={doDetailsFields}
             isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
           />
-
           {/* dialog for customer rate  */}
           <CustomerRateDialog
+            type={type}
             open={custommerRateModal}
             onClose={() => {
               setCustomerRateModal(false);
@@ -1568,7 +1569,6 @@ const ShipmentPage = ({ type }) => {
             watchedHU={watchedHU}
             masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
           />
-
           <HandleCancelDialog
             open={handleCancelModal}
             onClose={() => setHandleCancelModal(false)}
@@ -1586,17 +1586,12 @@ const ShipmentPage = ({ type }) => {
               }
             }}
           />
-
           {/* STEP 0 */}
-
           {activeStep === 0 && (
             <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} type={type} />
           )}
-
           {/* STEP 1 */}
-
           {activeStep === 1 && (
-
             <ActiveStep1 control={control} errors={errors} type={type}
               customerStationDropdown={customerStationDropdown}
               renderTextField={renderTextField}
@@ -1618,11 +1613,8 @@ const ShipmentPage = ({ type }) => {
               getValues={getValues}
               watch={watch}
             />
-
           )}
-
           {/* STEP 2 */}
-
           {activeStep === 2 && (
             <ActiveStep2
               type={type}
@@ -1642,12 +1634,11 @@ const ShipmentPage = ({ type }) => {
               setHazmatModal={setHazmatModal}
             />
           )}
-
           {/* STEP 3 */}
-
           {activeStep === 3 && (
             <>
               <ActiveStep3Pickup
+                type={type}
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
@@ -1698,11 +1689,11 @@ const ShipmentPage = ({ type }) => {
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
+                setCarrierPickupSearchValue = {setCarrierPickupSearchValue}
               />
               {
-
                 isPickupPending === false &&
-                <ActiveStep3Linehaul
+                <ActiveStep3Linehaul type={type}
                   dispatch={dispatch}
                   navigate={navigate}
                   location={location}
@@ -1753,7 +1744,7 @@ const ShipmentPage = ({ type }) => {
                   isPickupPending={isPickupPending}
                 />
               }
-              {isPickupPending === false && <ActiveStep3Delivery
+              {isPickupPending === false && <ActiveStep3Delivery type={type}
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
@@ -1808,9 +1799,7 @@ const ShipmentPage = ({ type }) => {
               }
             </>
           )}
-
           {/* step 4 */}
-
           {
             activeStep === 4 && (
               <ActiveStep4 type={type}
@@ -1831,7 +1820,6 @@ const ShipmentPage = ({ type }) => {
               />
             )
           }
-
           <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
             <Alert severity="error" variant="filled">
@@ -1839,7 +1827,6 @@ const ShipmentPage = ({ type }) => {
             </Alert>
 
           </Snackbar>
-
           <Snackbar
             open={handlingUnitWtFlag}
             autoHideDuration={3000}
@@ -1869,7 +1856,6 @@ const ShipmentPage = ({ type }) => {
               All items must have the same weight unit as the first item
             </Alert>
           </Snackbar>
-
           <Snackbar
             open={shipmentErrorFlag}
             autoHideDuration={3000}
@@ -1891,7 +1877,6 @@ const ShipmentPage = ({ type }) => {
               {snackbarMessage}
             </Alert>
           </Snackbar>
-
         </Box>
         {/* Place this at the end of your return block */}
         <HazmatDialog
@@ -1958,7 +1943,6 @@ const ShipmentPage = ({ type }) => {
             </Box>
           </DialogContent>
         </Dialog>
-
       </LocalizationProvider >
     </ErrorBoundary>
   );

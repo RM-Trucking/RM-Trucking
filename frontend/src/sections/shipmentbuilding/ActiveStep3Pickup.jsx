@@ -47,6 +47,7 @@ import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
 
 const ActiveStep3Pickup = ({
+    type,
     dispatch,
     navigate,
     location,
@@ -101,6 +102,7 @@ const ActiveStep3Pickup = ({
     watchedLineHaulToggledAddress,
     watchedPickupAdditionalMails,
     carrierPickupSearchValue,
+    setCarrierPickupSearchValue,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -123,7 +125,15 @@ const ActiveStep3Pickup = ({
                         Carrier Information
                     </Typography>
                     <FormControlLabel
-                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                        control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                            color: 'rgba(0, 25, 76, 1)',
+                            '&.Mui-checked': {
+                                color: 'rgba(0, 25, 76, 1)'
+                            },
+                            '&.Mui-disabled': {
+                                color: 'rgba(0, 25, 76, 1) !important'
+                            }
+                        }} />} />}
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
                     />
                 </Box>
@@ -141,7 +151,7 @@ const ActiveStep3Pickup = ({
                                     name="carrierInfo.selectRouting"
                                     control={control}
                                     render={({ field: { onChange, value, ...restField } }) => (
-                                        <TextField
+                                        <StyledTextField
                                             select
                                             fullWidth
                                             label="Select Routing *"
@@ -158,11 +168,12 @@ const ActiveStep3Pickup = ({
                                                 onChange(e);
                                             }}
                                             InputLabelProps={{ shrink: true }}
+                                            disabled={type === 'View'}
                                         >
                                             <MenuItem value="pickup_only">Pickup only</MenuItem>
                                             <MenuItem value="pickup_linehaul">Pickup & Line haul</MenuItem>
                                             <MenuItem value="pickup_linehaul_delivery">Pickup, Line haul & Delivery</MenuItem>
-                                        </TextField>
+                                        </StyledTextField>
                                     )}
                                 />
 
@@ -181,7 +192,16 @@ const ActiveStep3Pickup = ({
                                                     {...field}
                                                     checked={field.value}
                                                     size="small"
-                                                    sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
+                                                    disabled={type === 'View'}
+                                                    sx={{
+                                                        color: 'rgba(0, 25, 76, 1)',
+                                                        '&.Mui-checked': {
+                                                            color: 'rgba(0, 25, 76, 1)'
+                                                        },
+                                                        '&.Mui-disabled': {
+                                                            color: 'rgba(0, 25, 76, 1) !important'
+                                                        }
+                                                    }}
                                                 />
                                             )}
                                         />
@@ -285,7 +305,7 @@ const ActiveStep3Pickup = ({
                                             noOptionsText={selectCarrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                             renderInput={(params) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...params}
                                                     inputRef={ref} // Keeps React Hook Form validation focus operational
                                                     variant="standard"
@@ -311,11 +331,10 @@ const ActiveStep3Pickup = ({
                                                 />
                                             )}
                                             sx={{ width: '100% !important', mt: 2 }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
-
-
                             </Box>
                             <Box sx={{ flex: '1 1 200px' }}>
                                 <Controller
@@ -330,7 +349,7 @@ const ActiveStep3Pickup = ({
                                         }
                                     }}
                                     render={({ field, fieldState: { error } }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             // 2. Programmatically truncates pasted text down to 50 characters maximum
                                             onChange={(e) => {
@@ -348,6 +367,7 @@ const ActiveStep3Pickup = ({
                                             // 4. Safely flags validation errors and displays the message text layout
                                             error={!!error}
                                             helperText={error ? error.message : ''}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -355,7 +375,15 @@ const ActiveStep3Pickup = ({
                             </Box>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                                    control={<Controller name="carrierInfo.isManualFromLocation" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                        color: 'rgba(0, 25, 76, 1)',
+                                        '&.Mui-checked': {
+                                            color: 'rgba(0, 25, 76, 1)'
+                                        },
+                                        '&.Mui-disabled': {
+                                            color: 'rgba(0, 25, 76, 1) !important'
+                                        }
+                                    }} />} />}
                                     label={<Typography variant="body2">Edit From Location</Typography>}
                                 />
                             </Box>
@@ -455,7 +483,15 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', gap: 3, mb: 3 }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                                    control={<Controller name="carrierInfo.pickupAgentTerminal" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                        color: 'rgba(0, 25, 76, 1)',
+                                        '&.Mui-checked': {
+                                            color: 'rgba(0, 25, 76, 1)'
+                                        },
+                                        '&.Mui-disabled': {
+                                            color: 'rgba(0, 25, 76, 1) !important'
+                                        }
+                                    }} />} />}
                                     label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
                                 />
                             </Box>
@@ -471,13 +507,14 @@ const ActiveStep3Pickup = ({
                                         control={control}
                                         defaultValue={[]}
                                         render={({ field }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 {...field}
                                                 select
                                                 fullWidth
                                                 label="Select To Location Type *"
                                                 variant="standard"
                                                 InputLabelProps={{ shrink: true }}
+                                                disabled={type === 'View'}
                                             >
                                                 {(selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && <MenuItem value="Carrier">
                                                     Carrier
@@ -486,7 +523,7 @@ const ActiveStep3Pickup = ({
                                                 {selectedRouting === 'pickup_linehaul_delivery' && <MenuItem value="Consignee">
                                                     Consignee
                                                 </MenuItem>}
-                                            </TextField>
+                                            </StyledTextField>
                                         )}
                                     />
 
@@ -556,7 +593,7 @@ const ActiveStep3Pickup = ({
                                                     noOptionsText={carrierPickupSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                                     renderInput={(params) => (
-                                                        <TextField
+                                                        <StyledTextField
                                                             {...params}
                                                             inputRef={ref} // Forwards validation focus accurately back to React Hook Form
                                                             variant="standard"
@@ -582,6 +619,7 @@ const ActiveStep3Pickup = ({
                                                         />
                                                     )}
                                                     sx={{ width: '100% !important', mt: 2 }}
+                                                    disabled={type === 'View'}
                                                 />
                                             )}
                                         />
@@ -591,13 +629,14 @@ const ActiveStep3Pickup = ({
                                         control={control}
                                         rules={{ required: true }}
                                         render={({ field: { onChange, value, ...fieldProps } }) => (
-                                            <TextField
+                                            <StyledTextField
                                                 fullWidth
                                                 variant="standard"
                                                 label="To Location *"
                                                 value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
                                                 disabled // Visual indicator showing the user it cannot be changed manually
                                                 InputLabelProps={{ shrink: true }}
+                                                disabled={type === 'View'}
                                                 sx={{
                                                     '& .MuiInputBase-input:disabled': {
                                                         color: '#000', // Ensures high contrast visibility even when disabled
@@ -610,7 +649,15 @@ const ActiveStep3Pickup = ({
                                 </Box>
                                 <Box sx={{ flex: '0 1 200px' }}>
                                     <FormControlLabel
-                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                                        control={<Controller name="carrierInfo.isManualToLocation" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                            color: 'rgba(0, 25, 76, 1)',
+                                            '&.Mui-checked': {
+                                                color: 'rgba(0, 25, 76, 1)'
+                                            },
+                                            '&.Mui-disabled': {
+                                                color: 'rgba(0, 25, 76, 1) !important'
+                                            }
+                                        }} />} />}
                                         label={<Typography variant="body2">Edit To Location</Typography>}
                                     />
                                 </Box>
@@ -709,13 +756,29 @@ const ActiveStep3Pickup = ({
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                             <Box sx={{ flex: '0 1 200px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                                    control={<Controller name="carrierInfo.addPickupAccessorial" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                                        color: 'rgba(0, 25, 76, 1)',
+                                        '&.Mui-checked': {
+                                            color: 'rgba(0, 25, 76, 1)'
+                                        },
+                                        '&.Mui-disabled': {
+                                            color: 'rgba(0, 25, 76, 1) !important'
+                                        }
+                                    }} />} />}
                                     label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
                                 />
                             </Box>
                             <Box sx={{ flex: '0 1 150px' }}>
                                 <FormControlLabel
-                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} checked={field.value} size="small" sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }} />} />}
+                                    control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                        color: 'rgba(0, 25, 76, 1)',
+                                        '&.Mui-checked': {
+                                            color: 'rgba(0, 25, 76, 1)'
+                                        },
+                                        '&.Mui-disabled': {
+                                            color: 'rgba(0, 25, 76, 1) !important'
+                                        }
+                                    }} />} />}
                                     label={<Typography variant="body2">Pickup Alert</Typography>}
                                 />
                             </Box>
@@ -733,7 +796,7 @@ const ActiveStep3Pickup = ({
                             <Typography variant="subtitle1" fontWeight="bold">Pickup Accessorial Details</Typography>
                         </AccordionSummary>
                         <AccordionDetails sx={{ px: 0, pt: 2 }}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+                            {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                                 <Button
                                     variant="contained"
                                     size="small"
@@ -742,7 +805,7 @@ const ActiveStep3Pickup = ({
                                 >
                                     Add Pickup Accessorial
                                 </Button>
-                            </Box>
+                            </Box>}
 
                             <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
                                 <Table size="small">
@@ -772,7 +835,7 @@ const ActiveStep3Pickup = ({
                                                         <Iconify icon="icon-park-solid:notes" sx={{ color: '#90caf9' }} />
                                                     </IconButton>
                                                 </TableCell>
-                                                <TableCell align="right">
+                                                {type !== 'View' && <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
                                                         {/* <IconButton size="small" onClick={() => {
                                   setActionType('View');
@@ -806,7 +869,7 @@ const ActiveStep3Pickup = ({
                                                             removePickupAcc(index);
                                                         }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
                                                     </Stack>
-                                                </TableCell>
+                                                </TableCell>}
                                             </TableRow>
                                         ))}
                                     </TableBody>
@@ -889,7 +952,9 @@ const ActiveStep3Pickup = ({
                                                 border: '1px solid #bbdefb',
                                             }}
                                             onClick={() => {
-                                                setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
+                                                if (type !== 'View') {
+                                                    setValue('carrierInfo.pickupAlertDetails.pickupNotes', note);
+                                                }
                                             }}
                                         >
                                             {note}
@@ -926,7 +991,7 @@ const ActiveStep3Pickup = ({
                                         required: watchedCarrierInfo.pickupAlert ? 'Pickup notes is required' : '',
                                     }}
                                     render={({ field, fieldState: { error } }) => (
-                                        <TextField
+                                        <StyledTextField
                                             {...field}
                                             fullWidth
                                             label="Notes"
@@ -936,6 +1001,7 @@ const ActiveStep3Pickup = ({
                                             error={!!error}
                                             helperText={error?.message || ""}
                                             inputProps={{ maxLength: 255 }}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -964,7 +1030,7 @@ const ActiveStep3Pickup = ({
                                                 }
                                             }}
                                             render={({ field, fieldState: { error } }) => (
-                                                <TextField
+                                                <StyledTextField
                                                     {...field}
                                                     fullWidth
                                                     label="Primary Email"
@@ -975,6 +1041,7 @@ const ActiveStep3Pickup = ({
                                                     required={watchedCarrierInfo.pickupAlert}
                                                     // Natively restricts entry to 255 characters max
                                                     inputProps={{ maxLength: 255 }}
+                                                    disabled={type === 'View'}
                                                 />
                                             )}
                                         />
@@ -1040,7 +1107,7 @@ const ActiveStep3Pickup = ({
                                                         }}
 
                                                         renderInput={(params) => (
-                                                            <TextField
+                                                            <StyledTextField
                                                                 {...params}
                                                                 variant="standard"
                                                                 label="Additional Email"
@@ -1053,9 +1120,11 @@ const ActiveStep3Pickup = ({
                                                                     ...params.inputProps,
                                                                     maxLength: 255
                                                                 }}
+                                                                disabled={type === 'View'}
                                                             />
                                                         )}
                                                         sx={{ mt: 2 }}
+                                                        disabled={type === 'View'}
                                                     />
                                                 );
                                             }}
@@ -1069,14 +1138,11 @@ const ActiveStep3Pickup = ({
                         </AccordionDetails>
                     </Accordion>}
 
-
-
                     <Snackbar open={carrierTerminalSelectError} autoHideDuration={3000} onClose={() => setCarrierTerminalSelectError(false)} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
                         <Alert severity="information" variant="filled">Please select a carrier and terminal for {watchedLineHaulToggledAddress}.</Alert>
 
                     </Snackbar>
-
                 </>}
 
             </Paper>

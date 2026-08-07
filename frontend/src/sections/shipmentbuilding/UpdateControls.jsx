@@ -1,5 +1,18 @@
-export const updateControls = (setValue, selectedObj,
+import {
+    getPickupAccessorials,
+    getLinehaulAccessorials,
+    getDeliveryAccessorials,
+    getAccessorialDropdown,
+    getStationAccessorialData,
+    getZipToZipCarrierPickupRate,
+    getZipToZipCarrierLinehaulRate,
+    getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
+
+} from '../../redux/slices/shipment';
+
+export const updateControls = (dispatch, setValue, selectedObj,
     customerStationDropdown, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,
+    carrierTerminalDropdown,
 ) => {
     console.log('update controls');
     const shipmentDetails = selectedObj?.shipmentDetails;
@@ -138,11 +151,176 @@ export const updateControls = (setValue, selectedObj,
         });
 
     }
+    // step 4
+    if (pickupDetails && Object.keys(pickupDetails).length > 0) {
+        setValue('carrierInfo.orderReceivedPending', shipmentDetails?.orderReceivedPickupPending === 'Y');
+        setValue('carrierInfo.airportTransfer', pickupDetails?.airportTransfer === 'Y');
+        setValue('carrierInfo.pickupAgentTerminal', pickupDetails?.pickupAgentTerminal === 'Y');
+        setValue('carrierInfo.toLocationType', pickupDetails?.pickupAgentTerminalDetails?.toLocationType);
+        setValue('carrierInfo.addPickupAccessorial', pickupDetails?.pickupAccessorial === 'Y');
+        setValue('carrierInfo.pickupAlert', pickupDetails?.pickupAlert === 'Y');
+        setValue('carrierInfo.selectRouting', pickupDetails?.pickupRouting === 'PICKUP_ONLY' ? 'pickup_only' : pickupDetails?.pickupRouting === 'PICKUP_LINE_HAUL' ? 'pickup_linehaul' : 'pickup_linehaul_delivery');
+        const updatedAccessorials = (pickupDetails?.pickupAccessorialDetails?.accessorials || []).map((item) => ({
+            ...item,
+            isManual: false,
+            selected: true
+        }));
+
+        setValue('carrierInfo.pickupAccessorials', updatedAccessorials);
+        setValue('carrierInfo.pickupAlertDetails.pickupNotes', pickupDetails?.pickupAlertDetails?.inboundNotes);
+        setValue('carrierInfo.pickupAlertDetails.primaryEmail', pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail);
+        setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails);
+        setValue('carrierInfo.manualToAddress.line1', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.addressLine1);
+        setValue('carrierInfo.manualToAddress.line2', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.addressLine2);
+        setValue('carrierInfo.manualToAddress.city', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.city);
+        setValue('carrierInfo.manualToAddress.state', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.state);
+        setValue('carrierInfo.manualToAddress.zip', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.zipCode);
+    }
+    if (linehaulDetails && Object.keys(linehaulDetails).length > 0) {
+        setValue('carrierInfo.lineHaul.selectRouting', linehaulDetails?.linehaulPrimaryInfo?.linehaulRouting?.toLowerCase() === 'line_haul_only' ? 'linehaul_only' : 'linehaul_delivery');
+        setValue('carrierInfo.lineHaul.billNumber', linehaulDetails?.linehaulPrimaryInfo?.carrierBillNumber);
+        setValue('carrierInfo.lineHaul.toLocationType', linehaulDetails?.linehaulPrimaryInfo?.toLocationType);
+        setValue('carrierInfo.lineHaul.fromLocation', linehaulDetails?.linehaulPrimaryInfo?.fromLocationType);
+        setValue('carrierInfo.lineHaul.etaDate', linehaulDetails?.linehaulPrimaryInfo?.etaDate);
+        setValue('carrierInfo.lineHaul.etaTime', linehaulDetails?.linehaulPrimaryInfo?.etaTime);
+        setValue('carrierInfo.lineHaul.pcs', linehaulDetails?.linehaulPrimaryInfo?.pieces);
+        setValue('carrierInfo.lineHaul.weight', linehaulDetails?.linehaulPrimaryInfo?.weight);
+        setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y');
+        const updatedAccessorials = (linehaulDetails?.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials || []).map((item) => ({
+            ...item,
+            isManual: false,
+            selected: true
+        }));
+        setValue('carrierInfo.lineHaul.linehaulAccessorials', updatedAccessorials);
+        setValue('carrierInfo.lineHaul.lineHaulNotes', linehaulDetails?.linehaulCommonInfo?.linehaulNotes);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.addressLine1);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.line2);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.city);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.state);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.zipCode);
+
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.addressLine1);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.line2);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.city);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.state);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.zipCode);
+    }
+    if (deliveryDetails && Object.keys(deliveryDetails).length > 0) {
+        setValue('carrierInfo.deliveryDetails.billNumber', deliveryDetails?.deliveryPrimaryInfo?.carrierBillNumber);
+        setValue('carrierInfo.deliveryDetails.toLocationType', deliveryDetails?.deliveryPrimaryInfo?.toLocationType);
+        setValue('carrierInfo.deliveryDetails.fromLocation', deliveryDetails?.deliveryPrimaryInfo?.fromLocationType);
+        setValue('carrierInfo.deliveryDetails.etaDate', deliveryDetails?.deliveryPrimaryInfo?.etaDate);
+        setValue('carrierInfo.deliveryDetails.etaTime', deliveryDetails?.deliveryPrimaryInfo?.etaTime);
+        setValue('carrierInfo.deliveryDetails.pcs', deliveryDetails?.deliveryPrimaryInfo?.pieces);
+        setValue('carrierInfo.deliveryDetails.weight', deliveryDetails?.deliveryPrimaryInfo?.weight);
+        setValue('carrierInfo.deliveryDetails.deliveryAddAcc', deliveryDetails?.deliveryCommonInfo?.deliveryAccessorial === 'Y');
+        setValue('carrierInfo.deliveryDetails.deliveryAlert', deliveryDetails?.deliveryCommonInfo?.deliveryAlert === 'Y');
+        const updatedAccessorials = (deliveryDetails?.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials || []).map((item) => ({
+            ...item,
+            isManual: false,
+            selected: true
+        }));
+        setValue('carrierInfo.deliveryDetails.deliveryAccessorials', updatedAccessorials);
+        setValue('carrierInfo.deliveryDetails.lineHaulNotes', deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.linehaulNotes);
+        setValue('carrierInfo.deliveryDetails.deliveryNotes', deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.deliveryNotes);
+        setValue('carrierInfo.deliveryDetails.primaryEmail', deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.primaryEmail);
+        setValue('carrierInfo.deliveryDetails.additionalEmail', deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails);
+        setValue('carrierInfo.deliveryDetails.airportTransfer', deliveryDetails?.deliveryCommonInfo?.airportTransfer);
+
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.line2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.city);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.state);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.zipCode);
+
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.line2);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.city);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
+    }
+    // step 5
+    if (carrierRateDetails && Object.keys(carrierRateDetails).length > 0) {
+        setValue('carrierRates.pickUp.pickUpCarrier', pickupDetails?.carrierName);
+        setValue('carrierRates.lineHaul.lineHaulCarrier', linehaulDetails?.linehaulPrimaryInfo?.carrierName);
+        setValue('carrierRates.delivery.deliveryCarrier', deliveryDetails?.deliveryPrimaryInfo?.carrierName);
+
+        setValue('carrierRates.pickUp.invoiceNo', carrierRateDetails?.pickupRateDetails?.invoiceNumber);
+        setValue('carrierRates.lineHaul.invoiceNo', carrierRateDetails?.linehaulRateDetails?.invoiceNumber);
+        setValue('carrierRates.delivery.invoiceNo', carrierRateDetails?.deliveryRateDetails?.invoiceNumber);
+
+        // rate details
+        const updatedPickupRates = (carrierRateDetails?.pickupRateDetails?.rateDetails || []).map((item) => ({
+            ...item,
+            chargeType: item.rateType,
+            chargeValue: item.rateValue,
+            apiCharges: item.rateValue,
+            input: item.multiplicationFactor,
+            isManual: false,
+            selected: true,
+        }));
+        const targetPickupZiptozipRate = updatedPickupRates.find((item) => item?.rateType === 'Zip to Zip') || null;
+        const filteredPickupRates = updatedPickupRates.filter((item) => item?.rateType !== 'Zip to Zip');
+        setValue('carrierRates.pickUp.pickUpRate', targetPickupZiptozipRate?.rateValue);
+        setValue('carrierRates.pickUp.pickupAccessorials', filteredPickupRates);
+
+        const updatedLinehaulRates = (carrierRateDetails?.linehaulRateDetails?.rateDetails || []).map((item) => ({
+            ...item,
+            chargeType: item.rateType,
+            chargeValue: item.rateValue,
+            apiCharges: item.rateValue,
+            input: item.multiplicationFactor,
+            isManual: false,
+            selected: true,
+        }));
+        const targetLinehaulZiptozipRate = updatedLinehaulRates.find((item) => item?.rateType === 'Zip to Zip') || null;
+        const filteredLinehaulRates = updatedLinehaulRates.filter((item) => item?.rateType !== 'Zip to Zip');
+        setValue('carrierRates.lineHaul.lineHaulRate', targetLinehaulZiptozipRate?.rateValue);
+        setValue('carrierRates.lineHaul.lineHaulAccessorials', filteredLinehaulRates);
+
+        const updatedDeliveryRates = (carrierRateDetails?.deliveryRateDetails?.rateDetails || []).map((item) => ({
+            ...item,
+            chargeType: item.rateType,
+            chargeValue: item.rateValue,
+            apiCharges: item.rateValue,
+            input: item.multiplicationFactor,
+            isManual: false,
+            selected: true,
+        }));
+        const targetDeliveryZiptozipRate = updatedDeliveryRates.find((item) => item?.rateType === 'Zip to Zip') || null;
+        const filteredDeliveryRates = updatedDeliveryRates.filter((item) => item?.rateType !== 'Zip to Zip');
+        setValue('carrierRates.delivery.deliveryRate', targetDeliveryZiptozipRate?.rateValue);
+        setValue('carrierRates.delivery.deliveryAccessorials', filteredDeliveryRates);
+
+    }
+    if (customerRateDetails && Object.keys(customerRateDetails).length > 0) {
+        // rate detials
+        const updatedCustomerRates = (customerRateDetails?.rateDetails || []).map((item) => ({
+            ...item,
+            chargeType: item.rateType,
+            chargeValue: item.rateValue,
+            apiCharges: item.rateValue,
+            input: item.multiplicationFactor,
+            isManual: false,
+            selected: true,
+        }));
+        const targetCustomerRate = updatedCustomerRates.find((item) => item?.rateType === 'Rate') || null;
+        const targetCustomerFuelRate = updatedCustomerRates.find((item) => item?.rateType === 'Fuel Surcharge (35% charge)') || null;
+        const filteredCustomerRates = updatedCustomerRates.filter((item) => (item?.rateType !== 'Rate' && item?.rateType !== 'Fuel Surcharge (35% charge)'));
+        setValue('customerRate.rate', targetCustomerRate?.rateValue);
+        setValue('customerRate.fuelSurchargeRate', targetCustomerFuelRate?.rateValue);
+        setValue('customerRate.customerAccessorials', filteredCustomerRates);
+    }
+
 };
-export const updateStep2Controls = (setValue, selectedObj,
+export const updateStep2Controls = (dispatch, setValue, selectedObj,
     customerStationDropdown, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,
+    carrierTerminalDropdown
 ) => {
     const customerDetails = selectedObj?.customerDetails;
+    const pickupDetails = selectedObj?.carrierDetails?.pickupDetails;
+    const linehaulDetails = selectedObj?.carrierDetails?.linehaulDetails;
+    const deliveryDetails = selectedObj?.carrierDetails?.deliveryDetails;
     // step 2
     if (customerDetails && Object.keys(customerDetails).length > 0) {
         const selectedStation = customerStationDropdown?.find(
@@ -178,6 +356,47 @@ export const updateStep2Controls = (setValue, selectedObj,
             setValue('consigneeName', selectedConsignee);
 
         }
+    }
+    // step 4
+    if (carrierTerminalDropdown?.length > 0) {
+        const selectedPickupFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === pickupDetails?.carrierId && item?.terminalId === pickupDetails?.terminalId
+        ) || null;
+        // have to call api for accessorials, call for rates (taken care on handle next)
+        if (selectedPickupFromTerminal?.terminalEntityId) {
+            dispatch(getPickupAccessorials(selectedPickupFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.selectCarrier', `${selectedPickupFromTerminal?.terminalId}-${selectedPickupFromTerminal?.carrierId}`);
+        const selectedPickupToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === pickupDetails?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.toLocation', `${selectedPickupToTerminal?.terminalId}-${selectedPickupToTerminal?.carrierId}`);
+
+        // linehaul
+        const selectedLinehaulFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === linehaulDetails?.linehaulPrimaryInfo?.carrierId && item?.terminalId === linehaulDetails?.linehaulPrimaryInfo?.terminalId
+        ) || null;
+        if (selectedLinehaulFromTerminal?.terminalEntityId) {
+            dispatch(getLinehaulAccessorials(selectedLinehaulFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.lineHaul.carrier', `${selectedLinehaulFromTerminal?.terminalId}-${selectedLinehaulFromTerminal?.carrierId}`);
+        const selectedLinehaulToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === linehaulDetails?.linehaulPrimaryInfo?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.lineHaul.toLocation', `${selectedLinehaulToTerminal?.terminalId}-${selectedLinehaulToTerminal?.carrierId}`);
+
+        // delivery
+        const selectedDeliveryFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === deliveryDetails?.deliveryPrimaryInfo?.carrierId && item?.terminalId === deliveryDetails?.deliveryPrimaryInfo?.terminalId
+        ) || null;
+        if (selectedDeliveryFromTerminal?.terminalEntityId) {
+            dispatch(getDeliveryAccessorials(selectedDeliveryFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.deliveryDetails.carrier', `${selectedDeliveryFromTerminal?.terminalId}-${selectedDeliveryFromTerminal?.carrierId}`);
+        const selectedDeliveryToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.deliveryDetails.toLocation', `${selectedDeliveryToTerminal?.terminalId}-${selectedDeliveryToTerminal?.carrierId}`);
     }
 };
 

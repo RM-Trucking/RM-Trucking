@@ -144,9 +144,9 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     // adding to object
     // step 0
     obj.shipmentDetails = {
-        "typeOfShipment": currentValues.shipmentType,
-        "serviceLevel": currentValues.serviceLevel,
-        "shipmentDate": currentValues.date
+        "typeOfShipment": currentValues?.shipmentType,
+        "serviceLevel": currentValues?.serviceLevel,
+        "shipmentDate": currentValues?.date
             ? new Date(currentValues.date).toLocaleDateString('en-CA')
             : "",
         "shipmentTime": currentValues.time
@@ -157,12 +157,12 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     };
     // step 1
     obj.customerDetails = {
-        "customerId": currentValues.billingCustomer.customerId,
-        "stationId": currentValues.billingCustomer.stationId,
+        "customerId": currentValues.billingCustomer?.customerId,
+        "stationId": currentValues.billingCustomer?.stationId,
         "airportPickupService": watchedAirportPickupService ? "Y" : "N",
         "airportDeliveryService": watchedAirportDeliveryService ? "Y" : "N",
-        "originAirportCode": currentValues.originAirport,
-        "destinationAirportCode": currentValues.destinationAirport,
+        "originAirportCode": currentValues?.originAirport,
+        "destinationAirportCode": currentValues?.destinationAirport,
         // we have to update address when we select shipper details
         "shipperDetails": {
             'shipperId': currentValues?.shipperName?.shipperId || null,
@@ -277,13 +277,15 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     }
     // step 3
     console.log(selectedRouting, watchedLinehaulSelectRouting);
-    const [pickupTerminalId, pickupCarrierId] = watchedSelectedPickupCarrier.split('-');
-    const [linehaulTerminalId, linehaulCarrierId] = watchedSelectedLineHaulCarrier.split('-');
-    const [deliveryTerminalId, deliveryCarrierId] = watchedSelectedDeliveryCarrier.split('-');
 
-    const [pickupToLocTerminalId, pickupToLocCarrierId] = watchedToLocation.split('-');
-    const [linehaulToLocTerminalId, linehaulToLocCarrierId] = watchedLinehaulToLocation.split('-');
-    const [deliveryToLocTerminalId, deliveryToLocCarrierId] = watchedDeliveryToLocation.split('-');
+    const [pickupTerminalId, pickupCarrierId] = typeof watchedSelectedPickupCarrier === 'string' ? watchedSelectedPickupCarrier.split('-') : [];
+    const [linehaulTerminalId, linehaulCarrierId] = typeof watchedSelectedLineHaulCarrier === 'string' ? watchedSelectedLineHaulCarrier.split('-') : [];
+    const [deliveryTerminalId, deliveryCarrierId] = typeof watchedSelectedDeliveryCarrier === 'string' ? watchedSelectedDeliveryCarrier.split('-') : [];
+
+    const [pickupToLocTerminalId, pickupToLocCarrierId] = typeof watchedToLocation === 'string' ? watchedToLocation.split('-') : [];
+    const [linehaulToLocTerminalId, linehaulToLocCarrierId] = typeof watchedLinehaulToLocation === 'string' ? watchedLinehaulToLocation.split('-') : [];
+    const [deliveryToLocTerminalId, deliveryToLocCarrierId] = typeof watchedDeliveryToLocation === 'string' ? watchedDeliveryToLocation.split('-') : [];
+
 
     // From Location
     const selectedPickupCarrierObject = carrierTerminalDropdown.find(

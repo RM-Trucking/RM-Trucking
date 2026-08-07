@@ -4,12 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
 
 import {
-    Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
-    Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
-    DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
-    AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
-    TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions,
-    ToggleButton, ToggleButtonGroup,
+  Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
+  Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
+  DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
+  AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
+  TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions,
+  ToggleButton, ToggleButtonGroup,
 
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
@@ -27,20 +27,20 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import {
-    getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
-    getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
-    getConsigneeAirlineDropdown, setPickupAccessorials,
-    setLinehaulAccessorials,
-    setDeliveryAccessorials,
-    getPickupAccessorials,
-    getLinehaulAccessorials,
-    getDeliveryAccessorials,
-    setAccessorialDropdown,
-    getAccessorialDropdown,
-    getStationAccessorialData,
-    getZipToZipCarrierPickupRate,
-    getZipToZipCarrierLinehaulRate,
-    getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
+  getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
+  getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
+  getConsigneeAirlineDropdown, setPickupAccessorials,
+  setLinehaulAccessorials,
+  setDeliveryAccessorials,
+  getPickupAccessorials,
+  getLinehaulAccessorials,
+  getDeliveryAccessorials,
+  setAccessorialDropdown,
+  getAccessorialDropdown,
+  getStationAccessorialData,
+  getZipToZipCarrierPickupRate,
+  getZipToZipCarrierLinehaulRate,
+  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
 } from '../../redux/slices/shipment';
 
@@ -79,7 +79,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
 
   return (
     <Box sx={{ mb: 4 }}>
-      {type && type !== 'Add' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+      {type && type !== 'Add' && type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
         <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}
           onClick={() => {
             setInvoiceApprovalModal(true);
@@ -102,7 +102,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                 name={invoiceNo}
                 control={control}
                 render={({ field }) => (
-                  <TextField
+                  <StyledTextField
                     {...field}
                     // When NOT editing, we show "Invoice #" as a label/placeholder
                     // When editing, we show the real value so you can type freely
@@ -151,12 +151,16 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                   <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                 </IconButton>
               ) : (
-                <IconButton
-                  size="small"
-                  onClick={() => setIsInvoiceEditing(true)} // Enable edit mode for this row
-                >
-                  <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                </IconButton>
+                <>
+                  {
+                    type !== 'View' && <IconButton
+                      size="small"
+                      onClick={() => setIsInvoiceEditing(true)} // Enable edit mode for this row
+                    >
+                      <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                    </IconButton>
+                  }
+                </>
               )}
             </Box>}
           </Box>
@@ -183,7 +187,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
               name={rate}
               control={control}
               render={({ field }) => (
-                <TextField
+                <StyledTextField
                   {...field}
                   size="small"
                   type="number" // Ensures numeric entry behavior
@@ -245,12 +249,16 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                 <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
               </IconButton>
             ) : (
-              <IconButton
-                size="small"
-                onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
-              >
-                <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-              </IconButton>
+              <>
+                {
+                  type !== 'View' && <IconButton
+                    size="small"
+                    onClick={() => setIsRateEditing(true)} // Enable edit mode for this row
+                  >
+                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                  </IconButton>
+                }
+              </>
             )}
 
             {manual && <Typography variant="caption" sx={{ color: '#666' }}>Manual Entry</Typography>}
@@ -288,7 +296,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                         name={`${path}[${index}].input`}
                         control={control}
                         render={({ field }) => (
-                          <TextField
+                          <StyledTextField
                             {...field}
                             size="small"
                             type="number" // Forces browser numeric input behavior
@@ -343,12 +351,14 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                           <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                         </IconButton>
                       ) : (
-                        <IconButton
-                          size="small"
-                          onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
-                        >
-                          <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                        </IconButton>
+                        <>
+                          {type !== 'View' && <IconButton
+                            size="small"
+                            onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
+                          >
+                            <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                          </IconButton>}
+                        </>
                       )}
                     </>
                   )
@@ -360,7 +370,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                         name={`${path}[${index}].input`}
                         control={control}
                         render={({ field }) => (
-                          <TextField
+                          <StyledTextField
                             {...field}
                             size="small"
                             type="number" // Enforces numeric keyboard/entry rules
@@ -418,7 +428,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                   name={`${path}[${index}].chargeValue`}
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       size="small"
                       type="number" // Enforces numeric entry rules
@@ -480,12 +490,16 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                   </IconButton>
                 ) : (
-                  <IconButton
-                    size="small"
-                    onClick={() => setEditIndex(index)} // Enable edit mode for this row
-                  >
-                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                  </IconButton>
+                  <>
+                    {
+                      type !== 'View' && <IconButton
+                        size="small"
+                        onClick={() => setEditIndex(index)} // Enable edit mode for this row
+                      >
+                        <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                      </IconButton>
+                    }
+                  </>
                 )}
 
                 {getValues(`${path}[${index}].isManual`) && <Typography variant="caption" sx={{ color: '#666', flex: 1 }}>Manual Entry</Typography>}

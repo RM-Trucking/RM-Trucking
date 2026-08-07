@@ -63,7 +63,7 @@ const commonBtnStyle = {
 
 };
 // customer Rate pop up dialog box
-const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials }) => {
+const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials }) => {
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -141,7 +141,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   name={'customerRate.rate'}
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       size="small"
                       type="number" // Forces numeric keyboard and behavior
@@ -193,27 +193,35 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                   </IconButton>
                 ) : (
-                  <FormControlLabel
-                    label="Spot Rate"
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={spotRateFlag}
-                        onChange={(event) => { setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked); }}
+                  <>
+                    {
+                      type !== 'View' && <FormControlLabel
+                        label="Spot Rate"
+                        control={
+                          <Checkbox
+                            size="small"
+                            checked={spotRateFlag}
+                            disabled={type === 'View'}
+                            onChange={(event) => { setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked); }}
+                            sx={{
+                              color: 'rgba(0, 25, 76, 1)',
+                              '&.Mui-checked': {
+                                color: 'rgba(0, 25, 76, 1)', // Keeps the color consistent when checked
+                              },
+                              '&.Mui-disabled': {
+                                color: 'rgba(0, 25, 76, 1) !important'
+                              }
+                            }}
+                          />
+                        }
                         sx={{
-                          color: 'rgba(0, 25, 76, 1)',
-                          '&.Mui-checked': {
-                            color: 'rgba(0, 25, 76, 1)', // Keeps the color consistent when checked
+                          '& .MuiFormControlLabel-label': {
+                            fontSize: '0.875rem', // Adjust font size to match row scale if needed
                           },
                         }}
                       />
                     }
-                    sx={{
-                      '& .MuiFormControlLabel-label': {
-                        fontSize: '0.875rem', // Adjust font size to match row scale if needed
-                      },
-                    }}
-                  />
+                  </>
                 )}
               </Box>
               <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
@@ -239,7 +247,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   name={'customerRate.fuelSurchargeRate'}
                   control={control}
                   render={({ field }) => (
-                    <TextField
+                    <StyledTextField
                       {...field}
                       size="small"
                       type="number" // Enforces native numeric browser behavior
@@ -291,12 +299,16 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                     <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                   </IconButton>
                 ) : (
-                  <IconButton
-                    size="small"
-                    onClick={() => setIsFuelSurchargeEditing(true)} // Enable edit mode for this row
-                  >
-                    <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                  </IconButton>
+                  <>
+                    {
+                      type !== 'View' && <IconButton
+                        size="small"
+                        onClick={() => setIsFuelSurchargeEditing(true)} // Enable edit mode for this row
+                      >
+                        <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                      </IconButton>
+                    }
+                  </>
                 )}
               </Box>
               <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc', }}>
@@ -325,7 +337,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                             name={`customerRate.customerAccessorials[${index}].input`}
                             control={control}
                             render={({ field }) => (
-                              <TextField
+                              <StyledTextField
                                 {...field}
                                 value={field.value ?? ''}
                                 size="small"
@@ -381,12 +393,16 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                               <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                             </IconButton>
                           ) : (
-                            <IconButton
-                              size="small"
-                              onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
-                            >
-                              <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                            </IconButton>
+                            <>
+                              {
+                                type !== 'View' && <IconButton
+                                  size="small"
+                                  onClick={() => setEditInputIndex(index)} // Enable edit mode for this row
+                                >
+                                  <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                                </IconButton>
+                              }
+                            </>
                           )}
                         </>
                       )
@@ -398,7 +414,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                             name={`customerRate.customerAccessorials[${index}].input`}
                             control={control}
                             render={({ field }) => (
-                              <TextField
+                              <StyledTextField
                                 {...field}
                                 size="small"
                                 value={field.value ?? ''}
@@ -523,12 +539,16 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                         <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                       </IconButton>
                     ) : (
-                      <IconButton
-                        size="small"
-                        onClick={() => setEditIndex(index)} // Enable edit mode for this row
-                      >
-                        <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
-                      </IconButton>
+                      <>
+                        {
+                          type !== 'View' && <IconButton
+                            size="small"
+                            onClick={() => setEditIndex(index)} // Enable edit mode for this row
+                          >
+                            <Iconify icon="tabler:edit" width={18} sx={{ color: '#a22' }} />
+                          </IconButton>
+                        }
+                      </>
                     )}
 
                   </Box>
@@ -590,7 +610,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
 
-                <TextField
+                <StyledTextField
                   size="small"
                   variant="outlined"
                   select
@@ -605,7 +625,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                   }}
                 >
                   {masterAccessorials.map((opt, index) => (<MenuItem key={index} value={opt.entityAccessorialId}>{opt.accessorialName}</MenuItem>))}
-                </TextField>
+                </StyledTextField>
 
                 <StyledTextField value={getValues('customerRate.selectedAccToAdd.chargeType') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
 
@@ -621,7 +641,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
             {/* add acc button  */}
             {!addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
 
-              <Box sx={{
+              {type !== 'View' && <Box sx={{
                 flex: 1.5, p: 1,
                 display: 'flex', alignItems: 'center', gap: 1
               }}>
@@ -633,7 +653,7 @@ const CustomerRateDialog = ({ open, onClose, getValues, setValue, control, total
                 >
                   Add
                 </Button>
-              </Box>
+              </Box>}
 
             </Box>}
 

@@ -21,7 +21,10 @@ import {
   setZoneRateData
 } from '../../../redux/slices/zone';
 import {
-  setRateTableData, setCarrierList, setCustomerList, 
+  setRateTableData, setCarrierList, setCustomerList,
+} from '../../../redux/slices/rate';
+import {
+  clearFuelSurchargeData, setCurrentFuelSurchargeTab, setSelectedFuelSurchargeRowDetails, setStationList, setCustomerList
 } from '../../../redux/slices/rate';
 
 import { useDispatch } from '../../../redux/store';
@@ -47,20 +50,36 @@ function NavItem({ item, depth = 0 }) {
   const handleClick = (e) => {
     // 1. If it has a path, go there immediately
     // emptying all the array data in all slices
-    dispatch(setAccessorialData([]));
-    dispatch(setCarrierData([]));
-    dispatch(setCarrierViewTabData([]));
-    dispatch(setTerminalViewTabData([]));
-    dispatch(setStationTabTableData([]));
-    dispatch(setCustomerRows([]));
-    dispatch(setStationRows([]));
-    dispatch(setZoneRateData([]));
-    dispatch(setRateTableData([]));
-    dispatch(setCarrierList([]));
-    dispatch(setCustomerList([]));
-    dispatch(setIsSelectRateClicked(false));
-    dispatch(setCurrentRateTab('transportation'));
-
+    if (!item.path.includes('/app/maintenance/customer-maintenance')) {
+      dispatch(setStationTabTableData([]));
+      dispatch(setCustomerRows([]));
+      dispatch(setStationRows([]));
+      dispatch(setCustomerList([]));
+    }
+    if (!item.path.includes('/app/maintenance/accesorial-maintenance')) {
+      dispatch(setAccessorialData([]));
+    }
+    if (!item.path.includes('/rate-maintenance')) {
+      dispatch(setRateTableData([]));
+      dispatch(setCarrierList([]));
+      dispatch(setIsSelectRateClicked(false));
+      dispatch(setCurrentRateTab('transportation'));
+    }
+    if (!item.path.includes('/app/maintenance/carrier-maintenance')) {
+      dispatch(setCarrierData([]));
+      dispatch(setCarrierViewTabData([]));
+      dispatch(setTerminalViewTabData([]));
+    }
+    if (!item.path.includes('/app/maintenance/zone-maintenance')) {
+      dispatch(setZoneRateData([]));
+    }
+    if (!item.path.includes('/app/maintenance/fuel-surcharge-maintenance')) {
+      dispatch(clearFuelSurchargeData());
+      dispatch(setCurrentFuelSurchargeTab('active'));
+      dispatch(setSelectedFuelSurchargeRowDetails({}));
+      dispatch(setStationList([]));
+      dispatch(setCustomerList([]));
+    }
 
     if (item.path) {
       if (item.path.includes('/customer-maintenance/rate-maintenance')) {

@@ -1054,7 +1054,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 sx={{
                     '& .MuiDialog-paper': { // Target the paper class
                         width: '800px',
-                        height: '500px',
+                        height: selectedCurrentRateRow?.customerCount > 5 ? '500px' : 'auto',
                         maxHeight: 'none',
                         maxWidth: 'none',
                     }

@@ -53,7 +53,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             customer: '',
             stationList: '',
             fuelsurchargePercentage: '',
-            effectiveDate: null,
+            effectiveDate: dayjs().add(1, 'day').format('YYYY-MM-DD'),
             effectiveTime: null,
         }
     });
@@ -396,12 +396,14 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                 <DatePicker
                                     {...field}
                                     label="Effective Date"
-                                    // 1. Convert string from form state into a Day.js object for the picker [cite: 1.3.19]
+                                    // 1. Convert string from form state into a Day.js object for the picker
                                     value={value ? dayjs(value) : null}
-                                    // 2. Format it back to a clean string when saving into form state [cite: 1.3.19]
+                                    // 2. Format it back to a clean string when saving into form state
                                     onChange={(newValue) => {
                                         onChange(newValue && dayjs(newValue).isValid() ? dayjs(newValue).format('YYYY-MM-DD') : null);
                                     }}
+                                    // 3. LOCK SELECTION: Today and past dates are greyed out and unclickable
+                                    minDate={dayjs().add(1, 'day')}
                                     slotProps={{
                                         textField: {
                                             required: true,
@@ -415,6 +417,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />
+
 
                         <Controller
                             name="effectiveTime"

@@ -324,10 +324,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
                 "details": details,
-                "note": {
-                    "messageText": data.notes
-                },
-                "noteThreadId": selectedCurrentRateRow.noteThreadId,
+                // "note": {
+                //     "messageText": data.notes
+                // },
+                // "noteThreadId": selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCustomerTransportationRate(selectedCurrentRateRow?.rateId, obj));
         }
@@ -353,10 +353,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
                 "details": details,
-                "note": {
-                    "messageText": data.notes
-                },
-                "noteThreadId": selectedCurrentRateRow.noteThreadId,
+                // "note": {
+                //     "messageText": data.notes
+                // },
+                // "noteThreadId": selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCarrierTransportationRate(selectedCurrentRateRow?.rateId, obj))
         }

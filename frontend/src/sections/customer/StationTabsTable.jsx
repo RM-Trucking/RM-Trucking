@@ -791,7 +791,6 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     // }}
                     getRowHeight={() => 'auto'}
                     hideFooterSelectedRowCount
-                    autoHeight
                 />
             </Box>}
             <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {

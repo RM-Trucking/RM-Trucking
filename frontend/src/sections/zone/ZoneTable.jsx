@@ -161,7 +161,7 @@ export default function ZoneTable() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 300,
             flex: 1,
             sortable: false,

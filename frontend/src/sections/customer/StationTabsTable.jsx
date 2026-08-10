@@ -130,7 +130,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 300,
             flex: 1,
             sortable: false,
@@ -243,7 +243,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 300,
             flex: 1,
             sortable: false,
@@ -416,7 +416,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 110,
             flex: 1,
             cellClassName: 'center-status-cell',
@@ -536,7 +536,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 110,
             flex: 1,
             cellClassName: 'center-status-cell',
@@ -617,7 +617,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 300,
             flex: 1,
             sortable: false,

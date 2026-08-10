@@ -467,11 +467,11 @@ const ShipmentPage = ({ type }) => {
     control,
     name: 'customerRate',
   });
-  const { fields: carrierRatesPickUpAccessorials, update: carrierRatesPickUpUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
+  const { fields: carrierRatesPickUpAccessorials, update: carrierRatesPickUpUpdateAccessorials, replace: carrierRatesPickUpReplaceAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
   const watchedCRPickupAccessorials = watch('carrierRates.pickUp.pickupAccessorials');
-  const { fields: carrierRatesLineHaulAccessorials, update: carrierRatesLineHaulUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
+  const { fields: carrierRatesLineHaulAccessorials, update: carrierRatesLineHaulUpdateAccessorials, replace: carrierRatesLineHaulReplaceAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
   const watchedCRLinehaulAccessorials = watch('carrierRates.lineHaul.lineHaulAccessorials');
-  const { fields: carrierRatesDeliveryAccessorials, update: carrierRatesDeliveryUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
+  const { fields: carrierRatesDeliveryAccessorials, update: carrierRatesDeliveryUpdateAccessorials, replace: carrierRatesDeliveryReplaceAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
   const watchedCRDeliveryAccessorials = watch('carrierRates.delivery.deliveryAccessorials');
   const watchedCarrierRateInfo = useWatch({
     control,
@@ -508,7 +508,6 @@ const ShipmentPage = ({ type }) => {
     control,
     name: "carrierInfo.lineHaul.linehaulAccessorials"
   });
-
   const { fields: deliveryAccFields, append: appendDeliveryAccFields, update: updateDeliveryAcc, replace: replaceDeliveryAcc, remove: removeDeliveryAcc } = useFieldArray({
     control,
     name: "carrierInfo.deliveryDetails.deliveryAccessorials"
@@ -1505,6 +1504,25 @@ const ShipmentPage = ({ type }) => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
+    // 1. If Pickup Accessorials checkbox is unchecked, clear the pickup array
+    if (!watchedAddPickupAccessorial) {
+      setValue('carrierInfo.pickupAccessorials',[]);
+      setValue('carrierRates.pickUp.pickupAccessorials',[]);
+    }
+    // 2. If Linehaul Accessorials checkbox is unchecked, clear the linehaul array
+    if (!watchedLinehaulAddAcc) {
+      setValue('carrierInfo.lineHaul.linehaulAccessorials',[]);
+      setValue('carrierRates.lineHaul.lineHaulAccessorials',[]);
+    }
+    // 3. If Delivery Accessorials checkbox is unchecked, clear the delivery array
+    if (!watchedDeliveryAddAcc) {
+      setValue('carrierInfo.deliveryDetails.deliveryAccessorials',[]);
+      setValue('carrierRates.delivery.deliveryAccessorials',[]);
+    }
+  }, [
+    watchedAddPickupAccessorial, watchedLinehaulAddAcc, watchedDeliveryAddAcc, replacePickupAcc, replaceLineHaulAcc, replaceDeliveryAcc]); // Included all required hook references in the dependency array
+
+  useEffect(() => {
     if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
       updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
@@ -1734,7 +1752,7 @@ const ShipmentPage = ({ type }) => {
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
-                setCarrierPickupSearchValue={setCarrierPickupSearchValue}
+                setCarrierPickupSearchValue={setCarrierPickupSearchValue}                
               />
               {
                 isPickupPending === false &&
@@ -1787,6 +1805,7 @@ const ShipmentPage = ({ type }) => {
                   watchedCarrierInfo={watchedCarrierInfo}
                   watchedToLocation={watchedToLocation}
                   isPickupPending={isPickupPending}
+                  
                 />
               }
               {isPickupPending === false && <ActiveStep3Delivery type={type}
@@ -1841,6 +1860,7 @@ const ShipmentPage = ({ type }) => {
                 watchedCarrierInfo={watchedCarrierInfo}
                 isPickupPending={isPickupPending}
                 watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                
               />
               }
             </>
@@ -1866,6 +1886,9 @@ const ShipmentPage = ({ type }) => {
                 carrierRatesPickUpUpdateAccessorials={carrierRatesPickUpUpdateAccessorials}
                 carrierRatesLineHaulUpdateAccessorials={carrierRatesLineHaulUpdateAccessorials}
                 carrierRatesDeliveryUpdateAccessorials={carrierRatesDeliveryUpdateAccessorials}
+                watchedCRPickupAccessorials={watchedCRPickupAccessorials}
+                watchedCRLinehaulAccessorials={watchedCRLinehaulAccessorials}
+                watchedCRDeliveryAccessorials={watchedCRDeliveryAccessorials}
               />
             )
           }

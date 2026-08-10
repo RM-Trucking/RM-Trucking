@@ -48,6 +48,9 @@ const ActiveStep4 = ({ type,
     carrierRatesPickUpUpdateAccessorials,
     carrierRatesLineHaulUpdateAccessorials,
     carrierRatesDeliveryUpdateAccessorials,
+    watchedCRPickupAccessorials,
+    watchedCRLinehaulAccessorials,
+    watchedCRDeliveryAccessorials,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -72,7 +75,8 @@ const ActiveStep4 = ({ type,
                 </Box>
                 <CarrierSection
                     type={type}
-                    fields={carrierRatesPickUpAccessorials}
+                    // fields={carrierRatesPickUpAccessorials}
+                    fields={watchedCRPickupAccessorials}
                     sectionName={`Pickup Carrier ${watchedCarrierRateInfo.pickUp.pickUpCarrier ? `-  ${carrierTerminalDropdown.find(
                         (item) => item.terminalId === Number(watchedSelectedPickupCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedPickupCarrier.split('-')?.[1])
                     )?.carrierName || ''}` : ''}`}
@@ -99,11 +103,12 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
                     invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
-                    updateAccessorials = {carrierRatesPickUpUpdateAccessorials}
+                    updateAccessorials={carrierRatesPickUpUpdateAccessorials}
                 />
                 <CarrierSection
                     type={type}
-                    fields={carrierRatesLineHaulAccessorials}
+                    // fields={carrierRatesLineHaulAccessorials}
+                    fields={watchedCRLinehaulAccessorials}
                     sectionName={`Line Haul Carrier ${(watchedCarrierRateInfo.lineHaul.lineHaulCarrier && (selectedRouting === 'pickup_only' && (watchedLinehaulSelectRouting === 'linehaul_only' || watchedLinehaulSelectRouting === 'linehaul_delivery'))) ? `-  ${carrierTerminalDropdown.find(
                         (item) => item.terminalId === Number(watchedSelectedLineHaulCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedLineHaulCarrier.split('-')?.[1])
                     )?.carrierName || ''}` : ''}`}
@@ -130,11 +135,12 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
-                    updateAccessorials = {carrierRatesLineHaulUpdateAccessorials}
+                    updateAccessorials={carrierRatesLineHaulUpdateAccessorials}
                 />
                 <CarrierSection
                     type={type}
-                    fields={carrierRatesDeliveryAccessorials}
+                    // fields={carrierRatesDeliveryAccessorials}
+                    fields={watchedCRDeliveryAccessorials}
                     sectionName={`Delivery Carrier ${(watchedCarrierRateInfo.delivery.deliveryCarrier && ((selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') || selectedRouting === 'pickup_linehaul')) ? `-  ${carrierTerminalDropdown.find(
                         (item) => item.terminalId === Number(watchedSelectedDeliveryCarrier.split('-')?.[0]) && item.carrierId === Number(watchedSelectedDeliveryCarrier.split('-')?.[1])
                     )?.carrierName || ''}` : ''}`}
@@ -161,7 +167,7 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
-                    updateAccessorials = {carrierRatesDeliveryUpdateAccessorials}
+                    updateAccessorials={carrierRatesDeliveryUpdateAccessorials}
                 />
 
                 {/* Grand total  */}

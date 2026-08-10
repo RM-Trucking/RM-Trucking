@@ -24,8 +24,13 @@ import {
   setRateTableData, setCarrierList, setCustomerList,
 } from '../../../redux/slices/rate';
 import {
-  clearFuelSurchargeData, setCurrentFuelSurchargeTab, setSelectedFuelSurchargeRowDetails, setStationList, setCustomerList
-} from '../../../redux/slices/rate';
+  clearFuelSurchargeData, 
+  setCurrentFuelSurchargeTab, 
+  setSelectedFuelSurchargeRowDetails, 
+  setStationList, 
+  setCustomerList as setCustomerListFromFuel // Renamed smoothly here
+} from '../../../redux/slices/fuel';
+
 
 import { useDispatch } from '../../../redux/store';
 
@@ -78,7 +83,7 @@ function NavItem({ item, depth = 0 }) {
       dispatch(setCurrentFuelSurchargeTab('active'));
       dispatch(setSelectedFuelSurchargeRowDetails({}));
       dispatch(setStationList([]));
-      dispatch(setCustomerList([]));
+      dispatch(setCustomerListFromFuel([]));
     }
 
     if (item.path) {

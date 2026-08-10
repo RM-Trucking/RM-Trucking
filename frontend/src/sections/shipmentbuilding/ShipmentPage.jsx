@@ -467,9 +467,12 @@ const ShipmentPage = ({ type }) => {
     control,
     name: 'customerRate',
   });
-  const { fields: carrierRatesPickUpAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
-  const { fields: carrierRatesLineHaulAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
-  const { fields: carrierRatesDeliveryAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
+  const { fields: carrierRatesPickUpAccessorials, update: carrierRatesPickUpUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.pickUp.pickupAccessorials` });
+  const watchedCRPickupAccessorials = watch('carrierRates.pickUp.pickupAccessorials');
+  const { fields: carrierRatesLineHaulAccessorials, update: carrierRatesLineHaulUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.lineHaul.lineHaulAccessorials` });
+  const watchedCRLinehaulAccessorials = watch('carrierRates.lineHaul.lineHaulAccessorials');
+  const { fields: carrierRatesDeliveryAccessorials, update: carrierRatesDeliveryUpdateAccessorials } = useFieldArray({ control, name: `carrierRates.delivery.deliveryAccessorials` });
+  const watchedCRDeliveryAccessorials = watch('carrierRates.delivery.deliveryAccessorials');
   const watchedCarrierRateInfo = useWatch({
     control,
     name: 'carrierRates',
@@ -569,6 +572,37 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     totals = calculateTotals(watchedHU);
   }, [watchedHU]);
+
+  useEffect(() => {
+    // 1. Check if the array contains items before running updates
+    if (customerRateAccFields && customerRateAccFields.length > 0) {
+
+      // 2. Map through existing entries to update weight values safely
+      const updatedCustomerAccs = customerRateAccFields.map((acc) => {
+        // Check if this item is a 'per_pound' charge layout
+        if (acc?.chargeType?.toLowerCase() === 'per_pound') {
+
+          // Calculate weight based on unit configuration
+          const calculatedWeight = (watchedHU?.[0]?.weightUnit === 'lbs')
+            ? Number(totals?.totalWeight || 0)
+            : Number((Number(totals?.totalWeight || 0) * 2.20462).toFixed(2));
+
+          return {
+            ...acc,
+            // Return as a number so your precision math stays clean
+            input: calculatedWeight
+          };
+        }
+
+        // If it's not per_pound (e.g. hourly or flat fee), leave it unchanged
+        return acc;
+      });
+
+      // 3. Atomically replace the field array contents with the updated inputs
+      replaceCustomerRateAccFields(updatedCustomerAccs);
+    }
+  }, [totals, watchedHU, replaceCustomerRateAccFields]); // Added critical dependency array watch hooks
+
 
   // --- HELPER: RENDER ZIP CODE --- 
 
@@ -898,19 +932,23 @@ const ShipmentPage = ({ type }) => {
     } else {
       setHandlingUnitWtFlag(false);
     }
-
   }, [watchedHU]);
 
   useEffect(() => {
-    const fetchDropdownData = async () => {
-      await Promise.all([
-        dispatch(getCustomerStationDropdown()),
-        dispatch(getCarrierTerminalDropdown()),
-        dispatch(getShipperDropdown()),
-        dispatch(getConsigneeDropdown())
-      ]);
-    };
-    fetchDropdownData();
+    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj === undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length === 0)) {
+      navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+    }
+    else {
+      const fetchDropdownData = async () => {
+        await Promise.all([
+          dispatch(getCustomerStationDropdown()),
+          dispatch(getCarrierTerminalDropdown()),
+          dispatch(getShipperDropdown()),
+          dispatch(getConsigneeDropdown())
+        ]);
+      };
+      fetchDropdownData();
+    }
   }, [])
   useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
@@ -936,6 +974,7 @@ const ShipmentPage = ({ type }) => {
     });
   }, [watchedHU, setValue])
   useEffect(() => {
+
     if (watchedCarrierInfo?.selectCarrier) {
       setValue('carrierRates.pickUp.pickUpCarrier', watchedCarrierInfo.selectCarrier);
     }
@@ -951,7 +990,7 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRPickupAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
     }
@@ -960,7 +999,7 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRLinehaulAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
     }
@@ -969,10 +1008,11 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : '',
+        input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRDeliveryAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
     }
+
   }, [watchedCarrierInfo])
 
   const onSaveOfEdit = (selectedData) => {
@@ -1198,7 +1238,7 @@ const ShipmentPage = ({ type }) => {
   const watchedLineHaulToggledAddress = useWatch({ control, name: "carrierInfo.lineHaul.toggleAddress" });
   const watchedAddPickupAccessorial = useWatch({ control, name: "carrierInfo.addPickupAccessorial" });
   const watchedPickupAlert = useWatch({ control, name: "carrierInfo.pickupAlert" });
-  const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.lineHaulAddAcc" });
+  const watchedLinehaulAddAcc = useWatch({ control, name: "carrierInfo.lineHaul.linehaulAddAcc" });
   const watchedDeliveryAddAcc = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAddAcc" });
   const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
   const watchedAirportPickupService = useWatch({ control, name: "airportPickupService" });
@@ -1301,8 +1341,10 @@ const ShipmentPage = ({ type }) => {
         );
         if (selectedObject?.carrierName?.includes('R&M')) {
           setValue('carrierInfo.pickupAlert', false);
-        } else {
-          setValue('carrierInfo.pickupAlert', true);
+          if (selectedObject?.carrierName?.includes('R&M'));
+          else {
+            setValue('carrierInfo.pickupAlert', true);
+          }
         }
       }
     }
@@ -1463,13 +1505,13 @@ const ShipmentPage = ({ type }) => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
-    if (type === 'View' || type === 'Edit') {
+    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
       updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
   }, [type])
   useEffect(() => {
-    if (type === 'View' || type === 'Edit') {
+    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
       updateStep2Controls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
@@ -1533,6 +1575,7 @@ const ShipmentPage = ({ type }) => {
             watchedDestinationAirport={watchedDestinationAirport}
             setActiveStep={setActiveStep}
             totals={totals}
+            watchedLinehaulAddAcc={watchedLinehaulAddAcc}
           />
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog
@@ -1691,7 +1734,7 @@ const ShipmentPage = ({ type }) => {
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
-                setCarrierPickupSearchValue = {setCarrierPickupSearchValue}
+                setCarrierPickupSearchValue={setCarrierPickupSearchValue}
               />
               {
                 isPickupPending === false &&
@@ -1797,7 +1840,7 @@ const ShipmentPage = ({ type }) => {
                 editAccIndex={editAccIndex}
                 watchedCarrierInfo={watchedCarrierInfo}
                 isPickupPending={isPickupPending}
-                watchedPickupAgentTerminal = {watchedPickupAgentTerminal}
+                watchedPickupAgentTerminal={watchedPickupAgentTerminal}
               />
               }
             </>
@@ -1820,6 +1863,9 @@ const ShipmentPage = ({ type }) => {
                 watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
                 carrierRatesDeliveryAccessorials={carrierRatesDeliveryAccessorials}
                 watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                carrierRatesPickUpUpdateAccessorials={carrierRatesPickUpUpdateAccessorials}
+                carrierRatesLineHaulUpdateAccessorials={carrierRatesLineHaulUpdateAccessorials}
+                carrierRatesDeliveryUpdateAccessorials={carrierRatesDeliveryUpdateAccessorials}
               />
             )
           }

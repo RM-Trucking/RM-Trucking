@@ -513,11 +513,8 @@ const ActiveStep3Delivery = ({
                                         validate: (value) => {
                                             if (!value || value === '') return true;
 
-                                            const dateObj = dayjs(value);
-
-                                            if (dayjs.isDayjs(value) && !value.isValid()) {
-                                                return "Please enter a valid date";
-                                            }
+                                            // Explicitly pass the expected backend string format to Day.js for validation
+                                            const dateObj = typeof value === 'string' ? dayjs(value, 'YYYY-MM-DD') : dayjs(value);
 
                                             if (!dateObj.isValid()) {
                                                 return "Please enter a valid date";
@@ -530,59 +527,69 @@ const ActiveStep3Delivery = ({
                                             return true;
                                         }
                                     }}
-                                    render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => (
-                                        <DatePicker
-                                            {...fieldParams}
-                                            value={value ? dayjs(value) : null}
-                                            onChange={(newValue) => {
-                                                if (!newValue) {
-                                                    onChange(null);
-                                                } else {
-                                                    onChange(newValue);
-                                                }
-                                            }}
-                                            label="ETA Date"
-                                            disabled={type === 'View'}
-                                            slotProps={{
-                                                textField: {
-                                                    variant: 'standard',
-                                                    fullWidth: true,
-                                                    error: !!error,
-                                                    helperText: error ? error.message : '',
-                                                    sx: {
-                                                        '& .MuiInputBase-input.Mui-disabled': {
-                                                            WebkitTextFillColor: '#000000',
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInputLabel-root.Mui-disabled': {
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInput-root.Mui-disabled:before': {
-                                                            borderBottomStyle: 'solid !important',
-                                                            borderBottomColor: '#000000 !important',
-                                                        }
-                                                    },
-                                                    onBeforeInput: (e) => {
-                                                        const target = e.target;
-                                                        const inputVal = target.value;
-                                                        const insertedChar = e.data;
+                                    render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => {
+                                        // Safe parsing: Convert incoming string from backend/state back into a Day.js object for MUI
+                                        const pickerValue = value && typeof value === 'string'
+                                            ? dayjs(value, 'YYYY-MM-DD')
+                                            : (dayjs.isDayjs(value) && value.isValid() ? value : null);
 
-                                                        if (insertedChar === '0' && (!inputVal || inputVal.trim() === '')) {
-                                                            e.preventDefault();
-                                                            return;
-                                                        }
+                                        return (
+                                            <DatePicker
+                                                {...fieldParams}
+                                                value={pickerValue && pickerValue.isValid() ? pickerValue : null}
+                                                onChange={(newValue) => {
+                                                    // Check if newValue is missing or is an invalid dayjs instance
+                                                    if (!newValue || !dayjs(newValue).isValid()) {
+                                                        onChange(null);
+                                                    } else {
+                                                        // Save directly as "2024-07-02" string layout into form state
+                                                        onChange(dayjs(newValue).format('YYYY-MM-DD'));
+                                                    }
+                                                }}
+                                                label="ETA Date"
+                                                disabled={type === 'View'}
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: 'standard',
+                                                        fullWidth: true,
+                                                        error: !!error,
+                                                        helperText: error ? error.message : '',
+                                                        sx: {
+                                                            '& .MuiInputBase-input.Mui-disabled': {
+                                                                WebkitTextFillColor: '#000000',
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInputLabel-root.Mui-disabled': {
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInput-root.Mui-disabled:before': {
+                                                                borderBottomStyle: 'solid !important',
+                                                                borderBottomColor: '#000000 !important',
+                                                            }
+                                                        },
+                                                        onBeforeInput: (e) => {
+                                                            const target = e.target;
+                                                            const inputVal = target.value;
+                                                            const insertedChar = e.data;
 
-                                                        if (insertedChar === '0' && inputVal.endsWith('/')) {
-                                                            e.preventDefault();
-                                                            return;
+                                                            if (insertedChar === '0' && (!inputVal || inputVal.trim() === '')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
+
+                                                            if (insertedChar === '0' && inputVal.endsWith('/')) {
+                                                                e.preventDefault();
+                                                                return;
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            }}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                    )}
+                                                }}
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                        );
+                                    }}
                                 />
+
 
                             </Box>
 
@@ -591,41 +598,64 @@ const ActiveStep3Delivery = ({
                                 <Controller
                                     name="carrierInfo.deliveryDetails.etaTime"
                                     control={control}
-                                    rules={{ required: true }}
-                                    render={({ field, fieldState: { error, isTouched } }) => (
-                                        <TimePicker
-                                            {...field}
-                                            label="ETA Time"
-                                            ampm={false}
-                                            disabled={type === 'View'}
-                                            slotProps={{
-                                                textField: {
-                                                    variant: 'standard',
-                                                    fullWidth: true,
-                                                    error: !!error && isTouched,
-                                                    sx: {
-                                                        '& .MuiInputBase-input.Mui-disabled': {
-                                                            WebkitTextFillColor: '#000000',
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInputLabel-root.Mui-disabled': {
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInput-root.Mui-disabled:before': {
-                                                            borderBottomStyle: 'solid !important',
-                                                            borderBottomColor: '#000000 !important',
+                                    rules={{
+                                        // 1. Removed the "required: true" constraint so it is optional
+                                        validate: (value) => {
+                                            // 2. If the field is blank, skip validation and mark it as valid
+                                            if (!value || value === '') return true;
+
+                                            // 3. If a value exists, ensure it matches a real time layout
+                                            const parsed = dayjs(value, 'HH:mm:ss');
+                                            return parsed.isValid() || "Please enter a valid time";
+                                        }
+                                    }}
+                                    render={({ field: { onChange, value, ...fieldParams }, fieldState: { error } }) => {
+                                        const pickerValue = value && typeof value === 'string'
+                                            ? dayjs(value, 'HH:mm:ss')
+                                            : (dayjs.isDayjs(value) && value.isValid() ? value : null);
+
+                                        return (
+                                            <TimePicker
+                                                {...fieldParams}
+                                                label="ETA Time"
+                                                ampm={false}
+                                                value={pickerValue}
+                                                onChange={(newValue) => {
+                                                    if (!newValue || !dayjs(newValue).isValid()) {
+                                                        onChange(null);
+                                                    } else {
+                                                        onChange(dayjs(newValue).format('HH:mm:ss'));
+                                                    }
+                                                }}
+                                                disabled={type === 'View'}
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: 'standard',
+                                                        fullWidth: true,
+                                                        // 4. Instantly shows error styling if validation fails
+                                                        error: !!error,
+                                                        helperText: error ? error.message : '',
+                                                        sx: {
+                                                            '& .MuiInputBase-input.Mui-disabled': {
+                                                                WebkitTextFillColor: '#000000',
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInputLabel-root.Mui-disabled': {
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInput-root.Mui-disabled:before': {
+                                                                borderBottomStyle: 'solid !important',
+                                                                borderBottomColor: '#000000 !important',
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            }}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                    )}
+                                                }}
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                        );
+                                    }}
                                 />
-
                             </Box>
-
-
                             {/* Pcs / Wght */}
                             <Box sx={{ flex: 1.5 }}>
                                 <Controller
@@ -744,16 +774,16 @@ const ActiveStep3Delivery = ({
                                 render={({ field }) => (
                                     <FormControlLabel
                                         sx={{ mb: 0.5, whiteSpace: 'nowrap' }}
-                                        control={<Checkbox {...field} disabled = {type === 'View'} checked={field.value} size="small" 
-                                        sx={{
-                                            color: 'rgba(0, 25, 76, 1)',
-                                            '&.Mui-checked': {
-                                                color: 'rgba(0, 25, 76, 1)'
-                                            },
-                                            '&.Mui-disabled': {
-                                                color: 'rgba(0, 25, 76, 1) !important'
-                                            }
-                                        }} />}
+                                        control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small"
+                                            sx={{
+                                                color: 'rgba(0, 25, 76, 1)',
+                                                '&.Mui-checked': {
+                                                    color: 'rgba(0, 25, 76, 1)'
+                                                },
+                                                '&.Mui-disabled': {
+                                                    color: 'rgba(0, 25, 76, 1) !important'
+                                                }
+                                            }} />}
                                         label={<Typography variant="body2">Airport Transfer</Typography>}
                                     />
                                 )}

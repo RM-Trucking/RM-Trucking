@@ -1054,20 +1054,24 @@ const ActiveStep3Pickup = ({
                                             control={control}
                                             rules={{
                                                 validate: (value) => {
-                                                    if (!value) return true;
-                                                    // Split the comma-separated string back into an array to validate each item
-                                                    const emails = value.split(',').map(e => e.trim()).filter(Boolean);
+                                                    // 1. Safe handling for arrays or strings
+                                                    const emails = Array.isArray(value)
+                                                        ? value
+                                                        : (value ? value.split(',').map(e => e.trim()).filter(Boolean) : []);
+
+                                                    if (emails.length === 0) return true;
+
                                                     const emailRegex = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
                                                     const allValid = emails.every(email => emailRegex.test(email));
                                                     return allValid || "One or more emails are invalid";
                                                 }
                                             }}
                                             render={({ field: { onChange, value }, fieldState: { error } }) => {
-                                                // Transform the comma-separated string from RHF state into an array for MUI Autocomplete
-                                                const selectedEmailsArray = value ? value.split(',').map(e => e.trim()).filter(Boolean) : [];
+                                                // 2. Safe parsing: Ensure selectedEmailsArray is ALWAYS a clean array
+                                                const selectedEmailsArray = Array.isArray(value)
+                                                    ? value
+                                                    : (typeof value === 'string' && value ? value.split(',').map(e => e.trim()).filter(Boolean) : []);
 
-                                                // Assuming your data array is available in a variable (e.g., watchedPickupAdditionalMails)
-                                                // Extract just the email strings to match the Autocomplete's options format
                                                 const emailOptions = (watchedPickupAdditionalMails || []).map(item => item.email);
 
                                                 return (
@@ -1076,20 +1080,15 @@ const ActiveStep3Pickup = ({
                                                         freeSolo
                                                         options={emailOptions}
                                                         value={selectedEmailsArray}
-
-                                                        // Triggers whenever options are clicked OR custom text is committed with Enter/Comma
                                                         onChange={(event, newValue) => {
-                                                            // Flatten any pasted or comma-separated strings inside the array
+                                                            // 3. Process new values and keep them saved as an Array inside form state
                                                             const processedEmails = newValue
-                                                                .flatMap(item => item.split(','))
+                                                                .flatMap(item => (typeof item === 'string' ? item.split(',') : item))
                                                                 .map(e => e.trim())
                                                                 .filter(Boolean);
 
-                                                            // Save back to React Hook Form as a comma-separated string
-                                                            onChange(processedEmails.join(', '));
+                                                            onChange(processedEmails); // Stores directly as ["a@b.com", "c@d.com"]
                                                         }}
-
-                                                        // Handles local lookup matching
                                                         filterOptions={(options, params) => {
                                                             const filtered = options.filter(option =>
                                                                 option.toLowerCase().includes(params.inputValue.toLowerCase())
@@ -1098,14 +1097,12 @@ const ActiveStep3Pickup = ({
                                                             const { inputValue } = params;
                                                             const isExisting = options.some((option) => inputValue === option);
 
-                                                            // Suggest adding the custom typed email if it doesn't exist and isn't blank
                                                             if (inputValue !== '' && !isExisting) {
                                                                 filtered.push(inputValue);
                                                             }
 
                                                             return filtered;
                                                         }}
-
                                                         renderInput={(params) => (
                                                             <StyledTextField
                                                                 {...params}
@@ -1115,7 +1112,6 @@ const ActiveStep3Pickup = ({
                                                                 InputLabelProps={{ shrink: true }}
                                                                 error={!!error}
                                                                 helperText={error ? error.message : "Separate custom entries by pressing Enter"}
-                                                                // SAFE FIX: Merge your maxLength constraint into Autocomplete's core properties object
                                                                 inputProps={{
                                                                     ...params.inputProps,
                                                                     maxLength: 255
@@ -1129,6 +1125,7 @@ const ActiveStep3Pickup = ({
                                                 );
                                             }}
                                         />
+
 
 
                                     </Box>

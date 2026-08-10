@@ -563,10 +563,11 @@ const ActiveStep3Linehaul = ({
                                             {...fieldParams}
                                             value={value && dayjs(value).isValid() ? dayjs(value) : null}
                                             onChange={(newValue) => {
-                                                if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
+                                                if (!newValue || !dayjs(newValue).isValid()) {
                                                     onChange(null);
                                                 } else {
-                                                    onChange(newValue);
+                                                    // Saves directly as "2024-07-02" into the form state
+                                                    onChange(dayjs(newValue).format('YYYY-MM-DD'));
                                                 }
                                             }}
                                             label="ETA Date"
@@ -619,37 +620,64 @@ const ActiveStep3Linehaul = ({
                                 <Controller
                                     name="carrierInfo.lineHaul.etaTime"
                                     control={control}
-                                    rules={{ required: true }}
-                                    render={({ field, fieldState: { error, isTouched } }) => (
-                                        <TimePicker
-                                            {...field}
-                                            label="ETA Time"
-                                            ampm={false}
-                                            disabled={type === 'View'}
-                                            slotProps={{
-                                                textField: {
-                                                    variant: 'standard',
-                                                    fullWidth: true,
-                                                    error: !!error && isTouched,
-                                                    sx: {
-                                                        '& .MuiInputBase-input.Mui-disabled': {
-                                                            WebkitTextFillColor: '#000000',
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInputLabel-root.Mui-disabled': {
-                                                            color: '#000000',
-                                                        },
-                                                        '& .MuiInput-root.Mui-disabled:before': {
-                                                            borderBottomStyle: 'solid !important',
-                                                            borderBottomColor: '#000000 !important',
+                                    rules={{
+                                        // 1. Removed "required: true" so the field is completely optional
+                                        validate: (value) => {
+                                            // 2. If the field is empty, skip validation and mark it as valid
+                                            if (!value || value === '') return true;
+
+                                            // 3. If there is a value, verify it matches a proper time format
+                                            const parsed = dayjs(value, 'HH:mm:ss');
+                                            return parsed.isValid() || "Please enter a valid time";
+                                        }
+                                    }}
+                                    render={({ field: { onChange, value, ...fieldParams }, fieldState: { error, isTouched } }) => {
+                                        const pickerValue = value && typeof value === 'string'
+                                            ? dayjs(value, 'HH:mm:ss')
+                                            : (dayjs.isDayjs(value) && value.isValid() ? value : null);
+
+                                        return (
+                                            <TimePicker
+                                                {...fieldParams}
+                                                label="ETA Time"
+                                                ampm={false}
+                                                value={pickerValue}
+                                                onChange={(newValue) => {
+                                                    if (!newValue || !dayjs(newValue).isValid()) {
+                                                        onChange(null);
+                                                    } else {
+                                                        onChange(dayjs(newValue).format('HH:mm:ss'));
+                                                    }
+                                                }}
+                                                disabled={type === 'View'}
+                                                slotProps={{
+                                                    textField: {
+                                                        variant: 'standard',
+                                                        fullWidth: true,
+                                                        // 4. Shows error styling only if the validation fails
+                                                        error: !!error,
+                                                        helperText: error ? error.message : '',
+                                                        sx: {
+                                                            '& .MuiInputBase-input.Mui-disabled': {
+                                                                WebkitTextFillColor: '#000000',
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInputLabel-root.Mui-disabled': {
+                                                                color: '#000000',
+                                                            },
+                                                            '& .MuiInput-root.Mui-disabled:before': {
+                                                                borderBottomStyle: 'solid !important',
+                                                                borderBottomColor: '#000000 !important',
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            }}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                    )}
+                                                }}
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                        );
+                                    }}
                                 />
+
 
                             </Box>
                             {/* Pcs / Wght */}
@@ -739,7 +767,7 @@ const ActiveStep3Linehaul = ({
 
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                         <FormControlLabel
-                            control={<Controller name="carrierInfo.lineHaul.lineHaulAddAcc" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
+                            control={<Controller name="carrierInfo.lineHaul.linehaulAddAcc" control={control} render={({ field }) => <Checkbox disabled={type === 'View'} {...field} checked={field.value} size="small" sx={{
                                 color: 'rgba(0, 25, 76, 1)',
                                 '&.Mui-checked': {
                                     color: 'rgba(0, 25, 76, 1)'

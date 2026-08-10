@@ -74,6 +74,7 @@ const StepperHeader = ({ location, navigate,
     watchedDestinationAirport,
     setActiveStep,
     totals,
+    watchedLinehaulAddAcc,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -228,21 +229,21 @@ const StepperHeader = ({ location, navigate,
 
                         {/* Conditional Submit Button for Step 3 */}
                         {
-                            activeStep !== 3 && <Button
+                            type !== 'View' && activeStep !== 3 && <Button
                                 variant="contained"
                                 onClick={() => handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
                                     watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
                                     setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                     watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                     getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport,
-                                    watchedDestinationAirport, setActiveStep, totals,
+                                    watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
                                 )}
                                 sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
                             >
                                 {activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
                             </Button>
                         }
-                        {activeStep === 3 && isPickupPending &&
+                        {type !== 'View' && activeStep === 3 && isPickupPending &&
                             <Button
                                 variant="contained"
                                 onClick={() => onFormSubmit(dispatch, setValue, getValues, trigger, errors,
@@ -261,7 +262,7 @@ const StepperHeader = ({ location, navigate,
                                 {isSubmitting ? 'Submitting...' : 'Submit'}
                             </Button>}
                         {
-                            activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') && !isPickupPending &&
+                            type !== 'View' && activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') && !isPickupPending &&
                             <>
                                 <Button
                                     variant="contained"
@@ -283,14 +284,14 @@ const StepperHeader = ({ location, navigate,
                             </>
                         }
                         {
-                            activeStep === 3 && !isPickupPending && <Button
+                            type !== 'View' && activeStep === 3 && !isPickupPending && <Button
                                 variant="contained"
                                 onClick={() => handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
                                     watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
                                     setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                     watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                     getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport,
-                                    watchedDestinationAirport, setActiveStep, totals,
+                                    watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type,
                                 )}
                                 disabled={isSubmitting}
                                 sx={{
@@ -303,6 +304,17 @@ const StepperHeader = ({ location, navigate,
                                 {isSubmitting ? 'Submitting...' : activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
                             </Button>
                         }
+                        {type === 'View' && (
+
+                            <Button variant="outlined" onClick={() => handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                                watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                                setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                                watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                                getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport,
+                                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+                            )} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Next</Button>
+
+                        )}
                     </Box>
                 </Box>
                 {type !== 'Edit' && <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 1, mb: 2 }}>

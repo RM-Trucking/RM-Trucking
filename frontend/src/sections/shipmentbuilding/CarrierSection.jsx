@@ -63,7 +63,7 @@ const commonBtnStyle = {
 };
 
 // step 5 carrier rate
-const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo }) => {
+const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo, updateAccessorials }) => {
   // Track which row index is currently in "Edit Mode"
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
@@ -75,7 +75,6 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
   // invoice approval dialogs
   const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
   const hasManualEntry = fields.some(item => item.isManual === true);
-
 
   return (
     <Box sx={{ mb: 4 }}>
@@ -295,38 +294,38 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                       <Controller
                         name={`${path}[${index}].input`}
                         control={control}
-                        render={({ field }) => (
+                        render={({ field: { onChange, value, ...fieldParams } }) => (
                           <StyledTextField
-                            {...field}
+                            {...fieldParams}
+                            // 1. Keeps the typed string exactly as-is across mounting/unmounting steps
+                            value={value ?? ''}
                             size="small"
-                            type="number" // Forces browser numeric input behavior
+                            type="text"
+                            inputMode="decimal"
                             disabled={!isInputEditing}
                             variant="outlined"
                             InputProps={{
                               endAdornment: <InputAdornment position="end">hrs</InputAdornment>,
                             }}
-                            // 1. Sets the hard ceiling value (16 whole digits + 2 decimals = 18 total)
                             inputProps={{
-                              max: 9999999999999999.99,
-                              step: "0.01"
+                              maxLength: 19
                             }}
-                            // 2. Prevents exponential 'e' or signage characters from breaking the layout
                             onKeyDown={(e) => {
-                              if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+                              // Allows normal typing and command shortcuts
+                              const allowedKeys = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight', '.'];
+                              if (!allowedKeys.includes(e.key) && !/^\d$/.test(e.key)) {
                                 e.preventDefault();
                               }
                             }}
-                            // 3. Regex boundary check to lock typing beyond 16 whole digits or 2 decimals
                             onChange={(e) => {
                               const val = e.target.value;
 
-                              // Match up to 16 digits before the dot and up to 2 digits after the dot
-                              const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val);
+                              // 2. Permits a single standalone dot or structured decimals
+                              const isValidDecimal = /^\d{0,16}(\.\d{0,2})?$/.test(val) || val === '.';
 
-                              if (isValidDecimal || val === '') {
-                                field.onChange(e);
-                              } else {
-                                e.preventDefault();
+                              if (isValidDecimal) {
+                                // 3. Storing as raw text string prevents premature truncation or state erasure
+                                onChange(val === '' ? null : val);
                               }
                             }}
                             sx={{
@@ -338,18 +337,30 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                         )}
                       />
 
-
                       {/* Toggle between Edit and Save Icons */}
                       {isInputEditing ? (
                         <IconButton
                           size="small"
                           onClick={() => {
-                            setEditInputIndex(null); // Exit edit mode
+                            // 1. Fetch the entire current object at this specific index from React Hook Form state
+                            const currentItem = getValues(`carrierRates.pickUp.pickupAccessorials[${index}]`);
+
+                            // 2. Fetch the current text/number stored inside your custom input field
+                            const typedInputValue = getValues(`${path}[${index}].input`);
+
+                            // 3. Trigger the field array update to keep internal row keys and UI values synchronized
+                            updateAccessorials(index, {
+                              ...currentItem,
+                              input: typedInputValue // Inject the freshly committed value into the target key
+                            });
+
+                            setEditInputIndex(null); // Exit edit mode safely
                           }}
                           sx={{ color: 'success.main' }}
                         >
                           <Iconify icon="fluent:save-24-filled" width={18} sx={{ color: '#a22' }} />
                         </IconButton>
+
                       ) : (
                         <>
                           {type !== 'View' && <IconButton

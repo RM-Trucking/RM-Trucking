@@ -4,6 +4,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
     setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, totals,
+    watchedLinehaulAddAcc, type
 ) => {
     const currentValues = getValues();
     let fieldsToValidate = [];
@@ -149,9 +150,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         "shipmentDate": currentValues?.date
             ? new Date(currentValues.date).toLocaleDateString('en-CA')
             : "",
-        "shipmentTime": currentValues.time
-            ? new Date(currentValues.time).toLocaleTimeString('en-US', { hour12: false })
-            : "",
+        "shipmentTime": currentValues.time,
         "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
         "status": currentValues?.carrierInfo?.orderReceivedPending ? "ORDER_RECEIVED_PICKUP_PENDING" : "ORDER_RECEIVED_PICKUP_SETUP",
     };
@@ -308,7 +307,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         (item) => item.terminalId === Number(deliveryToLocTerminalId) && item.carrierId === Number(deliveryToLocCarrierId)
     );
 
-    if (activeStep === 3 && isValid) {
+    if ((activeStep === 3 && isValid)) {
         const pickupFromZip = currentValues?.carrierInfo?.manualAddress?.zip;
         let pickupToZip = '';
         if (currentValues?.carrierInfo?.pickupAgentTerminal) {
@@ -331,7 +330,6 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         // obj to send
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
         obj.carrierDetails = {
-
             "pickupDetails": {
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
@@ -355,11 +353,11 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
                     "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
                     "editToLocationDetails": {
-                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                        "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                        "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip
+                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,
+                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2 || selectedPickupCarrierObject?.address?.addressLine2,
+                        "city": currentValues?.carrierInfo?.manualToAddress?.city || selectedPickupCarrierObject?.address?.city,
+                        "state": currentValues?.carrierInfo?.manualToAddress?.state || selectedPickupCarrierObject?.address?.state,
+                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip || selectedPickupCarrierObject?.address?.zipCode,
                     }
                 },
                 "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
@@ -373,8 +371,8 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 "pickupAlertDetails": {
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                        "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                     }
                 }
             },
@@ -408,11 +406,11 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
                     "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
                     "editToLocationDetails": {
-                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                        "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                        "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip
+                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,
+                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2 || selectedPickupCarrierObject?.address?.addressLine2,
+                        "city": currentValues?.carrierInfo?.manualToAddress?.city || selectedPickupCarrierObject?.address?.city,
+                        "state": currentValues?.carrierInfo?.manualToAddress?.state || selectedPickupCarrierObject?.address?.state,
+                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip || selectedPickupCarrierObject?.address?.zipCode,
                     }
                 },
                 "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
@@ -426,8 +424,8 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 "pickupAlertDetails": {
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                        "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                     }
                 }
             },
@@ -467,7 +465,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 },
                 "linehaulCommonInfo": {
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-                    "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+                    "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
                         "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials?.map(({ id, selected, notes, ...rest }) => ({
                             ...rest,
@@ -557,11 +555,11 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
                     "editToLocation": currentValues?.carrierInfo?.isManualToLocation ? "Y" : "N",
                     "editToLocationDetails": {
-                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1,
-                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2,
-                        "city": currentValues?.carrierInfo?.manualToAddress?.city,
-                        "state": currentValues?.carrierInfo?.manualToAddress?.state,
-                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip
+                        "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,
+                        "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2 || selectedPickupCarrierObject?.address?.addressLine2,
+                        "city": currentValues?.carrierInfo?.manualToAddress?.city || selectedPickupCarrierObject?.address?.city,
+                        "state": currentValues?.carrierInfo?.manualToAddress?.state || selectedPickupCarrierObject?.address?.state,
+                        "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip || selectedPickupCarrierObject?.address?.zipCode,
                     }
                 },
                 "pickupAccessorial": currentValues?.carrierInfo?.addPickupAccessorial ? "Y" : "N",
@@ -575,8 +573,8 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 "pickupAlertDetails": {
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                        "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                     }
                 }
             },
@@ -615,7 +613,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 },
                 "linehaulCommonInfo": {
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-                    "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+                    "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
                         "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
                     }
@@ -687,15 +685,15 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 "pickupAlertDetails": {
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                        "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                     }
                 }
             },
             "linehaulDetails": {
                 "linehaulCommonInfo": {
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-                    "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+                    "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
                         "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
                     }
@@ -797,15 +795,15 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                 "pickupAlertDetails": {
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                        "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                     }
                 }
             },
             "linehaulDetails": {
                 "linehaulCommonInfo": {
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
-                    "linehaulAccessorial": currentValues?.carrierInfo?.lineHaul?.linehaulAddAcc ? 'Y' : 'N',
+                    "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
                         "accessorials": currentValues?.carrierInfo?.lineHaul?.linehaulAccessorials
                     }
@@ -837,7 +835,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     // push zip to zip
     const transformedPickupArray = currentValues?.carrierRates?.pickUp?.pickupAccessorials?.map(item => {
         // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
-        const factor = Number(item.input) || 0;
+        const factor = item.input && !isNaN(parseFloat(item.input)) ? parseFloat(item.input) : null;
         const value = Number(item.chargeValue) || 0;
 
         return {
@@ -846,7 +844,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '', // 
             rateValue: value,
             // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
-            totalRate: factor === 0 ? value : factor * value
+            totalRate: Number((factor === null || factor === 0 ? value : factor * value).toFixed(2))
         };
     });
     if (currentValues?.carrierRates?.pickUp?.pickUpRate) {
@@ -855,12 +853,12 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactor: null,
             multiplicationFactorUOM: '',
             rateValue: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
-            totalRate: Number(currentValues?.carrierRates?.pickUp?.pickUpRate),
+            totalRate: Number(currentValues?.carrierRates?.pickUp?.pickUpRate).toFixed(2),
         });
     }
     const transformedLinehaulArray = currentValues?.carrierRates?.lineHaul?.lineHaulAccessorials?.map(item => {
         // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
-        const factor = Number(item.input) || 0;
+        const factor = item.input && !isNaN(parseFloat(item.input)) ? parseFloat(item.input) : null;
         const value = Number(item.chargeValue) || 0;
 
         return {
@@ -869,7 +867,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '',
             rateValue: value,
             // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
-            totalRate: factor === 0 ? value : factor * value
+            totalRate: Number((factor === null || factor === 0 ? value : factor * value).toFixed(2))
         };
     });
     if (currentValues?.carrierRates?.lineHaul?.lineHaulRate) {
@@ -878,12 +876,12 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactor: null,
             multiplicationFactorUOM: '',
             rateValue: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
-            totalRate: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate),
+            totalRate: Number(currentValues?.carrierRates?.lineHaul?.lineHaulRate).toFixed(2),
         });
     }
     const transformedDeliveryArray = currentValues?.carrierRates?.delivery?.deliveryAccessorials?.map(item => {
         // Convert input and chargeValue to numbers safely, falling back to 0 if invalid
-        const factor = Number(item.input) || 0;
+        const factor = item.input && !isNaN(parseFloat(item.input)) ? parseFloat(item.input) : null;
         const value = Number(item.chargeValue) || 0;
 
         return {
@@ -892,7 +890,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '', // 
             rateValue: value,
             // Condition: If factor is 0, totalRate is value. Otherwise, factor * value.
-            totalRate: factor === 0 ? value : factor * value
+            totalRate: Number((factor === null || factor === 0 ? value : factor * value).toFixed(2))
         };
     });
     if (currentValues?.carrierRates?.delivery?.deliveryRate) {
@@ -901,7 +899,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             multiplicationFactor: null,
             multiplicationFactorUOM: '',
             rateValue: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
-            totalRate: Number(currentValues?.carrierRates?.delivery?.deliveryRate),
+            totalRate: Number(currentValues?.carrierRates?.delivery?.deliveryRate).toFixed(2),
         });
     }
     const pickupSubTotalRate = transformedPickupArray.reduce((accumulator, item) => {
@@ -928,7 +926,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         const rawTotal = factor === 0 ? value : factor * value;
 
         return {
-            rateType: item.chargeType,
+            rateType: item.accessorialName,
             multiplicationFactor: factor,
             multiplicationFactorUOM: item.chargeType.toLowerCase() === 'per_pound' ? 'LB' : item.chargeType.toLowerCase() === 'hourly' ? 'HRS' : '',
 
@@ -971,28 +969,28 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             "pickupRateDetails": {
                 "invoiceNumber": currentValues?.carrierRates?.pickUp?.invoiceNo,
                 "rateDetails": transformedPickupArray,
-                "pickupSubTotalRate": pickupSubTotalRate,
+                "pickupSubTotalRate": pickupSubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
             "linehaulRateDetails": {
                 "invoiceNumber": currentValues?.carrierRates?.lineHaul?.invoiceNo,
                 "rateDetails": transformedLinehaulArray,
-                "linehaulSubTotalRate": linehaulSubTotalRate,
+                "linehaulSubTotalRate": linehaulSubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
             "deliveryRateDetails": {
                 "invoiceNumber": currentValues?.carrierRates?.delivery?.invoiceNo,
                 "rateDetails": transformedDeliveryArray,
-                "deliverySubTotalRate": deliverySubTotalRate,
+                "deliverySubTotalRate": deliverySubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
-            "totalCarrierRate": Number(pickupSubTotalRate + linehaulSubTotalRate + deliverySubTotalRate),
+            "totalCarrierRate": Number((pickupSubTotalRate + linehaulSubTotalRate + deliverySubTotalRate).toFixed(2)),
         },
         "customerRateDetails": {
             "rateDetails": transformedCustomerArray,
             "totalCustomerRate": Number(
-                transformedCustomerArray.reduce((sum, item) => sum + Number(item.totalRate || 0), 0)
-            )
+                transformedCustomerArray.reduce((sum, item) => sum + Number(item.totalRate || 0), 0).toFixed(2)
+            ),
         }
     }
     if (transformedPickupArray && transformedPickupArray.length === 0) {
@@ -1387,7 +1385,7 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
                         "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                            "additionalEmails": currentValues?.carrierInfo?.additionalEmail,
+                            "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
                         }
                     }
                 },

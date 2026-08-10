@@ -45,6 +45,9 @@ const ActiveStep4 = ({ type,
     watchedSelectedLineHaulCarrier,
     carrierRatesDeliveryAccessorials,
     watchedSelectedDeliveryCarrier,
+    carrierRatesPickUpUpdateAccessorials,
+    carrierRatesLineHaulUpdateAccessorials,
+    carrierRatesDeliveryUpdateAccessorials,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -96,6 +99,7 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
                     invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
+                    updateAccessorials = {carrierRatesPickUpUpdateAccessorials}
                 />
                 <CarrierSection
                     type={type}
@@ -126,6 +130,7 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
+                    updateAccessorials = {carrierRatesLineHaulUpdateAccessorials}
                 />
                 <CarrierSection
                     type={type}
@@ -156,6 +161,7 @@ const ActiveStep4 = ({ type,
                     totals={totals}
                     apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
+                    updateAccessorials = {carrierRatesDeliveryUpdateAccessorials}
                 />
 
                 {/* Grand total  */}

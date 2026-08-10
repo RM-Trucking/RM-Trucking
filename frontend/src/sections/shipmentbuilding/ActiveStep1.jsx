@@ -74,14 +74,14 @@ const ActiveStep1 = ({ control,
     };
     const filter = createFilterOptions();
     useEffect(() => {
-        if (type !=='View' && watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
+        if (type !=='View' && watchedAirportPickupService !== false && watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
             clearErrors("originAirport");
             // if type === 'Edit' make the selected object build value here insted of ""
             setValue('shipperName', "");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
-        if (type !=='View' && watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
+        if (type !=='View' && watchedAirportDeliveryService !== false && watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
             // if type === 'Edit' make the selected object build value here insted of ""
             setValue('consigneeName', '');

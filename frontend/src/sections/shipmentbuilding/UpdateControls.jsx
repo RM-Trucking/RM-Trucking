@@ -21,7 +21,9 @@ export const updateControls = (dispatch, setValue, selectedObj,
     const pickupDetails = selectedObj?.carrierDetails?.pickupDetails;
     const linehaulDetails = selectedObj?.carrierDetails?.linehaulDetails;
     const deliveryDetails = selectedObj?.carrierDetails?.deliveryDetails;
-    const carrierRateDetails = selectedObj?.shipmentRateDetails?.carrierRateDetails;
+    const pickupRateDetails = selectedObj?.shipmentRateDetails?.pickupRateDetails;
+    const linehaulRateDetails = selectedObj?.shipmentRateDetails?.linehaulRateDetails;
+    const deliveryRateDetails = selectedObj?.shipmentRateDetails?.deliveryRateDetails;
     const customerRateDetails = selectedObj?.shipmentRateDetails?.customerRateDetails;
 
     // step 1
@@ -169,7 +171,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.pickupAccessorials', updatedAccessorials);
         setValue('carrierInfo.pickupAlertDetails.pickupNotes', pickupDetails?.pickupAlertDetails?.inboundNotes);
         setValue('carrierInfo.pickupAlertDetails.primaryEmail', pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail);
-        setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails);
+        setValue('carrierInfo.pickupAlertDetails.additionalEmail', pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails || []);
         setValue('carrierInfo.manualToAddress.line1', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.addressLine1);
         setValue('carrierInfo.manualToAddress.line2', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.addressLine2);
         setValue('carrierInfo.manualToAddress.city', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.city);
@@ -185,7 +187,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.lineHaul.etaTime', linehaulDetails?.linehaulPrimaryInfo?.etaTime);
         setValue('carrierInfo.lineHaul.pcs', linehaulDetails?.linehaulPrimaryInfo?.pieces);
         setValue('carrierInfo.lineHaul.weight', linehaulDetails?.linehaulPrimaryInfo?.weight);
-        setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y');
+        setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y' || updatedAccessorials.length > 0);
         const updatedAccessorials = (linehaulDetails?.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
             isManual: false,
@@ -240,19 +242,20 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
     }
     // step 5
-    if (carrierRateDetails && Object.keys(carrierRateDetails).length > 0) {
+    if (pickupRateDetails && Object.keys(pickupRateDetails).length > 0) {
         setValue('carrierRates.pickUp.pickUpCarrier', pickupDetails?.carrierName);
         setValue('carrierRates.lineHaul.lineHaulCarrier', linehaulDetails?.linehaulPrimaryInfo?.carrierName);
         setValue('carrierRates.delivery.deliveryCarrier', deliveryDetails?.deliveryPrimaryInfo?.carrierName);
 
-        setValue('carrierRates.pickUp.invoiceNo', carrierRateDetails?.pickupRateDetails?.invoiceNumber);
-        setValue('carrierRates.lineHaul.invoiceNo', carrierRateDetails?.linehaulRateDetails?.invoiceNumber);
-        setValue('carrierRates.delivery.invoiceNo', carrierRateDetails?.deliveryRateDetails?.invoiceNumber);
+        setValue('carrierRates.pickUp.invoiceNo', pickupRateDetails?.invoiceNumber);
+        setValue('carrierRates.lineHaul.invoiceNo', linehaulRateDetails?.invoiceNumber);
+        setValue('carrierRates.delivery.invoiceNo', deliveryRateDetails?.invoiceNumber);
 
         // rate details
-        const updatedPickupRates = (carrierRateDetails?.pickupRateDetails?.rateDetails || []).map((item) => ({
+        const updatedPickupRates = (pickupRateDetails?.rateDetails || []).map((item) => ({
             ...item,
-            chargeType: item.rateType,
+            accessorialName: item.rateType,
+            chargeType: item.multiplicationFactorUOM === 'LB' ? 'PER_POUND' : item.multiplicationFactorUOM === 'HRS' ? 'HOURLY' : 'FLAT_RATE',
             chargeValue: item.rateValue,
             apiCharges: item.rateValue,
             input: item.multiplicationFactor,
@@ -263,10 +266,12 @@ export const updateControls = (dispatch, setValue, selectedObj,
         const filteredPickupRates = updatedPickupRates.filter((item) => item?.rateType !== 'Zip to Zip');
         setValue('carrierRates.pickUp.pickUpRate', targetPickupZiptozipRate?.rateValue);
         setValue('carrierRates.pickUp.pickupAccessorials', filteredPickupRates);
-
-        const updatedLinehaulRates = (carrierRateDetails?.linehaulRateDetails?.rateDetails || []).map((item) => ({
+    }
+    if (linehaulRateDetails && Object.keys(linehaulRateDetails).length > 0) {
+        const updatedLinehaulRates = (linehaulRateDetails?.rateDetails || []).map((item) => ({
             ...item,
-            chargeType: item.rateType,
+            accessorialName: item.rateType,
+            chargeType: item.multiplicationFactorUOM === 'LB' ? 'PER_POUND' : item.multiplicationFactorUOM === 'HRS' ? 'HOURLY' : 'FLAT_RATE',
             chargeValue: item.rateValue,
             apiCharges: item.rateValue,
             input: item.multiplicationFactor,
@@ -277,10 +282,12 @@ export const updateControls = (dispatch, setValue, selectedObj,
         const filteredLinehaulRates = updatedLinehaulRates.filter((item) => item?.rateType !== 'Zip to Zip');
         setValue('carrierRates.lineHaul.lineHaulRate', targetLinehaulZiptozipRate?.rateValue);
         setValue('carrierRates.lineHaul.lineHaulAccessorials', filteredLinehaulRates);
-
-        const updatedDeliveryRates = (carrierRateDetails?.deliveryRateDetails?.rateDetails || []).map((item) => ({
+    }
+    if (deliveryRateDetails && Object.keys(deliveryRateDetails).length > 0) {
+        const updatedDeliveryRates = (deliveryRateDetails?.rateDetails || []).map((item) => ({
             ...item,
-            chargeType: item.rateType,
+            accessorialName: item.rateType,
+            chargeType: item.multiplicationFactorUOM === 'LB' ? 'PER_POUND' : item.multiplicationFactorUOM === 'HRS' ? 'HOURLY' : 'FLAT_RATE',
             chargeValue: item.rateValue,
             apiCharges: item.rateValue,
             input: item.multiplicationFactor,
@@ -291,13 +298,13 @@ export const updateControls = (dispatch, setValue, selectedObj,
         const filteredDeliveryRates = updatedDeliveryRates.filter((item) => item?.rateType !== 'Zip to Zip');
         setValue('carrierRates.delivery.deliveryRate', targetDeliveryZiptozipRate?.rateValue);
         setValue('carrierRates.delivery.deliveryAccessorials', filteredDeliveryRates);
-
     }
     if (customerRateDetails && Object.keys(customerRateDetails).length > 0) {
         // rate detials
         const updatedCustomerRates = (customerRateDetails?.rateDetails || []).map((item) => ({
             ...item,
-            chargeType: item.rateType,
+            accessorialName: item.rateType,
+            chargeType: item.multiplicationFactorUOM === 'LB' ? 'PER_POUND' : item.multiplicationFactorUOM === 'HRS' ? 'HOURLY' : 'FLAT_RATE',
             chargeValue: item.rateValue,
             apiCharges: item.rateValue,
             input: item.multiplicationFactor,

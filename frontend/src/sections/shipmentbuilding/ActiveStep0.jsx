@@ -264,56 +264,70 @@ const ActiveStep0 = ({ control,
                                 required: watchedServiceLevel?.includes('(Date Specific)') ? 'Time is required' : false,
                                 validate: (value) => {
                                     const isRequired = watchedServiceLevel?.includes('(Date Specific)');
-                                    const isEmpty = !value || value === '';
+
+                                    // Check for empty string, empty array, or null values safely
+                                    const isEmpty = !value || value === '' || (Array.isArray(value) && value.length === 0);
 
                                     if (isEmpty) {
                                         return isRequired ? "Time is required" : true;
                                     }
 
-                                    if (dayjs.isDayjs(value) && !value.isValid()) {
+                                    // Parse backend string or existing dayjs object to validate it
+                                    const parsedValue = typeof value === 'string' ? dayjs(value, 'HH:mm:ss') : dayjs(value);
+                                    if (!parsedValue.isValid()) {
                                         return isRequired ? "Time is required" : "Please enter a valid time";
                                     }
 
                                     return true;
                                 }
                             }}
-                            render={({ field: { onChange, value, ...fieldParams } }) => (
-                                <TimePicker
-                                    {...fieldParams}
-                                    ampm={false}
-                                    value={value ? dayjs(value) : null}
-                                    onChange={(newValue) => {
-                                        if (!newValue || (dayjs.isDayjs(newValue) && !newValue.isValid())) {
-                                            onChange(null);
-                                        } else {
-                                            onChange(newValue);
-                                        }
-                                    }}
-                                    label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
-                                    slotProps={{
-                                        textField: {
-                                            variant: 'standard',
-                                            fullWidth: true,
-                                            error: !!errors.time,
-                                            helperText: errors.time ? errors.time.message : '',
-                                            sx: {
-                                                '& .MuiInputBase-input.Mui-disabled': {
-                                                    WebkitTextFillColor: '#000000',
-                                                    color: '#000000',
-                                                },
-                                                '& .MuiInputLabel-root.Mui-disabled': {
-                                                    color: '#000000',
-                                                },
-                                                '& .MuiInput-root.Mui-disabled:before': {
-                                                    borderBottomColor: '#000000',
+                            render={({ field: { onChange, value, ...fieldParams } }) => {
+                                // 1. Safely normalize incoming value to a dayjs object for the UI
+                                let pickerValue = null;
+                                if (value) {
+                                    pickerValue = typeof value === 'string' ? dayjs(value, 'HH:mm:ss') : dayjs(value);
+                                }
+
+                                return (
+                                    <TimePicker
+                                        {...fieldParams}
+                                        ampm={false}
+                                        value={pickerValue && pickerValue.isValid() ? pickerValue : null}
+                                        onChange={(newValue) => {
+                                            if (!newValue || !dayjs(newValue).isValid()) {
+                                                onChange(null);
+                                            } else {
+                                                // 2. Format it back to standard 24hr string for backend compliance
+                                                onChange(dayjs(newValue).format('HH:mm:ss'));
+                                            }
+                                        }}
+                                        label={`Select Time ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
+                                        slotProps={{
+                                            textField: {
+                                                variant: 'standard',
+                                                fullWidth: true,
+                                                error: !!errors.time,
+                                                helperText: errors.time ? errors.time.message : '',
+                                                sx: {
+                                                    '& .MuiInputBase-input.Mui-disabled': {
+                                                        WebkitTextFillColor: '#000000',
+                                                        color: '#000000',
+                                                    },
+                                                    '& .MuiInputLabel-root.Mui-disabled': {
+                                                        color: '#000000',
+                                                    },
+                                                    '& .MuiInput-root.Mui-disabled:before': {
+                                                        borderBottomColor: '#000000',
+                                                    }
                                                 }
                                             }
-                                        }
-                                    }}
-                                    disabled={type === "View"}
-                                />
-                            )}
+                                        }}
+                                        disabled={type === "View"}
+                                    />
+                                );
+                            }}
                         />
+
 
                     </Box>
 

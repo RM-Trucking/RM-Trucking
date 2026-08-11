@@ -681,6 +681,35 @@ export default function RateTable() {
                         >
                             Add Selected Rates
                         </Button>
+                        <Button
+                            variant="outlined"
+                            onClick={() => {
+                                if (currentRateRoutedFrom === 'customer') {
+                                    navigate(PATH_DASHBOARD.maintenance.customerMaintenance.customerStationView);
+                                }
+                                if (currentRateRoutedFrom === 'carrier') {
+                                    navigate(PATH_DASHBOARD.maintenance.carrierMaintenance.terminalView);
+                                }
+                            }}
+                            sx={{
+                                height: '30px',
+                                fontWeight: 600,
+                                color: '#fff',
+                                textTransform: 'none', // Prevent uppercase styling
+                                ml:1,
+                                '&.MuiButton-outlined': {
+                                    borderRadius: '4px',
+                                    color: '#fff',
+                                    boxShadow: 'none',
+                                    p: '2px 16px',
+                                    bgcolor: '#a22',
+                                    borderColor: '#a22',
+                                    mb: 1
+                                },
+                            }}
+                        >
+                            Back
+                        </Button>
                     </Stack>}
                     <DataGrid
                         rows={rateTableData || []}

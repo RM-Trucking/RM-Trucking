@@ -57,7 +57,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
             const prefix = isSpecialRouting ? 'carrierInfo.' : 'carrierInfo.pickupAlertDetails.';
             fieldsToValidate.push(`${prefix}pickupNotes`, `${prefix}primaryEmail`);
         }
-        if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert) {
+        if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert && type !== 'View') {
             fieldsToValidate.push(
                 'carrierInfo.deliveryDetails.lineHaulNotes',
                 'carrierInfo.deliveryDetails.deliveryNotes',

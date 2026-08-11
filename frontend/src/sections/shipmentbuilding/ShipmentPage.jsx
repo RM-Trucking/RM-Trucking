@@ -189,7 +189,7 @@ const ShipmentPage = ({ type }) => {
       // Step 0 
       shipmentType: '',
       serviceLevel: '',
-      date: null,
+      date: dayjs().format('YYYY-MM-DD'),
       time: null,
       // Step 1 - Customer 
       billingCustomer: '',
@@ -252,14 +252,14 @@ const ShipmentPage = ({ type }) => {
       // shipment status
       shipmentStatus: {
         status: 'New Shipment',
-        date: null,
+        date: dayjs().format('YYYY-MM-DD'),
         time: null,
         location: '',
         comments: '',
         signature: '',
-        deliveryDate: null,
+        deliveryDate: dayjs().format('YYYY-MM-DD'),
         deliveryTime: null,
-        appointmentDate: null,
+        appointmentDate: dayjs().format('YYYY-MM-DD'),
         appointmentTime: null,
         shipmentStatusTable: []
       },
@@ -328,7 +328,7 @@ const ShipmentPage = ({ type }) => {
             state: '',
             zip: '',
           },
-          etaDate: null,
+          etaDate: dayjs().format('YYYY-MM-DD'),
           etaTime: null,
           pcs: '',
           weight: '',
@@ -366,7 +366,7 @@ const ShipmentPage = ({ type }) => {
             zip: '',
           },
           // agent: '',
-          etaDate: null,
+          etaDate: dayjs().format('YYYY-MM-DD'),
           etaTime: null,
           pcs: '',
           weight: '',

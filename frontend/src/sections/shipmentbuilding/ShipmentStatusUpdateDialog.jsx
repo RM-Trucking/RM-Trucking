@@ -173,18 +173,55 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
               <Box sx={{ flex: '1 1 22%' }}>
 
                 <Controller
-
                   name="shipmentStatus.date"
-
                   control={control}
+                  rules={{
+                    validate: (value) => {
+                      if (!value || value === '') return true;
 
-                  render={({ field }) => (
+                      const dateObj = dayjs(value);
+                      if (!dateObj.isValid()) {
+                        return "Please enter a valid date";
+                      }
+                      if (dateObj.year() < 1000) {
+                        return "Year is invalid";
+                      }
 
-                    <DatePicker {...field} label="Date" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors?.date } }} />
+                      // Use dayjs for accurate comparison down to the 'day' unit
+                      const isPast = dateObj.isBefore(dayjs(), 'day');
+                      if (isPast) {
+                        return 'Date cannot be in the past';
+                      }
 
+                      return true;
+                    }
+                  }}
+                  render={({ field: { onChange, value, ...field } }) => (
+                    <DatePicker
+                      {...field}
+                      label="Date"
+                      value={value ? dayjs(value) : null}
+                      onChange={(newValue) => {
+                        if (!newValue || !dayjs(newValue).isValid()) {
+                          onChange(null);
+                        } else {
+                          // Saves cleanly into form state as a string layout
+                          onChange(dayjs(newValue).format('YYYY-MM-DD'));
+                        }
+                      }}
+                      minDate={dayjs()} // Strictly disables calendar clicks for past dates
+                      slotProps={{
+                        textField: {
+                          variant: 'standard',
+                          fullWidth: true,
+                          error: !!errors?.shipmentStatus?.date,
+                          helperText: errors?.shipmentStatus?.date ? errors.shipmentStatus.date.message : ''
+                        }
+                      }}
+                    />
                   )}
-
                 />
+
 
               </Box>
               <Box sx={{ flex: '1 1 22%' }}>
@@ -219,18 +256,56 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
               <Box width={"22%"}>
 
                 <Controller
-
                   name="shipmentStatus.deliveryDate"
-
                   control={control}
+                  rules={{
+                    required: 'Delivery Date is required',
+                    validate: (value) => {
+                      if (!value || value === '') return true;
 
-                  render={({ field }) => (
+                      const dateObj = dayjs(value);
+                      if (!dateObj.isValid()) {
+                        return "Please enter a valid date";
+                      }
+                      if (dateObj.year() < 1000) {
+                        return "Year is invalid";
+                      }
 
-                    <DatePicker required {...field} label="Delivery Date*" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors?.deliveryDate } }} />
+                      // Use dayjs for accurate comparison down to the 'day' unit
+                      const isPast = dateObj.isBefore(dayjs(), 'day');
+                      if (isPast) {
+                        return 'Date cannot be in the past';
+                      }
 
+                      return true;
+                    }
+                  }}
+                  render={({ field: { onChange, value, ...field } }) => (
+                    <DatePicker
+                      {...field}
+                      label="Delivery Date*"
+                      value={value ? dayjs(value) : null}
+                      onChange={(newValue) => {
+                        if (!newValue || !dayjs(newValue).isValid()) {
+                          onChange(null);
+                        } else {
+                          // Saves cleanly into form state as a string layout
+                          onChange(dayjs(newValue).format('YYYY-MM-DD'));
+                        }
+                      }}
+                      minDate={dayjs()} // Strictly disables calendar clicks for past dates
+                      slotProps={{
+                        textField: {
+                          variant: 'standard',
+                          fullWidth: true,
+                          error: !!errors?.shipmentStatus?.deliveryDate,
+                          helperText: errors?.shipmentStatus?.deliveryDate ? errors.shipmentStatus.deliveryDate.message : ''
+                        }
+                      }}
+                    />
                   )}
-
                 />
+
 
               </Box>
               <Box width={"22%"}>
@@ -255,18 +330,56 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
               <Box width={'22%'}>
 
                 <Controller
-
                   name="shipmentStatus.appointmentDate"
-
                   control={control}
+                  rules={{
+                    required: 'Appointment Date is required',
+                    validate: (value) => {
+                      if (!value || value === '') return true;
 
-                  render={({ field }) => (
+                      const dateObj = dayjs(value);
+                      if (!dateObj.isValid()) {
+                        return "Please enter a valid date";
+                      }
+                      if (dateObj.year() < 1000) {
+                        return "Year is invalid";
+                      }
 
-                    <DatePicker required {...field} label="Appointment Date*" slotProps={{ textField: { variant: 'standard', fullWidth: true, error: !!errors?.appointmentDate } }} />
+                      // Use dayjs for accurate comparison down to the 'day' unit
+                      const isPast = dateObj.isBefore(dayjs(), 'day');
+                      if (isPast) {
+                        return 'Date cannot be in the past';
+                      }
 
+                      return true;
+                    }
+                  }}
+                  render={({ field: { onChange, value, ...field } }) => (
+                    <DatePicker
+                      {...field}
+                      label="Appointment Date*"
+                      value={value ? dayjs(value) : null}
+                      onChange={(newValue) => {
+                        if (!newValue || !dayjs(newValue).isValid()) {
+                          onChange(null);
+                        } else {
+                          // Saves cleanly into form state as a string layout
+                          onChange(dayjs(newValue).format('YYYY-MM-DD'));
+                        }
+                      }}
+                      minDate={dayjs()} // Strictly disables calendar clicks for past dates
+                      slotProps={{
+                        textField: {
+                          variant: 'standard',
+                          fullWidth: true,
+                          error: !!errors?.shipmentStatus?.appointmentDate,
+                          helperText: errors?.shipmentStatus?.appointmentDate ? errors.shipmentStatus.appointmentDate.message : ''
+                        }
+                      }}
+                    />
                   )}
-
                 />
+
 
               </Box>
               <Box width={'22%'}>

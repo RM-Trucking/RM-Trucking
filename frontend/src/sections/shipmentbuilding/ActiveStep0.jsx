@@ -187,7 +187,6 @@ const ActiveStep0 = ({ control,
                             name="date"
                             control={control}
                             rules={{
-                                // 1. Keeps your conditional required message contract intact
                                 required: watchedServiceLevel?.includes('(Date Specific)') ? 'Date is required' : false,
 
                                 validate: (value) => {
@@ -197,20 +196,25 @@ const ActiveStep0 = ({ control,
                                     const isEmpty = !value || value === '';
                                     const isInvalidDayjs = dayjs.isDayjs(value) && !value.isValid();
 
-                                    // FIX: If the field is empty/invalid but NOT required, pass validation immediately
                                     if (isEmpty || isInvalidDayjs) {
                                         return isRequired ? "Date is required" : true;
                                     }
 
                                     const dateObj = dayjs(value);
 
-                                    // 3. Throw an error for completely broken strings if a user typed something
+                                    // Throw an error for completely broken strings if a user typed something
                                     if (!dateObj.isValid()) {
                                         return "Please enter a valid date";
                                     }
 
                                     if (dateObj.year() < 1000) {
                                         return "Year is invalid";
+                                    }
+
+                                    // NEW: Use dayjs for accurate comparison down to the 'day' unit
+                                    const isPast = dateObj.isBefore(dayjs(), 'day');
+                                    if (isPast) {
+                                        return 'Date cannot be in the past';
                                     }
 
                                     return true;
@@ -228,6 +232,7 @@ const ActiveStep0 = ({ control,
                                         }
                                     }}
                                     label={`Select Date ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
+                                    minDate={dayjs()} // NEW: Strictly disables calendar clicks for past dates
                                     slotProps={{
                                         textField: {
                                             variant: 'standard',
@@ -250,9 +255,9 @@ const ActiveStep0 = ({ control,
                                     }}
                                     disabled={type === "View"}
                                 />
-
                             )}
                         />
+
 
                     </Box>
 

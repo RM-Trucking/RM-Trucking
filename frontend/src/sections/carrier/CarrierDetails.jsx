@@ -62,8 +62,8 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         tsa: false,
         ustDotNo: '',
         mcNo: '',
-        insuranceExpiryDate: '',
-        tariffRenewalDate: '',
+        insuranceExpiryDate:  dayjs().format('YYYY-MM-DD'),
+        tariffRenewalDate:  dayjs().format('YYYY-MM-DD'),
         salesRepName: '',
         salesRepPhoneNumber: '',
         salesRepEmailId: '',
@@ -1007,48 +1007,44 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     <Controller
                                         name="insuranceExpiryDate"
                                         control={control}
+                                        // Ensure your useForm defaultValues sets insuranceExpiryDate: dayjs().format('YYYY-MM-DD')
                                         rules={{
                                             required: 'Insurance Expiry Date is required',
                                             validate: (value) => {
                                                 if (!value) return true;
-                                                const selectedDate = new Date(value);
-                                                const today = new Date();
-                                                today.setHours(0, 0, 0, 0);
-                                                return selectedDate >= today || 'Date cannot be in the past';
+                                                // Use dayjs for accurate comparison down to the 'day' unit
+                                                const isPast = dayjs(value).isBefore(dayjs(), 'day');
+                                                return !isPast || 'Date cannot be in the past';
                                             }
                                         }}
                                         render={({ field: { onChange, value }, fieldState: { error } }) => (
                                             <DatePicker
-                                                label="Insurance Exipiry Date*"
-                                                format="MM/DD/YYYY" // Forces the MM/DD/YYYY display
+                                                label="Insurance Expiry Date*"
+                                                format="MM/DD/YYYY"
+                                                // Handles string or dayjs object fallback smoothly
                                                 value={value ? dayjs(value) : null}
-                                                onChange={(newValue) => onChange(newValue ? newValue.format('YYYY-MM-DD') : null)}
-                                                minDate={dayjs()} // Disables past dates in the UI
+                                                onChange={(newValue) => onChange(newValue && newValue.isValid() ? newValue.format('YYYY-MM-DD') : null)}
+                                                minDate={dayjs()} // Strictly disables calendar clicks for past dates
                                                 slotProps={{
                                                     textField: {
                                                         variant: "standard",
                                                         fullWidth: true,
                                                         error: !!error,
                                                         helperText: error ? error.message : '',
-                                                        sx: { ml: 2 },
                                                         InputLabelProps: { shrink: true },
                                                         sx: {
                                                             ml: 2,
-                                                            // 1. Style the Input Text when disabled
                                                             "& .MuiInputBase-input.Mui-disabled": {
                                                                 WebkitTextFillColor: "#000",
                                                                 color: "#000",
                                                             },
-                                                            // 2. Style the Label when disabled
                                                             "& .MuiInputLabel-root.Mui-disabled": {
                                                                 color: "#000",
                                                             },
-                                                            // 3. Style the Bottom Underline when disabled
                                                             "& .MuiInput-underline.Mui-disabled:before": {
                                                                 borderBottomColor: "#000 !important",
                                                                 borderBottomStyle: "solid",
                                                             },
-                                                            // 4. Style the Calendar Icon when disabled
                                                             "& .MuiIconButton-root.Mui-disabled": {
                                                                 color: "#000",
                                                             }
@@ -1061,51 +1057,48 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                     />
                                 </LocalizationProvider>
 
+
                                 <LocalizationProvider dateAdapter={AdapterDayjs}>
                                     <Controller
                                         name="tariffRenewalDate"
                                         control={control}
+                                        // Ensure your useForm defaultValues sets tariffRenewalDate: dayjs().format('YYYY-MM-DD') for today's default
                                         rules={{
                                             validate: (value) => {
                                                 if (!value) return true;
-                                                const selectedDate = new Date(value);
-                                                const today = new Date();
-                                                today.setHours(0, 0, 0, 0);
-                                                return selectedDate >= today || 'Date cannot be in the past';
+                                                // Use dayjs for accurate comparison down to the 'day' unit
+                                                const isPast = dayjs(value).isBefore(dayjs(), 'day');
+                                                return !isPast || 'Date cannot be in the past';
                                             }
                                         }}
                                         render={({ field: { onChange, value }, fieldState: { error } }) => (
                                             <DatePicker
                                                 label="Tariff Renewal Date"
-                                                format="MM/DD/YYYY" // Forces the MM/DD/YYYY display
+                                                format="MM/DD/YYYY"
+                                                // Handles string or dayjs object fallback smoothly
                                                 value={value ? dayjs(value) : null}
-                                                onChange={(newValue) => onChange(newValue ? newValue.format('YYYY-MM-DD') : null)}
-                                                minDate={dayjs()} // Disables past dates in the UI
+                                                onChange={(newValue) => onChange(newValue && newValue.isValid() ? newValue.format('YYYY-MM-DD') : null)}
+                                                minDate={dayjs()} // Strictly disables calendar clicks for past dates
                                                 slotProps={{
                                                     textField: {
                                                         variant: "standard",
                                                         fullWidth: true,
                                                         error: !!error,
                                                         helperText: error ? error.message : '',
-                                                        sx: { ml: 2 },
                                                         InputLabelProps: { shrink: true },
                                                         sx: {
                                                             ml: 2,
-                                                            // 1. Style the Input Text when disabled
                                                             "& .MuiInputBase-input.Mui-disabled": {
                                                                 WebkitTextFillColor: "#000",
                                                                 color: "#000",
                                                             },
-                                                            // 2. Style the Label when disabled
                                                             "& .MuiInputLabel-root.Mui-disabled": {
                                                                 color: "#000",
                                                             },
-                                                            // 3. Style the Bottom Underline when disabled
                                                             "& .MuiInput-underline.Mui-disabled:before": {
                                                                 borderBottomColor: "#000 !important",
                                                                 borderBottomStyle: "solid",
                                                             },
-                                                            // 4. Style the Calendar Icon when disabled
                                                             "& .MuiIconButton-root.Mui-disabled": {
                                                                 color: "#000",
                                                             }
@@ -1116,6 +1109,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                             />
                                         )}
                                     />
+
                                 </LocalizationProvider>
                             </Stack>
                         </fieldset>

@@ -524,6 +524,12 @@ const ActiveStep3Delivery = ({
                                                 return "Year is invalid";
                                             }
 
+                                            // NEW: Use dayjs for accurate comparison down to the 'day' unit
+                                            const isPast = dateObj.isBefore(dayjs(), 'day');
+                                            if (isPast) {
+                                                return 'Date cannot be in the past';
+                                            }
+
                                             return true;
                                         }
                                     }}
@@ -542,11 +548,12 @@ const ActiveStep3Delivery = ({
                                                     if (!newValue || !dayjs(newValue).isValid()) {
                                                         onChange(null);
                                                     } else {
-                                                        // Save directly as "2024-07-02" string layout into form state
+                                                        // Save directly as "YYYY-MM-DD" string layout into form state
                                                         onChange(dayjs(newValue).format('YYYY-MM-DD'));
                                                     }
                                                 }}
                                                 label="ETA Date"
+                                                minDate={dayjs()} // NEW: Strictly disables calendar clicks for past dates
                                                 disabled={type === 'View'}
                                                 slotProps={{
                                                     textField: {
@@ -589,6 +596,7 @@ const ActiveStep3Delivery = ({
                                         );
                                     }}
                                 />
+
 
 
                             </Box>

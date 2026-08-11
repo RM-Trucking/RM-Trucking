@@ -391,19 +391,26 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                         <Controller
                             name="effectiveDate"
                             control={control}
-                            rules={{ required: 'Effective date is required' }}
+                            rules={{
+                                required: 'Effective date is required',
+                                validate: (value) => {
+                                    // Prevent manual typing of past dates
+                                    if (value && dayjs(value).isBefore(dayjs(), 'day')) {
+                                        return 'Date cannot be less than today';
+                                    }
+                                    return true;
+                                }
+                            }}
                             render={({ field: { value, onChange, ...field } }) => (
                                 <DatePicker
                                     {...field}
                                     label="Effective Date"
-                                    // 1. Convert string from form state into a Day.js object for the picker
                                     value={value ? dayjs(value) : null}
-                                    // 2. Format it back to a clean string when saving into form state
                                     onChange={(newValue) => {
                                         onChange(newValue && dayjs(newValue).isValid() ? dayjs(newValue).format('YYYY-MM-DD') : null);
                                     }}
-                                    // 3. LOCK SELECTION: Today and past dates are greyed out and unclickable
-                                    minDate={dayjs().add(1, 'day')}
+                                    // Visually disables all dates before today in the calendar popup
+                                    minDate={dayjs()}
                                     slotProps={{
                                         textField: {
                                             required: true,
@@ -417,6 +424,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />
+
 
 
                         <Controller

@@ -238,7 +238,7 @@ export default function TerminalViewPageTable() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 150,
             flex: 1,
             sortable: false,
@@ -350,7 +350,7 @@ export default function TerminalViewPageTable() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 150,
             flex: 1,
             sortable: false,
@@ -528,7 +528,7 @@ export default function TerminalViewPageTable() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 110,
             flex: 1,
             cellClassName: 'center-status-cell',

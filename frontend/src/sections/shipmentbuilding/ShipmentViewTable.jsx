@@ -211,7 +211,7 @@ export default function ShipmentViewTable({ }) {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
             flex: 1,
             sortable: false,

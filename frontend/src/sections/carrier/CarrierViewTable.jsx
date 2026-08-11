@@ -430,7 +430,7 @@ export default function CarrierViewTable() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 150,
             flex: 1,
             sortable: false,

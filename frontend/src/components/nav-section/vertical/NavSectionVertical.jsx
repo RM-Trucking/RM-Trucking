@@ -7,27 +7,28 @@ import {
   setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab
 } from '../../../redux/slices/rate';
 import {
-  setAccessorialData,
+  setAccessorialData, setAccessorialSearchStr
 } from '../../../redux/slices/accessorial';
 import {
-  setCarrierData, setCarrierViewTabData, setTerminalViewTabData
+  setCarrierData, setCarrierViewTabData, setTerminalViewTabData, setCarrierSearchStr,
 } from '../../../redux/slices/carrier';
 import {
   setStationTabTableData,
   setCustomerRows,
-  setStationRows,
+  setStationRows, setCustomerSearchStr,
+setStationSearchStr
 } from '../../../redux/slices/customer';
 import {
-  setZoneRateData
+  setZoneRateData, setZoneSearchStr, 
 } from '../../../redux/slices/zone';
 import {
-  setRateTableData, setCarrierList, setCustomerList,
+  setRateTableData, setCarrierList, setCustomerList, setRateSearchObj,
 } from '../../../redux/slices/rate';
 import {
   clearFuelSurchargeData, 
   setCurrentFuelSurchargeTab, 
   setSelectedFuelSurchargeRowDetails, 
-  setStationList, 
+  setStationList, setFuelSurchargeSearchStr,
   setCustomerList as setCustomerListFromFuel // Renamed smoothly here
 } from '../../../redux/slices/fuel';
 
@@ -60,23 +61,29 @@ function NavItem({ item, depth = 0 }) {
       dispatch(setCustomerRows([]));
       dispatch(setStationRows([]));
       dispatch(setCustomerList([]));
+      dispatch(setCustomerSearchStr(""));
+      dispatch(setStationSearchStr(""));
     }
     if (!item.path.includes('/app/maintenance/accesorial-maintenance')) {
       dispatch(setAccessorialData([]));
+      dispatch(setAccessorialSearchStr(''));
     }
     if (!item.path.includes('/rate-maintenance')) {
       dispatch(setRateTableData([]));
       dispatch(setCarrierList([]));
       dispatch(setIsSelectRateClicked(false));
       dispatch(setCurrentRateTab('transportation'));
+      dispatch(setRateSearchObj({}));
     }
     if (!item.path.includes('/app/maintenance/carrier-maintenance')) {
       dispatch(setCarrierData([]));
       dispatch(setCarrierViewTabData([]));
       dispatch(setTerminalViewTabData([]));
+      dispatch(setCarrierSearchStr(""));
     }
     if (!item.path.includes('/app/maintenance/zone-maintenance')) {
       dispatch(setZoneRateData([]));
+      dispatch(setZoneSearchStr(""));
     }
     if (!item.path.includes('/app/maintenance/fuel-surcharge-maintenance')) {
       dispatch(clearFuelSurchargeData());
@@ -84,6 +91,7 @@ function NavItem({ item, depth = 0 }) {
       dispatch(setSelectedFuelSurchargeRowDetails({}));
       dispatch(setStationList([]));
       dispatch(setCustomerListFromFuel([]));
+      dispatch(setFuelSurchargeSearchStr(''));
     }
 
     if (item.path) {

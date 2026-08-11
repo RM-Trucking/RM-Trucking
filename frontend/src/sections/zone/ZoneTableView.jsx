@@ -163,7 +163,7 @@ export default function ZoneTableView() {
         },
         {
             field: "actions",
-            headerName: "Action",
+            headerName: "Actions",
             minWidth: 300,
             flex: 1,
             sortable: false,

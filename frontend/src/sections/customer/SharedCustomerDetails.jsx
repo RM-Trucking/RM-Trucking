@@ -344,6 +344,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpAddressLine1"
                                 control={control}
                                 rules={{
+                                    required: 'Address Line 1 is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 255,
                                         message: 'Address Line 1 cannot exceed 255 characters'
@@ -351,19 +352,28 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field} fullWidth label="Address Line 1" disabled={(type === 'View') ? readOnly : false}
-                                        // Intercept onChange to prevent leading spaces
+                                    <StyledTextField
+                                        sx={{ width: '20%' }}
+                                        variant="standard"
+                                        {...field}
+                                        fullWidth
+                                        label="Address Line 1*" // Added asterisk to visually mark it required
+                                        disabled={(type === 'View') ? readOnly : false}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
-                                        }} error={!!error} inputProps={{ maxLength: 255 }} />
+                                        }}
+                                        error={!!error}
+                                        helperText={error ? error.message : ''} // NEW: Displays validation or required error text
+                                        inputProps={{ maxLength: 255 }}
+                                    />
                                 )}
                             />
+
                             <Controller
                                 name="corpAddressLine2"
                                 control={control}
@@ -394,6 +404,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="corpCity"
                                 control={control}
                                 rules={{
+                                    required: 'City is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 100,
                                         message: 'City cannot exceed 100 characters'
@@ -401,24 +412,33 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'City cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
+                                    <StyledTextField
+                                        sx={{ width: '20%' }}
+                                        variant="standard"
+                                        {...field}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
                                         }}
-                                        fullWidth label="City" disabled={(type === 'View') ? readOnly : false}
-                                        error={!!error} inputProps={{ maxLength: 100 }} />
+                                        fullWidth
+                                        label="City*" // Added asterisk to visually mark it required
+                                        disabled={(type === 'View') ? readOnly : false}
+                                        error={!!error}
+                                        helperText={error ? error.message : ''} // NEW: Displays the required or validation error messages
+                                        inputProps={{ maxLength: 100 }}
+                                    />
                                 )}
                             />
+
                             <Controller
                                 name="corpState"
                                 control={control}
                                 rules={{
+                                    required: 'State is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 100,
                                         message: 'State cannot exceed 100 characters'
@@ -426,27 +446,35 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'State cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField sx={{ width: '20%' }} variant="standard" {...field}
+                                    <StyledTextField
+                                        sx={{ width: '20%' }}
+                                        variant="standard"
+                                        {...field}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
                                         }}
-                                        fullWidth label="State" disabled={(type === 'View') ? readOnly : false}
+                                        fullWidth
+                                        label="State*" // Added asterisk to visually mark it required
+                                        disabled={(type === 'View') ? readOnly : false}
                                         error={!!error}
-                                        inputProps={{ maxLength: 100 }} />
+                                        helperText={error ? error.message : ''} // NEW: Displays validation error text underneath the input
+                                        inputProps={{ maxLength: 100 }}
+                                    />
                                 )}
                             />
+
                             <Controller
                                 name="corpZipCode"
                                 control={control}
                                 rules={{
-                                    // required: 'Zipcode is required',
+                                    required: 'Zipcode is required', // NEW: Enforces the required rule
                                     validate: (value) => {
+                                        // Empty strings are intercepted cleanly by the required property above
                                         if (!value) return true;
 
                                         // 1. Block "all zeros"
@@ -503,17 +531,17 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                             onChange(raw.slice(0, 11));
                                         }}
                                         inputProps={{ maxLength: 11, inputMode: 'numeric' }}
-                                        label="Zip Code"
+                                        label="Zip Code*" // Added asterisk to visually mark it required
                                         error={!!error}
                                         helperText={error?.message || 'Ex: 12345 or 12345-12346'}
                                         variant="standard"
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={(type === 'View') ? readOnly : false}
-                                        // required
                                     />
                                 )}
                             />
+
                         </Stack>
                     </fieldset>
 
@@ -578,6 +606,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billAddressLine1"
                                 control={control}
                                 rules={{
+                                    required: 'Address Line 1 is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 255,
                                         message: 'Address Line 1 cannot exceed 255 characters'
@@ -585,23 +614,28 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
-                                        // Intercept onChange to prevent leading spaces
+                                    <StyledTextField
+                                        variant="standard"
+                                        {...field}
+                                        fullWidth
+                                        sx={{ width: '20%' }}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="Address Line 1" disabled={readOnly}
+                                        label="Address Line 1*" // Added asterisk to visually mark it required
+                                        disabled={readOnly}
                                         error={!!error}
+                                        helperText={error ? error.message : ''} // NEW: Displays validation or required error text
                                         inputProps={{ maxLength: 255 }}
                                     />
                                 )}
                             />
+
                             <Controller
                                 name="billAddressLine2"
                                 control={control}
@@ -634,6 +668,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                 name="billCity"
                                 control={control}
                                 rules={{
+                                    required: 'City is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 100,
                                         message: 'City cannot exceed 100 characters'
@@ -641,24 +676,33 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'City cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                    <StyledTextField
+                                        variant="standard"
+                                        {...field}
+                                        fullWidth
+                                        sx={{ width: '20%' }}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="City" disabled={readOnly} error={!!error}
-                                        inputProps={{ maxLength: 100 }} />
+                                        label="City*" // Added asterisk to visually mark it required
+                                        disabled={readOnly}
+                                        error={!!error}
+                                        helperText={error ? error.message : ''} // NEW: Displays the required or validation error messages
+                                        inputProps={{ maxLength: 100 }}
+                                    />
                                 )}
                             />
+
                             <Controller
                                 name="billState"
                                 control={control}
                                 rules={{
+                                    required: 'State is required', // NEW: Enforces the required rule
                                     maxLength: {
                                         value: 100,
                                         message: 'State cannot exceed 100 characters'
@@ -666,28 +710,36 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                     validate: (value) => !value || value.trim().length > 0 || 'State cannot be only spaces'
                                 }}
                                 render={({ field, fieldState: { error } }) => (
-                                    <StyledTextField variant="standard" {...field} fullWidth sx={{ width: '20%' }}
+                                    <StyledTextField
+                                        variant="standard"
+                                        {...field}
+                                        fullWidth
+                                        sx={{ width: '20%' }}
                                         onChange={(e) => {
                                             const value = e.target.value;
-                                            // prevent only leading spaces while typing
                                             if (value.startsWith(' ')) {
                                                 field.onChange(value.trimStart());
                                             } else {
                                                 field.onChange(value);
                                             }
                                         }}
-                                        label="State" disabled={readOnly}
+                                        label="State*" // Added asterisk to visually mark it required
+                                        disabled={readOnly}
                                         error={!!error}
-                                        inputProps={{ maxLength: 100 }} />
+                                        helperText={error ? error.message : ''} // NEW: Displays validation error text underneath the input
+                                        inputProps={{ maxLength: 100 }}
+                                    />
                                 )}
                             />
+
 
                             <Controller
                                 name="billZipCode"
                                 control={control}
                                 rules={{
-                                    // required: 'Zipcode is required',
+                                    required: 'Zipcode is required', // NEW: Enforces the required rule
                                     validate: (value) => {
+                                        // Empty strings are intercepted cleanly by the required property above
                                         if (!value) return true;
 
                                         // 1. Block "all zeros"
@@ -744,17 +796,17 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                             onChange(raw.slice(0, 11));
                                         }}
                                         inputProps={{ maxLength: 11, inputMode: 'numeric' }}
-                                        label="Zip Code"
+                                        label="Zip Code*" // Added asterisk to visually mark it required
                                         error={!!error}
                                         helperText={error?.message || 'Ex: 12345 or 12345-12346'}
                                         variant="standard"
                                         fullWidth
                                         sx={{ width: '20%' }}
                                         disabled={readOnly}
-                                        // required
                                     />
                                 )}
                             />
+
 
                         </Stack>
                     </fieldset>

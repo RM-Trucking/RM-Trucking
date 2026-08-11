@@ -298,22 +298,23 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     value: 255,
                                     message: 'Address Line 1 cannot exceed 255 characters'
                                 },
-                                validate: (value) => value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
+                                // Safe check: Handles empty strings smoothly without throwing undefined runtime errors
+                                validate: (value) => !value || value.trim().length > 0 || 'Address Line 1 cannot be only spaces'
                             }}
-                            render={({ field }) => (
+                            render={({ field, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
-                                    label="Address Line 1"
-                                    variant="standard" fullWidth required
+                                    label="Address Line 1*" // Added asterisk to visually mark it required
+                                    variant="standard"
+                                    fullWidth
                                     sx={{
                                         width: '25%',
                                     }}
-                                    error={!!errors.addressLine1} helperText={errors.addressLine1?.message}
+                                    error={!!error} // NEW: Uses scoped controller fieldState error for guaranteed reactivity
+                                    helperText={error ? error.message : ''} // NEW: Displays validation or required error text smoothly
                                     disabled={readOnly}
-                                    // Intercept onChange to prevent leading spaces
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        // prevent only leading spaces while typing
                                         if (value.startsWith(' ')) {
                                             field.onChange(value.trimStart());
                                         } else {
@@ -323,6 +324,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                 />
                             )}
                         />
+
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
                         <Controller
@@ -362,43 +364,23 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                     value: 100,
                                     message: 'City cannot exceed 100 characters'
                                 },
-                                validate: (value) => value.trim().length > 0 || 'City cannot be only spaces'
+                                // Safe check: Handles empty strings smoothly without throwing undefined runtime errors
+                                validate: (value) => !value || value.trim().length > 0 || 'City cannot be only spaces'
                             }}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="City" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} required error={!!errors.city} helperText={errors.city?.message} disabled={readOnly}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        // prevent only leading spaces while typing
-                                        if (value.startsWith(' ')) {
-                                            field.onChange(value.trimStart());
-                                        } else {
-                                            field.onChange(value);
-                                        }
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="City*" // Added asterisk to visually mark it required
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{
+                                        width: '25%',
                                     }}
-                                />
-                            )}
-                        />
-                        <Controller
-                            name="state"
-                            control={control}
-                            rules={{
-                                required: 'State is required',
-                                maxLength: {
-                                    value: 100,
-                                    message: 'State cannot exceed 100 characters'
-                                },
-                                validate: (value) => value.trim().length > 0 || 'State cannot be only spaces'
-                            }}
-                            render={({ field }) => (
-                                <StyledTextField {...field} label="State" variant="standard" fullWidth sx={{
-                                    width: '25%',
-                                }} required error={!!errors.state}
-                                    helperText={errors.state?.message} disabled={readOnly}
+                                    error={!!error} // NEW: Uses scoped controller fieldState error for guaranteed reactivity
+                                    helperText={error ? error.message : ''} // NEW: Displays validation or required error text smoothly
+                                    disabled={readOnly}
                                     onChange={(e) => {
                                         const value = e.target.value;
-                                        // prevent only leading spaces while typing
                                         if (value.startsWith(' ')) {
                                             field.onChange(value.trimStart());
                                         } else {
@@ -410,11 +392,47 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                         />
 
                         <Controller
+                            name="state"
+                            control={control}
+                            rules={{
+                                required: 'State is required',
+                                maxLength: {
+                                    value: 100,
+                                    message: 'State cannot exceed 100 characters'
+                                },
+                                // Safe check: Handles empty strings smoothly without throwing undefined runtime errors
+                                validate: (value) => !value || value.trim().length > 0 || 'State cannot be only spaces'
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    label="State*" // Added asterisk to visually mark it required
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{
+                                        width: '25%',
+                                    }}
+                                    error={!!error} // NEW: Uses scoped controller fieldState error for guaranteed reactivity
+                                    helperText={error ? error.message : ''} // NEW: Displays validation or required error text smoothly
+                                    disabled={readOnly}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value.startsWith(' ')) {
+                                            field.onChange(value.trimStart());
+                                        } else {
+                                            field.onChange(value);
+                                        }
+                                    }}
+                                />
+                            )}
+                        />
+                        <Controller
                             name="zipCode"
                             control={control}
                             rules={{
-                                required: 'Zipcode is required',
+                                required: 'Zipcode is required', // Already correctly set here
                                 validate: (value) => {
+                                    // Empty strings are intercepted cleanly by the required property above
                                     if (!value) return true;
 
                                     // 1. Block "all zeros"
@@ -471,17 +489,17 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                         onChange(raw.slice(0, 11));
                                     }}
                                     inputProps={{ maxLength: 11, inputMode: 'numeric' }}
-                                    label="Zip Code"
+                                    label="Zip Code*" // Added asterisk to visually mark it required
                                     error={!!error}
                                     helperText={error?.message || 'Ex: 12345 or 12345-12346'}
                                     variant="standard"
                                     fullWidth
                                     sx={{ width: '25%' }}
                                     disabled={readOnly}
-                                    required
                                 />
                             )}
                         />
+
 
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
@@ -743,8 +761,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                 const isChecked = e.target.checked;
                                                 onChange(isChecked);
                                                 setWarehouseFlag(isChecked);
-                                                if(!isChecked){
-                                                    setValue('warehouseDetails','');
+                                                if (!isChecked) {
+                                                    setValue('warehouseDetails', '');
                                                 }
                                             }}
                                         />
@@ -820,8 +838,8 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                                 const isChecked = e.target.checked;
                                                 onChange(isChecked);
                                                 setHasWarehouseServiceFlag(isChecked);
-                                                if(!isChecked){
-                                                    setValue('warehouseEmails',[])
+                                                if (!isChecked) {
+                                                    setValue('warehouseEmails', [])
                                                 }
                                             }}
                                         />

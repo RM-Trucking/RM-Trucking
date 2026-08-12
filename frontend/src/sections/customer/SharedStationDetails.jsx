@@ -743,7 +743,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             WebkitTextFillColor: 'black',
                                         },
                                         "& .MuiCheckbox-root.Mui-disabled": {
-                                            color: 'black',
+                                            color: 'rgba(0, 25, 76, 1)',
                                             opacity: 1,
                                         }
                                     }}
@@ -820,7 +820,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
                                             WebkitTextFillColor: 'black',
                                         },
                                         "& .MuiCheckbox-root.Mui-disabled": {
-                                            color: 'black',
+                                            color: 'rgba(0, 25, 76, 1)',
                                             opacity: 1,
                                         }
                                     }}

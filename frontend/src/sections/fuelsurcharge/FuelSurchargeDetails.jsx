@@ -283,6 +283,15 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
                                                                 checkedIcon={checkedIcon}
                                                                 style={{ marginRight: 8 }}
                                                                 checked={selected}
+                                                                sx={{
+                                                                    color: 'rgba(0, 25, 76, 1)',
+                                                                    '&.Mui-checked': {
+                                                                        color: 'rgba(0, 25, 76, 1)'
+                                                                    },
+                                                                    '&.Mui-disabled': {
+                                                                        color: 'rgba(0, 25, 76, 1) !important'
+                                                                    }
+                                                                }}
                                                             />
                                                             {option.stationName}
                                                         </Box>

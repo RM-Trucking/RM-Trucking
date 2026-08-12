@@ -230,6 +230,14 @@ export default function ShipmentViewTable({ }) {
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 1 }}>
+                            <IconButton onClick={() => {
+                                dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
+                                navigate(PATH_DASHBOARD.shipmentBuilding.shipmentEdit);
+                            }}>
+                                <Iconify icon="tabler:edit" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
+                        </Tooltip>
 
                         {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />

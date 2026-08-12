@@ -377,7 +377,15 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         <Divider />
                                         {groups.ltl.map((option) => (
                                             <MenuItem key={option} value={option}>
-                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} />
+                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} sx={{
+                                                    color: 'rgba(0, 25, 76, 1)',
+                                                    '&.Mui-checked': {
+                                                        color: 'rgba(0, 25, 76, 1)'
+                                                    },
+                                                    '&.Mui-disabled': {
+                                                        color: 'rgba(0, 25, 76, 1) !important'
+                                                    }
+                                                }} />
                                                 <ListItemText primary={option} />
                                             </MenuItem>
                                         ))}
@@ -386,7 +394,15 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         <Divider />
                                         {groups.airport.map((option) => (
                                             <MenuItem key={option} value={option}>
-                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} />
+                                                <Checkbox checked={(Array.isArray(value) ? value : []).indexOf(option) > -1} sx={{
+                                                    color: 'rgba(0, 25, 76, 1)',
+                                                    '&.Mui-checked': {
+                                                        color: 'rgba(0, 25, 76, 1)'
+                                                    },
+                                                    '&.Mui-disabled': {
+                                                        color: 'rgba(0, 25, 76, 1) !important'
+                                                    }
+                                                }} />
                                                 <ListItemText primary={option} />
                                             </MenuItem>
                                         ))}
@@ -694,7 +710,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                         },
                                         // 2. Ensure the Checkbox within the label is also red when disabled
                                         "& .MuiCheckbox-root.Mui-disabled": {
-                                            color: 'black',
+                                            color: 'rgba(0, 25, 76, 1)',
                                             opacity: 1,
                                         }
                                     }}
@@ -962,7 +978,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                                 },
                                                 // 2. Ensure the Checkbox within the label is also red when disabled
                                                 "& .MuiCheckbox-root.Mui-disabled": {
-                                                    color: 'black',
+                                                    color: 'rgba(0, 25, 76, 1)',
                                                     opacity: 1,
                                                 }
                                             }}

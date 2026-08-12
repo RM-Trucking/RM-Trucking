@@ -10,7 +10,7 @@ import {
     CircularProgress,
     Divider,
     Typography,
-    Dialog, DialogContent, Snackbar,
+    Dialog, DialogContent, Snackbar, FormControlLabel
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -39,6 +39,7 @@ import RateFieldAndChargeTable from '../rate/RateFieldAndChargeTable';
 import CustomerListTable from '../rate/CustomersListTable';
 import Iconify from '../../components/iconify';
 import ZoneDetails from '../zone/ZoneDetails';
+import StyledCheckbox from '../shared/StyledCheckBox';
 
 RateSearchFields.propTypes = {
     padding: PropTypes.number,
@@ -91,6 +92,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             warehouse: '',
             department: '',
             notes: '',
+            airportCheck: false,
         }
     });
 
@@ -105,6 +107,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
             setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
+            // setValue('airportCheck',selectedCurrentRateRow?.airportCheck);
         }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
             setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || "");
@@ -292,6 +295,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
 
 
             // 3. Construct the object and dispatch
+            // add key for airport check
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
@@ -349,6 +353,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
                 return;
             }
+            // add key for airport check
             const obj = {
                 "originZoneId": data.origin,
                 "destinationZoneId": data.destination,
@@ -368,6 +373,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         setValue('destination', '');
         setValue('destinationZipCode', '');
         setValue('warehouse', '');
+        setValue('airportCheck', false);
         dispatch(setRateSearchObj({}));
         dispatch(setOriginZoneListByZipCode([]));
         dispatch(setDestinationZoneListByZipCode([]));
@@ -923,11 +929,52 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             Search
                         </Button>}
                     </Stack>
+                    {type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier' && <Box sx={{ pl: 2 }}>
+                        <Controller
+                            name="airportCheck"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <FormControlLabel
+                                    sx={{
+                                        width: '30%',
+                                        display: 'flex',
+                                        alignItems: 'flex-end',
+                                        pointerEvents: 'none', // Keeps the "Warehouse" text unclickable
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'rgba(0, 25, 76, 1)',
+                                            opacity: 1,
+                                            WebkitTextFillColor: 'rgba(0, 25, 76, 1)',
+                                        },
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'rgba(0, 25, 76, 1)',
+                                            opacity: 1,
+                                        },
+                                    }}
+                                    control={
+                                        <StyledCheckbox
+                                            sx={{
+                                                pointerEvents: 'auto',
+                                                padding: 0, // 1. Removes the invisible clickable padding
+                                                marginRight: '8px' // 2. Adds back space between box and label
+                                            }}
+                                            disableRipple // 3. Removes the circular highlight when clicked
+                                            checked={!!value}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                onChange(isChecked);
+                                            }}
+                                        />
+                                    }
+                                    label="Airport"
+                                />
+                            )}
+                        />
+                    </Box>}
                     {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <Box sx={{ mt: '16px !important' }}>
                         <RateFieldAndChargeTableWarehouse type={type} />
                     </Box>}
                     {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Box>
-                        <Stack flexDirection={'row'} alignItems={'flex-start'} sx={{ mt: 4 }}>
+                        <Stack flexDirection={'row'} alignItems={'flex-start'} >
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>
                                 {type !== 'Add' && <Button

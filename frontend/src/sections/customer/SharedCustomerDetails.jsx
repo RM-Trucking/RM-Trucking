@@ -562,7 +562,7 @@ export default function SharedCustomerDetails({ type, handleCloseConfirm, select
                                         },
                                         // 2. Ensure the Checkbox within the label is also red when disabled
                                         "& .MuiCheckbox-root.Mui-disabled": {
-                                            color: 'black',
+                                            color: 'rgba(0, 25, 76, 1)',
                                             opacity: 1,
                                         }
                                     }}

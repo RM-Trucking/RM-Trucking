@@ -237,25 +237,25 @@ export default function RateTable() {
                 return element;
             }
         },
-        {
-            field: 'expiryDate',
-            headerName: 'Expiry Date',
-            width: 150,
-            headerAlign: 'center',
-            cellClassName: 'center-status-cell',
-            sortable: false,
-            filterable: false,
-            renderCell: (params) => {
-                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
-                    month: '2-digit',
-                    day: '2-digit',
-                    year: 'numeric'
-                }).replace(/\//g, '-');
-                <Box>
-                    {formatted}
-                </Box>
-            }
-        },
+        // {
+        //     field: 'expiryDate',
+        //     headerName: 'Expiry Date',
+        //     width: 150,
+        //     headerAlign: 'center',
+        //     cellClassName: 'center-status-cell',
+        //     sortable: false,
+        //     filterable: false,
+        //     renderCell: (params) => {
+        //         const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+        //             month: '2-digit',
+        //             day: '2-digit',
+        //             year: 'numeric'
+        //         }).replace(/\//g, '-');
+        //         <Box>
+        //             {formatted}
+        //         </Box>
+        //     }
+        // },
         {
             field: "notes",
             headerName: "Notes",

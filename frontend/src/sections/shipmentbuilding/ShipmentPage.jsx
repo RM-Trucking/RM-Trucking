@@ -26,6 +26,7 @@ import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import ConfirmDialog from '../../components/confirm-dialog';
 import {
   postStep1, getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
   getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
@@ -62,6 +63,7 @@ import ActiveStep3Pickup from './ActiveStep3Pickup';
 import ActiveStep3Linehaul from './ActiveStep3Linehaul';
 import ActiveStep3Delivery from './ActiveStep3Delivery';
 import ActiveStep4 from './ActiveStep4';
+import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
 import { updateControls, updateStep2Controls } from './UpdateControls';
 
@@ -139,6 +141,7 @@ const ShipmentPage = ({ type }) => {
   const [errorVisibleFields, setErrorVisibleFields] = useState([]);
   // This state controls the opening, closing, and index of the Hazmat modal
   const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
+  const [accCheckModal, setAccCheckModal] = useState({ open: false, acc: '', });
   const [shipmentStatusModal, setShipmentStatusModal] = useState(false);
   // for notes dialog
   const notesRef = useRef({});
@@ -1504,23 +1507,29 @@ const ShipmentPage = ({ type }) => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
-    // 1. If Pickup Accessorials checkbox is unchecked, clear the pickup array
-    if (!watchedAddPickupAccessorial) {
-      setValue('carrierInfo.pickupAccessorials',[]);
-      setValue('carrierRates.pickUp.pickupAccessorials',[]);
+    if (!watchedAddPickupAccessorial && activeStep === 3) {
+      setAccCheckModal({
+        open: true,
+        acc: 'pickup'
+      });
     }
-    // 2. If Linehaul Accessorials checkbox is unchecked, clear the linehaul array
-    if (!watchedLinehaulAddAcc) {
-      setValue('carrierInfo.lineHaul.linehaulAccessorials',[]);
-      setValue('carrierRates.lineHaul.lineHaulAccessorials',[]);
+  }, [watchedAddPickupAccessorial,]);
+  useEffect(() => {
+    if (!watchedLinehaulAddAcc && activeStep === 3) {
+      setAccCheckModal({
+        open: true,
+        acc: 'linehaul'
+      });
     }
-    // 3. If Delivery Accessorials checkbox is unchecked, clear the delivery array
-    if (!watchedDeliveryAddAcc) {
-      setValue('carrierInfo.deliveryDetails.deliveryAccessorials',[]);
-      setValue('carrierRates.delivery.deliveryAccessorials',[]);
+  }, [watchedLinehaulAddAcc,]);
+  useEffect(() => {
+    if (!watchedDeliveryAddAcc && activeStep === 3) {
+      setAccCheckModal({
+        open: true,
+        acc: 'delivery'
+      });
     }
-  }, [
-    watchedAddPickupAccessorial, watchedLinehaulAddAcc, watchedDeliveryAddAcc, replacePickupAcc, replaceLineHaulAcc, replaceDeliveryAcc]); // Included all required hook references in the dependency array
+  }, [watchedDeliveryAddAcc,]);
 
   useEffect(() => {
     if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
@@ -1752,7 +1761,7 @@ const ShipmentPage = ({ type }) => {
                 watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
-                setCarrierPickupSearchValue={setCarrierPickupSearchValue}                
+                setCarrierPickupSearchValue={setCarrierPickupSearchValue}
               />
               {
                 isPickupPending === false &&
@@ -1805,7 +1814,7 @@ const ShipmentPage = ({ type }) => {
                   watchedCarrierInfo={watchedCarrierInfo}
                   watchedToLocation={watchedToLocation}
                   isPickupPending={isPickupPending}
-                  
+
                 />
               }
               {isPickupPending === false && <ActiveStep3Delivery type={type}
@@ -1860,7 +1869,7 @@ const ShipmentPage = ({ type }) => {
                 watchedCarrierInfo={watchedCarrierInfo}
                 isPickupPending={isPickupPending}
                 watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                
+
               />
               }
             </>
@@ -1957,6 +1966,7 @@ const ShipmentPage = ({ type }) => {
           setValue={setValue}
           getValues={getValues}
         />
+        <AccCheckDialog state={accCheckModal} setAccCheckModal={setAccCheckModal} setValue={setValue} watchedAddPickupAccessorial={watchedAddPickupAccessorial} watchedLinehaulAddAcc={watchedLinehaulAddAcc} watchedDeliveryAddAcc={watchedDeliveryAddAcc} />
         <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
           if (event.key === 'Escape') {
             handleNotesCloseConfirmForShipmentAccs();
@@ -2015,6 +2025,7 @@ const ShipmentPage = ({ type }) => {
             </Box>
           </DialogContent>
         </Dialog>
+
       </LocalizationProvider >
     </ErrorBoundary>
   );

@@ -176,6 +176,7 @@ const ShipmentPage = ({ type }) => {
   const [shipmentErrorFlag, setShipmentErrorFlag] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
 
   const filter = createFilterOptions();
 
@@ -1495,6 +1496,7 @@ const ShipmentPage = ({ type }) => {
       setSnackbarMessage(`${(shipmentError?.error && shipmentError?.message) ? `${shipmentError?.error}. ${shipmentError?.message}` : `${shipmentError?.message ?? shipmentError}`}`);
       setShipmentErrorFlag(true);
       setIsSubmitting(false);
+      setIsSubmittingFinal(false);
     }
   }, [shipmentError])
   useEffect(() => {
@@ -1563,7 +1565,7 @@ const ShipmentPage = ({ type }) => {
             handleNext={handleNext}
             onFormSubmit={onFormSubmit}
             isPickupPending={isPickupPending}
-            isSubmitting={isSubmitting}
+            isSubmitting={isSubmitting} isSubmittingFinal = {isSubmittingFinal}
             type={type}
             setDoDetailsModal={setDoDetailsModal}
             setCustomerRateModal={setCustomerRateModal}
@@ -1595,7 +1597,7 @@ const ShipmentPage = ({ type }) => {
             getZipToZipCarrierPickupRate={getZipToZipCarrierPickupRate}
             getZipToZipCarrierLinehaulRate={getZipToZipCarrierLinehaulRate}
             getZipToZipCarrierDeliveryRate={getZipToZipCarrierDeliveryRate}
-            setIsSubmitting={setIsSubmitting}
+            setIsSubmitting={setIsSubmitting} setIsSubmittingFinal = {setIsSubmittingFinal}
             postStep1={postStep1}
             postNetworkShipment={postNetworkShipment}
             watchedOriginAirport={watchedOriginAirport}

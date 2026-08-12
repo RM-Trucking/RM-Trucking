@@ -3,7 +3,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
     selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-    setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, totals,
+    setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, totals,
     watchedLinehaulAddAcc, type
 ) => {
     const currentValues = getValues();
@@ -1015,7 +1015,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         delete obj.shipmentRateDetails;
     }
     if (activeStep === 4) {
-        setIsSubmitting(true);
+        setIsSubmittingFinal(true);
         try {
             // 2. Trigger your API call
             // dispatch(postStep1(obj));
@@ -1023,7 +1023,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         } catch (error) {
             console.error("Submission failed:", error);
             // 4. Unlock button if API fails so they can retry
-            setIsSubmitting(false);
+            setIsSubmittingFinal(false);
         }
     }
     if (activeStep === 2 && hasInitialData(getValues)) {

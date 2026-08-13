@@ -777,7 +777,7 @@ export async function createShipmentFlow(
                 await createEntityAddressMappingRecord(conn, pickupEntityId, createdFromAddress.addressId, "FROM", "PICKUP");
             }
 
-            if (pickupDetails.pickupAgentTerminal === "N" && pickupDetails.pickupAgentTerminalDetails) {
+            if (pickupDetails.pickupAgentTerminal === "Y" && pickupDetails.pickupAgentTerminalDetails) {
                 console.log("[createShipmentFlow] Creating pickup agent terminal info");
                 await createPickupAgentTerminalRecord(
                     conn,

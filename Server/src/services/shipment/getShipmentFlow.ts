@@ -312,6 +312,7 @@ async function getShipmentRateDetails(conn: Connection, shipmentId: number) {
 
 async function getShipmentCustomerResponse(conn: Connection, shipmentId: number) {
     const customerInfo = await getShipmentCustomerDetails(conn, shipmentId);
+    const customerReferenceNumbers = await shipmentDB.getShipmentCustomerReferenceNumbers(conn, shipmentId);
     const shipperInfo = await shipmentDB.getShipmentShipperInfoByShipmentId(conn, shipmentId);
     const consigneeInfo = await shipmentDB.getShipmentConsigneeInfoByShipmentId(conn, shipmentId);
     const airlineRows = await shipmentDB.getShipmentAirlinesByShipmentId(conn, shipmentId);
@@ -381,12 +382,21 @@ async function getShipmentCustomerResponse(conn: Connection, shipmentId: number)
             entityId: deliveryAirlineInfo.entityId,
             scenarioType: deliveryAirlineInfo.scenarioType,
         } : undefined,
+        customerReferenceNumbers: customerReferenceNumbers?.length
+            ? customerReferenceNumbers.map((row: any) => ({
+                referenceNumberId: row.referenceNumberId,
+                shipmentId: row.shipmentId,
+                referenceType: row.referenceType,
+                referenceNumber: row.referenceNumber,
+            }))
+            : undefined,
     };
 
     if (!customerDetailsResponse.shipperDetails) delete customerDetailsResponse.shipperDetails;
     if (!customerDetailsResponse.consigneeDetails) delete customerDetailsResponse.consigneeDetails;
     if (!customerDetailsResponse.pickupAirlineDetails) delete customerDetailsResponse.pickupAirlineDetails;
     if (!customerDetailsResponse.deliveryAirlineDetails) delete customerDetailsResponse.deliveryAirlineDetails;
+    if (!customerDetailsResponse.customerReferenceNumbers) delete customerDetailsResponse.customerReferenceNumbers;
 
     return customerDetailsResponse;
 }

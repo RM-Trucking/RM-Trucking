@@ -1,0 +1,865 @@
+openapi: 3.0.0
+info:
+  title: Network Shipment Edit API
+  version: 1.0.0
+  description: Swagger documentation for the network shipment edit flow endpoint
+
+tags:
+  - name: Network Shipment Edit
+    description: Generic shipment update flow operations
+
+paths:
+  /api/network-shipment/{shipmentId}:
+    patch:
+      tags: [Network Shipment Edit]
+      summary: Update a shipment using the generic shipment flow
+      description: Updates an existing shipment and its related customer, commodity, carrier, rate, and accessorial information using the new generic payload flow.
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shipmentId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+          description: Shipment ID to update.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EditShipmentFlowRequest"
+            examples:
+              shipmentUpdateFlow:
+                summary: Example shipment update payload using database PK field names
+                value:
+                  shipmentDetails:
+                    shipmentId: 101
+                    typeOfShipment: "AIR_IMPORT"
+                    serviceLevel: "Priority"
+                    shipmentDate: "2026-08-13"
+                    shipmentTime: "09:30:00"
+                    status: "MANIFESTED"
+                  customerDetails:
+                    customerInfoId: 25
+                    customerId: 11
+                    stationId: 18
+                    airportPickupService: "N"
+                    airportDeliveryService: "N"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    referenceNumbers:
+                      - referenceNumberId: 80
+                        referenceType: "PO"
+                        referenceNumber: "PO-1001"
+                      - referenceType: "BOL"
+                        referenceNumber: "BOL-2002"
+                      - referenceNumberId: 88
+                        delete: true
+                    shipper:
+                      shipperId: 200
+                      entityId: 150
+                      shipperName: "Updated Shipper"
+                      addressLine1: "321 Updated St"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90002"
+                      contactPersonName: "Jane Updated"
+                      phoneNumber: "+1-555-0102"
+                    consignee:
+                      consigneeId: 201
+                      entityId: 160
+                      consigneeName: "Updated Consignee"
+                      addressLine1: "654 Updated Ave"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "10002"
+                      contactPersonName: "John Updated"
+                      phoneNumber: "+1-555-0103"
+                  commodityDetails:
+                    commodityId: 31
+                    emergencyContactName: "Emergency Contact"
+                    emergencyContactPhone: "+1-555-0000"
+                    handlingUnits:
+                      - handlingUnitId: 42
+                        handlingUnitUOM: "PALLET"
+                        handlingUnits: 3
+                        unit: "EA"
+                        handlingLength: 120
+                        handlingWidth: 100
+                        handlingHeight: 80
+                        handlingWeight: 550
+                        handlingWeightUnit: "LB"
+                        class: "CLASS_1"
+                        palletDetails:
+                          - itemId: 52
+                            pieces: 12
+                            piecesUOM: "EA"
+                            description: "Updated goods"
+                            hazmat: "N"
+                          - pieces: 4
+                            piecesUOM: "EA"
+                            description: "New item"
+                            hazmat: "Y"
+                            hazmatDetails:
+                              unNumber: "UN1234"
+                              properShippingName: "Sample Product"
+                              hazardClass: "3"
+                              packingGroup: "II"
+                      - handlingUnitId: 44
+                        delete: true
+                  carrierDetails:
+                    pickup:
+                      pickupInfoId: 60
+                      carrierId: 146
+                      terminalId: 148
+                      pickupRouting: "PICKUP_ONLY"
+                      fromLocationType: "Shipper"
+                      fromLocation: "Pickup Warehouse"
+                      pickupAgentTerminal: "N"
+                      pickupAccessorial: "N"
+                      pickupAlert: "N"
+                    linehaul:
+                      linehaulInfoId: 61
+                      carrierId: 146
+                      terminalId: 148
+                      carrierBillNumber: "LH-999-001"
+                      linehaulRouting: "LINE_HAUL_ONLY"
+                      fromLocationType: "Carrier"
+                      fromLocation: "Carrier Hub"
+                      toLocationType: "Carrier"
+                      toLocation: "Terminal Hub"
+                      etaDate: "2026-08-14"
+                      etaTime: "12:00:00"
+                      pieces: 10
+                      weight: 250
+                    delivery:
+                      deliveryInfoId: 62
+                      carrierId: 146
+                      terminalId: 148
+                      carrierBillNumber: "DL-999-001"
+                      fromLocationType: "Carrier"
+                      fromLocation: "Delivery Hub"
+                      toLocationType: "Consignee"
+                      toLocation: "Consignee Warehouse"
+                      etaDate: "2026-08-15"
+                      etaTime: "10:30:00"
+                      pieces: 10
+                      weight: 200
+                    accessorials:
+                      - accessorialId: 70
+                        chargeType: "FLAT_VALUE"
+                        chargeValue: 50
+                      - accessorialId: 301
+                        chargeType: "FLAT_VALUE"
+                        chargeValue: 75
+                      - accessorialId: 71
+                        delete: true
+                  shipmentRateDetails:
+                    carrierRateDetails:
+                      pickupRateDetails:
+                        invoiceId: 80
+                        invoiceNumber: "PU-INV-2026-001"
+                        pickupSubTotalRate: 500
+                        rateDetails:
+                          - rateId: 90
+                            rateType: "BASE_RATE"
+                            rateValue: 0.55
+                            totalRate: 825
+                          - rateType: "FUEL_SURCHARGE"
+                            rateValue: 50
+                            totalRate: 50
+                      linehaulRateDetails:
+                        invoiceId: 81
+                        invoiceNumber: "LH-INV-2026-001"
+                        linehaulSubTotalRate: 400
+                      deliveryRateDetails:
+                        invoiceId: 82
+                        invoiceNumber: "DL-INV-2026-001"
+                        deliverySubTotalRate: 300
+                      totalCarrierRate: 1200
+                    customerRateDetails:
+                      customerRateId: 83
+                      totalCustomerRate: 1200
+                      rateDetails:
+                        - rateId: 91
+                          rateType: "CUSTOMER_BASE"
+                          rateValue: 1
+                          totalRate: 1200
+      responses:
+        "200":
+          description: Shipment flow updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EditShipmentFlowResponse"
+        "400":
+          description: Invalid request payload or shipment update failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+components:
+  schemas:
+    ShipmentPKDeleteFlag:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+          description: Primary key of the Network_Shipment row.
+          example: 101
+        delete:
+          type: boolean
+          description: Set to true to remove the record from the shipment.
+          example: false
+
+    CustomerInfoPKDeleteFlag:
+      type: object
+      properties:
+        customerInfoId:
+          type: integer
+          description: Primary key of the Network_Shipment_Customer_Info row.
+          example: 25
+        delete:
+          type: boolean
+          example: false
+
+    ReferenceNumberPKDeleteFlag:
+      type: object
+      properties:
+        referenceNumberId:
+          type: integer
+          description: Primary key of the Network_Shipment_Customer_Reference_Number row.
+          example: 80
+        delete:
+          type: boolean
+          example: false
+
+    ShipperPKDeleteFlag:
+      type: object
+      properties:
+        shipperId:
+          type: integer
+          description: Primary key of the Network_Shipment_Shipper_Info row.
+          example: 200
+        delete:
+          type: boolean
+          example: false
+
+    ConsigneePKDeleteFlag:
+      type: object
+      properties:
+        consigneeId:
+          type: integer
+          description: Primary key of the Network_Shipment_Consignee_Info row.
+          example: 201
+        delete:
+          type: boolean
+          example: false
+
+    CommodityPKDeleteFlag:
+      type: object
+      properties:
+        commodityId:
+          type: integer
+          description: Primary key of the Network_Commodity_Info row.
+          example: 31
+        delete:
+          type: boolean
+          example: false
+
+    HandlingUnitPKDeleteFlag:
+      type: object
+      properties:
+        handlingUnitId:
+          type: integer
+          description: Primary key of the Network_Shipment_Handling_Unit row.
+          example: 42
+        delete:
+          type: boolean
+          example: false
+
+    ItemPKDeleteFlag:
+      type: object
+      properties:
+        itemId:
+          type: integer
+          description: Primary key of the Network_Shipment_Handling_Unit_Item row.
+          example: 52
+        delete:
+          type: boolean
+          example: false
+
+    PickupPKDeleteFlag:
+      type: object
+      properties:
+        pickupInfoId:
+          type: integer
+          description: Primary key of the Network_Shipment_Pickup_Info row.
+          example: 60
+        delete:
+          type: boolean
+          example: false
+
+    LinehaulPKDeleteFlag:
+      type: object
+      properties:
+        linehaulInfoId:
+          type: integer
+          description: Primary key of the Network_Shipment_Linehaul_Info row.
+          example: 61
+        delete:
+          type: boolean
+          example: false
+
+    DeliveryPKDeleteFlag:
+      type: object
+      properties:
+        deliveryInfoId:
+          type: integer
+          description: Primary key of the Network_Shipment_Delivery_Info row.
+          example: 62
+        delete:
+          type: boolean
+          example: false
+
+    InvoicePKDeleteFlag:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+          description: Primary key of the Network_Shipment_Invoice_Info row.
+          example: 80
+        delete:
+          type: boolean
+          example: false
+
+    RatePKDeleteFlag:
+      type: object
+      properties:
+        rateId:
+          type: integer
+          description: Primary key of the Network_Shipment_Rate_Info row.
+          example: 90
+        delete:
+          type: boolean
+          example: false
+
+    CustomerRatePKDeleteFlag:
+      type: object
+      properties:
+        customerRateId:
+          type: integer
+          description: Primary key of the Network_Shipment_Customer_Rate_Info row.
+          example: 83
+        delete:
+          type: boolean
+          example: false
+
+    ShipmentDetailUpdate:
+      type: object
+      properties:
+        shipmentId:
+          type: integer
+          example: 101
+        typeOfShipment:
+          type: string
+          example: AIR_IMPORT
+        serviceLevel:
+          type: string
+          example: Priority
+        shipmentDate:
+          type: string
+          format: date
+          example: "2026-08-13"
+        shipmentTime:
+          type: string
+          example: "09:30:00"
+        status:
+          type: string
+          example: MANIFESTED
+
+    CustomerReferenceNumberUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ReferenceNumberPKDeleteFlag"
+        - type: object
+          properties:
+            referenceType:
+              type: string
+              example: PO
+            referenceNumber:
+              type: string
+              example: PO-1001
+
+    ShipperUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ShipperPKDeleteFlag"
+        - type: object
+          properties:
+            entityId:
+              type: integer
+              example: 150
+            shipperName:
+              type: string
+              example: Updated Shipper
+            addressLine1:
+              type: string
+              example: 321 Updated St
+            addressLine2:
+              type: string
+              nullable: true
+            city:
+              type: string
+              example: Los Angeles
+            state:
+              type: string
+              example: CA
+            zipCode:
+              type: string
+              example: "90002"
+            contactPersonName:
+              type: string
+              example: Jane Updated
+            phoneNumber:
+              type: string
+              example: "+1-555-0102"
+
+    ConsigneeUpdate:
+      allOf:
+        - $ref: "#/components/schemas/ConsigneePKDeleteFlag"
+        - type: object
+          properties:
+            entityId:
+              type: integer
+              example: 160
+            consigneeName:
+              type: string
+              example: Updated Consignee
+            addressLine1:
+              type: string
+              example: 654 Updated Ave
+            addressLine2:
+              type: string
+              nullable: true
+            city:
+              type: string
+              example: New York
+            state:
+              type: string
+              example: NY
+            zipCode:
+              type: string
+              example: "10002"
+            contactPersonName:
+              type: string
+              example: John Updated
+            phoneNumber:
+              type: string
+              example: "+1-555-0103"
+
+    CustomerUpdate:
+      type: object
+      properties:
+        customerInfoId:
+          type: integer
+          example: 25
+        customerId:
+          type: integer
+          example: 11
+        stationId:
+          type: integer
+          example: 18
+        airportPickupService:
+          type: string
+          enum: [Y, N]
+          example: N
+        airportDeliveryService:
+          type: string
+          enum: [Y, N]
+          example: N
+        originAirportCode:
+          type: string
+          example: LAX
+        destinationAirportCode:
+          type: string
+          example: JFK
+        referenceNumbers:
+          type: array
+          items:
+            $ref: "#/components/schemas/CustomerReferenceNumberUpdate"
+        shipper:
+          $ref: "#/components/schemas/ShipperUpdate"
+        consignee:
+          $ref: "#/components/schemas/ConsigneeUpdate"
+
+    HazmatUpdate:
+      type: object
+      properties:
+        hazmatId:
+          type: integer
+          example: 88
+        unNumber:
+          type: string
+          example: UN1234
+        properShippingName:
+          type: string
+          example: Sample Product
+        hazardClass:
+          type: string
+          example: "3"
+        packingGroup:
+          type: string
+          example: II
+        weight:
+          type: number
+          example: 15.5
+        weightUnit:
+          type: string
+          example: LB
+        delete:
+          type: boolean
+          example: false
+
+    PalletUpdate:
+      type: object
+      properties:
+        itemId:
+          type: integer
+          example: 52
+        pieces:
+          type: integer
+          example: 12
+        piecesUOM:
+          type: string
+          example: EA
+        description:
+          type: string
+          example: Updated goods
+        hazmat:
+          type: string
+          enum: [Y, N]
+          example: N
+        hazmatDetails:
+          $ref: "#/components/schemas/HazmatUpdate"
+        delete:
+          type: boolean
+          example: false
+
+    HandlingUnitUpdate:
+      allOf:
+        - $ref: "#/components/schemas/HandlingUnitPKDeleteFlag"
+        - type: object
+          properties:
+            handlingUnitUOM:
+              type: string
+              example: PALLET
+            handlingUnits:
+              type: integer
+              example: 3
+            unit:
+              type: string
+              example: EA
+            handlingLength:
+              type: number
+              example: 120
+            handlingWidth:
+              type: number
+              example: 100
+            handlingHeight:
+              type: number
+              example: 80
+            handlingWeight:
+              type: number
+              example: 550
+            handlingWeightUnit:
+              type: string
+              example: LB
+            class:
+              type: string
+              example: CLASS_1
+            palletDetails:
+              type: array
+              items:
+                $ref: "#/components/schemas/PalletUpdate"
+
+    CommodityUpdate:
+      type: object
+      properties:
+        commodityId:
+          type: integer
+          example: 31
+        emergencyContactName:
+          type: string
+          example: Emergency Contact
+        emergencyContactPhone:
+          type: string
+          example: "+1-555-0000"
+        handlingUnits:
+          type: array
+          items:
+            $ref: "#/components/schemas/HandlingUnitUpdate"
+
+    AccessorialUpdate:
+      type: object
+      properties:
+        accessorialId:
+          type: integer
+          example: 300
+        chargeType:
+          type: string
+          example: FLAT_VALUE
+        chargeValue:
+          type: number
+          example: 50
+        delete:
+          type: boolean
+          example: false
+
+    PickupCarrierUpdate:
+      allOf:
+        - $ref: "#/components/schemas/PickupPKDeleteFlag"
+        - type: object
+          properties:
+            carrierId:
+              type: integer
+              example: 146
+            terminalId:
+              type: integer
+              example: 148
+            pickupRouting:
+              type: string
+              example: PICKUP_ONLY
+            fromLocationType:
+              type: string
+              example: Shipper
+            fromLocation:
+              type: string
+              example: Pickup Warehouse
+            pickupAgentTerminal:
+              type: string
+              enum: [Y, N]
+              example: N
+            pickupAccessorial:
+              type: string
+              enum: [Y, N]
+              example: N
+            pickupAlert:
+              type: string
+              enum: [Y, N]
+              example: N
+
+    LinehaulCarrierUpdate:
+      allOf:
+        - $ref: "#/components/schemas/LinehaulPKDeleteFlag"
+        - type: object
+          properties:
+            carrierId:
+              type: integer
+              example: 146
+            terminalId:
+              type: integer
+              example: 148
+            carrierBillNumber:
+              type: string
+              example: LH-999-001
+            linehaulRouting:
+              type: string
+              example: LINE_HAUL_ONLY
+            fromLocationType:
+              type: string
+              example: Carrier
+            fromLocation:
+              type: string
+              example: Carrier Hub
+            toLocationType:
+              type: string
+              example: Carrier
+            toLocation:
+              type: string
+              example: Terminal Hub
+            etaDate:
+              type: string
+              format: date
+              example: "2026-08-14"
+            etaTime:
+              type: string
+              example: "12:00:00"
+            pieces:
+              type: integer
+              example: 10
+            weight:
+              type: number
+              example: 250
+
+    DeliveryCarrierUpdate:
+      allOf:
+        - $ref: "#/components/schemas/DeliveryPKDeleteFlag"
+        - type: object
+          properties:
+            carrierId:
+              type: integer
+              example: 146
+            terminalId:
+              type: integer
+              example: 148
+            carrierBillNumber:
+              type: string
+              example: DL-999-001
+            fromLocationType:
+              type: string
+              example: Carrier
+            fromLocation:
+              type: string
+              example: Delivery Hub
+            toLocationType:
+              type: string
+              example: Consignee
+            toLocation:
+              type: string
+              example: Consignee Warehouse
+            etaDate:
+              type: string
+              format: date
+              example: "2026-08-15"
+            etaTime:
+              type: string
+              example: "10:30:00"
+            pieces:
+              type: integer
+              example: 10
+            weight:
+              type: number
+              example: 200
+
+    CarrierUpdate:
+      type: object
+      properties:
+        pickup:
+          $ref: "#/components/schemas/PickupCarrierUpdate"
+        linehaul:
+          $ref: "#/components/schemas/LinehaulCarrierUpdate"
+        delivery:
+          $ref: "#/components/schemas/DeliveryCarrierUpdate"
+        accessorials:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessorialUpdate"
+
+    RateItemUpdate:
+      allOf:
+        - $ref: "#/components/schemas/RatePKDeleteFlag"
+        - type: object
+          properties:
+            rateType:
+              type: string
+              example: BASE_RATE
+            multiplicationFactor:
+              type: number
+              example: 1500
+            multiplicationFactorUOM:
+              type: string
+              example: LB
+            rateValue:
+              type: number
+              example: 0.55
+            totalRate:
+              type: number
+              example: 825
+
+    InvoiceRateGroupUpdate:
+      type: object
+      properties:
+        invoiceId:
+          type: integer
+          example: 80
+        invoiceNumber:
+          type: string
+          example: PU-INV-2026-001
+        pickupSubTotalRate:
+          type: number
+          example: 500
+        linehaulSubTotalRate:
+          type: number
+          example: 400
+        deliverySubTotalRate:
+          type: number
+          example: 300
+        rateDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateItemUpdate"
+
+    CustomerRateUpdate:
+      type: object
+      properties:
+        customerRateId:
+          type: integer
+          example: 83
+        totalCustomerRate:
+          type: number
+          example: 1200
+        rateDetails:
+          type: array
+          items:
+            $ref: "#/components/schemas/RateItemUpdate"
+
+    ShipmentRateUpdate:
+      type: object
+      properties:
+        carrierRateDetails:
+          type: object
+          properties:
+            pickupRateDetails:
+              $ref: "#/components/schemas/InvoiceRateGroupUpdate"
+            linehaulRateDetails:
+              $ref: "#/components/schemas/InvoiceRateGroupUpdate"
+            deliveryRateDetails:
+              $ref: "#/components/schemas/InvoiceRateGroupUpdate"
+            totalCarrierRate:
+              type: number
+              example: 1200
+        customerRateDetails:
+          $ref: "#/components/schemas/CustomerRateUpdate"
+
+    EditShipmentFlowRequest:
+      type: object
+      properties:
+        shipmentDetails:
+          $ref: "#/components/schemas/ShipmentDetailUpdate"
+        customerDetails:
+          $ref: "#/components/schemas/CustomerUpdate"
+        commodityDetails:
+          $ref: "#/components/schemas/CommodityUpdate"
+        carrierDetails:
+          $ref: "#/components/schemas/CarrierUpdate"
+        shipmentRateDetails:
+          $ref: "#/components/schemas/ShipmentRateUpdate"
+      additionalProperties: true
+
+    EditShipmentFlowResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Shipment flow updated successfully
+        data:
+          type: object
+          properties:
+            shipmentId:
+              type: integer
+              example: 1001
+
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Shipment update failed

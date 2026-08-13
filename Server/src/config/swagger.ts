@@ -26,6 +26,20 @@ function mergeComponents(target: Record<string, any>, source: Record<string, any
     });
 }
 
+function mergePaths(target: Record<string, any>, source: Record<string, any>) {
+    Object.entries(source).forEach(([pathKey, pathValue]) => {
+        if (!target[pathKey]) {
+            target[pathKey] = pathValue;
+            return;
+        }
+
+        target[pathKey] = {
+            ...target[pathKey],
+            ...(pathValue as Record<string, any>),
+        };
+    });
+}
+
 export const swaggerSpec: Record<string, any> = swaggerFiles.reduce(
     (acc: Record<string, any>, file: string) => {
         const filePath = join(swaggerDirectory, file);
@@ -40,10 +54,7 @@ export const swaggerSpec: Record<string, any> = swaggerFiles.reduce(
         }
 
         if (document.paths && typeof document.paths === 'object') {
-            acc.paths = {
-                ...acc.paths,
-                ...document.paths,
-            };
+            mergePaths(acc.paths, document.paths);
         }
 
         if (document.components && typeof document.components === 'object') {

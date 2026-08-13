@@ -14,13 +14,26 @@ export async function getShipmentById(conn: Connection, shipmentId: number) {
 
 export async function getShipmentCustomerInfo(conn: Connection, shipmentId: number) {
     const query = `
-        SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Info"
+        SELECT nsc.*, c."customerName"
+        FROM ${SCHEMA}."Network_Shipment_Customer_Info" as nsc
+        JOIN ${SCHEMA}."Customer" as c ON nsc."customerId" = c."customerId"
         WHERE "shipmentId" = ?
         FETCH FIRST 1 ROW ONLY
     `;
 
     const result = await conn.query(query, [shipmentId]) as any[];
     return result[0];
+}
+
+export async function getShipmentCustomerReferenceNumbers(conn: Connection, shipmentId: number) {
+    const query = `
+        SELECT * FROM ${SCHEMA}."Network_Shipment_Customer_Reference_Number"
+        WHERE "shipmentId" = ?
+        ORDER BY "referenceNumberId" ASC
+    `;
+
+    const result = await conn.query(query, [shipmentId]) as any[];
+    return result;
 }
 
 export async function getShipmentCommodityInfo(conn: Connection, shipmentId: number) {

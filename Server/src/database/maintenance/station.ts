@@ -152,40 +152,46 @@ export async function softDeleteStation(conn: Connection, stationId: number): Pr
 /**
  * Check if RM account number already exists (unique constraint helper)
  */
-export async function getStationByRmAccountNumber(conn: Connection, rmAccountNumber: string): Promise<Station | null> {
+export async function getStationByRmAccountNumber(
+  conn: Connection,
+  rmAccountNumber: string,
+  excludeStationId?: number
+): Promise<Station | null> {
   const query = `
     SELECT * FROM ${SCHEMA}."Station"
-    WHERE "rmAccountNumber" = ? AND "activeStatus" = 'Y'
+    WHERE "rmAccountNumber" = ?
+      AND "activeStatus" = 'Y'
+      AND "stationId" <> ?
     FETCH FIRST 1 ROWS ONLY
   `;
-  const result = (await conn.query(query, [rmAccountNumber])) as any[];
+  const result = (await conn.query(query, [rmAccountNumber, excludeStationId ?? -1])) as any[];
   return result.length > 0 ? (result[0] as Station) : null;
 }
 
 
 export async function checkStationUniqueFields(
   conn: Connection,
-  { email, faxNumber, phoneNumber, rmAccountNumber }:
-    { email?: string; faxNumber?: string; phoneNumber?: string; rmAccountNumber?: string },
+  { stationName, email, faxNumber, phoneNumber, rmAccountNumber }:
+    { stationName?: string; email?: string; faxNumber?: string; phoneNumber?: string; rmAccountNumber?: string },
   stationId?: number // optional, so we can exclude current record on update
 ): Promise<string | null> {
   const queries: string[] = [];
   const params: (string | number)[] = [];
 
-  if (email) {
-    queries.push(`SELECT 'email' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "email" = ? AND "stationId" <> ?`);
-    params.push(email, stationId ?? -1);
+  if (stationName) {
+    queries.push(`SELECT 'stationName' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "stationName" = ? AND "activeStatus" = 'Y' AND "stationId" <> ?`);
+    params.push(stationName, stationId ?? -1);
   }
   if (faxNumber) {
-    queries.push(`SELECT 'faxNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "faxNumber" = ? AND "stationId" <> ?`);
+    queries.push(`SELECT 'faxNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "faxNumber" = ? AND "activeStatus" = 'Y' AND "stationId" <> ?`);
     params.push(faxNumber, stationId ?? -1);
   }
   if (phoneNumber) {
-    queries.push(`SELECT 'phoneNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "phoneNumber" = ? AND "stationId" <> ?`);
+    queries.push(`SELECT 'phoneNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "phoneNumber" = ? AND "activeStatus" = 'Y' AND "stationId" <> ?`);
     params.push(phoneNumber, stationId ?? -1);
   }
   if (rmAccountNumber) {
-    queries.push(`SELECT 'rmAccountNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "rmAccountNumber" = ? AND "stationId" <> ?`);
+    queries.push(`SELECT 'rmAccountNumber' AS "conflictField" FROM "${SCHEMA}"."Station" WHERE "rmAccountNumber" = ? AND "activeStatus" = 'Y' AND "stationId" <> ?`);
     params.push(rmAccountNumber, stationId ?? -1);
   }
 
@@ -195,4 +201,24 @@ export async function checkStationUniqueFields(
 
   const result = await conn.query(query, params) as { conflictField: string }[];
   return result.length ? result[0].conflictField : null;
+}
+
+export async function getStationByCustomerAndName(
+  conn: Connection,
+  customerId: number,
+  stationName: string,
+  excludeStationId?: number
+): Promise<Station | null> {
+  const query = `
+    SELECT *
+    FROM ${SCHEMA}."Station"
+    WHERE "customerId" = ?
+      AND LOWER("stationName") = LOWER(?)
+      AND "activeStatus" = 'Y'
+      AND "stationId" <> ?
+    FETCH FIRST 1 ROWS ONLY
+  `;
+
+  const result = (await conn.query(query, [customerId, stationName, excludeStationId ?? -1])) as any[];
+  return result.length > 0 ? (result[0] as Station) : null;
 }

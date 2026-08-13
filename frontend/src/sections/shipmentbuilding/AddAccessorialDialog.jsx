@@ -51,6 +51,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     const accessorialDropdown = useSelector((state) => state?.shipmentdata?.accessorialDropdown);
 
     const [chargeValue, setChargeValue] = useState(null);
+    const [duplicateFlag, setDuplicateFlag] = useState(false);
 
     const {
         control,
@@ -84,23 +85,41 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
     const onSubmit = (data) => {
         console.log('Form Submitted:', data);
         if (actionType === 'Add') {
-            const [accessorialId, accessorialName] = data?.accessorial?.split('-');
-            setMASTER_Accessorials((prev) => [
-                ...prev,
-                {
-                    accessorialId: accessorialId,
-                    accessorialName: accessorialName,
-                    chargeType: data.chargesType,
-                    chargeValue: data.charges,
-                    notes: [{
-                        noteMessageId: Date.now(),
-                        messageText: data.notes,
-                    }]
-                }
-            ]);
-            reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
-            onClose();
+            const [accessorialId, accessorialName] = data?.accessorial?.split('-') || [];
+
+            // Check if an item with the same accessorialId already exists in the state
+            // const isDuplicate = MASTER_ACCESSORIALS.some(
+            //     (item) => String(item.accessorialId) === String(accessorialId)
+            // );
+            const isDuplicate = MASTER_ACCESSORIALS.some(
+                (item) =>
+                    String(item.accessorialId) === String(accessorialId) &&
+                    String(item.chargeType).trim().toLowerCase() === String(data.chargesType).trim().toLowerCase()
+            );
+
+            if (isDuplicate) {
+                setDuplicateFlag(true);
+            } else {
+                // No duplicate found, proceed to add the item
+                setMASTER_Accessorials((prev) => [
+                    ...prev,
+                    {
+                        accessorialId: accessorialId,
+                        accessorialName: accessorialName,
+                        chargeType: data.chargesType,
+                        chargeValue: data.charges,
+                        notes: [{
+                            noteMessageId: Date.now(),
+                            messageText: data.notes,
+                        }]
+                    }
+                ]);
+
+                reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
+                onClose();
+            }
         }
+
         else if (actionType === 'Edit') {
             const dataObj = {
                 accessorialId: editableObj.accessorialId,
@@ -394,6 +413,12 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
                             </Box>}
                         </Stack>}
                     </Box>
+                    <Snackbar open={duplicateFlag} autoHideDuration={6000} onClose={() => { setDuplicateFlag(false) }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+
+                        <Alert severity="error" variant="filled">
+                            This accessorial has already been added to the list.
+                        </Alert>
+                    </Snackbar>
                 </>
             </DialogContent>
         </Dialog>

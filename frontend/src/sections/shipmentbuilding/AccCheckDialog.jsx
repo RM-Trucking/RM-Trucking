@@ -63,10 +63,21 @@ const AccCheckDialog = ({ state, setAccCheckModal, setValue, watchedAddPickupAcc
                     </Typography>
                 </DialogContent>
                 <DialogActions sx={{ pb: 3, justifyContent: 'center', gap: 2 }}>
-                    <Button onClick={() => setAccCheckModal({
-                        open: false,
-                        acc: ''
-                    })} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
+                    <Button onClick={() => {
+                        if (acc === 'pickup') {
+                            setValue('carrierInfo.addPickupAccessorial', true);
+                        }
+                        if (acc === 'linehaul') {
+                            setValue('carrierInfo.lineHaul.linehaulAddAcc', true);
+                        }
+                        if (acc === 'delivery') {
+                            setValue('carrierInfo.deliveryDetails.deliveryAddAcc', true);
+                        }
+                        setAccCheckModal({
+                            open: false,
+                            acc: ''
+                        })
+                    }} variant="outlined" sx={{ color: '#000', borderColor: '#000' }}>Cancel</Button>
                     <Button onClick={onSave} variant="contained" sx={{ bgcolor: '#a22' }}>Ok</Button>
                 </DialogActions>
             </Dialog>

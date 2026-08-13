@@ -1509,7 +1509,7 @@ const ShipmentPage = ({ type }) => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
-    if (!watchedAddPickupAccessorial && activeStep === 3) {
+    if (!watchedAddPickupAccessorial && activeStep === 3 && getValues('carrierInfo.pickupAccessorials')?.length > 0) {
       setAccCheckModal({
         open: true,
         acc: 'pickup'
@@ -1517,7 +1517,7 @@ const ShipmentPage = ({ type }) => {
     }
   }, [watchedAddPickupAccessorial,]);
   useEffect(() => {
-    if (!watchedLinehaulAddAcc && activeStep === 3) {
+    if (!watchedLinehaulAddAcc && activeStep === 3 && getValues('carrierInfo.lineHaul.linehaulAccessorials')?.length > 0) {
       setAccCheckModal({
         open: true,
         acc: 'linehaul'
@@ -1525,7 +1525,7 @@ const ShipmentPage = ({ type }) => {
     }
   }, [watchedLinehaulAddAcc,]);
   useEffect(() => {
-    if (!watchedDeliveryAddAcc && activeStep === 3) {
+    if (!watchedDeliveryAddAcc && activeStep === 3 && getValues('carrierInfo.deliveryDetails.deliveryAccessorials')?.length > 0) {
       setAccCheckModal({
         open: true,
         acc: 'delivery'

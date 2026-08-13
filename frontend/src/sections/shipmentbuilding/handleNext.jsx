@@ -1316,7 +1316,7 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
             setIsSubmitting(false);
         }
     }
-    if (selectedRouting === 'pickup_only' && watchedSelectedPickupCarrier && !isPickupPending) {
+    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === '' && watchedSelectedPickupCarrier && !isPickupPending) {
         if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
             if (currentValues?.carrierInfo?.toLocationType && currentValues?.carrierInfo.toLocation) {
                 valid = true;

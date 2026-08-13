@@ -187,13 +187,13 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.lineHaul.etaTime', linehaulDetails?.linehaulPrimaryInfo?.etaTime);
         setValue('carrierInfo.lineHaul.pcs', linehaulDetails?.linehaulPrimaryInfo?.pieces);
         setValue('carrierInfo.lineHaul.weight', linehaulDetails?.linehaulPrimaryInfo?.weight);
-        setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y' || updatedAccessorials.length > 0);
         const updatedAccessorials = (linehaulDetails?.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
             isManual: false,
             selected: true
         }));
         setValue('carrierInfo.lineHaul.linehaulAccessorials', updatedAccessorials);
+        setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y' || updatedAccessorials.length > 0);
         setValue('carrierInfo.lineHaul.lineHaulNotes', linehaulDetails?.linehaulCommonInfo?.linehaulNotes);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.addressLine1);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.line2);

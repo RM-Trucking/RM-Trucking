@@ -1902,4 +1902,5 @@ function validateMatch(existing: any, incoming: any, entity: string) {
 
 
 export { createShipmentFlow } from './createShipmentFlow';
+export { editShipmentFlow } from './editShipmentFlow';
 export { getNetworkShipmentView, getNetworkShipmentForms } from './getShipmentFlow';

@@ -37,10 +37,18 @@ export async function createStation(
     } = createStationReq;
 
 
-    // Uniqueness check
-    const existingStation = await stationDB.getStationByRmAccountNumber(conn, rmAccountNumber);
-    if (existingStation) {
+    // Uniqueness checks
+    const trimmedStationName = stationName?.trim();
+    const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(conn, rmAccountNumber);
+    if (existingStationByRmAccount) {
         throw new Error('RM account number already exists');
+    }
+
+    if (trimmedStationName) {
+        const existingStationByName = await stationDB.getStationByCustomerAndName(conn, customerId, trimmedStationName);
+        if (existingStationByName) {
+            throw new Error('Station name already exists for this customer');
+        }
     }
 
     await conn.beginTransaction();
@@ -220,6 +228,30 @@ export async function updateStationService(
         hasWarehouseService,
         warehouseEmails
     } = updates;
+
+    if (stationName && stationName.trim()) {
+        const trimmedStationName = stationName.trim();
+        const existingStationByName = await stationDB.getStationByCustomerAndName(
+            conn,
+            existing.customerId,
+            trimmedStationName,
+            stationId
+        );
+        if (existingStationByName) {
+            throw new Error('Station name already exists for this customer');
+        }
+    }
+
+    if (rmAccountNumber && rmAccountNumber.trim()) {
+        const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(
+            conn,
+            rmAccountNumber,
+            stationId
+        );
+        if (existingStationByRmAccount) {
+            throw new Error('RM account number already exists');
+        }
+    }
 
     await stationDB.updateStation(conn, stationId, {
         stationName,

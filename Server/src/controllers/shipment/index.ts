@@ -85,6 +85,32 @@ export async function getNetworkShipmentForms(req: Request, res: Response, conn:
     }
 }
 
+export async function editShipmentFlow(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const shipmentId = Number(req.params.shipmentId);
+        if (Number.isNaN(shipmentId) || shipmentId <= 0) {
+            res.status(400).json({ success: false, message: "Invalid shipmentId" });
+            return;
+        }
+
+        const payload = req.body;
+        const userId = (req as any).user?.userId || 1;
+
+        console.log("Received edit shipment flow request:", { shipmentId, payload, userId });
+
+        const result = await shipmentService.editShipmentFlow(conn, shipmentId, payload, userId);
+
+        res.status(200).json({
+            success: true,
+            message: "Shipment flow updated successfully",
+            data: result
+        });
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
 export async function updateNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const shipmentId = Number(req.params.shipmentId);
@@ -93,9 +119,15 @@ export async function updateNetworkShipment(req: Request, res: Response, conn: C
             return;
         }
 
-        res.status(501).json({
-            success: false,
-            message: "Shipment update is not implemented for the new flow yet"
+        const payload = req.body;
+        const userId = (req as any).user?.userId || 1;
+
+        const result = await shipmentService.editShipmentFlow(conn, shipmentId, payload, userId);
+
+        res.status(200).json({
+            success: true,
+            message: "Shipment update successful",
+            data: result
         });
     } catch (error: any) {
         console.log(error);

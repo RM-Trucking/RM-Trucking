@@ -378,8 +378,8 @@ export async function createNetworkShipmentLinehaulPrimaryInfo(
         toLocationType: linehaulInfo?.toLocationType ?? null,
         toLocation: linehaulInfo?.toLocation ?? null,
         toLocationEntityId: linehaulInfo?.toLocationEntityId ?? null,
-        etaDate: linehaulInfo?.etaDate ?? null,
-        etaTime: linehaulInfo?.etaTime ?? null,
+        etaDate: normalizeDateTimeValue(linehaulInfo?.etaDate) ?? null,
+        etaTime: normalizeDateTimeValue(linehaulInfo?.etaTime) ?? null,
         pieces: linehaulInfo?.pieces ?? null,
         weight: linehaulInfo?.weight ?? null,
     };
@@ -434,8 +434,8 @@ export async function createNetworkShipmentDeliveryPrimaryInfo(
         toLocationType: deliveryInfo?.toLocationType ?? null,
         toLocation: deliveryInfo?.toLocation ?? null,
         toLocationEntityId: deliveryInfo?.toLocationEntityId ?? null,
-        etaDate: deliveryInfo?.etaDate ?? null,
-        etaTime: deliveryInfo?.etaTime ?? null,
+        etaDate: normalizeDateTimeValue(deliveryInfo?.etaDate) ?? null,
+        etaTime: normalizeDateTimeValue(deliveryInfo?.etaTime) ?? null,
         pieces: deliveryInfo?.pieces ?? null,
         weight: deliveryInfo?.weight ?? null,
     };

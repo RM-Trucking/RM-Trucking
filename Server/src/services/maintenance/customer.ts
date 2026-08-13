@@ -275,7 +275,7 @@ export async function toggleCustomerStatus(
     customerId: number,
     userId: number,
     activeStatus?: 'Y' | 'N'
-): Promise<Customer> {
+): Promise<CustomerResponse> {
     const customer = await customerDB.getCustomerById(conn, customerId);
     if (!customer) throw new Error('Customer not found');
 
@@ -286,10 +286,18 @@ export async function toggleCustomerStatus(
 
     const updated = await customerDB.getCustomerById(conn, customerId);
     if (!updated) throw new Error('Failed to update customer status');
+
+    const addresses = await addressDB.getAddressesForEntity(conn, updated.entityId);
+    const notes = updated.noteThreadId
+        ? await noteDB.getMessagesByThread(conn, updated.noteThreadId)
+        : [];
+
     return {
         ...updated,
         createdAt: updated.createdAt ? toUtcDate(updated.createdAt) : null,
-        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null
+        updatedAt: updated.updatedAt ? toUtcDate(updated.updatedAt) : null,
+        addresses,
+        notes
     };
 }
 

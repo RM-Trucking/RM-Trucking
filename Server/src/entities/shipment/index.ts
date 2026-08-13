@@ -323,3 +323,4 @@ export interface NetworkShipmentCustomerRateMap {
 }
 
 export * from './createShipmentPayload';
+export * from './updateShipmentPayload';

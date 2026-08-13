@@ -1339,7 +1339,7 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
         } else {
             valid = true;
         }
-        if (valid) {
+        if (valid && missingRequiredFields.length === 0) {
             setErrorVisible(false);
             obj.carrierDetails = {
 

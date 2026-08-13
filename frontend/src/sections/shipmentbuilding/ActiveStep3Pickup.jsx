@@ -310,8 +310,8 @@ const ActiveStep3Pickup = ({
                                                     inputRef={ref} // Keeps React Hook Form validation focus operational
                                                     variant="standard"
                                                     label="Select Carrier *"
-                                                    error={!!errors.carrierInfo?.toLocation}
-                                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                                    error={!!errors.carrierInfo?.selectCarrier}
+                                                    helperText={errors.carrierInfo?.selectCarrier ? 'Carrier is required' : ' '}
                                                     InputLabelProps={{ shrink: true }}
                                                     sx={{
                                                         '& .MuiInputBase-input:disabled': {

@@ -44,6 +44,7 @@ export const PATH_DASHBOARD = {
     shipmentAdd: path(ROOTS_DASHBOARD, '/shipment-building/shipment-add'),
     shipmentEdit: path(ROOTS_DASHBOARD, '/shipment-building/shipment-edit'),
     shipmentView: path(ROOTS_DASHBOARD, '/shipment-building/shipment-view'),
+    bolView : path(ROOTS_DASHBOARD, '/shipment-building/bill-of-lading'),
   },
   warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),
   maintenance: {

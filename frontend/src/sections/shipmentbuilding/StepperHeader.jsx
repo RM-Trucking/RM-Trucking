@@ -438,6 +438,16 @@ const StepperHeader = ({ location, navigate,
                     </Box>
                 </Box>
                 }
+                {
+                    type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'}>
+                        <Button variant="contained" onClick={(e) => {
+                            // get the api details
+                            // Replace with your actual route path
+                            window.open(PATH_DASHBOARD.shipmentBuilding.bolView, '_blank');
+                            e.stopPropagation(); // Stops the popup from auto-closing
+                        }} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>BOL</Button>
+                    </Box>
+                }
             </Box>
         </ErrorBoundary>
     );

@@ -1,0 +1,185 @@
+/* Base Display Styles */
+.bol-print-container {
+    background-color: #f5f5f5;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+    color: #000;
+}
+
+.bol-sheet {
+    width: 210mm;
+    margin: 0 auto;
+    background: white;
+    padding: 10mm;
+    box-sizing: border-box;
+}
+
+.border-box {
+    border: 1px solid #000;
+}
+
+.border-right {
+    border-right: 1px solid #000;
+}
+
+.border-bottom {
+    border-bottom: 1px solid #000;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px;
+}
+
+.company-logo {
+    margin: 0;
+    font-size: 20px;
+}
+
+.main-grid {
+    display: flex;
+    margin-top: 3px;
+}
+
+.left-column {
+    flex: 6;
+}
+
+.right-column {
+    flex: 4;
+    padding: 4px;
+}
+
+.section-header {
+    background: #000;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 10px;
+    padding: 2px 0;
+    margin-top: 3px;
+}
+
+.section-header-inline {
+    background: #000;
+    color: #fff;
+    font-weight: bold;
+    text-align: center;
+    font-size: 9.5px;
+    padding: 1px 0;
+}
+
+.info-block {
+    padding: 4px;
+    font-size: 9.5px;
+}
+
+.order-info-box {
+    padding: 4px;
+    font-size: 9px;
+}
+
+.commodity-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: center;
+}
+
+.commodity-table th,
+.commodity-table td {
+    border: 1px solid #000;
+    padding: 3px 2px;
+    font-size: 8.5px;
+}
+
+.commodity-table td.align-left {
+    text-align: left;
+}
+
+.totals-row td {
+    background-color: #eee;
+    font-weight: bold;
+}
+
+.footer-block {
+    margin-top: 5px;
+}
+
+.legal-statement {
+    font-size: 7.5px;
+    padding: 3px;
+}
+
+.notes-grid {
+    display: flex;
+    font-size: 7px;
+}
+
+.note-left,
+.note-right {
+    padding: 3px;
+    flex: 1;
+}
+
+.signatures-grid {
+    display: flex;
+    min-height: 80px;
+    margin-top: 3px;
+}
+
+.sig-column {
+    flex: 1;
+    padding: 4px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.sig-title {
+    font-weight: bold;
+    font-size: 8.5px;
+}
+
+.sig-line {
+    border-top: 1px solid #000;
+    text-align: center;
+}
+
+.checkboxes-column {
+    font-size: 8px;
+}
+
+/* AUTOMATIC PRINT SPLITTING RULES */
+.avoid-break {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+}
+
+.commodity-table thead {
+    display: table-header-group;
+    /* Repeats table header on every split page automatically */
+}
+
+@media print {
+    body {
+        margin: 0;
+        padding: 0;
+        background: none;
+    }
+
+    .no-print {
+        display: none !important;
+    }
+
+    .bol-sheet {
+        width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+
+    @page {
+        size: A4 portrait;
+        margin: 10mm;
+    }
+}

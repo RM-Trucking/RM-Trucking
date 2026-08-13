@@ -242,7 +242,7 @@ const ItemsSection = ({ type, huIndex, control, watchedHU, openHazmat, setValue 
                   Hazmat info
                 </Typography>
                 <Typography variant="body2" sx={{ fontSize: '0.75rem', color: '#555' }}>
-                  {`${hazData.unNumber}, ${hazData.shippingName}, (${hazData.technicalName}), ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
+                  {`${hazData.unNumber}, ${hazData.shippingName}, ${hazData.technicalName ? `(${hazData.technicalName}),` : ''} ${hazData.hazmatClass}, ${hazData.packagingGroup}, ${hazData.weight} ${hazData.weightUnit} `}
                   {type === 'View' && [
                     hazData?.limitedQuality && 'Limited Quality',
                     hazData?.marinePollutant && 'Marine Pollutant',

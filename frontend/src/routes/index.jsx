@@ -39,6 +39,7 @@ import {
   ShipmentFormEdit,
   ShipmentFormView,
   ShipmentBuildingHomeLayout,
+  BillOfLadingView,
 } from './elements';
 
 
@@ -97,6 +98,7 @@ export default function Router() {
             { path: 'shipment-add', element: <ShipmentFormAdd /> },
             { path: 'shipment-edit', element: <ShipmentFormEdit /> },
             { path: 'shipment-view', element: <ShipmentFormView /> },
+            { path: 'bill-of-lading', element: <BillOfLadingView /> }
           ]
         },
         {

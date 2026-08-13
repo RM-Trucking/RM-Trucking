@@ -268,6 +268,7 @@ const ShipmentPage = ({ type }) => {
         shipmentStatusTable: []
       },
       // step 3 - Carrier Information
+      carrierInfoSubmit : false,
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
@@ -439,6 +440,7 @@ const ShipmentPage = ({ type }) => {
 
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
+  const watchedCarrierInfoSubmit = useWatch({ control, name: "carrierInfoSubmit" });
   const watchedServiceLevel = useWatch({ control, name: "serviceLevel" });
 
   const showEmergencyContact = watchedHandlingUnits.some(hu =>
@@ -1558,7 +1560,7 @@ const ShipmentPage = ({ type }) => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ p: 2, mt: 2 }}>
           {/* HEADER & STEPPER */}
-          <StepperHeader location={location} navigate={navigate}
+          <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit = {watchedCarrierInfoSubmit}
             PATH_DASHBOARD={PATH_DASHBOARD}
             setHandleCancelModal={setHandleCancelModal}
             hasInitialData={hasInitialData}

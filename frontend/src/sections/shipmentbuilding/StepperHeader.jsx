@@ -28,7 +28,7 @@ import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
 
 
-const StepperHeader = ({ location, navigate,
+const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     PATH_DASHBOARD,
     setHandleCancelModal,
     hasInitialData,
@@ -155,6 +155,19 @@ const StepperHeader = ({ location, navigate,
     };
     const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
     const labelStyle = { fontSize: '0.75rem', color: '#555' };
+    const [isSubmittingWithLinehaul, setIsSubmittingWithLinehaul] = useState(false);
+
+    useEffect(() => {
+        if (watchedCarrierInfoSubmit) {
+            handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+            );
+        }
+    }, [watchedCarrierInfoSubmit])
 
     return (
         <ErrorBoundary

@@ -141,6 +141,8 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         // Optional: Save this to a component state if you need to print it on screen
         // setFailedFields(missingRequiredFields);
     }
+    // setting carrierInfoSubmit
+    setValue('carrierInfoSubmit', false)
 
     // adding to object
     // step 0
@@ -1403,5 +1405,8 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
             setErrorVisible(true);
             setErrorVisibleFields(missingRequiredFields);
         }
+    }
+    if(selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting !== ""){
+        setValue('carrierInfoSubmit', true);
     }
 };

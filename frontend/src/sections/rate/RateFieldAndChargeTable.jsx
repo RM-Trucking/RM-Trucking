@@ -251,7 +251,7 @@ export default function RateFieldAndChargeTable({ type }) {
                 return element;
             }
         },
-        {
+        type !== 'View' && {
             field: 'actions',
             headerName: '',
             width: 200,
@@ -326,7 +326,7 @@ export default function RateFieldAndChargeTable({ type }) {
                 return element;
             },
         }
-    ];
+    ].filter(Boolean);;
 
     useEffect(() => {
         // Dispatch action to fetch rate dashboard data

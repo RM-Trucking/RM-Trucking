@@ -23,7 +23,9 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         }
     } else if (activeStep === 1) {
         fieldsToValidate = [
-            'billingCustomer', 'consigneeName', 'shipperName'];
+            'billingCustomer', 'consigneeName', 'shipperName', 'shipperAddr1', 'shipperAddr2', 'shipperCity', 'shipperState',
+            'shipperZip', 'shipperContact', 'shipperPhone', 'consigneeAddr1', 'consigneeAddr2', 'consigneeCity', 'consigneeState',
+            'consigneeZip', 'consigneeContact', 'consigneePhone'];
         if (watchedAirportPickupService) {
             fieldsToValidate.push('originAirport');
         }
@@ -1386,9 +1388,9 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
                     "pickupAlertDetails": {
                         "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                         "emailInfo": {
-                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
-                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
-                    }
+                            "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                            "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
+                        }
                     }
                 },
             }
@@ -1406,7 +1408,7 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
             setErrorVisibleFields(missingRequiredFields);
         }
     }
-    if(selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting !== ""){
+    if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting !== "") {
         setValue('carrierInfoSubmit', true);
     }
 };

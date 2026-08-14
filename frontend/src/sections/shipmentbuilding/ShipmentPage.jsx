@@ -189,6 +189,7 @@ const ShipmentPage = ({ type }) => {
     clearErrors, watch,
   } = useForm({
     mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       // Step 0 
       shipmentType: '',
@@ -611,7 +612,7 @@ const ShipmentPage = ({ type }) => {
 
   // --- HELPER: RENDER ZIP CODE --- 
 
-  const renderZipCodeField = (name) => {
+  const renderZipCodeField = (name, required = false) => {
     // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
     let isFieldDisabled = type === 'View'; // Default fallback
 
@@ -638,7 +639,10 @@ const ShipmentPage = ({ type }) => {
           control={control}
           rules={{
             validate: (value) => {
-              if (!value) return true;
+              // MANDATORY CHECK: Fail validation if the field is required but missing/empty spaces
+              if (!value || value.toString().trim().length === 0) {
+                return required ? 'Zip Code is required' : true;
+              }
 
               // 1. Block "all zeros"
               const rawDigits = value.replace(/[^\d]/g, '');
@@ -659,7 +663,7 @@ const ShipmentPage = ({ type }) => {
               {...field}
               variant="standard"
               fullWidth
-              label="Zip Code"
+              label={`Zip Code${required ? ' *' : ''}`}
               error={!!error}
               helperText={error?.message || 'Ex: 12345 or 12345-6789'}
               value={value || ''}
@@ -668,13 +672,17 @@ const ShipmentPage = ({ type }) => {
 
                 // Allow only digits and a single dash character
                 let raw = input.replace(/[^\d-]/g, '');
+                const slicedVal = raw.slice(0, 10);
 
                 // Prevent typing more than 10 characters (#####-####)
-                onChange(raw.slice(0, 10));
+                onChange(slicedVal);
+
+                // FIXED: Manually wipe out the error banner when valid keystrokes are registered
+                if (error && slicedVal.trim().length > 0) {
+                    clearErrors(name);
+                }
               }}
               inputProps={{ maxLength: 10, inputMode: 'numeric' }}
-
-              // INJECTED UPDATE: Dynamic state variable rules override
               disabled={isFieldDisabled}
             />
           )}
@@ -682,6 +690,8 @@ const ShipmentPage = ({ type }) => {
       </Box>
     );
   };
+
+
 
   const renderZipCodeFieldCarrierInfo = (name, flag) => (
 
@@ -764,7 +774,7 @@ const ShipmentPage = ({ type }) => {
 
   // --- HELPER: RENDER PHONE FIELD --- 
 
-  const renderPhoneField = (name, label) => {
+  const renderPhoneField = (name, label, required = false) => {
     // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
     let isFieldDisabled = type === 'View'; // Default fallback
 
@@ -795,7 +805,11 @@ const ShipmentPage = ({ type }) => {
               message: 'Phone number cannot exceed 20 characters'
             },
             validate: (value) => {
-              if (!value) return true;
+              // MANDATORY CHECK: Fail validation if the field is required but missing/empty spaces
+              if (!value || value.toString().trim().length === 0) {
+                return required ? `${label} is required` : true;
+              }
+
               const digitsOnly = value.replace(/\D/g, '');
               const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
               if (isAllZeros) return 'Phone number cannot be all zeros';
@@ -808,7 +822,7 @@ const ShipmentPage = ({ type }) => {
               value={field.value || ''}
               variant="standard"
               fullWidth
-              label={`${label}`}
+              label={`${label}${required ? ' *' : ''}`}
               inputProps={{ maxLength: 20 }}
               error={!!error}
               helperText={error ? error.message : ''}
@@ -824,16 +838,23 @@ const ShipmentPage = ({ type }) => {
                   (val.endsWith(')') || val.endsWith(' ') || val.endsWith('-'));
 
                 if (isDeletingFormatting) {
-                  field.onChange(val); // Let the raw deletion pass through to the state safely
+                  field.onChange(val); 
+                  // FIXED: Manually clear error or retrigger validation if user is actively altering text
+                  if (error && val.trim().length > 0) {
+                    clearErrors(name);
+                  }
                   return;
                 }
 
                 // 3. Format and enforce string limit
                 const formattedValue = formatPhoneNumber(val).slice(0, 20);
                 field.onChange(formattedValue);
-              }}
 
-              // INJECTED UPDATE: Applied dynamic state locking variable
+                // FIXED: Clear validation block errors manually when valid characters are added
+                if (error && formattedValue.trim().length > 0) {
+                  clearErrors(name);
+                }
+              }}
               disabled={isFieldDisabled}
             />
           )}
@@ -841,6 +862,8 @@ const ShipmentPage = ({ type }) => {
       </Box>
     );
   };
+
+
 
 
   const renderTextField = (name, label, required = false) => {
@@ -904,6 +927,15 @@ const ShipmentPage = ({ type }) => {
             value: maxCharLimit,
             message: `${label} cannot exceed ${maxCharLimit} characters`
           }
+        }),
+        // MANDATORY RULE PROTECTION: Blocks users from typing blank whitespace
+        ...(required && {
+          validate: (value) => {
+            if (!value || value.toString().trim().length === 0) {
+              return `${label} cannot be empty or only spaces`;
+            }
+            return true;
+          }
         })
       };
     }
@@ -937,16 +969,18 @@ const ShipmentPage = ({ type }) => {
                   }
                   field.onChange(val);
                 }
+
+                // FIXED: Manually clear the sticky error state as soon as valid text is typed
+                if (errors[name] && val.trim().length > 0) {
+                  clearErrors(name);
+                }
               }}
               fullWidth
               label={`${label}${required ? ' *' : ''}`}
               variant="standard"
               error={!!errors[name]}
               helperText={errors[name]?.message || ""}
-
-              // INJECTED UPDATE: Use the calculated layout disabling state variable
               disabled={isFieldDisabled}
-
               inputProps={{
                 ...(isAirport && { maxLength: 4 }),
                 ...(!isAirport && maxCharLimit && { maxLength: maxCharLimit })
@@ -957,6 +991,8 @@ const ShipmentPage = ({ type }) => {
       </Box>
     );
   };
+
+
 
   const handleNotesCloseConfirm = () => {
     setOpenNotesDialog(false);
@@ -1161,7 +1197,7 @@ const ShipmentPage = ({ type }) => {
     setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
     setValue('carrierInfo.manualAddress.state', watchedShipperState ?? '');
     setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
-  }, [watchedShipperName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone, watchedShipperState]);
+  }, [watchedShipperName?.shipperName, watchedShipperName?.airlineName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone, watchedShipperState]);
 
   useEffect(() => {
     // Whenever any consignee detail changes, we can perform actions here

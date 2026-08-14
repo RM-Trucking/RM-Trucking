@@ -595,19 +595,15 @@ const ActiveStep1 = ({ control,
                         )}
 
 
-                        {renderTextField('shipperAddr1', 'Address Line 1')}
+                        {renderTextField('shipperAddr1', 'Address Line 1', true)}
+                        {renderTextField('shipperAddr2', 'Address Line 2', true)}
+                        {renderTextField('shipperCity', 'City', true)}
+                        {renderTextField('shipperState', 'State', true)}
 
-                        {renderTextField('shipperAddr2', 'Address Line 2')}
+                        {renderZipCodeField('shipperZip', true)}
+                        {renderTextField('shipperContact', 'Contact Person Name', true)}
 
-                        {renderTextField('shipperCity', 'City')}
-
-                        {renderTextField('shipperState', 'State')}
-
-                        {renderZipCodeField('shipperZip')}
-
-                        {renderTextField('shipperContact', 'Contact Person Name')}
-
-                        {renderPhoneField('shipperPhone', 'Phone Number')}
+                        {renderPhoneField('shipperPhone', 'Phone Number', true)}
 
                     </Box>
 
@@ -975,19 +971,18 @@ const ActiveStep1 = ({ control,
                         )}
 
 
-                        {renderTextField('consigneeAddr1', 'Address Line 1')}
+                        {renderTextField('consigneeAddr1', 'Address Line 1', true)}
+                        {renderTextField('consigneeAddr2', 'Address Line 2', true)}
+                        {renderTextField('consigneeCity', 'City', true)}
+                        {renderTextField('consigneeState', 'State', true)}
 
-                        {renderTextField('consigneeAddr2', 'Address Line 2')}
+                        {renderZipCodeField('consigneeZip', true)}
 
-                        {renderTextField('consigneeCity', 'City')}
+                        {renderTextField('consigneeContact', 'Contact Person Name', true)}
 
-                        {renderTextField('consigneeState', 'State')}
 
-                        {renderZipCodeField('consigneeZip')}
+                        {renderPhoneField('consigneePhone', 'Phone Number', true)}
 
-                        {renderTextField('consigneeContact', 'Contact Person Name')}
-
-                        {renderPhoneField('consigneePhone', 'Phone Number')}
 
                     </Box>
 

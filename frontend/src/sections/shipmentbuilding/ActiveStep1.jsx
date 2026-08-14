@@ -66,6 +66,8 @@ const ActiveStep1 = ({ control,
     clearErrors,
     getValues,
     watch,
+    watchedShipperName,
+    watchedConsigneeName
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -74,14 +76,14 @@ const ActiveStep1 = ({ control,
     };
     const filter = createFilterOptions();
     useEffect(() => {
-        if (type !=='View' && watchedAirportPickupService !== false && watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
+        if (type !== 'View' && watchedAirportPickupService !== false && watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
             clearErrors("originAirport");
             // if type === 'Edit' make the selected object build value here insted of ""
             setValue('shipperName', "");
         }
     }, [watchedAirportPickupService, clearErrors]);
     useEffect(() => {
-        if (type !=='View' && watchedAirportDeliveryService !== false && watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
+        if (type !== 'View' && watchedAirportDeliveryService !== false && watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
             clearErrors("destinationAirport");
             // if type === 'Edit' make the selected object build value here insted of ""
             setValue('consigneeName', '');
@@ -295,7 +297,7 @@ const ActiveStep1 = ({ control,
                                                 onChange({ shipperId: null, shipperName: newValue.inputValue.slice(0, 100) });
                                             } else if (newValue) {
                                                 onChange(newValue);
-                                                if (Object.keys(newValue).length > 0) {
+                                                if (Object.keys(newValue).length > 0 && type !== 'View') {
                                                     setValue('shipperAddr1', newValue?.addressLine1 || '');
                                                     setValue('shipperAddr2', newValue?.addressLine2 || '');
                                                     setValue('shipperCity', newValue?.city || '');
@@ -304,7 +306,7 @@ const ActiveStep1 = ({ control,
                                                     setValue('shipperContact', newValue?.contactPersonName || '');
                                                     setValue('shipperPhone', newValue?.phoneNumber || '');
                                                 }
-                                            } else {
+                                            } else if (type !== 'View') {
                                                 onChange(null);
                                                 setValue('shipperAddr1', '');
                                                 setValue('shipperAddr2', '');
@@ -320,13 +322,15 @@ const ActiveStep1 = ({ control,
                                             if (reason === 'input') {
                                                 // Slice layout text inputs to block long text loops
                                                 onChange({ shipperId: null, shipperName: newInputValue.slice(0, 100) });
-                                                setValue('shipperAddr1', '');
-                                                setValue('shipperAddr2', '');
-                                                setValue('shipperCity', '');
-                                                setValue('shipperState', '');
-                                                setValue('shipperZip', '');
-                                                setValue('shipperContact', '');
-                                                setValue('shipperPhone', '');
+                                                if (type !== 'View') {
+                                                    setValue('shipperAddr1', '');
+                                                    setValue('shipperAddr2', '');
+                                                    setValue('shipperCity', '');
+                                                    setValue('shipperState', '');
+                                                    setValue('shipperZip', '');
+                                                    setValue('shipperContact', '');
+                                                    setValue('shipperPhone', '');
+                                                }
                                             }
                                         }}
 
@@ -381,7 +385,7 @@ const ActiveStep1 = ({ control,
                                             />
                                         )}
                                         sx={{ width: '25%' }}
-                                        disabled = {type === 'View'}
+                                        disabled={type === 'View'}
                                     />
                                 )}
                             />
@@ -473,13 +477,15 @@ const ActiveStep1 = ({ control,
                                                 }
 
                                                 const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
-                                                setValue('shipperAddr1', isSelection ? newValue?.addressLine1 || '' : '');
-                                                setValue('shipperAddr2', isSelection ? newValue?.addressLine2 || '' : '');
-                                                setValue('shipperCity', isSelection ? newValue?.city || '' : '');
-                                                setValue('shipperState', isSelection ? newValue?.state || '' : '');
-                                                setValue('shipperZip', isSelection ? newValue?.zipCode || '' : '');
-                                                setValue('shipperContact', isSelection ? newValue?.contactPersonName || '' : '');
-                                                setValue('shipperPhone', isSelection ? newValue?.phoneNumber || '' : '');
+                                                if (type !== 'View') {
+                                                    setValue('shipperAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                                                    setValue('shipperAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                                                    setValue('shipperCity', isSelection ? newValue?.city || '' : '');
+                                                    setValue('shipperState', isSelection ? newValue?.state || '' : '');
+                                                    setValue('shipperZip', isSelection ? newValue?.zipCode || '' : '');
+                                                    setValue('shipperContact', isSelection ? newValue?.contactPersonName || '' : '');
+                                                    setValue('shipperPhone', isSelection ? newValue?.phoneNumber || '' : '');
+                                                }
                                             }}
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
@@ -580,7 +586,7 @@ const ActiveStep1 = ({ control,
                                                 />
                                             )}
                                             sx={{ width: '25%' }}
-                                            disabled = {type === 'View'}
+                                            disabled={type === 'View'}
                                         />
                                     );
                                 }}
@@ -667,7 +673,7 @@ const ActiveStep1 = ({ control,
                                                 onChange({ consigneeId: null, consigneeName: newValue.inputValue.slice(0, 100) });
                                             } else if (newValue) {
                                                 onChange(newValue);
-                                                if (Object.keys(newValue).length > 0) {
+                                                if (Object.keys(newValue).length > 0 && type !== 'View') {
                                                     setValue('consigneeAddr1', newValue?.addressLine1 || '');
                                                     setValue('consigneeAddr2', newValue?.addressLine2 || '');
                                                     setValue('consigneeCity', newValue?.city || '');
@@ -676,7 +682,7 @@ const ActiveStep1 = ({ control,
                                                     setValue('consigneeContact', newValue?.contactPersonName || '');
                                                     setValue('consigneePhone', newValue?.phoneNumber || '');
                                                 }
-                                            } else {
+                                            } else if (type !== 'View') {
                                                 onChange(null);
                                                 setValue('consigneeAddr1', '');
                                                 setValue('consigneeAddr2', '');
@@ -692,13 +698,15 @@ const ActiveStep1 = ({ control,
                                             if (reason === 'input') {
                                                 // Truncate characters to enforce the 100 limit during manual typing/copy-paste
                                                 onChange({ consigneeId: null, consigneeName: newInputValue.slice(0, 100) });
-                                                setValue('consigneeAddr1', '');
-                                                setValue('consigneeAddr2', '');
-                                                setValue('consigneeCity', '');
-                                                setValue('consigneeState', '');
-                                                setValue('consigneeZip', '');
-                                                setValue('consigneeContact', '');
-                                                setValue('consigneePhone', '');
+                                                if (type !== 'View') {
+                                                    setValue('consigneeAddr1', '');
+                                                    setValue('consigneeAddr2', '');
+                                                    setValue('consigneeCity', '');
+                                                    setValue('consigneeState', '');
+                                                    setValue('consigneeZip', '');
+                                                    setValue('consigneeContact', '');
+                                                    setValue('consigneePhone', '');
+                                                }
                                             }
                                         }}
 
@@ -753,7 +761,7 @@ const ActiveStep1 = ({ control,
                                             />
                                         )}
                                         sx={{ width: '25%' }}
-                                        disabled = {type === 'View'}
+                                        disabled={type === 'View'}
                                     />
                                 )}
                             />
@@ -844,13 +852,15 @@ const ActiveStep1 = ({ control,
                                                 }
 
                                                 const isSelection = newValue && !newValue.inputValue && typeof newValue !== 'string';
-                                                setValue('consigneeAddr1', isSelection ? newValue?.addressLine1 || '' : '');
-                                                setValue('consigneeAddr2', isSelection ? newValue?.addressLine2 || '' : '');
-                                                setValue('consigneeCity', isSelection ? newValue?.city || '' : '');
-                                                setValue('consigneeState', isSelection ? newValue?.state || '' : '');
-                                                setValue('consigneeZip', isSelection ? newValue?.zipCode || '' : '');
-                                                setValue('consigneeContact', isSelection ? newValue?.contactPersonName || '' : '');
-                                                setValue('consigneePhone', isSelection ? newValue?.phoneNumber || '' : '');
+                                                if (type !== 'View') {
+                                                    setValue('consigneeAddr1', isSelection ? newValue?.addressLine1 || '' : '');
+                                                    setValue('consigneeAddr2', isSelection ? newValue?.addressLine2 || '' : '');
+                                                    setValue('consigneeCity', isSelection ? newValue?.city || '' : '');
+                                                    setValue('consigneeState', isSelection ? newValue?.state || '' : '');
+                                                    setValue('consigneeZip', isSelection ? newValue?.zipCode || '' : '');
+                                                    setValue('consigneeContact', isSelection ? newValue?.contactPersonName || '' : '');
+                                                    setValue('consigneePhone', isSelection ? newValue?.phoneNumber || '' : '');
+                                                }
                                             }}
                                             onInputChange={(event, newInputValue, reason) => {
                                                 if (reason === 'input') {
@@ -957,7 +967,7 @@ const ActiveStep1 = ({ control,
                                                 />
                                             )}
                                             sx={{ width: '25%' }}
-                                            disabled = {type === 'View'}
+                                            disabled={type === 'View'}
                                         />
                                     );
                                 }}
@@ -985,7 +995,7 @@ const ActiveStep1 = ({ control,
 
                 {/* reference table */}
                 <ReferenceTable
-                    type = {type}
+                    type={type}
                     control={control}
                     errors={errors}
                     setValue={setValue}

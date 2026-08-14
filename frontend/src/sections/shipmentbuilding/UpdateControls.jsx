@@ -241,6 +241,9 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
     }
+     if(deliveryDetails === undefined){
+        setValue('carrierInfo.deliveryDetails.deliveryAlert', false);
+    }
     // step 5
     if (pickupRateDetails && Object.keys(pickupRateDetails).length > 0) {
         setValue('carrierRates.pickUp.pickUpCarrier', pickupDetails?.carrierName);
@@ -299,6 +302,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierRates.delivery.deliveryRate', targetDeliveryZiptozipRate?.rateValue);
         setValue('carrierRates.delivery.deliveryAccessorials', filteredDeliveryRates);
     }
+   
     if (customerRateDetails && Object.keys(customerRateDetails).length > 0) {
         // rate detials
         const updatedCustomerRates = (customerRateDetails?.rateDetails || []).map((item) => ({
@@ -376,7 +380,7 @@ export const updateStep2Controls = (dispatch, setValue, selectedObj,
         }
         setValue('carrierInfo.selectCarrier', `${selectedPickupFromTerminal?.terminalId}-${selectedPickupFromTerminal?.carrierId}`);
         const selectedPickupToTerminal = carrierTerminalDropdown?.find(
-            (item) => item?.terminalEntityId === pickupDetails?.toLocationEntityId
+            (item) => item?.terminalEntityId === pickupDetails?.pickupAgentTerminalDetails?.toLocationEntityId
         ) || null;
         setValue('carrierInfo.toLocation', `${selectedPickupToTerminal?.terminalId}-${selectedPickupToTerminal?.carrierId}`);
 

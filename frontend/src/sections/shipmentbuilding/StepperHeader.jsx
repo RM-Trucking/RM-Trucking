@@ -265,7 +265,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                 {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : 'Submit' : 'Next'}
                             </Button>
                         }
-                        {type !== 'View' && activeStep === 3 && isPickupPending && watchedLinehaulSelectRouting === '' &&
+                        {type !== 'View' && activeStep === 3 && isPickupPending  &&
                             <Button
                                 variant="contained"
                                 onClick={() => onFormSubmit(dispatch, setValue, getValues, trigger, errors,

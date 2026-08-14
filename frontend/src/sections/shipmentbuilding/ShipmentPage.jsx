@@ -268,7 +268,7 @@ const ShipmentPage = ({ type }) => {
         shipmentStatusTable: []
       },
       // step 3 - Carrier Information
-      carrierInfoSubmit : false,
+      carrierInfoSubmit: false,
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
@@ -611,62 +611,78 @@ const ShipmentPage = ({ type }) => {
 
   // --- HELPER: RENDER ZIP CODE --- 
 
-  const renderZipCodeField = (name) => (
+  const renderZipCodeField = (name) => {
+    // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
+    let isFieldDisabled = type === 'View'; // Default fallback
 
-    <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+    if (name.startsWith('shipper')) {
+      // Disable shipper zip fields if watchedShipperName contains a shipperId or airlineId
+      const hasShipperId = !!watchedShipperName?.shipperId;
+      const hasAirlineId = !!watchedShipperName?.airlineId;
+      if (hasShipperId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    } else if (name.startsWith('consignee')) {
+      // Disable consignee zip fields if watchedConsigneeName contains a consigneeId or airlineId
+      const hasConsigneeId = !!watchedConsigneeName?.consigneeId;
+      const hasAirlineId = !!watchedConsigneeName?.airlineId;
+      if (hasConsigneeId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    }
 
-      <Controller
-        name={name}
-        control={control}
-        rules={{
-          validate: (value) => {
-            if (!value) return true;
+    return (
+      <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+        <Controller
+          name={name}
+          control={control}
+          rules={{
+            validate: (value) => {
+              if (!value) return true;
 
-            // 1. Block "all zeros"
-            const rawDigits = value.replace(/[^\d]/g, '');
-            if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
+              // 1. Block "all zeros"
+              const rawDigits = value.replace(/[^\d]/g, '');
+              if (/^0+$/.test(rawDigits)) return 'Invalid Zip Code (cannot be all zeros)';
 
-            // 2. Format check for 5-digit or standard 5+4 format (#####-####)
-            const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/;
-            if (!zipRegex.test(value)) {
-              return 'Zip Code must be 5 digits or standard 9-digit format (Ex: 12345-6789)';
+              // 2. Format check for 5-digit or standard 5+4 format (#####-####)
+              const zipRegex = /(^\d{5}$)|(^\d{5}-\d{4}$)/;
+              if (!zipRegex.test(value)) {
+                return 'Zip Code must be 5 digits or standard 9-digit format (Ex: 12345-6789)';
+              }
+
+              return true;
             }
+          }}
 
-            return true;
-          }
-        }}
+          render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+            <StyledTextField
+              {...field}
+              variant="standard"
+              fullWidth
+              label="Zip Code"
+              error={!!error}
+              helperText={error?.message || 'Ex: 12345 or 12345-6789'}
+              value={value || ''}
+              onChange={(e) => {
+                const input = e.target.value;
 
-        render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
-          <StyledTextField
-            {...field}
-            variant="standard"
-            fullWidth
-            label="Zip Code"
-            error={!!error}
-            helperText={error?.message || 'Ex: 12345 or 12345-6789'}
-            value={value || ''}
-            onChange={(e) => {
-              const input = e.target.value;
+                // Allow only digits and a single dash character
+                let raw = input.replace(/[^\d-]/g, '');
 
-              // Allow only digits and a single dash character
-              let raw = input.replace(/[^\d-]/g, '');
+                // Prevent typing more than 10 characters (#####-####)
+                onChange(raw.slice(0, 10));
+              }}
+              inputProps={{ maxLength: 10, inputMode: 'numeric' }}
 
-              // Removed the automatic dash insertion here so users can type naturally
+              // INJECTED UPDATE: Dynamic state variable rules override
+              disabled={isFieldDisabled}
+            />
+          )}
+        />
+      </Box>
+    );
+  };
 
-              // Prevent typing more than 10 characters (#####-####)
-              onChange(raw.slice(0, 10));
-            }}
-            // Maximum length updated to 10 characters for #####-#### layout
-            inputProps={{ maxLength: 10, inputMode: 'numeric' }}
-            disabled={type === 'View'}
-          />
-        )}
-      />
-
-
-    </Box>
-
-  );
   const renderZipCodeFieldCarrierInfo = (name, flag) => (
 
     <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
@@ -748,64 +764,107 @@ const ShipmentPage = ({ type }) => {
 
   // --- HELPER: RENDER PHONE FIELD --- 
 
-  const renderPhoneField = (name, label) => (
-    <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
-      <Controller
-        name={name}
-        control={control}
-        rules={{
-          maxLength: {
-            value: 20,
-            message: 'Phone number cannot exceed 20 characters'
-          },
-          validate: (value) => {
-            if (!value) return true;
-            const digitsOnly = value.replace(/\D/g, '');
-            const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
-            if (isAllZeros) return 'Phone number cannot be all zeros';
-            return true;
-          }
-        }}
-        render={({ field, fieldState: { error } }) => (
-          <StyledTextField
-            {...field}
-            value={field.value || ''}
-            variant="standard"
-            fullWidth
-            label={`${label}`}
-            inputProps={{ maxLength: 20 }}
-            error={!!error}
-            helperText={error ? error.message : ''}
-            onChange={(e) => {
-              const val = e.target.value;
+  const renderPhoneField = (name, label) => {
+    // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
+    let isFieldDisabled = type === 'View'; // Default fallback
 
-              // 1. Prevent initial empty space
-              if (val.startsWith(' ')) return;
+    if (name.startsWith('shipper')) {
+      // Disable shipper phone fields if watchedShipperName contains a shipperId or airlineId
+      const hasShipperId = !!watchedShipperName?.shipperId;
+      const hasAirlineId = !!watchedShipperName?.airlineId;
+      if (hasShipperId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    } else if (name.startsWith('consignee')) {
+      // Disable consignee phone fields if watchedConsigneeName contains a consigneeId or airlineId
+      const hasConsigneeId = !!watchedConsigneeName?.consigneeId;
+      const hasAirlineId = !!watchedConsigneeName?.airlineId;
+      if (hasConsigneeId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    }
 
-              // 2. CRITICAL FIX: If deleting trailing formatting symbols, don't re-apply them immediately
-              const isDeletingFormatting =
-                e.nativeEvent.inputType === 'deleteContentBackward' &&
-                (val.endsWith(')') || val.endsWith(' ') || val.endsWith('-'));
+    return (
+      <Box sx={{ flex: { xs: '1 1 100%', sm: '1 1 45%', md: '1 1 22%' } }}>
+        <Controller
+          name={name}
+          control={control}
+          rules={{
+            maxLength: {
+              value: 20,
+              message: 'Phone number cannot exceed 20 characters'
+            },
+            validate: (value) => {
+              if (!value) return true;
+              const digitsOnly = value.replace(/\D/g, '');
+              const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
+              if (isAllZeros) return 'Phone number cannot be all zeros';
+              return true;
+            }
+          }}
+          render={({ field, fieldState: { error } }) => (
+            <StyledTextField
+              {...field}
+              value={field.value || ''}
+              variant="standard"
+              fullWidth
+              label={`${label}`}
+              inputProps={{ maxLength: 20 }}
+              error={!!error}
+              helperText={error ? error.message : ''}
+              onChange={(e) => {
+                const val = e.target.value;
 
-              if (isDeletingFormatting) {
-                field.onChange(val); // Let the raw deletion pass through to the state safely
-                return;
-              }
+                // 1. Prevent initial empty space
+                if (val.startsWith(' ')) return;
 
-              // 3. Format and enforce string limit
-              const formattedValue = formatPhoneNumber(val).slice(0, 20);
-              field.onChange(formattedValue);
-            }}
-            disabled={type === 'View'}
-          />
-        )}
-      />
-    </Box>
-  );
+                // 2. CRITICAL FIX: If deleting trailing formatting symbols, don't re-apply them immediately
+                const isDeletingFormatting =
+                  e.nativeEvent.inputType === 'deleteContentBackward' &&
+                  (val.endsWith(')') || val.endsWith(' ') || val.endsWith('-'));
+
+                if (isDeletingFormatting) {
+                  field.onChange(val); // Let the raw deletion pass through to the state safely
+                  return;
+                }
+
+                // 3. Format and enforce string limit
+                const formattedValue = formatPhoneNumber(val).slice(0, 20);
+                field.onChange(formattedValue);
+              }}
+
+              // INJECTED UPDATE: Applied dynamic state locking variable
+              disabled={isFieldDisabled}
+            />
+          )}
+        />
+      </Box>
+    );
+  };
+
 
   const renderTextField = (name, label, required = false) => {
     const labelLower = label.toLowerCase();
     const nameLower = name.toLowerCase();
+
+    // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
+    let isFieldDisabled = type === 'View'; // Default fallback
+
+    if (name.startsWith('shipper')) {
+      // Disable shipper fields if watchedShipperName contains a shipperId or airlineId
+      const hasShipperId = !!watchedShipperName?.shipperId;
+      const hasAirlineId = !!watchedShipperName?.airlineId;
+      if (hasShipperId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    } else if (name.startsWith('consignee')) {
+      // Disable consignee fields if watchedConsigneeName contains a consigneeId or airlineId
+      const hasConsigneeId = !!watchedConsigneeName?.consigneeId;
+      const hasAirlineId = !!watchedConsigneeName?.airlineId;
+      if (hasConsigneeId || hasAirlineId) {
+        isFieldDisabled = true;
+      }
+    }
 
     // Check field characteristics
     const isCityOrState = ['city', 'state'].some(keyword =>
@@ -813,7 +872,7 @@ const ShipmentPage = ({ type }) => {
     );
     const isAirport = nameLower.includes('airport');
 
-    // FIXED 1: Determine dynamic maxLength values based on the field's label string
+    // Determine dynamic maxLength values based on the field's label string
     let maxCharLimit = null;
     if (labelLower.includes('address line 1') || labelLower.includes('address line 2')) {
       maxCharLimit = 255;
@@ -832,16 +891,14 @@ const ShipmentPage = ({ type }) => {
           message: `${label} cannot exceed 4 characters`
         },
         pattern: {
-          // FIXED: Restricts uppercase letter string count between 3 and 4 
           value: /^[A-Z]{3,4}$/,
           message: 'Must be 3 or 4 letters'
         },
         validate: (value) => !value || value.trim().length > 0 || `${label} cannot be only spaces`
       };
     } else {
-      // FIXED 2: Append custom maxLength validation constraints to standard text fields
       validationRules = {
-        required: required ? `${label} is required` : false, // Fixed boolean required bug to show clean string errors
+        required: required ? `${label} is required` : false,
         ...(maxCharLimit && {
           maxLength: {
             value: maxCharLimit,
@@ -875,7 +932,6 @@ const ShipmentPage = ({ type }) => {
                   if (isCityOrState) {
                     val = val.replace(/[^A-Za-z\s.-]/g, '');
                   }
-                  // FIXED 3: Truncate normal strings inside onChange handler to prevent copy-paste length overflows
                   if (maxCharLimit) {
                     val = val.slice(0, maxCharLimit);
                   }
@@ -887,9 +943,10 @@ const ShipmentPage = ({ type }) => {
               variant="standard"
               error={!!errors[name]}
               helperText={errors[name]?.message || ""}
-              disabled={type === 'View'}
 
-              // FIXED 4: Inject the calculated maxLength attribute straight into the underlying HTML input node
+              // INJECTED UPDATE: Use the calculated layout disabling state variable
+              disabled={isFieldDisabled}
+
               inputProps={{
                 ...(isAirport && { maxLength: 4 }),
                 ...(!isAirport && maxCharLimit && { maxLength: maxCharLimit })
@@ -1365,7 +1422,7 @@ const ShipmentPage = ({ type }) => {
         const selectedObject = carrierTerminalDropdown.find(
           (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
         );
-        if (selectedObject && Object.keys(selectedObject).length > 0) {
+        if (selectedObject && Object.keys(selectedObject).length > 0 && type !== 'View') {
           setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedObject?.terminalEmail);
           setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedObject?.emails);
         }
@@ -1378,14 +1435,14 @@ const ShipmentPage = ({ type }) => {
         const selectedObject = carrierTerminalDropdown.find(
           (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
         );
-        if (selectedObject && Object.keys(selectedObject).length > 0) {
+        if (selectedObject && Object.keys(selectedObject).length > 0 && type !== 'View') {
           setValue('carrierInfo.deliveryDetails.primaryEmail', selectedObject?.terminalEmail);
           setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedObject?.emails);
         }
       }
     }
 
-  }, [watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier])
+  }, [watchedSelectedPickupCarrier, watchedSelectedDeliveryCarrier])
 
   useEffect(() => {
     if (watchedOriginAirport?.length > 2) {
@@ -1560,14 +1617,14 @@ const ShipmentPage = ({ type }) => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ p: 2, mt: 2 }}>
           {/* HEADER & STEPPER */}
-          <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit = {watchedCarrierInfoSubmit}
+          <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
             PATH_DASHBOARD={PATH_DASHBOARD}
             setHandleCancelModal={setHandleCancelModal}
             hasInitialData={hasInitialData}
             handleNext={handleNext}
             onFormSubmit={onFormSubmit}
             isPickupPending={isPickupPending}
-            isSubmitting={isSubmitting} isSubmittingFinal = {isSubmittingFinal}
+            isSubmitting={isSubmitting} isSubmittingFinal={isSubmittingFinal}
             type={type}
             setDoDetailsModal={setDoDetailsModal}
             setCustomerRateModal={setCustomerRateModal}
@@ -1599,7 +1656,7 @@ const ShipmentPage = ({ type }) => {
             getZipToZipCarrierPickupRate={getZipToZipCarrierPickupRate}
             getZipToZipCarrierLinehaulRate={getZipToZipCarrierLinehaulRate}
             getZipToZipCarrierDeliveryRate={getZipToZipCarrierDeliveryRate}
-            setIsSubmitting={setIsSubmitting} setIsSubmittingFinal = {setIsSubmittingFinal}
+            setIsSubmitting={setIsSubmitting} setIsSubmittingFinal={setIsSubmittingFinal}
             postStep1={postStep1}
             postNetworkShipment={postNetworkShipment}
             watchedOriginAirport={watchedOriginAirport}
@@ -1687,7 +1744,8 @@ const ShipmentPage = ({ type }) => {
               setValue={setValue}
               clearErrors={clearErrors}
               getValues={getValues}
-              watch={watch}
+              watch={watch} watchedShipperName={watchedShipperName}
+              watchedConsigneeName={watchedConsigneeName}
             />
           )}
           {/* STEP 2 */}

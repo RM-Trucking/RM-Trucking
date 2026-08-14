@@ -1386,9 +1386,9 @@ export const onFormSubmit = async (dispatch, setValue, getValues, trigger, error
                     "pickupAlertDetails": {
                         "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                         "emailInfo": {
-                            "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
-                            "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
-                        }
+                        "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
+                        "additionalEmails": currentValues?.carrierInfo?.pickupAlertDetails?.additionalEmail,
+                    }
                     }
                 },
             }

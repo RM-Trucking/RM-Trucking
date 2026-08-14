@@ -1125,7 +1125,11 @@ const ActiveStep3Delivery = ({
                                         }}
                                         render={({ field: { onChange, value }, fieldState: { error } }) => {
                                             // Transform the comma-separated string from form state into an array for MUI Autocomplete
-                                            const selectedEmailsArray = value ? value.split(',').map(e => e.trim()).filter(Boolean) : [];
+                                            const selectedEmailsArray = typeof value === 'string'
+                                                ? value.split(',').map(e => e.trim()).filter(Boolean)
+                                                : Array.isArray(value)
+                                                    ? value.map(e => String(e).trim()).filter(Boolean)
+                                                    : [];
 
                                             // Map your personnel array down to a flat array of email strings
                                             // Replace 'deliveryDropdownEmails' with your actual data source variable name

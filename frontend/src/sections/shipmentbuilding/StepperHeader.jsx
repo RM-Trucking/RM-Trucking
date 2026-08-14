@@ -265,7 +265,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                 {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : 'Submit' : 'Next'}
                             </Button>
                         }
-                        {type !== 'View' && activeStep === 3 && isPickupPending &&
+                        {type !== 'View' && activeStep === 3 && isPickupPending && watchedLinehaulSelectRouting === '' &&
                             <Button
                                 variant="contained"
                                 onClick={() => onFormSubmit(dispatch, setValue, getValues, trigger, errors,
@@ -284,7 +284,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                 {isSubmitting ? 'Submitting...' : 'Submit'}
                             </Button>}
                         {
-                            type !== 'View' && activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') && !isPickupPending &&
+                            type !== 'View' && activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') && !isPickupPending && watchedLinehaulSelectRouting === '' &&
                             <>
                                 <Button
                                     variant="contained"

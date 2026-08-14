@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
-
+import {useReactToPrint} from 'react-to-print';
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
 
 import {
@@ -26,6 +26,7 @@ import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import BillOfLadingAuto from './BillOfLadingAuto';
 
 
 const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
@@ -78,6 +79,8 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     totals,
     watchedLinehaulAddAcc,
 }) => {
+    const contentRef = useRef(null);
+    const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
@@ -168,6 +171,10 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
             );
         }
     }, [watchedCarrierInfoSubmit])
+
+    const handlePrint = useReactToPrint({
+        contentRef,documentTitle : "Bill_of_Lading"
+    })
 
     return (
         <ErrorBoundary
@@ -453,14 +460,14 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                 }
                 {
                     type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'}>
-                        <Button variant="contained" onClick={(e) => {
-                            // get the api details
-                            // Replace with your actual route path
-                            window.open(PATH_DASHBOARD.shipmentBuilding.bolView, '_blank');
-                            e.stopPropagation(); // Stops the popup from auto-closing
-                        }} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>BOL</Button>
+                        <Button variant="contained" onClick={handlePrint} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>BOL</Button>
                     </Box>
                 }
+                <div style={{display : 'none'}}>
+                    <div ref={contentRef} className='bol-print-wrapper'>
+                        <BillOfLadingAuto data = {selectedShipmentBuildObj}/>
+                    </div>
+                </div>
             </Box>
         </ErrorBoundary>
     );

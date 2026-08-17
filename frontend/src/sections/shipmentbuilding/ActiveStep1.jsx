@@ -596,7 +596,7 @@ const ActiveStep1 = ({ control,
 
 
                         {renderTextField('shipperAddr1', 'Address Line 1', true)}
-                        {renderTextField('shipperAddr2', 'Address Line 2', true)}
+                        {renderTextField('shipperAddr2', 'Address Line 2', false)}
                         {renderTextField('shipperCity', 'City', true)}
                         {renderTextField('shipperState', 'State', true)}
 
@@ -972,7 +972,7 @@ const ActiveStep1 = ({ control,
 
 
                         {renderTextField('consigneeAddr1', 'Address Line 1', true)}
-                        {renderTextField('consigneeAddr2', 'Address Line 2', true)}
+                        {renderTextField('consigneeAddr2', 'Address Line 2', false)}
                         {renderTextField('consigneeCity', 'City', true)}
                         {renderTextField('consigneeState', 'State', true)}
 

@@ -679,7 +679,7 @@ const ShipmentPage = ({ type }) => {
 
                 // FIXED: Manually wipe out the error banner when valid keystrokes are registered
                 if (error && slicedVal.trim().length > 0) {
-                    clearErrors(name);
+                  clearErrors(name);
                 }
               }}
               inputProps={{ maxLength: 10, inputMode: 'numeric' }}
@@ -838,7 +838,7 @@ const ShipmentPage = ({ type }) => {
                   (val.endsWith(')') || val.endsWith(' ') || val.endsWith('-'));
 
                 if (isDeletingFormatting) {
-                  field.onChange(val); 
+                  field.onChange(val);
                   // FIXED: Manually clear error or retrigger validation if user is actively altering text
                   if (error && val.trim().length > 0) {
                     clearErrors(name);
@@ -1192,17 +1192,19 @@ const ShipmentPage = ({ type }) => {
     // Whenever any shipper detail changes, we can perform actions here
     // update manual from address of carrierinfo 
     setValue('carrierInfo.fromLocation', watchedShipperName?.shipperName ?? watchedShipperName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedShipperName?.airlineName ?? '');
-    setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
-    setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
-    setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
-    setValue('carrierInfo.manualAddress.state', watchedShipperState ?? '');
-    setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
+    if (type !== 'View') {
+      setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
+      setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
+      setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
+      setValue('carrierInfo.manualAddress.state', watchedShipperState ?? '');
+      setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
+    }
   }, [watchedShipperName?.shipperName, watchedShipperName?.airlineName, watchedShipperAddr1, watchedShipperAddr2, watchedShipperCity, watchedShipperZip, watchedShipperContact, watchedShipperPhone, watchedShipperState]);
 
   useEffect(() => {
     // Whenever any consignee detail changes, we can perform actions here
     // update manual to address of carrierinfo
-    if (watchedToLocationType === 'Consignee') {
+    if (watchedToLocationType === 'Consignee' && type !== 'View') {
       setValue('carrierInfo.toLocation', watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? '');
       setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
       setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
@@ -1214,7 +1216,7 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     // Whenever any carrier detail changes, we can perform actions here
     // update manual to address of carrierinfo
-    if (watchedToLocationType === 'Carrier' && watchedToLocation) {
+    if (watchedToLocationType === 'Carrier' && watchedToLocation && type !== 'View') {
       const [terminalId, carrierId] = watchedToLocation.split('-');
       const selectedObject = carrierTerminalDropdown.find(
         (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
@@ -1245,7 +1247,7 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     // Whenever any carrier detail changes, we can perform actions here
     // update manual to address of carrierinfo
-    if (watchedLinehaulToLocationType === 'Carrier' && watchedLinehaulToLocation) {
+    if (watchedLinehaulToLocationType === 'Carrier' && watchedLinehaulToLocation && type !== 'View') {
       const [terminalId, carrierId] = watchedLinehaulToLocation.split('-');
       const selectedObject = carrierTerminalDropdown.find(
         (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
@@ -1295,7 +1297,7 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     if (selectedRouting) {
       if ((selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul')) {
-        if (getValues('carrierInfo.toLocationType') === 'Consignee') {
+        if (getValues('carrierInfo.toLocationType') === 'Consignee' && type !== 'View') {
           setValue('carrierInfo.manualToAddress.line1', '');
           setValue('carrierInfo.manualToAddress.line2', '');
           setValue('carrierInfo.manualToAddress.city', '');
@@ -1313,7 +1315,7 @@ const ShipmentPage = ({ type }) => {
         const selectedObject = carrierTerminalDropdown.find(
           (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
         );
-        if (selectedObject) {
+        if (selectedObject && type !== 'View') {
           setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
           setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
@@ -1378,7 +1380,7 @@ const ShipmentPage = ({ type }) => {
   const customerZipRate = useWatch({ control, name: "customerRate.rate" })
 
   useEffect(() => {
-    if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress) {
+    if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress && type !== 'View') {
       if (watchedLineHaulToggledAddress === 'pickup') {
         const [terminalId, carrierId] = getValues('carrierInfo.selectCarrier').split('-');
         if (terminalId && carrierId) {

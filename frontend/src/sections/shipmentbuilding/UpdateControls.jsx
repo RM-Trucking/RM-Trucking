@@ -177,6 +177,11 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.manualToAddress.city', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.city);
         setValue('carrierInfo.manualToAddress.state', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.state);
         setValue('carrierInfo.manualToAddress.zip', pickupDetails?.pickupAgentTerminalDetails?.editToLocationDetails?.zipCode);
+        setValue('carrierInfo.manualAddress.line1', pickupDetails?.editFromLocationDetails?.addressLine1);
+        setValue('carrierInfo.manualAddress.line2', pickupDetails?.editFromLocationDetails?.addressLine2);
+        setValue('carrierInfo.manualAddress.city', pickupDetails?.editFromLocationDetails?.city);
+        setValue('carrierInfo.manualAddress.state', pickupDetails?.editFromLocationDetails?.state);
+        setValue('carrierInfo.manualAddress.zip', pickupDetails?.editFromLocationDetails?.zipCode);
     }
     if (linehaulDetails && Object.keys(linehaulDetails).length > 0) {
         setValue('carrierInfo.lineHaul.selectRouting', linehaulDetails?.linehaulPrimaryInfo?.linehaulRouting?.toLowerCase() === 'line_haul_only' ? 'linehaul_only' : 'linehaul_delivery');
@@ -196,13 +201,13 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.lineHaul.linehaulAddAcc', linehaulDetails?.linehaulCommonInfo?.linehaulAccessorial === 'Y' || updatedAccessorials.length > 0);
         setValue('carrierInfo.lineHaul.lineHaulNotes', linehaulDetails?.linehaulCommonInfo?.linehaulNotes);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.addressLine1);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.line2);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.addressLine2);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.city);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.state);
         setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', linehaulDetails?.linehaulPrimaryInfo?.editFromLocationDetails?.zipCode);
 
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.addressLine1);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.line2);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.addressLine2);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.city', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.city);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.state', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.state);
         setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.zipCode);
@@ -230,18 +235,18 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.airportTransfer', deliveryDetails?.deliveryCommonInfo?.airportTransfer);
 
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.line2);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine2);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.city);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.state);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.zipCode);
 
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.line2);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine2);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.city);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
     }
-     if(deliveryDetails === undefined){
+    if (deliveryDetails === undefined) {
         setValue('carrierInfo.deliveryDetails.deliveryAlert', false);
     }
     // step 5
@@ -302,7 +307,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierRates.delivery.deliveryRate', targetDeliveryZiptozipRate?.rateValue);
         setValue('carrierRates.delivery.deliveryAccessorials', filteredDeliveryRates);
     }
-   
+
     if (customerRateDetails && Object.keys(customerRateDetails).length > 0) {
         // rate detials
         const updatedCustomerRates = (customerRateDetails?.rateDetails || []).map((item) => ({
@@ -409,6 +414,21 @@ export const updateStep2Controls = (dispatch, setValue, selectedObj,
             (item) => item?.terminalEntityId === deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId
         ) || null;
         setValue('carrierInfo.deliveryDetails.toLocation', `${selectedDeliveryToTerminal?.terminalId}-${selectedDeliveryToTerminal?.carrierId}`);
+    }
+    // setting address
+    if (linehaulDetails && linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails) {
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.addressLine1);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.addressLine2);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.city);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.state);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', linehaulDetails?.linehaulPrimaryInfo?.editToLocationDetails?.zipCode);
+    }
+    if (deliveryDetails && deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails) {
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine1);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine2);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.city);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state);
+        setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
     }
 };
 

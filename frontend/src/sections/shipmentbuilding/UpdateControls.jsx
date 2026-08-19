@@ -161,6 +161,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.toLocationType', pickupDetails?.pickupAgentTerminalDetails?.toLocationType);
         setValue('carrierInfo.addPickupAccessorial', pickupDetails?.pickupAccessorial === 'Y');
         setValue('carrierInfo.pickupAlert', pickupDetails?.pickupAlert === 'Y');
+        setValue('carrierInfo.isManualFromLocation', pickupDetails?.editFromLocation === 'Y');
+        setValue('carrierInfo.isManualToLocation', pickupDetails?.pickupAgentTerminalDetails?.editToLocation === 'Y');
         setValue('carrierInfo.selectRouting', pickupDetails?.pickupRouting === 'PICKUP_ONLY' ? 'pickup_only' : pickupDetails?.pickupRouting === 'PICKUP_LINE_HAUL' ? 'pickup_linehaul' : 'pickup_linehaul_delivery');
         const updatedAccessorials = (pickupDetails?.pickupAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
@@ -192,6 +194,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.lineHaul.etaTime', linehaulDetails?.linehaulPrimaryInfo?.etaTime);
         setValue('carrierInfo.lineHaul.pcs', linehaulDetails?.linehaulPrimaryInfo?.pieces);
         setValue('carrierInfo.lineHaul.weight', linehaulDetails?.linehaulPrimaryInfo?.weight);
+        setValue('carrierInfo.lineHaul.manualFromLocation', linehaulDetails?.linehaulPrimaryInfo?.editFromLocation === 'Y');
+        setValue('carrierInfo.lineHaul.manualToLocation', linehaulDetails?.linehaulPrimaryInfo?.editToLocation === 'Y');
         const updatedAccessorials = (linehaulDetails?.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
             isManual: false,
@@ -234,6 +238,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.additionalEmail', deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails);
         setValue('carrierInfo.deliveryDetails.airportTransfer', deliveryDetails?.deliveryCommonInfo?.airportTransfer);
 
+        setValue('carrierInfo.deliveryDetails.manualFromLocation', deliveryDetails?.deliveryPrimaryInfo?.editFromLocation === 'Y');
+        setValue('carrierInfo.deliveryDetails.manualToLocation', deliveryDetails?.deliveryPrimaryInfo?.editToLocation === 'Y');
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine1);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine2);
         setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.city);

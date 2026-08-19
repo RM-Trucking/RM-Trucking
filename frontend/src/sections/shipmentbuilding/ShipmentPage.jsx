@@ -1202,7 +1202,14 @@ const ShipmentPage = ({ type }) => {
     // Whenever any shipper detail changes, we can perform actions here
     // update manual from address of carrierinfo 
     setValue('carrierInfo.fromLocation', watchedShipperName?.shipperName ?? watchedShipperName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedShipperName?.airlineName ?? '');
-    if (type !== 'View') {
+    if (type !== 'View' && type !== 'Edit') {
+      setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
+      setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
+      setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
+      setValue('carrierInfo.manualAddress.state', watchedShipperState ?? '');
+      setValue('carrierInfo.manualAddress.zip', watchedShipperZip ?? '');
+    }
+    if (type === 'Edit' && !getValues('carrierInfo.isManualFromLocation')) {
       setValue('carrierInfo.manualAddress.line1', watchedShipperAddr1 ?? '');
       setValue('carrierInfo.manualAddress.line2', watchedShipperAddr2 ?? '');
       setValue('carrierInfo.manualAddress.city', watchedShipperCity ?? '');
@@ -1222,6 +1229,14 @@ const ShipmentPage = ({ type }) => {
       setValue('carrierInfo.manualToAddress.state', watchedConsigneeState ?? '');
       setValue('carrierInfo.manualToAddress.zip', watchedConsigneeZip ?? '');
     }
+    if (watchedToLocationType === 'Consignee' && type === 'Edit' && !getValues('carrierInfo.isManualToLocation')) {
+      setValue('carrierInfo.toLocation', watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? '');
+      setValue('carrierInfo.manualToAddress.line1', watchedConsigneeAddr1 ?? '');
+      setValue('carrierInfo.manualToAddress.line2', watchedConsigneeAddr2 ?? '');
+      setValue('carrierInfo.manualToAddress.city', watchedConsigneeCity ?? '');
+      setValue('carrierInfo.manualToAddress.state', watchedConsigneeState ?? '');
+      setValue('carrierInfo.manualToAddress.zip', watchedConsigneeZip ?? '');
+    }
   }, [watchedToLocationType, watchedConsigneeName, watchedConsigneeAddr1, watchedConsigneeAddr2, watchedConsigneeCity, watchedConsigneeZip, watchedConsigneeContact, watchedConsigneePhone, watchedConsigneeState]);
   useEffect(() => {
     // Whenever any carrier detail changes, we can perform actions here
@@ -1232,25 +1247,31 @@ const ShipmentPage = ({ type }) => {
         (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
       );
       if (selectedObject) {
-        setValue('carrierInfo.manualToAddress.line1', selectedObject?.address?.addressLine1);
-        setValue('carrierInfo.manualToAddress.line2', selectedObject?.address?.addressLine2);
-        setValue('carrierInfo.manualToAddress.city', selectedObject?.address?.city);
-        setValue('carrierInfo.manualToAddress.state', selectedObject?.address?.state);
-        setValue('carrierInfo.manualToAddress.zip', selectedObject?.address?.zipCode);
+        if (!getValues('carrierInfo.isManualToLocation')) {
+          setValue('carrierInfo.manualToAddress.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.manualToAddress.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.manualToAddress.city', selectedObject?.address?.city);
+          setValue('carrierInfo.manualToAddress.state', selectedObject?.address?.state);
+          setValue('carrierInfo.manualToAddress.zip', selectedObject?.address?.zipCode);
+        }
         setValue('carrierInfo.lineHaul.carrier', watchedToLocation);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-        setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+        if (!getValues('carrierInfo.lineHaul.manualFromLocation')) {
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+        }
       }
       if (selectedRouting === 'pickup_linehaul' && selectedObject) {
         setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+        if (!getValues('carrierInfo.deliveryDetails.manualFromLocation')) {
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+        }
       }
     }
   }, [watchedToLocation,]);
@@ -1263,17 +1284,21 @@ const ShipmentPage = ({ type }) => {
         (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
       );
       if (selectedObject) {
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject?.address?.addressLine1);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject?.address?.addressLine2);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject?.address?.zipCode);
-        setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject?.address?.state);
+        if (!getValues('carrierInfo.lineHaul.manualToLocation')) {
+          setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.lineHaul.manualToLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.lineHaul.manualToLocationDetails.zip', selectedObject?.address?.zipCode);
+          setValue('carrierInfo.lineHaul.manualToLocationDetails.state', selectedObject?.address?.state);
+        }
         setValue('carrierInfo.deliveryDetails.carrier', watchedLinehaulToLocation);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+        if (!getValues('carrierInfo.deliveryDetails.manualFromLocation')) {
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+        }
       }
     }
   }, [watchedLinehaulToLocation]);
@@ -1308,11 +1333,13 @@ const ShipmentPage = ({ type }) => {
     if (selectedRouting) {
       if ((selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul')) {
         if (getValues('carrierInfo.toLocationType') === 'Consignee' && type !== 'View') {
-          setValue('carrierInfo.manualToAddress.line1', '');
-          setValue('carrierInfo.manualToAddress.line2', '');
-          setValue('carrierInfo.manualToAddress.city', '');
-          setValue('carrierInfo.manualToAddress.state', '');
-          setValue('carrierInfo.manualToAddress.zip', '');
+          if (!getValues('carrierInfo.isManualToLocation')) {
+            setValue('carrierInfo.manualToAddress.line1', '');
+            setValue('carrierInfo.manualToAddress.line2', '');
+            setValue('carrierInfo.manualToAddress.city', '');
+            setValue('carrierInfo.manualToAddress.state', '');
+            setValue('carrierInfo.manualToAddress.zip', '');
+          }
         }
         setValue('carrierInfo.toLocationType', 'Carrier');
       }
@@ -1327,11 +1354,13 @@ const ShipmentPage = ({ type }) => {
         );
         if (selectedObject && type !== 'View') {
           setValue('carrierInfo.deliveryDetails.carrier', watchedToLocation);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-          setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+          if (!getValues('carrierInfo.deliveryDetails.manualFromLocation')) {
+            setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+            setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+            setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', selectedObject?.address?.city);
+            setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+            setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', selectedObject?.address?.state);
+          }
         }
         setValue('carrierInfo.pickupAgentTerminal', false);
       }
@@ -1398,19 +1427,22 @@ const ShipmentPage = ({ type }) => {
             (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
           );
           setCarrierTerminalSelectError(false);
-          console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+          if (!getValues('carrierInfo.lineHaul.manualFromLocation')) {
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+          }
         } else {
           setCarrierTerminalSelectError(true);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+          if (!getValues('carrierInfo.lineHaul.manualFromLocation')) {
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+          }
         }
       }
       if (watchedLineHaulToggledAddress === 'linehaul') {
@@ -1420,19 +1452,22 @@ const ShipmentPage = ({ type }) => {
             (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
           );
           setCarrierTerminalSelectError(false);
-          console.log(selectedObject);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+          if (!getValues('carrierInfo.lineHaul.manualFromLocation')) {
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', selectedObject?.address?.addressLine1);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', selectedObject?.address?.addressLine2);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', selectedObject?.address?.city);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', selectedObject?.address?.zipCode);
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', selectedObject?.address?.state);
+          }
         } else {
           setCarrierTerminalSelectError(true);
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
-          setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+          if (!getValues('carrierInfo.lineHaul.manualFromLocation')) {
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line1', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.line2', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.city', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.zip', '');
+            setValue('carrierInfo.lineHaul.manualFromLocationDetails.state', '');
+          }
         }
       }
     }
@@ -1474,6 +1509,10 @@ const ShipmentPage = ({ type }) => {
           setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedObject?.terminalEmail);
           setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedObject?.emails);
         }
+        if (selectedObject && Object.keys(selectedObject).length > 0 && type === 'Edit') {
+          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail);
+          setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
+        }
       }
     }
 
@@ -1486,6 +1525,10 @@ const ShipmentPage = ({ type }) => {
         if (selectedObject && Object.keys(selectedObject).length > 0 && type !== 'View') {
           setValue('carrierInfo.deliveryDetails.primaryEmail', selectedObject?.terminalEmail);
           setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedObject?.emails);
+        }
+        if (selectedObject && Object.keys(selectedObject).length > 0 && type === 'Edit') {
+          setValue('carrierInfo.deliveryDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail);
+          setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
         }
       }
     }

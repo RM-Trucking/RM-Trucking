@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -31,6 +31,7 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
     const isLoading = useSelector((state) => state?.zonedata?.isLoading);
     const zipCheck = useSelector((state) => state?.zonedata?.zipCheck);
     const [openConfirmDialog, setopenConfirmDialog] = useState(false);
+    const inputRef = useRef(null);
     const {
         control,
         handleSubmit,
@@ -194,9 +195,10 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                 }
                             }}
 
-                            render={({ field: { onChange, value, ...field }, fieldState: { error } }) => (
+                            render={({ field: { onChange, value, ref, ...field }, fieldState: { error } }) => (
                                 <StyledTextField
                                     {...field}
+                                    inputRef={inputRef} // Captures native DOM element to lock the cursor position
                                     value={value || ''}
                                     label="Individual Zip Code"
                                     variant="standard"
@@ -211,34 +213,61 @@ export default function ZoneDetails({ type, handleCloseConfirm, selectedZoneRowD
                                     helperText={error?.message || "Separated by commas"}
                                     disabled={type === 'View'}
                                     onChange={(e) => {
-                                        let input = e.target.value;
+                                        const nativeInput = e.target;
+                                        let input = nativeInput.value;
+
+                                        // Capture starting selection index and raw length before editing string data
+                                        let cursorStart = nativeInput.selectionStart;
+                                        const originalLength = input.length;
 
                                         // 1. Clean: Allow only digits and commas
                                         let clean = input.replace(/[^\d,]/g, '').replace(/^,/, '').replace(/,+/g, ',');
 
-                                        // 2. Logic to handle auto-comma and length
+                                        // 2. Logic to handle auto-comma and length limits
                                         const segments = clean.split(',');
+                                        let addedComma = false;
+
                                         const formattedSegments = segments.map((seg, index) => {
                                             const isLast = index === segments.length - 1;
                                             const val = seg.substring(0, 5);
 
                                             if (isLast && val.length === 5) {
                                                 const isDeleting = input.length < (value?.length || 0);
-                                                // Auto-add comma if not deleting and not already there
+                                                // Auto-add comma if user is not backspacing and it doesn't exist
                                                 if (!isDeleting && !input.endsWith(',')) {
+                                                    addedComma = true;
                                                     return val + ',';
                                                 }
                                             }
                                             return val;
                                         });
 
-                                        // 3. Final join and update
+                                        // 3. Final join execution
                                         const result = formattedSegments.join(',').replace(/,+/g, ',');
+
+                                        // Calculate string variance to adjust tracking positioning offsets accurately
+                                        const lengthDifference = result.length - originalLength;
+                                        let targetCursorPos = cursorStart + lengthDifference;
+
+                                        // Adjustment rule if input triggers an auto-inserted comma boundary at the end
+                                        if (addedComma && cursorStart === originalLength) {
+                                            targetCursorPos = result.length;
+                                        }
+
+                                        // Fire form state update
                                         onChange(result);
+
+                                        // Set selection range inside an immediate macro-task delay to override React state re-renders
+                                        setTimeout(() => {
+                                            if (inputRef.current) {
+                                                inputRef.current.setSelectionRange(targetCursorPos, targetCursorPos);
+                                            }
+                                        }, 0);
                                     }}
                                 />
                             )}
                         />
+
 
 
                     </Stack>

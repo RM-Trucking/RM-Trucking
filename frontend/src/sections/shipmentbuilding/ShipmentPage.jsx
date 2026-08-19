@@ -805,16 +805,26 @@ const ShipmentPage = ({ type }) => {
               message: 'Phone number cannot exceed 20 characters'
             },
             validate: (value) => {
-              // MANDATORY CHECK: Fail validation if the field is required but missing/empty spaces
-              if (!value || value.toString().trim().length === 0) {
+              // 1. If the field is optional and completely empty, skip validation cleanly
+              if (!value || String(value).trim().length === 0) {
                 return required ? `${label} is required` : true;
               }
 
-              const digitsOnly = value.replace(/\D/g, '');
+              // 2. Safely convert to a string and strip ALL non-digits
+              const digitsOnly = String(value).replace(/\D/g, '');
+
+              // 3. ENFORCE LENGTH: Fail immediately if the total digit count is less than 10
+              if (digitsOnly.length < 10) {
+                return `${label} must be a valid 10-digit number (e.g., (123) 456-7890)`;
+              }
+
+              // 4. ZERO CHECK: Prevent dummy placeholders
               const isAllZeros = digitsOnly.length > 0 && /^0+$/.test(digitsOnly);
               if (isAllZeros) return 'Phone number cannot be all zeros';
+
               return true;
             }
+
           }}
           render={({ field, fieldState: { error } }) => (
             <StyledTextField
@@ -1566,6 +1576,8 @@ const ShipmentPage = ({ type }) => {
       }));
       // setValue('customerRate.customerAccessorials', updatedAcc);
       setCUSTOMER_MASTER_ACCESSORIALS(updatedAcc);
+    } else {
+      setCUSTOMER_MASTER_ACCESSORIALS([]);
     }
   }, [custommerRateModal, stationAccessorialData])
   // when there is change in ziprate of customer, making 35% for fuelsurcharge
@@ -2090,7 +2102,7 @@ const ShipmentPage = ({ type }) => {
               <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>
             <Box sx={{ pt: 2 }}>
-              <NotesTableForAccessorials notes={notesRefArray.current} handleCloseConfirm={handleNotesCloseConfirmForShipmentAccs}
+              <NotesTableForAccessorials type={type} notes={notesRefArray.current} handleCloseConfirm={handleNotesCloseConfirmForShipmentAccs}
                 getValues={getValues} setValue={setValue} index={notesRefArrayIndex.current} updatePickupAcc={updatePickupAcc}
                 updateLineHaulAcc={updateLineHaulAcc}
                 updateDeliveryAcc={updateDeliveryAcc}

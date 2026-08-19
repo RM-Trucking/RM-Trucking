@@ -27,7 +27,7 @@ NotesTableForAccessorials.PropTypes = {
     activeAccType: PropTypes.string,
 };
 
-export default function NotesTableForAccessorials({ notes, handleCloseConfirm, getValues, setValue, index, updatePickupAcc, updateLineHaulAcc, updateDeliveryAcc, field, activeAccType }) {
+export default function NotesTableForAccessorials({ type, notes, handleCloseConfirm, getValues, setValue, index, updatePickupAcc, updateLineHaulAcc, updateDeliveryAcc, field, activeAccType }) {
     const dispatch = useDispatch();
     const notesArray = useSelector((state) => state?.notedata?.notesData);
     const [multilineTextValue, setMultilineTextValue] = useState('');
@@ -129,9 +129,10 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
                     },
                     '& .MuiInputBase-input.MuiOutlinedInput-input': {},
                 }}
+                disabled = {type === 'View'}
             />
 
-            <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
+            {type !== 'View' && <Button variant="contained" startIcon={<AddIcon />} disabled={multilineTextValue?.length === 0}
                 onClick={() => addNote()}
                 sx={{
                     '&.MuiButton-contained': {
@@ -149,7 +150,7 @@ export default function NotesTableForAccessorials({ notes, handleCloseConfirm, g
                 }}
             >
                 Add Note
-            </Button>
+            </Button>}
             <Box sx={{ height: 400, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     rows={notesData}

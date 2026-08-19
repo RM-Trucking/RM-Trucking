@@ -815,7 +815,7 @@ const ActiveStep3Pickup = ({
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                                            <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Action</TableCell>
+                                            { type !== 'View' &&<TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

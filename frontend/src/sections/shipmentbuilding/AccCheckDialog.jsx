@@ -52,10 +52,13 @@ const AccCheckDialog = ({ state, setAccCheckModal, setValue, watchedAddPickupAcc
     }
     return (
         <>
-            <Dialog open={open} onClose={() => setAccCheckModal({
+            <Dialog open={open} onClose={(event,reason) => {
+                if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
+                setAccCheckModal({
                 open: false,
                 acc: ''
-            })} fullWidth>
+            })
+            }} fullWidth>
                 <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Information</DialogTitle>
                 <DialogContent>
                     <Typography variant="h6" sx={{ mt: 2, textAlign: 'center', }}>

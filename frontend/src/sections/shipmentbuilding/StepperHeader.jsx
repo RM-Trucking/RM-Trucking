@@ -173,7 +173,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     }, [watchedCarrierInfoSubmit])
 
     const handlePrint = useReactToPrint({
-        contentRef,documentTitle : "Bill_of_Lading"
+        contentRef,documentTitle : `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
     })
 
     return (

@@ -603,7 +603,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
             })}
 
             {/* Adding accessorials */}
-            {addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+            {addFlag && masterAccessorials?.length > 0 && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
 
               <Box sx={{
                 flex: 1.5, p: 1,
@@ -614,6 +614,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                   size="small"
                   variant="outlined"
                   select
+                  label = "Accessorial Name"
                   sx={{
                     width: "15%",
                     '& .MuiOutlinedInput-input': { p: '4px 8px' },
@@ -627,7 +628,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                   {masterAccessorials.map((opt, index) => (<MenuItem key={index} value={opt.entityAccessorialId}>{opt.accessorialName}</MenuItem>))}
                 </StyledTextField>
 
-                <StyledTextField value={getValues('customerRate.selectedAccToAdd.chargeType') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
+                <StyledTextField placeholder='Charge Type' value={getValues('customerRate.selectedAccToAdd.chargeType') ?? ""} variant="standard" sx={{ width: '10%', ml: 1 }} InputLabelProps={{ shrink: true }} disabled />
 
                 <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
                   onClick={addAccessorial}
@@ -637,6 +638,9 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
               </Box>
 
             </Box>}
+            {
+              masterAccessorials?.length === 0 && <Box sx={{p:1}}><Typography variant='h7' >No acessorials for the customer.</Typography></Box>
+            }
 
             {/* add acc button  */}
             {!addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
@@ -761,6 +765,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
         <Button onClick={() => {
           setValue('customerRate.rate', getValues('customerRate.apiRate'));
+          setValue('customerRate.selectedAccToAdd.chargeType','');
           replaceCustomerRateAccFields([]);
           setIsRateEditing(false);
           setSpotRateFlag(false);
@@ -769,6 +774,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
           Cancel
         </Button>
         <Button onClick={() => {
+          setValue('customerRate.selectedAccToAdd.chargeType','');
           if (Number(getValues('customerRate.apiRate')) === Number(getValues('customerRate.rate'))) {
             onClose();
           } else {

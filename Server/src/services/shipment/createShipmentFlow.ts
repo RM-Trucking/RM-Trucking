@@ -773,11 +773,11 @@ export async function createShipmentFlow(
 
             if (pickupDetails.editFromLocationDetails) {
                 console.log("[createShipmentFlow] Creating pickup from address");
-                const createdFromAddress = await createAddressRecord(conn, pickupDetails.editFromLocationDetails);
+                const createdFromAddress = await createAddressRecord(conn, pickupDetails.editFromLocationDetails as any);
                 await createEntityAddressMappingRecord(conn, pickupEntityId, createdFromAddress.addressId, "FROM", "PICKUP");
             }
 
-            if (pickupDetails.pickupAgentTerminal === "Y" && pickupDetails.pickupAgentTerminalDetails) {
+            if (pickupDetails.pickupAgentTerminalDetails) {
                 console.log("[createShipmentFlow] Creating pickup agent terminal info");
                 await createPickupAgentTerminalRecord(
                     conn,
@@ -785,9 +785,9 @@ export async function createShipmentFlow(
                     pickupDetails.pickupAgentTerminalDetails
                 );
 
-                if (pickupDetails.pickupAgentTerminalDetails.editToLocation === "Y" && pickupDetails.pickupAgentTerminalDetails.editToLocationDetails) {
+                if (pickupDetails.pickupAgentTerminalDetails.editToLocationDetails) {
                     console.log("[createShipmentFlow] Creating pickup to address");
-                    const createdToAddress = await createAddressRecord(conn, pickupDetails.pickupAgentTerminalDetails.editToLocationDetails);
+                    const createdToAddress = await createAddressRecord(conn, pickupDetails.pickupAgentTerminalDetails.editToLocationDetails as any);
                     const toLocationEntityId = pickupDetails.pickupAgentTerminalDetails.toLocationEntityId ?? pickupEntityId;
                     await createEntityAddressMappingRecord(conn, toLocationEntityId, createdToAddress.addressId, "TO", "PICKUP");
                 }
@@ -827,6 +827,20 @@ export async function createShipmentFlow(
                     ...primaryInfo,
                     entityId: linehaulEntityId,
                 });
+
+                if (linehaulDetails.linehaulPrimaryInfo.editFromLocationDetails) {
+                    console.log("[createShipmentFlow] Creating linehaul from address");
+                    const createdFromAddress = await createAddressRecord(conn, linehaulDetails.linehaulPrimaryInfo.editFromLocationDetails as any);
+                    const fromEntityId = linehaulDetails.linehaulPrimaryInfo.fromLocationEntityId ?? linehaulEntityId;
+                    await createEntityAddressMappingRecord(conn, fromEntityId, createdFromAddress.addressId, "FROM", "LINE_HAUL");
+                }
+
+                if (linehaulDetails.linehaulPrimaryInfo.editToLocationDetails) {
+                    console.log("[createShipmentFlow] Creating linehaul to address");
+                    const createdToAddress = await createAddressRecord(conn, linehaulDetails.linehaulPrimaryInfo.editToLocationDetails as any);
+                    const toEntityId = linehaulDetails.linehaulPrimaryInfo.toLocationEntityId ?? linehaulEntityId;
+                    await createEntityAddressMappingRecord(conn, toEntityId, createdToAddress.addressId, "TO", "LINE_HAUL");
+                }
             }
 
             if (linehaulDetails.linehaulCommonInfo) {
@@ -864,6 +878,20 @@ export async function createShipmentFlow(
                     ...primaryInfo,
                     entityId: deliveryEntityId,
                 });
+
+                if (deliveryDetails.deliveryPrimaryInfo.editFromLocationDetails) {
+                    console.log("[createShipmentFlow] Creating delivery from address");
+                    const createdFromAddress = await createAddressRecord(conn, deliveryDetails.deliveryPrimaryInfo.editFromLocationDetails as any);
+                    const fromEntityId = deliveryDetails.deliveryPrimaryInfo.fromLocationEntityId ?? deliveryEntityId;
+                    await createEntityAddressMappingRecord(conn, fromEntityId, createdFromAddress.addressId, "FROM", "DELIVERY");
+                }
+
+                if (deliveryDetails.deliveryPrimaryInfo.editToLocationDetails) {
+                    console.log("[createShipmentFlow] Creating delivery to address");
+                    const createdToAddress = await createAddressRecord(conn, deliveryDetails.deliveryPrimaryInfo.editToLocationDetails as any);
+                    const toEntityId = deliveryDetails.deliveryPrimaryInfo.toLocationEntityId ?? deliveryEntityId;
+                    await createEntityAddressMappingRecord(conn, toEntityId, createdToAddress.addressId, "TO", "DELIVERY");
+                }
             }
 
             if (deliveryDetails.deliveryCommonInfo) {

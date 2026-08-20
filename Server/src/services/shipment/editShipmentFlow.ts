@@ -16,6 +16,7 @@ import {
     UpdateCarrierDetails,
 } from "../../entities/shipment";
 import * as shipmentDB from "../../database/shipment/editShipment";
+import * as shipmentIndexDB from "../../database/shipment";
 import * as entityDB from "../../database/maintenance";
 import * as noteDB from "../../database/maintenance/note";
 
@@ -111,28 +112,54 @@ export async function editShipperInfoRecord(
     console.log("[editShipmentFlow] editShipperInfoRecord start", { shipmentId, shipperDetails });
 
     if (shipperDetails.delete === true) {
-        console.log("[editShipmentFlow] deleting shipper mapping", { shipmentId, entityId: shipperDetails.entityId });
-        await shipmentDB.deleteShipmentEntityMapping(conn, shipmentId, shipperDetails.entityId, "SHIPPER");
+        console.log("[editShipmentFlow] deleting shipper mapping", { shipmentId, entityId: shipperDetails.entityId ?? shipperDetails.shipperId });
+        await shipmentDB.deleteShipmentEntityMapping(conn, shipmentId, shipperDetails.entityId ?? shipperDetails.shipperId, "SHIPPER");
         return { shipmentId, deleted: true };
     }
 
-    if (!shipperDetails.entityId && !shipperDetails.shipperName) {
+    if (!shipperDetails.entityId && !shipperDetails.shipperId && !shipperDetails.shipperName) {
         console.log("[editShipmentFlow] shipper validation failed", { shipmentId, shipperDetails });
-        throw new Error("Shipper entity ID or name is required");
+        throw new Error("Shipper ID, entity ID, or name is required");
     }
 
-    const result = await shipmentDB.upsertShipperInfo(conn, {
-        ...shipperDetails,
+    let entityId = shipperDetails.entityId;
+
+    if (!entityId && shipperDetails.shipperId) {
+        const existingShipper = await shipmentIndexDB.getShipperById(conn, shipperDetails.shipperId);
+        if (!existingShipper) {
+            throw new Error("Invalid shipperId provided");
+        }
+        entityId = existingShipper.entityId;
+        console.log("[editShipmentFlow] resolved shipper entityId from shipperId", { shipmentId, shipperId: shipperDetails.shipperId, entityId });
+    }
+
+    if (!entityId && shipperDetails.shipperName) {
+        entityId = await entityDB.createEntity(conn, "SHIPPER", shipperDetails.shipperName);
+        console.log("[editShipmentFlow] created new shipper entity", { shipmentId, entityId, shipperName: shipperDetails.shipperName });
+
+        await shipmentDB.upsertShipperInfo(conn, {
+            ...shipperDetails,
+            shipmentId,
+            entityId,
+        });
+        console.log("[editShipmentFlow] created new shipper info row", { shipmentId, entityId, shipperName: shipperDetails.shipperName });
+    }
+
+    if (!entityId) {
+        console.log("[editShipmentFlow] shipper entity not resolved", { shipmentId, shipperDetails });
+        throw new Error("Unable to resolve shipper entity");
+    }
+
+    const mappedEntityId = await shipmentDB.replaceShipmentEntityMapping(
+        conn,
         shipmentId,
-    });
-    console.log("[editShipmentFlow] shipper upsert result", { shipmentId, result });
+        entityId,
+        "SHIPPER",
+        shipperDetails.shipperName ?? "SHIPPER"
+    );
 
-    if (result?.entityId) {
-        await shipmentDB.replaceShipmentEntityMapping(conn, shipmentId, result.entityId, "SHIPPER", shipperDetails.shipperName ?? "SHIPPER");
-    }
-
-    console.log("[editShipmentFlow] editShipperInfoRecord complete", { shipmentId, result });
-    return result;
+    console.log("[editShipmentFlow] shipper mapping updated", { shipmentId, mappedEntityId, entityId });
+    return { shipmentId, entityId: mappedEntityId ?? entityId };
 }
 
 export async function editConsigneeInfoRecord(
@@ -143,28 +170,54 @@ export async function editConsigneeInfoRecord(
     console.log("[editShipmentFlow] editConsigneeInfoRecord start", { shipmentId, consigneeDetails });
 
     if (consigneeDetails.delete === true) {
-        console.log("[editShipmentFlow] deleting consignee mapping", { shipmentId, entityId: consigneeDetails.entityId });
-        await shipmentDB.deleteShipmentEntityMapping(conn, shipmentId, consigneeDetails.entityId, "CONSIGNEE");
+        console.log("[editShipmentFlow] deleting consignee mapping", { shipmentId, entityId: consigneeDetails.entityId ?? consigneeDetails.consigneeId });
+        await shipmentDB.deleteShipmentEntityMapping(conn, shipmentId, consigneeDetails.entityId ?? consigneeDetails.consigneeId, "CONSIGNEE");
         return { shipmentId, deleted: true };
     }
 
-    if (!consigneeDetails.entityId && !consigneeDetails.consigneeName) {
+    if (!consigneeDetails.entityId && !consigneeDetails.consigneeId && !consigneeDetails.consigneeName) {
         console.log("[editShipmentFlow] consignee validation failed", { shipmentId, consigneeDetails });
-        throw new Error("Consignee entity ID or name is required");
+        throw new Error("Consignee ID, entity ID, or name is required");
     }
 
-    const result = await shipmentDB.upsertConsigneeInfo(conn, {
-        ...consigneeDetails,
+    let entityId = consigneeDetails.entityId;
+
+    if (!entityId && consigneeDetails.consigneeId) {
+        const existingConsignee = await shipmentIndexDB.getConsigneeById(conn, consigneeDetails.consigneeId);
+        if (!existingConsignee) {
+            throw new Error("Invalid consigneeId provided");
+        }
+        entityId = existingConsignee.entityId;
+        console.log("[editShipmentFlow] resolved consignee entityId from consigneeId", { shipmentId, consigneeId: consigneeDetails.consigneeId, entityId });
+    }
+
+    if (!entityId && consigneeDetails.consigneeName) {
+        entityId = await entityDB.createEntity(conn, "CONSIGNEE", consigneeDetails.consigneeName);
+        console.log("[editShipmentFlow] created new consignee entity", { shipmentId, entityId, consigneeName: consigneeDetails.consigneeName });
+
+        await shipmentDB.upsertConsigneeInfo(conn, {
+            ...consigneeDetails,
+            shipmentId,
+            entityId,
+        });
+        console.log("[editShipmentFlow] created new consignee info row", { shipmentId, entityId, consigneeName: consigneeDetails.consigneeName });
+    }
+
+    if (!entityId) {
+        console.log("[editShipmentFlow] consignee entity not resolved", { shipmentId, consigneeDetails });
+        throw new Error("Unable to resolve consignee entity");
+    }
+
+    const mappedEntityId = await shipmentDB.replaceShipmentEntityMapping(
+        conn,
         shipmentId,
-    });
-    console.log("[editShipmentFlow] consignee upsert result", { shipmentId, result });
+        entityId,
+        "CONSIGNEE",
+        consigneeDetails.consigneeName ?? "CONSIGNEE"
+    );
 
-    if (result?.entityId) {
-        await shipmentDB.replaceShipmentEntityMapping(conn, shipmentId, result.entityId, "CONSIGNEE", consigneeDetails.consigneeName ?? "CONSIGNEE");
-    }
-
-    console.log("[editShipmentFlow] editConsigneeInfoRecord complete", { shipmentId, result });
-    return result;
+    console.log("[editShipmentFlow] consignee mapping updated", { shipmentId, mappedEntityId, entityId });
+    return { shipmentId, entityId: mappedEntityId ?? entityId };
 }
 
 export async function editAirlineRecord(

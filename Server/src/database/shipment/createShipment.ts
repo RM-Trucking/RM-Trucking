@@ -75,6 +75,7 @@ export async function createNetworkShipment(
     const payload: Record<string, SqlValue> = {
         typeOfShipment: shipmentDetails.typeOfShipment,
         serviceLevel: shipmentDetails.serviceLevel,
+        orderReceivedPickupPending: shipmentDetails.orderReceivedPickupPending,
         shipmentDate: normalizeDateTimeValue(shipmentDetails.shipmentDate),
         shipmentTime: normalizeDateTimeValue(shipmentDetails.shipmentTime),
         status: shipmentDetails.status,
@@ -187,8 +188,8 @@ export async function createAirlineInfo(conn: Connection, airlineDetails: Airlin
         city: airlineDetails.city,
         state: airlineDetails.state ?? "",
         zipCode: airlineDetails.zipCode ?? "",
-        contactPersonName: airlineDetails.phoneNumber ?? "",
-        phoneNumber: airlineDetails.contactPersonName ?? "",
+        contactPersonName: airlineDetails.contactPersonName ?? "",
+        phoneNumber: airlineDetails.phoneNumber ?? "",
         entityId: airlineDetails.entityId,
         scenarioType: airlineDetails.scenarioType,
     };
@@ -257,12 +258,20 @@ export async function createHandlingUnitItemHazmatInfo(conn: Connection, hazmatD
 }
 
 export async function createNetworkShipmentAddress(conn: Connection, addressDetails: AddressDetail) {
+    const normalizedAddress = {
+        addressLine1: addressDetails.addressLine1 ?? "",
+        addressLine2: addressDetails.addressLine2 ?? (addressDetails as any).line2 ?? "",
+        city: addressDetails.city ?? "",
+        state: addressDetails.state ?? "",
+        zipCode: addressDetails.zipCode ?? "",
+    };
+
     const payload: Record<string, SqlValue> = {
-        line1: addressDetails.addressLine1,
-        line2: addressDetails.addressLine2 ?? "",
-        city: addressDetails.city,
-        state: addressDetails.state,
-        zipCode: addressDetails.zipCode,
+        line1: normalizedAddress.addressLine1,
+        line2: normalizedAddress.addressLine2,
+        city: normalizedAddress.city,
+        state: normalizedAddress.state,
+        zipCode: normalizedAddress.zipCode,
     };
 
     return insertWithReturning(conn, '"Network_Shipment_Address"', payload);

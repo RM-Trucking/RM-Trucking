@@ -69,6 +69,23 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
     const deliveryAccessorials = deliveryInfo ? await shipmentDB.getShipmentDeliveryAccessorials(conn, shipmentId) : [];
     const deliveryAlertInfo = deliveryInfo ? await shipmentDB.getShipmentDeliveryAlertInfo(conn, shipmentId) : null;
 
+    console.log("Pickup Terminal Info:", pickupAgentTerminalInfo);
+
+    const pickupAgentTerminalDetailsResponse = pickupAgentTerminalInfo
+        ? {
+            pickupAgentTerminalId: pickupAgentTerminalInfo?.pickupAgentTerminalId,
+            shipmentId: pickupInfo?.shipmentId ?? pickupAgentTerminalInfo?.shipmentId,
+            entityId: pickupAgentTerminalInfo?.entityId,
+            toLocationType: pickupAgentTerminalInfo?.toLocationType,
+            toLocation: pickupAgentTerminalInfo?.toLocation,
+            toLocationEntityId: pickupAgentTerminalInfo?.toLocationEntityId,
+            editToLocation: pickupAgentTerminalInfo?.editToLocation ?? "N",
+            editToLocationDetails: pickupAgentTerminalInfo?.toLocationEntityId
+                ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupAgentTerminalInfo.toLocationEntityId, "PICKUP", "TO")
+                : undefined,
+        }
+        : undefined;
+
     const pickupDetailsResponse = pickupInfo ? {
         pickupInfoId: pickupInfo.pickupInfoId,
         shipmentId: pickupInfo.shipmentId,
@@ -86,21 +103,10 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         pickupAgentTerminal: pickupInfo.pickupAgentTerminal,
         pickupAccessorial: pickupInfo.pickupAccessorial,
         pickupAlert: pickupInfo.pickupAlert,
-        editFromLocationDetails: pickupInfo.editFromLocation === "Y"
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, "PICKUP", "FROM")
+        editFromLocationDetails: pickupInfo.fromLocationEntityId
+            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.fromLocationEntityId ?? pickupInfo.entityId, "PICKUP", "FROM")
             : undefined,
-        pickupAgentTerminalDetails: pickupAgentTerminalInfo ? {
-            pickupAgentTerminalId: pickupAgentTerminalInfo.pickupAgentTerminalId,
-            shipmentId: pickupAgentTerminalInfo.shipmentId,
-            entityId: pickupAgentTerminalInfo.entityId,
-            toLocationType: pickupAgentTerminalInfo.toLocationType,
-            toLocation: pickupAgentTerminalInfo.toLocation,
-            toLocationEntityId: pickupAgentTerminalInfo.toLocationEntityId,
-            editToLocation: pickupAgentTerminalInfo.editToLocation,
-            editToLocationDetails: pickupAgentTerminalInfo.editToLocation === "Y"
-                ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.entityId, "PICKUP", "TO")
-                : undefined,
-        } : undefined,
+        pickupAgentTerminalDetails: pickupAgentTerminalDetailsResponse,
         pickupAccessorialDetails: pickupAccessorials.length > 0 ? {
             accessorials: pickupAccessorials.map((row: any) => ({
                 pickupAccessorialId: row.pickupAccessorialId,
@@ -144,11 +150,11 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         etaTime: linehaulInfo.etaTime,
         pieces: linehaulInfo.pieces,
         weight: linehaulInfo.weight,
-        editFromLocationDetails: linehaulInfo.editFromLocation === "Y"
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, "LINE_HAUL", "FROM")
+        editFromLocationDetails: linehaulInfo.fromLocationEntityId
+            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.fromLocationEntityId ?? linehaulInfo.entityId, "LINE_HAUL", "FROM")
             : undefined,
-        editToLocationDetails: linehaulInfo.editToLocation === "Y"
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.entityId, "LINE_HAUL", "TO")
+        editToLocationDetails: linehaulInfo.toLocationEntityId
+            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.toLocationEntityId ?? linehaulInfo.entityId, "LINE_HAUL", "TO")
             : undefined,
         linehaulCommonInfo: linehaulCommonInfo ? {
             linehaulCommonInfoId: linehaulCommonInfo.linehaulCommonInfoId,
@@ -189,11 +195,11 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         etaTime: deliveryInfo.etaTime,
         pieces: deliveryInfo.pieces,
         weight: deliveryInfo.weight,
-        editFromLocationDetails: deliveryInfo.editFromLocation === "Y"
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, "DELIVERY", "FROM")
+        editFromLocationDetails: deliveryInfo.fromLocationEntityId
+            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.fromLocationEntityId ?? deliveryInfo.entityId, "DELIVERY", "FROM")
             : undefined,
-        editToLocationDetails: deliveryInfo.editToLocation === "Y"
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.entityId, "DELIVERY", "TO")
+        editToLocationDetails: deliveryInfo.toLocationEntityId
+            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.toLocationEntityId ?? deliveryInfo.entityId, "DELIVERY", "TO")
             : undefined,
         deliveryCommonInfo: deliveryCommonInfo ? {
             deliveryCommonInfoId: deliveryCommonInfo.deliveryCommonInfoId,
@@ -362,6 +368,7 @@ async function getShipmentCustomerResponse(conn: Connection, shipmentId: number)
             state: pickupAirlineInfo.state,
             zipCode: pickupAirlineInfo.zipCode,
             handler: pickupAirlineInfo.handler,
+            contactPersonName: pickupAirlineInfo.contactPersonName,
             phoneNumber: pickupAirlineInfo.phoneNumber,
             entityId: pickupAirlineInfo.entityId,
             scenarioType: pickupAirlineInfo.scenarioType,
@@ -378,6 +385,7 @@ async function getShipmentCustomerResponse(conn: Connection, shipmentId: number)
             state: deliveryAirlineInfo.state,
             zipCode: deliveryAirlineInfo.zipCode,
             handler: deliveryAirlineInfo.handler,
+            contactPersonName: deliveryAirlineInfo.contactPersonName,
             phoneNumber: deliveryAirlineInfo.phoneNumber,
             entityId: deliveryAirlineInfo.entityId,
             scenarioType: deliveryAirlineInfo.scenarioType,

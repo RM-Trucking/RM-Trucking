@@ -256,6 +256,7 @@ export async function getAddressByShipmentIdLocationTypeAddressType(
         WHERE m."entityId" = ?
           AND m."locationType" = ?
           AND m."addressType" = ?
+        ORDER BY m."addressId" DESC
         FETCH FIRST 1 ROW ONLY
     `;
 

@@ -580,38 +580,6 @@ const ShipmentPage = ({ type }) => {
     totals = calculateTotals(watchedHU);
   }, [watchedHU]);
 
-  // useEffect(() => {
-  //   // 1. Check if the array contains items before running updates
-  //   if (customerRateAccFields && customerRateAccFields.length > 0) {
-
-  //     // 2. Map through existing entries to update weight values safely
-  //     const updatedCustomerAccs = customerRateAccFields.map((acc) => {
-  //       // Check if this item is a 'per_pound' charge layout
-  //       if (acc?.chargeType?.toLowerCase() === 'per_pound') {
-
-  //         // Calculate weight based on unit configuration
-  //         const calculatedWeight = (watchedHU?.[0]?.weightUnit === 'lbs')
-  //           ? Number(totals?.totalWeight || 0)
-  //           : Number((Number(totals?.totalWeight || 0) * 2.20462).toFixed(2));
-
-  //         return {
-  //           ...acc,
-  //           // Return as a number so your precision math stays clean
-  //           input: calculatedWeight
-  //         };
-  //       }
-
-  //       // If it's not per_pound (e.g. hourly or flat fee), leave it unchanged
-  //       return acc;
-  //     });
-
-  //     // 3. Atomically replace the field array contents with the updated inputs
-  //     replaceCustomerRateAccFields(updatedCustomerAccs);
-  //   }
-  // }, [totals, watchedHU, replaceCustomerRateAccFields]); // Added critical dependency array watch hooks
-
-
-  // --- HELPER: RENDER ZIP CODE --- 
   useEffect(() => {
     if (!customerRateAccFields || customerRateAccFields.length === 0) return;
 

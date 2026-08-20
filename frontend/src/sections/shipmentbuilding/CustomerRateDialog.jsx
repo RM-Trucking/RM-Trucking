@@ -63,7 +63,7 @@ const commonBtnStyle = {
 
 };
 // customer Rate pop up dialog box
-const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials }) => {
+const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials, watch }) => {
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -73,6 +73,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
   const [errorVisible, setErrorVisible] = useState(false);
 
   const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
+  const selectedAcc = watch('customerRate.selectedAccToAdd');
 
 
   const addAccessorial = () => {
@@ -615,6 +616,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                   variant="outlined"
                   select
                   label = "Accessorial Name"
+                  value={selectedAcc?.entityAccessorialId || ''}
                   sx={{
                     width: "15%",
                     '& .MuiOutlinedInput-input': { p: '4px 8px' },

@@ -65,6 +65,7 @@ import ActiveStep3Delivery from './ActiveStep3Delivery';
 import ActiveStep4 from './ActiveStep4';
 import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
+import { handleEditNext, onFormEditSubmit } from './handleEditNext';
 import { updateControls, updateStep2Controls } from './UpdateControls';
 
 // --------------------------------------------------------------
@@ -579,38 +580,65 @@ const ShipmentPage = ({ type }) => {
     totals = calculateTotals(watchedHU);
   }, [watchedHU]);
 
-  useEffect(() => {
-    // 1. Check if the array contains items before running updates
-    if (customerRateAccFields && customerRateAccFields.length > 0) {
+  // useEffect(() => {
+  //   // 1. Check if the array contains items before running updates
+  //   if (customerRateAccFields && customerRateAccFields.length > 0) {
 
-      // 2. Map through existing entries to update weight values safely
-      const updatedCustomerAccs = customerRateAccFields.map((acc) => {
-        // Check if this item is a 'per_pound' charge layout
-        if (acc?.chargeType?.toLowerCase() === 'per_pound') {
+  //     // 2. Map through existing entries to update weight values safely
+  //     const updatedCustomerAccs = customerRateAccFields.map((acc) => {
+  //       // Check if this item is a 'per_pound' charge layout
+  //       if (acc?.chargeType?.toLowerCase() === 'per_pound') {
 
-          // Calculate weight based on unit configuration
-          const calculatedWeight = (watchedHU?.[0]?.weightUnit === 'lbs')
-            ? Number(totals?.totalWeight || 0)
-            : Number((Number(totals?.totalWeight || 0) * 2.20462).toFixed(2));
+  //         // Calculate weight based on unit configuration
+  //         const calculatedWeight = (watchedHU?.[0]?.weightUnit === 'lbs')
+  //           ? Number(totals?.totalWeight || 0)
+  //           : Number((Number(totals?.totalWeight || 0) * 2.20462).toFixed(2));
 
-          return {
-            ...acc,
-            // Return as a number so your precision math stays clean
-            input: calculatedWeight
-          };
-        }
+  //         return {
+  //           ...acc,
+  //           // Return as a number so your precision math stays clean
+  //           input: calculatedWeight
+  //         };
+  //       }
 
-        // If it's not per_pound (e.g. hourly or flat fee), leave it unchanged
-        return acc;
-      });
+  //       // If it's not per_pound (e.g. hourly or flat fee), leave it unchanged
+  //       return acc;
+  //     });
 
-      // 3. Atomically replace the field array contents with the updated inputs
-      replaceCustomerRateAccFields(updatedCustomerAccs);
-    }
-  }, [totals, watchedHU, replaceCustomerRateAccFields]); // Added critical dependency array watch hooks
+  //     // 3. Atomically replace the field array contents with the updated inputs
+  //     replaceCustomerRateAccFields(updatedCustomerAccs);
+  //   }
+  // }, [totals, watchedHU, replaceCustomerRateAccFields]); // Added critical dependency array watch hooks
 
 
   // --- HELPER: RENDER ZIP CODE --- 
+  useEffect(() => {
+    if (!customerRateAccFields || customerRateAccFields.length === 0) return;
+
+    let hasChanges = false;
+
+    const updatedCustomerAccs = customerRateAccFields.map((acc) => {
+      if (acc?.chargeType?.toLowerCase() === 'per_pound') {
+        const calculatedWeight = (watchedHU?.[0]?.weightUnit === 'lbs')
+          ? Number(totals?.totalWeight || 0)
+          : Number((Number(totals?.totalWeight || 0) * 2.20462).toFixed(2));
+
+        // ONLY flag a change if the value actually is different
+        if (acc.input !== calculatedWeight) {
+          hasChanges = true;
+          return { ...acc, input: calculatedWeight };
+        }
+      }
+      return acc;
+    });
+
+    // CRITICAL: Only update state if something actually changed
+    if (hasChanges) {
+      replaceCustomerRateAccFields(updatedCustomerAccs);
+    }
+
+    // Added customerRateAccFields safely because the 'hasChanges' guard kills the loop
+  }, [totals?.totalWeight, watchedHU?.[0]?.weightUnit, customerRateAccFields, replaceCustomerRateAccFields]);
 
   const renderZipCodeField = (name, required = false) => {
     // DYNAMIC DISABLE LOGIC: Check if fields should be read-only based on watched values
@@ -1716,6 +1744,8 @@ const ShipmentPage = ({ type }) => {
             hasInitialData={hasInitialData}
             handleNext={handleNext}
             onFormSubmit={onFormSubmit}
+            handleEditNext={handleEditNext}
+            onFormEditSubmit={onFormEditSubmit}
             isPickupPending={isPickupPending}
             isSubmitting={isSubmitting} isSubmittingFinal={isSubmittingFinal}
             type={type}
@@ -1794,6 +1824,7 @@ const ShipmentPage = ({ type }) => {
             replaceCustomerRateAccFields={replaceCustomerRateAccFields}
             watchedHU={watchedHU}
             masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
+            watch={watch}
           />
           <HandleCancelDialog
             open={handleCancelModal}

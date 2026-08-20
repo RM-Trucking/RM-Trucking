@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
-import {useReactToPrint} from 'react-to-print';
+import { useReactToPrint } from 'react-to-print';
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
 
 import {
@@ -35,6 +35,8 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     hasInitialData,
     handleNext,
     onFormSubmit,
+    handleEditNext,
+    onFormEditSubmit,
     isPickupPending,
     isSubmitting,
     isSubmittingFinal,
@@ -161,7 +163,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     const [isSubmittingWithLinehaul, setIsSubmittingWithLinehaul] = useState(false);
 
     useEffect(() => {
-        if (watchedCarrierInfoSubmit) {
+        if (watchedCarrierInfoSubmit && type !== 'Edit') {
             handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
                 watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
                 setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
@@ -170,10 +172,19 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                 watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
             );
         }
+        if (watchedCarrierInfoSubmit && type === 'Edit') {
+            handleEditNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj,
+            );
+        }
     }, [watchedCarrierInfoSubmit])
 
     const handlePrint = useReactToPrint({
-        contentRef,documentTitle : `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
+        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
     })
 
     return (
@@ -253,27 +264,50 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         {
                             type !== 'View' && activeStep !== 3 && <Button
                                 variant="contained"
-                                onClick={() => handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
-                                    watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
-                                    setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
-                                    watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
-                                    getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                    watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
-                                )}
+                                onClick={() => {
+                                    if (type !== 'Edit') {
+                                        handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                                            watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                                            setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                                            watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                                            getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+                                        )
+                                    } else if (type === 'Edit') {
+                                        handleEditNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                                            watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                                            setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                                            watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                                            getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj,
+                                        )
+                                    }
+                                }}
                                 sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
                             >
                                 {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : 'Submit' : 'Next'}
                             </Button>
                         }
-                        {type !== 'View' && activeStep === 3 && isPickupPending  &&
+                        {type !== 'View' && activeStep === 3 && isPickupPending &&
                             <Button
                                 variant="contained"
-                                onClick={() => onFormSubmit(dispatch, setValue, getValues, trigger, errors,
-                                    activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
-                                    selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
-                                    watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
-                                    carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-                                    setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending)}
+                                onClick={() => {
+                                    if (type !== 'Edit') {
+                                        onFormSubmit(dispatch, setValue, getValues, trigger, errors,
+                                            activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
+                                            selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
+                                            watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
+                                            carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
+                                            setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending)
+                                    } else if (type === 'Edit') {
+                                        onFormEditSubmit(dispatch, setValue, getValues, trigger, errors,
+                                            activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
+                                            selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
+                                            watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
+                                            carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
+                                            setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj)
+                                    }
+                                }}
                                 disabled={isSubmitting} // 👈 This disables the button instantly on click
                                 sx={{
                                     ...commonBtnStyle,
@@ -288,12 +322,23 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                             <>
                                 <Button
                                     variant="contained"
-                                    onClick={() => onFormSubmit(dispatch, setValue, getValues, trigger, errors,
-                                        activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
-                                        selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
-                                        watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
-                                        carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-                                        setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending)}
+                                    onClick={() => {
+                                        if (type !== 'Edit') {
+                                            onFormSubmit(dispatch, setValue, getValues, trigger, errors,
+                                                activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
+                                                selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
+                                                watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
+                                                carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
+                                                setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending)
+                                        } else if (type === 'Edit') {
+                                            onFormEditSubmit(dispatch, setValue, getValues, trigger, errors,
+                                                activeStep, watchedServiceLevel, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
+                                                selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
+                                                watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
+                                                carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
+                                                setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj)
+                                        }
+                                    }}
                                     disabled={isSubmitting} // 👈 This disables the button instantly on click
                                     sx={{
                                         ...commonBtnStyle,
@@ -308,13 +353,25 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         {
                             type !== 'View' && activeStep === 3 && !isPickupPending && <Button
                                 variant="contained"
-                                onClick={() => handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
-                                    watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
-                                    setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
-                                    watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
-                                    getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                    watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type,
-                                )}
+                                onClick={() => {
+                                    if (type !== 'Edit') {
+                                        handleNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                                            watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                                            setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                                            watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                                            getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type,
+                                        )
+                                    } else if (type === 'Edit') {
+                                        handleEditNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
+                                            watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
+                                            setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
+                                            watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
+                                            getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj
+                                        )
+                                    }
+                                }}
                                 disabled={isSubmittingFinal}
                                 sx={{
                                     ...commonBtnStyle,
@@ -463,9 +520,9 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         <Button variant="contained" onClick={handlePrint} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>BOL</Button>
                     </Box>
                 }
-                <div style={{display : 'none'}}>
+                <div style={{ display: 'none' }}>
                     <div ref={contentRef} className='bol-print-wrapper'>
-                        <BillOfLadingAuto data = {selectedShipmentBuildObj}/>
+                        <BillOfLadingAuto data={selectedShipmentBuildObj} />
                     </div>
                 </div>
             </Box>

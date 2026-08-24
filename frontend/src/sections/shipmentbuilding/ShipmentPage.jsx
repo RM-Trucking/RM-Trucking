@@ -41,7 +41,7 @@ import {
   getStationAccessorialData,
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
-  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment,patchNetworkShipment,
+  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment, patchNetworkShipment,
 
 } from '../../redux/slices/shipment';
 import ShipmentStatusUpdateDialog from './ShipmentStatusUpdateDialog';
@@ -222,9 +222,15 @@ const ShipmentPage = ({ type }) => {
       consigneeContact: '',
       consigneePhone: '',
       referenceTableRows: [],
+      printablePickupReferenceRows: [],
+      printableLinehaulReferenceRows: [],
+      printableDeliveryReferenceRows: [],
       // Step 2 - Handling Units 
       handlingUnits: [{
-        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '', freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
+        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '', calculatedFC: '',
+        freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
+        badFreight: false,
+        badFreightCondition: '',
         items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
       }],
       emergencyContactName: '',
@@ -1734,7 +1740,7 @@ const ShipmentPage = ({ type }) => {
             setActiveStep={setActiveStep}
             totals={totals}
             watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-            patchNetworkShipment = {patchNetworkShipment}
+            patchNetworkShipment={patchNetworkShipment}
           />
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog
@@ -1838,6 +1844,7 @@ const ShipmentPage = ({ type }) => {
               setErrorVisible={setErrorVisible}
               isHazmatSelected={isHazmatSelected}
               setHazmatModal={setHazmatModal}
+              trigger={trigger}
             />
           )}
           {/* STEP 3 */}
@@ -1896,6 +1903,7 @@ const ShipmentPage = ({ type }) => {
                 watchedPickupAdditionalMails={watchedPickupAdditionalMails}
                 carrierPickupSearchValue={carrierPickupSearchValue}
                 setCarrierPickupSearchValue={setCarrierPickupSearchValue}
+                getValues={getValues}
               />
               {
                 isPickupPending === false &&
@@ -1948,7 +1956,7 @@ const ShipmentPage = ({ type }) => {
                   watchedCarrierInfo={watchedCarrierInfo}
                   watchedToLocation={watchedToLocation}
                   isPickupPending={isPickupPending}
-
+                  getValues={getValues}
                 />
               }
               {isPickupPending === false && <ActiveStep3Delivery type={type}
@@ -2003,7 +2011,7 @@ const ShipmentPage = ({ type }) => {
                 watchedCarrierInfo={watchedCarrierInfo}
                 isPickupPending={isPickupPending}
                 watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-
+                getValues={getValues}
               />
               }
             </>

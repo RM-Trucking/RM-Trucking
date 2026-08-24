@@ -63,7 +63,8 @@ export default function ReferenceTable({ type, control, errors, setValue, clearE
         const newRow = {
             id: Date.now(),
             referenceType: '',
-            referenceNumber: ''
+            referenceNumber: '',
+            isChecked: false,
         };
 
         // 5. Append the new row and update the form value

@@ -26,7 +26,7 @@ import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
-import BillOfLadingAuto from './BillOfLadingAuto';
+import ShipmentManifestedDialog from './ShipmentManifestedDialog';
 
 
 const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
@@ -81,7 +81,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     totals,
     watchedLinehaulAddAcc, patchNetworkShipment,
 }) => {
-    const contentRef = useRef(null);
+    const [manifestDialogOpen, setManifestDialogOpen] = useState(false);
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -160,7 +160,6 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     };
     const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
     const labelStyle = { fontSize: '0.75rem', color: '#555' };
-    const [isSubmittingWithLinehaul, setIsSubmittingWithLinehaul] = useState(false);
 
     useEffect(() => {
         if (watchedCarrierInfoSubmit && type !== 'Edit') {
@@ -182,10 +181,6 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
             );
         }
     }, [watchedCarrierInfoSubmit])
-
-    const handlePrint = useReactToPrint({
-        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
-    })
 
     return (
         <ErrorBoundary
@@ -274,6 +269,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
                                         )
                                     } else if (type === 'Edit') {
+                                        // setManifestDialogOpen(true);
                                         handleEditNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
                                             watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
@@ -364,6 +360,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type,
                                         )
                                     } else if (type === 'Edit') {
+                                        // setManifestDialogOpen(true);
                                         handleEditNext(dispatch, setValue, getValues, trigger, errors, activeStep, watchedServiceLevel, watchedAirportPickupService,
                                             watchedAirportDeliveryService, isHazmatSelected, selectedRouting, watchedLinehaulSelectRouting,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
@@ -516,16 +513,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                     </Box>
                 </Box>
                 }
-                {
-                    type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'}>
-                        <Button variant="contained" onClick={handlePrint} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>BOL</Button>
-                    </Box>
-                }
-                <div style={{ display: 'none' }}>
-                    <div ref={contentRef} className='bol-print-wrapper'>
-                        <BillOfLadingAuto data={selectedShipmentBuildObj} />
-                    </div>
-                </div>
+                <ShipmentManifestedDialog open={manifestDialogOpen} handleClose={() => setManifestDialogOpen(false)} />
             </Box>
         </ErrorBoundary>
     );

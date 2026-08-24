@@ -45,6 +45,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('destinationAirport', customerDetails?.destinationAirportCode);
         setValue('referenceTableRows', (customerDetails?.customerReferenceNumbers || []).map((row, index) => ({
             id: Date.now() + index,
+            isChecked: false,
             ...row
         })), {
             shouldValidate: true,
@@ -122,6 +123,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
             weightUnit: (hu.handlingWeightUnit).toLowerCase() === 'lb' ? 'lbs' : (hu.handlingWeightUnit).toLowerCase() === 'kg' ? 'kgs' : '',
             class: hu.class || '',
             calculatedFC: '',
+            badFreight : hu?.badFreight || false,
             freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
             items: (hu.palletDetails || []).map((pallet, pIndex) => ({
                 id: Date.now() + huIndex + pIndex + 1000, // Added unique ID for nested items

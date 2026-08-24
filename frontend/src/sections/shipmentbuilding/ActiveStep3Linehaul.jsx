@@ -12,6 +12,7 @@ import {
     ToggleButton, ToggleButtonGroup,
 
 } from '@mui/material';
+import { useReactToPrint } from 'react-to-print';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 
@@ -45,6 +46,8 @@ import {
 } from '../../redux/slices/shipment';
 import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
+import BillOfLadingAuto from './BillOfLadingAuto';
+import ReferenceDialog from './ReferenceDialog';
 
 const ActiveStep3Linehaul = ({
     type,
@@ -95,7 +98,14 @@ const ActiveStep3Linehaul = ({
     setValue,
     watchedCarrierInfo,
     watchedToLocation,
+    getValues,
 }) => {
+    const contentRef = useRef(null);
+    const [subModal, setSubModal] = useState({ type: 'linehaul', open: false });
+    const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+    const handlePrint = useReactToPrint({
+        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
+    })
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
@@ -117,6 +127,30 @@ const ActiveStep3Linehaul = ({
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
+                    {type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => setSubModal({ type: 'linehaul', open: true })} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
+                        >
+                            Ref No
+                        </Button>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handlePrint} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                        >
+                            Print Bill
+                        </Button>
+                        <div style={{ display: 'none' }}>
+                            <div ref={contentRef} className='bol-print-wrapper'>
+                                <BillOfLadingAuto data={selectedShipmentBuildObj} />
+                            </div>
+                        </div>
+                        <ReferenceDialog open={subModal.open} fromSection={subModal.type} onClose={() => setSubModal({ type: 'pickup', open: false })} control={control} setValue={setValue} getValues={getValues} />
+                    </Box>}
 
                     {/* linehaul details  */}
                     {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
@@ -817,7 +851,7 @@ const ActiveStep3Linehaul = ({
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                                            { type !== 'View' &&<TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
+                                            {type !== 'View' && <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

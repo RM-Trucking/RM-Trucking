@@ -45,6 +45,7 @@ import {
 } from '../../redux/slices/shipment';
 import ItemsSection from './ItemsSection';
 import CommoditiesList from './CommoditiesList';
+import BadFreightDialog from './BadFreightDialog';
 
 
 const ActiveStep2 = ({
@@ -63,7 +64,9 @@ const ActiveStep2 = ({
     setErrorVisible,
     isHazmatSelected,
     setHazmatModal,
+    trigger,
 }) => {
+    const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
     const logError = (e, i) => {
         // Use an error reporting service here
         console.log('error', i);
@@ -119,38 +122,100 @@ const ActiveStep2 = ({
                     <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
                         {/* Label on Border */}
                         <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                            Handling Unit {huIdx + 1}
+                            Handling Unit {huIdx + 1}/{huFields.length}
+                            {/* <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml:1 }} /></IconButton> */}
+                            {/* <IconButton> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton> */}
+                            {/* <IconButton> <Iconify icon="clarity:image-gallery-solid" sx={{ color: '#000' }} /></IconButton> */}
                         </Typography>
 
 
+                        {/* bad freight  */}
+                        <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            {type === 'Edit' && (
+                                <FormControlLabel
+                                    sx={{ alignItems: 'center', m: 0 }} // Centers checkbox with label, removes default margin offsets
+                                    control={
+                                        <Controller
+                                            name={`handlingUnits.${huIdx}.badFreight`}
+                                            control={control}
+                                            render={({ field }) => (
+                                                <Checkbox
+                                                    disabled={type === 'View'}
+                                                    {...field}
+                                                    checked={field.value}
+                                                    onChange={(e) => {
+                                                        const isChecked = e.target.checked;
+                                                        field.onChange(isChecked); // Updates react-hook-form state
 
-                        {/* Clear/Remove Logic */}
-                        {type !== 'View' && <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                            {huIdx === 0 ? (
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => setValue(`handlingUnits.0`, {
-                                        uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
-                                        items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
-                                    })}
-                                    sx={{ height: 20, fontSize: '0.65rem', color: '#000', borderColor: '#000', textTransform: 'none' }}
-                                >
-                                    Clear
-                                </Button>
-                            ) : (
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => removeHU(huIdx)}
-                                    sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none' }}
-                                >
-                                    Remove
-                                </Button>
+                                                        if (isChecked) {
+                                                            setBadFreightModal({ open: true, huIdx: huIdx });
+                                                        }else{
+                                                            setBadFreightModal({ open: false, huIdx: null });
+                                                        }
+                                                    }}
+                                                    size="small"
+                                                    sx={{
+                                                        p: 0, // Removes extra checkbox padding for perfect alignment
+                                                        mr: 1, // Adds standard spacing between checkbox and text
+                                                        color: 'rgba(0, 25, 76, 1)',
+                                                        '&.Mui-checked': {
+                                                            color: 'rgba(0, 25, 76, 1)'
+                                                        },
+                                                        '&.Mui-disabled': {
+                                                            color: 'rgba(0, 25, 76, 1) !important'
+                                                        }
+                                                    }}
+                                                />
+                                            )}
+                                        />
+                                    }
+                                    label={
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                display: 'inline-flex',
+                                                mr: 2,
+                                                alignItems: 'center' // Centers the text and the Iconify package icon together
+                                            }}
+                                        >
+                                            Bad Freight
+                                            {getValues(`handlingUnits.${huIdx}.badFreight`) && (
+                                                <Iconify
+                                                    icon="boxicons:package"
+                                                    sx={{ color: 'rgba(143, 194, 230, 1)', ml: 1, mr: 2 }}
+                                                />
+                                            )}
+                                        </Typography>
+                                    }
+                                />
                             )}
-                        </Box>}
 
-
+                            {/* Clear/Remove Logic */}
+                            {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                                {huIdx === 0 ? (
+                                    <Button
+                                        variant="outlined"
+                                        size="small"
+                                        onClick={() => setValue(`handlingUnits.0`, {
+                                            uom: '', unitsCount: '', unit: 'in', length: '', width: '', height: '', weight: '', weightUnit: 'lbs', class: '',
+                                            items: [{ pieces: '', piecesUom: '', description: '', hazmatInfo: false }]
+                                        })}
+                                        sx={{ height: 20, fontSize: '0.65rem', color: '#000', borderColor: '#000', textTransform: 'none' }}
+                                    >
+                                        Clear
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        variant="contained"
+                                        size="small"
+                                        onClick={() => removeHU(huIdx)}
+                                        sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none' }}
+                                    >
+                                        Remove
+                                    </Button>
+                                )}
+                            </Box>}
+                        </Box>
 
                         {/* Handling Unit Dimensions Row */}
                         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 3, pb: 2.5 }}>
@@ -475,6 +540,17 @@ const ActiveStep2 = ({
                     </Paper>
                 ))}
 
+                {/* bad freight modal  */}
+                <BadFreightDialog
+                    open={badFreightModal.open}
+                    huIdx={badFreightModal.huIdx}
+                    handleClose={() => setBadFreightModal({ open: false, huIdx: null })}
+                    control={control}
+                    setValue={setValue}
+                    getValues={getValues}
+                    trigger={trigger}
+                />
+
                 {/* Add Handling Unit Button */}
                 {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -2 }}>
                     <Button
@@ -524,7 +600,7 @@ const ActiveStep2 = ({
                                             inputProps={{
                                                 maxLength: 100
                                             }}
-                                            disabled = {type === 'View'}
+                                            disabled={type === 'View'}
                                         />
                                     )}
                                 />
@@ -592,7 +668,7 @@ const ActiveStep2 = ({
                                             }}
 
                                             required={isHazmatSelected}
-                                            disabled = {type === 'View'}
+                                            disabled={type === 'View'}
 
                                         />
 

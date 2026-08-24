@@ -32,6 +32,10 @@ export default function BillOfLadingAuto({ data }) {
 
     // Flatten handling units and pallet line items
     const flatItems = [];
+    const checkedRows = data?.customerDetails?.customerReferenceNumbers?.filter((row) => row.isChecked);
+    const formattedText = checkedRows
+        ?.map((row) => `${row.referenceType || ''}: ${row.referenceNumber || ''}`)
+        ?.join(', ');
     let totalWeight = 0;
     let totalHandlingUnits = 0;
     let totalPieces = 0;
@@ -389,7 +393,7 @@ export default function BillOfLadingAuto({ data }) {
 
                                             <div className="bol-section-header">CUSTOMER ORDER INFORMATION</div>
                                             <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000' }}>
-                                                MAWB: {shipmentId}, HWB: {shipmentId}, Pick up: {shipmentId}, Load: {shipmentId}, CID: {shipmentId}, SID: {shipmentId}, BOL: {shipmentId}
+                                                {formattedText}
                                             </div>
                                         </>
                                     )}

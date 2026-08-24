@@ -13,6 +13,7 @@ import {
 
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
+import { useReactToPrint } from 'react-to-print';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -45,6 +46,8 @@ import {
 } from '../../redux/slices/shipment';
 import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
+import BillOfLadingAuto from './BillOfLadingAuto';
+import ReferenceDialog from './ReferenceDialog';
 
 const ActiveStep3Pickup = ({
     type,
@@ -103,12 +106,19 @@ const ActiveStep3Pickup = ({
     watchedPickupAdditionalMails,
     carrierPickupSearchValue,
     setCarrierPickupSearchValue,
+    getValues,
 }) => {
+    const contentRef = useRef(null);
+    const [subModal, setSubModal] = useState({ type: 'pickup', open: false });
+    const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
         console.log(error);
     };
+    const handlePrint = useReactToPrint({
+        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
+    })
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -118,6 +128,7 @@ const ActiveStep3Pickup = ({
                 console.log("Error boundary reset triggered");
             }}
         >
+
             <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
                 {/* Top Level Checkbox */}
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
@@ -137,6 +148,30 @@ const ActiveStep3Pickup = ({
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
                     />
                 </Box>
+                {type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mb: 2 }}>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={() => setSubModal({ type: 'pickup', open: true })} // Opens the Dialog
+                        sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
+                    >
+                        Ref No
+                    </Button>
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handlePrint} // Opens the Dialog
+                        sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                    >
+                        Print Bill
+                    </Button>
+                    <div style={{ display: 'none' }}>
+                        <div ref={contentRef} className='bol-print-wrapper'>
+                            <BillOfLadingAuto data={selectedShipmentBuildObj} />
+                        </div>
+                    </div>
+                    <ReferenceDialog open={subModal.open} fromSection={subModal.type} onClose={() => setSubModal({ type: 'pickup', open: false })} control={control} setValue={setValue} getValues={getValues}/>
+                </Box>}
                 {isPickupPending === false && <>
 
                     <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>
@@ -636,7 +671,6 @@ const ActiveStep3Pickup = ({
                                                 value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}
                                                 disabled // Visual indicator showing the user it cannot be changed manually
                                                 InputLabelProps={{ shrink: true }}
-                                                disabled={type === 'View'}
                                                 sx={{
                                                     '& .MuiInputBase-input:disabled': {
                                                         color: '#000', // Ensures high contrast visibility even when disabled
@@ -815,7 +849,7 @@ const ActiveStep3Pickup = ({
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                                            { type !== 'View' &&<TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
+                                            {type !== 'View' && <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

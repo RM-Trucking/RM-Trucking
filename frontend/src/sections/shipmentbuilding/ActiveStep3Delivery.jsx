@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
-
+import { useReactToPrint } from 'react-to-print';
 import {
     Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
     Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
@@ -46,6 +46,8 @@ import {
 } from '../../redux/slices/shipment';
 import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
+import BillOfLadingAuto from './BillOfLadingAuto';
+import ReferenceDialog from './ReferenceDialog';
 
 const ActiveStep3Delivery = ({
     type,
@@ -99,7 +101,14 @@ const ActiveStep3Delivery = ({
     editAccIndex,
     watchedCarrierInfo,
     watchedPickupAgentTerminal,
+    getValues,
 }) => {
+    const contentRef = useRef(null);
+    const [subModal, setSubModal] = useState({ type: 'delivery', open: false });
+    const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+    const handlePrint = useReactToPrint({
+        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
+    })
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
@@ -122,6 +131,30 @@ const ActiveStep3Delivery = ({
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
+                    {type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mb: 2 }}>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => setSubModal({ type: 'delivery', open: true })} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
+                        >
+                            Ref No
+                        </Button>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handlePrint} // Opens the Dialog
+                            sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                        >
+                            Print Bill
+                        </Button>
+                        <div style={{ display: 'none' }}>
+                            <div ref={contentRef} className='bol-print-wrapper'>
+                                <BillOfLadingAuto data={selectedShipmentBuildObj} />
+                            </div>
+                        </div>
+                        <ReferenceDialog open={subModal.open} fromSection={subModal.type} onClose={() => setSubModal({ type: 'pickup', open: false })} control={control} setValue={setValue} getValues={getValues} />
+                    </Box>}
                     {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
                         <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
                             <Box sx={{ flex: '1 1 200px' }}>
@@ -830,7 +863,7 @@ const ActiveStep3Delivery = ({
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charge Type</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Charges</TableCell>
                                             <TableCell sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Notes</TableCell>
-                                            { type !== 'View' &&<TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
+                                            {type !== 'View' && <TableCell align="right" sx={{ fontSize: '0.75rem', fontWeight: 'bold' }}>Actions</TableCell>}
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>

@@ -107,10 +107,11 @@ export const updateControls = (dispatch, setValue, selectedObj,
     if (commodityDetails && Object.keys(commodityDetails).length > 0) {
         setValue('emergencyContactName', commodityDetails?.emergencyContactName);
         setValue('emergencyContactPhone', commodityDetails?.emergencyContactPhone);
-        setValue('emergencyContactPhone', commodityDetails?.emergencyContactPhone);
+        setValue('doDetails.emergencyContactName', commodityDetails?.emergencyContactName);
+        setValue('doDetails.emergencyContactPhone', commodityDetails?.emergencyContactPhone);
         const mappedHandlingUnits = (commodityDetails?.handlingUnits || []).map((hu, huIndex) => ({
             id: Date.now() + huIndex, // Added unique ID for key tracking
-            handlingUnitId : hu?.handlingUnitId || '',
+            handlingUnitId: hu?.handlingUnitId || '',
             uom: hu.handlingUnitUOM || '',
             unitsCount: hu.handlingUnits || '',
             unit: hu.unit || 'in',
@@ -124,8 +125,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
             freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
             items: (hu.palletDetails || []).map((pallet, pIndex) => ({
                 id: Date.now() + huIndex + pIndex + 1000, // Added unique ID for nested items
-                itemId : pallet?.itemId || '',
-                handlingUnitId : hu?.handlingUnitId || '',
+                itemId: pallet?.itemId || '',
+                handlingUnitId: hu?.handlingUnitId || '',
                 pieces: pallet.pieces || '',
                 piecesUom: pallet.piecesUOM || '',
                 description: pallet.description || '',
@@ -156,7 +157,10 @@ export const updateControls = (dispatch, setValue, selectedObj,
             shouldValidate: true,
             shouldDirty: true
         });
-
+        setValue('doDetails.handlingUnits', mappedHandlingUnits, {
+            shouldValidate: true,
+            shouldDirty: true
+        });
     }
     // step 4
     if (pickupDetails && Object.keys(pickupDetails).length > 0) {

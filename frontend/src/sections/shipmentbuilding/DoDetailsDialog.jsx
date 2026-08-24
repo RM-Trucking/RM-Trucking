@@ -76,7 +76,7 @@ const DoDetailsDialog = ({ open, onClose, getValues, setValue, control, doDetail
       }
     }}>
       <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Do Details</DialogTitle>
-      <DialogContent sx={{ p: 3 }}>
+      <DialogContent sx={{ p: 3, mt:2 }}>
         <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 4, borderBottom: ' 1px solid rgba(143, 143, 143, 1)' }}>
             Commodities Details

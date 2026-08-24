@@ -46,7 +46,7 @@ import {
 import ItemsSection from './ItemsSection';
 import CommoditiesList from './CommoditiesList';
 import BadFreightDialog from './BadFreightDialog';
-
+import PrintLabelDialog from './PrintLabelDialog';
 
 const ActiveStep2 = ({
     type,
@@ -67,6 +67,7 @@ const ActiveStep2 = ({
     trigger,
 }) => {
     const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
+    const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null });
     const logError = (e, i) => {
         // Use an error reporting service here
         console.log('error', i);
@@ -118,6 +119,17 @@ const ActiveStep2 = ({
                     Commodities Details
                 </Typography>
 
+                {
+                    type === 'Edit' && <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
+                        <Button variant="contained"
+                            size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
+                            onClick={() => setPrintLabelModal({ open: true, huIdx: huFields.length, totalUnits: huFields.length })}
+                        >
+                            Print All Labels
+                        </Button>
+                    </Box>
+                }
+
                 {huFields.map((hu, huIdx) => (
                     <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
                         {/* Label on Border */}
@@ -131,6 +143,14 @@ const ActiveStep2 = ({
 
                         {/* bad freight  */}
                         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                            {
+                                type === 'Edit' && <Button variant="contained"
+                                    size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
+                                    onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: huFields.length })}
+                                >
+                                    Print Label
+                                </Button>
+                            }
                             {type === 'Edit' && (
                                 <FormControlLabel
                                     sx={{ alignItems: 'center', m: 0 }} // Centers checkbox with label, removes default margin offsets
@@ -149,7 +169,7 @@ const ActiveStep2 = ({
 
                                                         if (isChecked) {
                                                             setBadFreightModal({ open: true, huIdx: huIdx });
-                                                        }else{
+                                                        } else {
                                                             setBadFreightModal({ open: false, huIdx: null });
                                                         }
                                                     }}
@@ -549,6 +569,12 @@ const ActiveStep2 = ({
                     setValue={setValue}
                     getValues={getValues}
                     trigger={trigger}
+                />
+                <PrintLabelDialog
+                    open={printLabelModal.open}
+                    handleClose={() => setPrintLabelModal({ open: false, huIdx: null, totalUnits: null })}
+                    huIdx={printLabelModal.huIdx}
+                    totalUnits={printLabelModal.totalUnits}
                 />
 
                 {/* Add Handling Unit Button */}

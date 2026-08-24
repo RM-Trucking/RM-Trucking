@@ -49,6 +49,11 @@ const slice = createSlice({
       state.shipmentSuccess = true;
       state.operationalMessage = "Network shipment created successfully.";
     },
+    patchNetworkShipmentSuccess(state, action) {
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.operationalMessage = "Network shipment updated successfully.";
+    },
     getCustomerStationDropdownSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
@@ -181,6 +186,17 @@ export function postNetworkShipment(obj) {
     try {
       const response = await axios.post('network-shipment/flow', obj);
       dispatch(slice.actions.postStep1Success(response));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}
+export function patchNetworkShipment(shipmentId,obj) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.patch(`network-shipment/${shipmentId}`, obj);
+      dispatch(slice.actions.patchNetworkShipmentSuccess(response));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

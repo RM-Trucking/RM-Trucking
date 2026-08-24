@@ -79,7 +79,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     watchedDestinationAirport,
     setActiveStep,
     totals,
-    watchedLinehaulAddAcc,
+    watchedLinehaulAddAcc, patchNetworkShipment,
 }) => {
     const contentRef = useRef(null);
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
@@ -178,7 +178,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                 setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                 watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                 getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj,
+                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
             );
         }
     }, [watchedCarrierInfoSubmit])
@@ -279,11 +279,12 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
                                         )
                                     }
                                 }}
                                 sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                                disabled={isSubmittingFinal}
                             >
                                 {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : 'Submit' : 'Next'}
                             </Button>
@@ -305,7 +306,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
                                             watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
                                             carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-                                            setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj)
+                                            setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj, patchNetworkShipment)
                                     }
                                 }}
                                 disabled={isSubmitting} // 👈 This disables the button instantly on click
@@ -336,7 +337,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                                 selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
                                                 watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
                                                 carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-                                                setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj)
+                                                setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj, patchNetworkShipment)
                                         }
                                     }}
                                     disabled={isSubmitting} // 👈 This disables the button instantly on click
@@ -368,7 +369,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
                                         )
                                     }
                                 }}

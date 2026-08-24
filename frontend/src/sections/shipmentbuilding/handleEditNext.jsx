@@ -4,7 +4,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
     setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, totals,
-    watchedLinehaulAddAcc, type, selectedShipmentBuildObj, 
+    watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment
 ) => {
     const currentValues = getValues();
     let fieldsToValidate = [];
@@ -149,6 +149,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     // adding to object
     // step 0
     obj.shipmentDetails = {
+        "shipmentId": selectedShipmentBuildObj?.shipmentId,
         "typeOfShipment": currentValues?.shipmentType,
         "serviceLevel": currentValues?.serviceLevel,
         "shipmentDate": currentValues?.date
@@ -160,6 +161,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     };
     // step 1
     obj.customerDetails = {
+        "customerInfoId": selectedShipmentBuildObj?.customerDetails?.customerInfoId,
         "customerId": currentValues.billingCustomer?.customerId,
         "stationId": currentValues.billingCustomer?.stationId,
         "airportPickupService": watchedAirportPickupService ? "Y" : "N",
@@ -240,24 +242,30 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     // step 2
     if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
         obj.commodityDetails = {
+            commodityId: selectedShipmentBuildObj?.commodityDetails?.commodityId,
             emergencyContactName: isHazmatSelected ? currentValues?.emergencyContactName : '',
             emergencyContactPhone: isHazmatSelected ? currentValues?.emergencyContactPhone : '',
             handlingUnits: currentValues?.handlingUnits.map(hu => ({
-                handlingUnitUOM: hu.uom,
-                handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
-                unit: hu.unit,
-                handlingLength: Number(hu.length) || 0,
-                handlingWidth: Number(hu.width) || 0,
-                handlingHeight: Number(hu.height) || 0,
-                handlingWeight: Number(hu.weight) || 0,
-                handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
-                class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
+                handlingUnitId: hu?.handlingUnitId || '',
+                handlingUnitUOM: hu?.uom,
+                handlingUnits: Number(hu?.unitsCount) || 0, // Ensures it maps to a number
+                unit: hu?.unit,
+                handlingLength: Number(hu?.length) || 0,
+                handlingWidth: Number(hu?.width) || 0,
+                handlingHeight: Number(hu?.height) || 0,
+                handlingWeight: Number(hu?.weight) || 0,
+                handlingWeightUnit: hu?.weightUnit === 'lbs' ? 'LB' : hu?.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
+                class: hu?.class ? `Class ${hu?.class}` : '', // Formats class number to "Class X"
                 palletDetails: hu?.items?.map(item => ({
+                    itemId: item?.itemId || '',
+                    handlingUnitId: hu?.handlingUnitId || '',
                     pieces: Number(item?.pieces) || 0,
                     piecesUOM: item?.piecesUom,
                     description: item?.description,
                     hazmat: item?.hazmatInfo ? 'Y' : 'N',
                     hazmatDetails: item?.hazmatInfo ? {
+                        itemId: item?.itemId || '',
+                        hazmatId: item?.hazmatData?.hazmatId || '',
                         unNumber: item?.hazmatData?.unNumber,
                         properShippingName: item?.hazmatData?.shippingName,
                         hazardClass: `Class ${item?.hazmatData?.hazmatClass}`,
@@ -335,6 +343,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
         obj.carrierDetails = {
             "pickupDetails": {
+                pickupInfoId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupInfoId,
+                shipmentId: selectedShipmentBuildObj?.shipmentId,
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
@@ -352,6 +362,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
+                    pickupAgentTerminalId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAgentTerminalDetails?.pickupAgentTerminalId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "toLocationType": "Carrier",
                     "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
@@ -373,6 +385,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
                 "pickupAlertDetails": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.pickupAlertId && {
+                        pickupAlertId: selectedShipmentBuildObj.carrierDetails.pickupDetails.pickupAlertDetails.pickupAlertId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
                         "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
@@ -386,8 +402,9 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         // obj to send
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
         obj.carrierDetails = {
-
             "pickupDetails": {
+                pickupInfoId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupInfoId,
+                shipmentId: selectedShipmentBuildObj?.shipmentId,
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
@@ -405,6 +422,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
+                    pickupAgentTerminalId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAgentTerminalDetails?.pickupAgentTerminalId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "toLocationType": "Carrier",
                     "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
@@ -426,6 +445,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
                 "pickupAlertDetails": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.pickupAlertId && {
+                        pickupAlertId: selectedShipmentBuildObj.carrierDetails.pickupDetails.pickupAlertDetails.pickupAlertId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
                         "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
@@ -435,6 +458,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "linehaulDetails": {
                 "linehaulPrimaryInfo": {
+                    linehaulInfoId: selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulPrimaryInfo?.linehaulInfoId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulRouting": "LINE_HAUL_ONLY",
                     "carrierId": Number(linehaulCarrierId),
                     "terminalId": Number(linehaulTerminalId),
@@ -468,6 +493,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 },
                 "linehaulCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulCommonInfo?.linehaulCommonInfoId && {
+                        linehaulCommonInfoId: selectedShipmentBuildObj.carrierDetails.linehaulDetails.linehaulCommonInfo.linehaulCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
                     "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
@@ -480,6 +509,9 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "deliveryDetails": {
                 "deliveryPrimaryInfo": {
+                    deliveryInfoId: selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.deliveryInfoId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
+                    "deliveryRouting": "LINE_HAUL_DELIVERY",
                     "carrierId": Number(deliveryCarrierId),
                     "terminalId": Number(deliveryTerminalId),
                     "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
@@ -511,6 +543,12 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 },
                 "deliveryCommonInfo": {
+                    // Spreads deliveryCommonInfoId only if it exists
+                    ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryCommonInfoId && {
+                        deliveryCommonInfoId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryCommonInfo.deliveryCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
+                    "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                     "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
                     "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
                     "deliveryAccessorialDetails": {
@@ -521,6 +559,11 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
+                        // Spreads deliveryAlertId only if it exists
+                        ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryAlertDetails?.deliveryAlertId && {
+                            deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
+                        }),
+                        shipmentId: selectedShipmentBuildObj?.shipmentId,
                         "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
@@ -530,13 +573,14 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 }
             }
-
         }
     }
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
         obj.carrierDetails = {
 
             "pickupDetails": {
+                pickupInfoId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupInfoId,
+                shipmentId: selectedShipmentBuildObj?.shipmentId,
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
@@ -554,6 +598,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
+                    pickupAgentTerminalId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAgentTerminalDetails?.pickupAgentTerminalId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "toLocationType": "Carrier",
                     "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
@@ -575,6 +621,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
                 "pickupAlertDetails": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.pickupAlertId && {
+                        pickupAlertId: selectedShipmentBuildObj.carrierDetails.pickupDetails.pickupAlertDetails.pickupAlertId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
                         "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
@@ -584,6 +634,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "linehaulDetails": {
                 "linehaulPrimaryInfo": {
+                    linehaulInfoId: selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulPrimaryInfo?.linehaulInfoId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulRouting": "LINE_HAUL_DELIVERY",
                     "carrierId": Number(linehaulCarrierId),
                     "terminalId": Number(linehaulTerminalId),
@@ -616,6 +668,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 },
                 "linehaulCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulCommonInfo?.linehaulCommonInfoId && {
+                        linehaulCommonInfoId: selectedShipmentBuildObj.carrierDetails.linehaulDetails.linehaulCommonInfo.linehaulCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
                     "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
@@ -624,8 +680,11 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 }
             },
             "deliveryDetails": {
-
                 "deliveryCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryCommonInfoId && {
+                        deliveryCommonInfoId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryCommonInfo.deliveryCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
                     "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
                     "deliveryAccessorialDetails": {
@@ -633,6 +692,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
+                        ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryAlertDetails?.deliveryAlertId && {
+                            deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
+                        }),
+                        shipmentId: selectedShipmentBuildObj?.shipmentId,
                         "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
@@ -642,13 +705,14 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 }
             }
-
         }
     }
     if (selectedRouting === 'pickup_linehaul') {
         obj.carrierDetails = {
 
             "pickupDetails": {
+                pickupInfoId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupInfoId,
+                shipmentId: selectedShipmentBuildObj?.shipmentId,
                 "pickupRouting": "PICKUP_LINE_HAUL",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
@@ -666,6 +730,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
+                    pickupAgentTerminalId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAgentTerminalDetails?.pickupAgentTerminalId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "toLocationType": "Carrier",
                     "toLocation": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
                     "toLocationEntityId": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.terminalEntityId || null : selectedPickupToCarrierObject?.terminalEntityId || null,
@@ -687,6 +753,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
                 "pickupAlertDetails": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.pickupAlertId && {
+                        pickupAlertId: selectedShipmentBuildObj.carrierDetails.pickupDetails.pickupAlertDetails.pickupAlertId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
                         "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
@@ -696,6 +766,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "linehaulDetails": {
                 "linehaulCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulCommonInfo?.linehaulCommonInfoId && {
+                        linehaulCommonInfoId: selectedShipmentBuildObj.carrierDetails.linehaulDetails.linehaulCommonInfo.linehaulCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
                     "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
@@ -705,6 +779,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "deliveryDetails": {
                 "deliveryPrimaryInfo": {
+                    deliveryInfoId: selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.deliveryInfoId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "carrierId": Number(deliveryCarrierId),
                     "terminalId": Number(deliveryTerminalId),
                     "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
@@ -736,6 +812,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 },
                 "deliveryCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryCommonInfoId && {
+                        deliveryCommonInfoId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryCommonInfo.deliveryCommonInfoId
+                    }),
+                    "shipmentId": selectedShipmentBuildObj?.shipmentId,
                     "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
                     "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
                     "deliveryAccessorialDetails": {
@@ -743,6 +823,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
+                        ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryAlertDetails?.deliveryAlertId && {
+                            deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
+                        }),
+                        shipmentId: selectedShipmentBuildObj?.shipmentId,
                         "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
@@ -759,6 +843,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         obj.carrierDetails = {
 
             "pickupDetails": {
+                pickupInfoId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupInfoId,
+                shipmentId: selectedShipmentBuildObj?.shipmentId,
                 "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
@@ -776,6 +862,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
+                    pickupAgentTerminalId: selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAgentTerminalDetails?.pickupAgentTerminalId,
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "toLocationType": "Consignee",
                     "toLocation": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
                     "toLocationEntityId": currentValues?.consigneeName?.entityId || null,
@@ -797,6 +885,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 },
                 "pickupAlert": currentValues?.carrierInfo?.pickupAlert ? "Y" : 'N',
                 "pickupAlertDetails": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.pickupAlertId && {
+                        pickupAlertId: selectedShipmentBuildObj.carrierDetails.pickupDetails.pickupAlertDetails.pickupAlertId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "inboundNotes": currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes,
                     "emailInfo": {
                         "primaryEmail": currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail,
@@ -806,6 +898,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "linehaulDetails": {
                 "linehaulCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.linehaulDetails?.linehaulCommonInfo?.linehaulCommonInfoId && {
+                        linehaulCommonInfoId: selectedShipmentBuildObj.carrierDetails.linehaulDetails.linehaulCommonInfo.linehaulCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "linehaulNotes": currentValues?.carrierInfo?.lineHaul?.lineHaulNotes,
                     "linehaulAccessorial": watchedLinehaulAddAcc ? 'Y' : 'N',
                     "linehaulAccessorialDetails": {
@@ -815,6 +911,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             },
             "deliveryDetails": {
                 "deliveryCommonInfo": {
+                    ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryCommonInfoId && {
+                        deliveryCommonInfoId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryCommonInfo.deliveryCommonInfoId
+                    }),
+                    shipmentId: selectedShipmentBuildObj?.shipmentId,
                     "airportTransfer": currentValues?.carrierInfo?.deliveryDetails?.airportTransfer ? "Y" : "N",
                     "deliveryAccessorial": currentValues?.carrierInfo?.deliveryDetails?.deliveryAddAcc ? "Y" : "N",
                     "deliveryAccessorialDetails": {
@@ -822,6 +922,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
+                        ...(selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryAlertDetails?.deliveryAlertId && {
+                            deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
+                        }),
+                        shipmentId: selectedShipmentBuildObj?.shipmentId,
                         "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
@@ -831,7 +935,6 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     }
                 }
             }
-
         }
     }
 
@@ -971,26 +1074,41 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     obj.shipmentRateDetails = {
         "carrierRateDetails": {
             "pickupRateDetails": {
+                ...(selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.pickupRateDetails?.invoiceId && {
+                    invoiceId: selectedShipmentBuildObj.selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.pickupRateDetails?.invoiceId
+                }),
                 "invoiceNumber": currentValues?.carrierRates?.pickUp?.invoiceNo,
                 "rateDetails": transformedPickupArray,
                 "pickupSubTotalRate": pickupSubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
             "linehaulRateDetails": {
+                ...(selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.linehaulRateDetails?.invoiceId && {
+                    invoiceId: selectedShipmentBuildObj.selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.linehaulRateDetails?.invoiceId
+                }),
                 "invoiceNumber": currentValues?.carrierRates?.lineHaul?.invoiceNo,
                 "rateDetails": transformedLinehaulArray,
                 "linehaulSubTotalRate": linehaulSubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
             "deliveryRateDetails": {
+                ...(selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.deliveryRateDetails?.invoiceId && {
+                    invoiceId: selectedShipmentBuildObj.selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.deliveryRateDetails?.invoiceId
+                }),
                 "invoiceNumber": currentValues?.carrierRates?.delivery?.invoiceNo,
                 "rateDetails": transformedDeliveryArray,
                 "deliverySubTotalRate": deliverySubTotalRate.toFixed(2),
                 "invoiceApprovalStatus": "N"
             },
+            ...(selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.carrierRateId && {
+                carrierRateId: selectedShipmentBuildObj?.shipmentRateDetails?.carrierRateDetails?.carrierRateId
+            }),
             "totalCarrierRate": Number((pickupSubTotalRate + linehaulSubTotalRate + deliverySubTotalRate).toFixed(2)),
         },
         "customerRateDetails": {
+            ...(selectedShipmentBuildObj?.shipmentRateDetails?.customerRateDetails?.customerRateId && {
+                customerRateId: selectedShipmentBuildObj?.shipmentRateDetails?.customerRateDetails?.customerRateId
+            }),
             "rateDetails": transformedCustomerArray,
             "totalCustomerRate": Number(
                 transformedCustomerArray.reduce((sum, item) => sum + Number(item.totalRate || 0), 0).toFixed(2)
@@ -1023,7 +1141,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         try {
             // 2. Trigger your API call
             // dispatch(postStep1(obj));
-            dispatch(postNetworkShipment(obj));
+            dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
         } catch (error) {
             console.error("Submission failed:", error);
             // 4. Unlock button if API fails so they can retry
@@ -1155,7 +1273,8 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
     selectedRouting, watchedLinehaulSelectRouting, setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier,
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
-    setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj, ) => {
+    setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending,
+    selectedShipmentBuildObj, patchNetworkShipment) => {
     // Your API call here
     const currentValues = getValues();
     const missingRequiredFields = [];
@@ -1163,6 +1282,7 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
     const obj = {};
     // adding to object - step 0
     obj.shipmentDetails = {
+        "shipmentId": selectedShipmentBuildObj?.shipmentId,
         "typeOfShipment": currentValues.shipmentType,
         "serviceLevel": currentValues.serviceLevel,
         "shipmentDate": currentValues.date
@@ -1176,6 +1296,7 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
     };
     // step 1
     obj.customerDetails = {
+        "customerInfoId": selectedShipmentBuildObj?.customerDetails?.customerInfoId,
         "customerId": currentValues.billingCustomer.customerId,
         "stationId": currentValues.billingCustomer.stationId,
         "airportPickupService": watchedAirportPickupService ? "Y" : "N",
@@ -1314,7 +1435,7 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
         try {
             // 2. Execute your API call
             // await dispatch(postStep1(obj));
-            await dispatch(postNetworkShipment(obj));
+            await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
         } catch (error) {
             console.error("Submission failed:", error);
             setIsSubmitting(false);
@@ -1398,7 +1519,7 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
             try {
                 // 2. Execute your API call
                 // await dispatch(postStep1(obj));
-                await dispatch(postNetworkShipment(obj));
+                await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
             } catch (error) {
                 console.error("Submission failed:", error);
                 setIsSubmitting(false);

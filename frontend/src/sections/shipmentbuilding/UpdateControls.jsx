@@ -110,6 +110,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('emergencyContactPhone', commodityDetails?.emergencyContactPhone);
         const mappedHandlingUnits = (commodityDetails?.handlingUnits || []).map((hu, huIndex) => ({
             id: Date.now() + huIndex, // Added unique ID for key tracking
+            handlingUnitId : hu?.handlingUnitId || '',
             uom: hu.handlingUnitUOM || '',
             unitsCount: hu.handlingUnits || '',
             unit: hu.unit || 'in',
@@ -123,26 +124,30 @@ export const updateControls = (dispatch, setValue, selectedObj,
             freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
             items: (hu.palletDetails || []).map((pallet, pIndex) => ({
                 id: Date.now() + huIndex + pIndex + 1000, // Added unique ID for nested items
+                itemId : pallet?.itemId || '',
+                handlingUnitId : hu?.handlingUnitId || '',
                 pieces: pallet.pieces || '',
                 piecesUom: pallet.piecesUOM || '',
                 description: pallet.description || '',
                 hazmatInfo: pallet.hazmat === 'Y',
                 // Optional: spread hazmatDetails if your form schema tracks them at this level
                 hazmatData: (pallet.hazmatDetails && {
-                    unNumber: pallet.hazmatDetails.unNumber || '',
-                    shippingName: pallet.hazmatDetails.properShippingName || '',
-                    hazmatClass: pallet.hazmatDetails.hazardClass || '',
-                    packagingGroup: pallet.hazmatDetails.packingGroup || '',
-                    weight: pallet.hazmatDetails.weight || '',
-                    weightUnit: pallet.hazmatDetails.weightUnit || 'lbs',
-                    technicalName: pallet.hazmatDetails.technicalName || '',
-                    contactPhone: pallet.hazmatDetails.contactPhoneNumber || '',
-                    description: pallet.hazmatDetails.hazmatDescription || '',
-                    limitedQuality: pallet.hazmatDetails.limitedQuantity === 'Y',
-                    marinePollutant: pallet.hazmatDetails.marinePollutant === 'Y',
-                    residueLastContained: pallet.hazmatDetails.residueLastContained === 'Y',
-                    reportableQuantity: pallet.hazmatDetails.reportableQuantity === 'Y',
-                    dotExemption: pallet.hazmatDetails.dotExemption === 'Y'
+                    itemId: pallet?.itemId || '',
+                    hazmatId: pallet?.hazmatDetails?.hazmatId || '',
+                    unNumber: pallet?.hazmatDetails?.unNumber || '',
+                    shippingName: pallet?.hazmatDetails?.properShippingName || '',
+                    hazmatClass: pallet?.hazmatDetails?.hazardClass || '',
+                    packagingGroup: pallet?.hazmatDetails?.packingGroup || '',
+                    weight: pallet?.hazmatDetails?.weight || '',
+                    weightUnit: pallet?.hazmatDetails?.weightUnit || 'lbs',
+                    technicalName: pallet?.hazmatDetails?.technicalName || '',
+                    contactPhone: pallet?.hazmatDetails?.contactPhoneNumber || '',
+                    description: pallet?.hazmatDetails?.hazmatDescription || '',
+                    limitedQuality: pallet?.hazmatDetails?.limitedQuantity === 'Y',
+                    marinePollutant: pallet?.hazmatDetails?.marinePollutant === 'Y',
+                    residueLastContained: pallet?.hazmatDetails?.residueLastContained === 'Y',
+                    reportableQuantity: pallet?.hazmatDetails?.reportableQuantity === 'Y',
+                    dotExemption: pallet?.hazmatDetails?.dotExemption === 'Y'
                 })
             }))
         }));
@@ -167,7 +172,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         const updatedAccessorials = (pickupDetails?.pickupAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
             isManual: false,
-            selected: true
+            selected: true,
         }));
 
         setValue('carrierInfo.pickupAccessorials', updatedAccessorials);

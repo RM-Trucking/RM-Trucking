@@ -41,7 +41,7 @@ import {
   getStationAccessorialData,
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
-  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment,
+  getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment,patchNetworkShipment,
 
 } from '../../redux/slices/shipment';
 import ShipmentStatusUpdateDialog from './ShipmentStatusUpdateDialog';
@@ -1755,6 +1755,7 @@ const ShipmentPage = ({ type }) => {
             setActiveStep={setActiveStep}
             totals={totals}
             watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+            patchNetworkShipment = {patchNetworkShipment}
           />
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog

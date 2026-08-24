@@ -212,8 +212,7 @@ export default function ShipmentViewTable({ }) {
         {
             field: "actions",
             headerName: "Actions",
-            minWidth: 400, // Increased minWidth slightly to comfortably fit all 4 inline elements
-            flex: 1,
+            width: 150, // Increased minWidth slightly to comfortably fit all 4 inline elements
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -354,6 +353,7 @@ export default function ShipmentViewTable({ }) {
             <Box sx={{ height: 600, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
+                    disableVirtualization={true} 
                     rows={shipmentViewTableData}
                     columns={shipmentColumns}
                     loading={isLoading}
@@ -363,20 +363,6 @@ export default function ShipmentViewTable({ }) {
                         noRowsOverlay: CustomNoRowsOverlay,
                     }}
                     hideFooterSelectedRowCount
-                    sx={{
-                        // 1. Keeps your existing code to hide the "Select All" header checkbox
-                        '& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-checkboxInput': {
-                            display: 'none',
-                        },
-                        // 2. Targets the row checkboxes when they are NOT checked
-                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root': {
-                            color: 'rgba(0, 25, 76, 1)',
-                        },
-                        // 3. Targets the row checkboxes when they ARE checked
-                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root.Mui-checked': {
-                            color: 'rgba(0, 25, 76, 1)',
-                        },
-                    }}
                     paginationMode="server"
                     paginationModel={paginationModel}
                     onPaginationModelChange={(newModel) => {
@@ -395,8 +381,59 @@ export default function ShipmentViewTable({ }) {
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={parseInt(pagination?.totalRecords || '0', 10)}
-                />
+                    sx={{
+                        // --- 1. Your existing checkbox styles ---
+                        '& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-checkboxInput': {
+                            display: 'none',
+                        },
+                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root': {
+                            color: 'rgba(0, 25, 76, 1)',
+                        },
+                        '& .MuiDataGrid-cellCheckbox .MuiCheckbox-root.Mui-checked': {
+                            color: 'rgba(0, 25, 76, 1)',
+                        },
 
+                        // --- 2. Make the Selection Checkbox Column Sticky as well ---
+                        '& .MuiDataGrid-columnHeaderCheckbox': {
+                            position: 'sticky !important',
+                            left: '0px !important',
+                            zIndex: 3,
+                            backgroundColor: '#fff',
+                        },
+                        '& .MuiDataGrid-cellCheckbox': {
+                            position: 'sticky !important',
+                            left: '0px !important',
+                            zIndex: 1,
+                            backgroundColor: '#fff',
+                        },
+
+                        // --- 3. Freeze Action Header Column (Offset by checkbox width) ---
+                        '& .MuiDataGrid-columnHeader[data-field="actions"]': {
+                            position: 'sticky !important',
+                            right: '0px !important', // 50px offset accommodates the checkbox column width
+                            zIndex: 3,
+                            backgroundColor: '#fff',
+                            boxShadow: '2px 0px 4px -2px rgba(0,0,0,0.15)', // Right edge shadow divider
+                        },
+
+                        // --- 4. Freeze Action Body Cells ---
+                        '& .MuiDataGrid-cell[data-field="actions"]': {
+                            position: 'sticky !important',
+                            right: '0px !important', // Matches header layout mapping offset
+                            zIndex: 1,
+                            backgroundColor: '#fff',
+                            boxShadow: '2px 0px 4px -2px rgba(0,0,0,0.15)',
+                        },
+
+                        // --- 5. Preserve Background Highlights during Row Hovers ---
+                        '& .MuiDataGrid-row:hover .MuiDataGrid-cellCheckbox': {
+                            backgroundColor: '#f5f5f5',
+                        },
+                        '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="actions"]': {
+                            backgroundColor: '#f5f5f5',
+                        },
+                    }}
+                />
             </Box>
 
             <Snackbar

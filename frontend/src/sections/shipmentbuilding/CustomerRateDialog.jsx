@@ -12,6 +12,7 @@ import {
   ToggleButton, ToggleButtonGroup,
 
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 
@@ -98,7 +99,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
     if (!spotRateFlag) {
       setValue('customerRate.rate', getValues('customerRate.apiRate'));
     }
-  }, [spotRateFlag])
+  }, [spotRateFlag,])
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth sx={{
@@ -109,7 +110,16 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
         maxWidth: 'none',
       }
     }}>
-      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Customer Rate</DialogTitle>
+      <DialogTitle sx={{ borderBottom: '1px solid #eee', p: 2 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Box component="span" sx={{ fontWeight: 'bold' }}>
+            Customer Rate
+          </Box>
+          <IconButton onClick={onClose} aria-label="close" size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+      </DialogTitle>
       <DialogContent sx={{ p: 3, pb: 0 }}>
         <Box>
 
@@ -615,7 +625,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                   size="small"
                   variant="outlined"
                   select
-                  label = "Accessorial Name"
+                  label="Accessorial Name"
                   value={selectedAcc?.entityAccessorialId || ''}
                   sx={{
                     width: "15%",
@@ -641,7 +651,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
 
             </Box>}
             {
-              masterAccessorials?.length === 0 && <Box sx={{p:1}}><Typography variant='h7' >No acessorials for the customer.</Typography></Box>
+              masterAccessorials?.length === 0 && <Box sx={{ p: 1 }}><Typography variant='h7' >No acessorials for the customer.</Typography></Box>
             }
 
             {/* add acc button  */}
@@ -765,18 +775,20 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
         </Dialog>
       </DialogContent>
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        <Button onClick={() => {
-          setValue('customerRate.rate', getValues('customerRate.apiRate'));
-          setValue('customerRate.selectedAccToAdd.chargeType','');
-          replaceCustomerRateAccFields([]);
+        {type !== 'View' && <Button onClick={() => {
+          if (!getValues('customerRate.rate')) {
+            setValue('customerRate.rate', getValues('customerRate.apiRate'));
+          }
+          setValue('customerRate.selectedAccToAdd.chargeType', '');
+          // replaceCustomerRateAccFields([]);
           setIsRateEditing(false);
-          setSpotRateFlag(false);
+          // setSpotRateFlag(false);
           onClose();
         }} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
           Cancel
-        </Button>
-        <Button onClick={() => {
-          setValue('customerRate.selectedAccToAdd.chargeType','');
+        </Button>}
+        {type !== 'View' && <Button onClick={() => {
+          setValue('customerRate.selectedAccToAdd.chargeType', '');
           if (Number(getValues('customerRate.apiRate')) === Number(getValues('customerRate.rate'))) {
             onClose();
           } else {
@@ -787,7 +799,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
             '#a22', px: 4, '&:hover': { bgcolor: '#811' }
         }}>
           Save
-        </Button>
+        </Button>}
       </DialogActions>
     </Dialog>
 

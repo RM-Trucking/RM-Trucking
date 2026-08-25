@@ -67,7 +67,7 @@ const ActiveStep2 = ({
     trigger,
 }) => {
     const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
-    const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null });
+    const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null, totalHU: null });
     const logError = (e, i) => {
         // Use an error reporting service here
         console.log('error', i);
@@ -123,7 +123,11 @@ const ActiveStep2 = ({
                     type === 'Edit' && <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
                         <Button variant="contained"
                             size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
-                            onClick={() => setPrintLabelModal({ open: true, huIdx: huFields.length, totalUnits: huFields.length })}
+                            onClick={() => setPrintLabelModal({
+                                open: true, huIdx: watchedHU.length, totalUnits: watchedHU.length, totalHU: (watchedHU || []).reduce((sum, row) => {
+                                    return sum + (Number(row?.unitsCount) || 0);
+                                }, 0)
+                            })}
                         >
                             Print All Labels
                         </Button>
@@ -146,7 +150,7 @@ const ActiveStep2 = ({
                             {
                                 type === 'Edit' && <Button variant="contained"
                                     size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
-                                    onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: huFields.length })}
+                                    onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: watchedHU.length, totalHU: watchedHU[huIdx].unitsCount })}
                                 >
                                     Print Label
                                 </Button>
@@ -572,9 +576,10 @@ const ActiveStep2 = ({
                 />
                 <PrintLabelDialog
                     open={printLabelModal.open}
-                    handleClose={() => setPrintLabelModal({ open: false, huIdx: null, totalUnits: null })}
+                    handleClose={() => setPrintLabelModal({ open: false, huIdx: null, totalUnits: null, totalHU : null })}
                     huIdx={printLabelModal.huIdx}
                     totalUnits={printLabelModal.totalUnits}
+                    totalHU = {printLabelModal.totalHU}
                 />
 
                 {/* Add Handling Unit Button */}

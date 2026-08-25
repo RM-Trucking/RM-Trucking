@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Dialog,
     DialogTitle,
@@ -11,9 +11,9 @@ import {
 } from '@mui/material';
 import PrintLabelConfirmationDialog from './PrintLabelConfirmationDialog';
 
-export default function PrintLabelDialog({ open, handleClose, huIdx, totalUnits }) {
+export default function PrintLabelDialog({ open, handleClose, huIdx, totalUnits, totalHU }) {
     const [printer, setPrinter] = useState('CFS 1 (192.168.185.24)');
-    const [noOfLabels, setNoOfLabels] = useState('100');
+    const [noOfLabels, setNoOfLabels] = useState(parseInt(totalHU) || 0);
     const [error, setError] = useState('');
     const [printConfirmOpen, setPrintConfirmOpen] = useState(false);
 
@@ -21,13 +21,18 @@ export default function PrintLabelDialog({ open, handleClose, huIdx, totalUnits 
         const val = e.target.value;
         setNoOfLabels(val);
 
-        // Dynamic warning matching the "Max 200 Labels" constraint
-        if (Number(val) > 200) {
+        const numericVal = Number(val);
+
+        // Checks for 0, empty string, negative values, or values exceeding 200
+        if (val === '' || numericVal <= 0) {
+            setError('Labels must be greater than 0');
+        } else if (numericVal > 200) {
             setError('Cannot exceed max 200 labels');
         } else {
-            setError('');
+            setError(''); // Clears out errors when input is valid
         }
     };
+
 
     const handleFormSubmit = () => {
         if (!error && noOfLabels) {
@@ -39,6 +44,19 @@ export default function PrintLabelDialog({ open, handleClose, huIdx, totalUnits 
         // Trigger your hardware printer network endpoint call here
         console.log(`Printing ${noOfLabels} labels now...`);
     };
+    useEffect(() => {
+        if (open && totalHU !== undefined && totalHU !== null) {
+            const parsedCount = parseInt(totalHU, 10) || 0;
+            setNoOfLabels(parsedCount);
+
+            // Clear or trigger error based on the fresh data load
+            if (parsedCount > 200) {
+                setError('Cannot exceed max 200 labels');
+            } else {
+                setError('');
+            }
+        }
+    }, [open, totalHU]);
 
     return (
         <Dialog

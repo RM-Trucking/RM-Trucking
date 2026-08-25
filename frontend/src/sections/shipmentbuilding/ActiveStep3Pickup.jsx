@@ -193,7 +193,7 @@ const ActiveStep3Pickup = ({
                                         selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
                                         watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
                                         carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
-                                        watchedLinehaulAddAcc, subModal)} />
+                                        watchedLinehaulAddAcc, subModal, selectedShipmentBuildObj)} />
                                 </div>
                             </div>
 

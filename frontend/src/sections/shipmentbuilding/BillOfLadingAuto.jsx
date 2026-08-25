@@ -84,7 +84,9 @@ export default function BillOfLadingAuto({ data }) {
     const totalPages = pages.length;
     const shipper = data?.customerDetails?.shipperDetails || {};
     const consignee = data?.customerDetails?.consigneeDetails || {};
-    const carrier = data?.carrierDetails?.pickupDetails || {};
+    const pickupCarrier = data?.carrierDetails?.pickupDetails || {};
+    const linehaulCarrier = data?.carrierDetails?.linehaulDetails?.linehaulPrimaryInfo || {};
+    const deliveryCarrier = data?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo || {};
     const proNumber = data?.shipmentId;
     const shipmentId = data?.shipmentId || '';
     const date = data?.shipmentDetails?.shipmentDate || '';
@@ -233,9 +235,10 @@ export default function BillOfLadingAuto({ data }) {
                                                     </div>
 
                                                     <div className="bol-section-header">THIRD PARTY FREIGHT CHARGES BILL TO</div>
-                                                    <div style={{ padding: '4px 6px', minHeight: '36px', lineHeight: '1.25' }}>
-                                                        <b>Name:</b> {data?.customerDetails?.customerName}<br />
-                                                        <b>Address / Station:</b> Station ID: {data?.customerDetails?.stationId}
+                                                    <div style={{ padding: '4px 6px', minHeight: '30px', lineHeight: '1.25' }}>
+                                                        <b>Name:</b> - <br />
+                                                        <b>Address:</b> - <br />
+                                                        <b>City/State/Zip:</b> -
                                                     </div>
                                                 </div>
 
@@ -251,12 +254,12 @@ export default function BillOfLadingAuto({ data }) {
                                                         </div>
 
                                                         <div style={{ borderTop: '1.5px solid #000', paddingTop: '4px', fontSize: '7.5pt' }}>
-                                                            <b>CARRIER NAME:</b> {carrier.carrierName || 'Dayton Freight Lines, Inc.'}<br />
+                                                            <b>CARRIER NAME:</b> {data?.subModalType === 'pickup' ? pickupCarrier?.pickupCarrier : data?.subModalType === 'linehaul' ? linehaulCarrier?.fromCarrierName : data?.subModalType === 'delivery' ? deliveryCarrier?.fromCarrierName : '-'}<br />
                                                             <b>SCAC:</b> DAFG
                                                         </div>
 
                                                         {/* Pro Number Grid with Legal Disclaimer */}
-                                                        <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', borderTop: '1.5px solid #000', marginTop: '4px', paddingTop: '4px' }}>
+                                                        <div style={{ display: 'grid', gridTemplateColumns: '20% 80%', borderTop: '1.5px solid #000', marginTop: '4px', paddingTop: '4px' }}>
                                                             <div style={{ fontSize: '5pt', color: '#333', lineHeight: '1.1', paddingRight: '4px', textAlign: 'justify' }}>
                                                                 This shipment is subject exclusively to the Uniform Bill of Lading, the liability limitations, and all other applicable provisions of the carrier's individual and collective tariffs, including NMFC 100-Y series.
                                                             </div>
@@ -267,28 +270,27 @@ export default function BillOfLadingAuto({ data }) {
                                                                     <BarcodeImage value={proNumber} />
                                                                 </div>
                                                                 <div style={{ fontSize: '6pt', transform: 'scale(0.9)' }}>DAFG BOL</div>
+                                                                {/* Figma Specific Sub-Table: Skids, Drums, Long, Loose */}
+                                                                <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '2px', fontSize: '6.5pt', textAlign: 'center', borderTop: '1px solid #000' }}>
+                                                                    <thead>
+                                                                        <tr style={{ height: '14px' }}>
+                                                                            <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Skids</th>
+                                                                            <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Drums</th>
+                                                                            <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Long</th>
+                                                                            <th style={{ fontWeight: 'normal', width: '25%' }}>Loose</th>
+                                                                        </tr>
+                                                                    </thead>
+                                                                    <tbody>
+                                                                        <tr style={{ height: '16px', borderTop: '1px solid #000' }}>
+                                                                            <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                            <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                            <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                            <td>&nbsp;</td>
+                                                                        </tr>
+                                                                    </tbody>
+                                                                </table>
                                                             </div>
                                                         </div>
-
-                                                        {/* Figma Specific Sub-Table: Skids, Drums, Long, Loose */}
-                                                        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '2px', fontSize: '6.5pt', textAlign: 'center', borderTop: '1px solid #000' }}>
-                                                            <thead>
-                                                                <tr style={{ height: '14px' }}>
-                                                                    <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Skids</th>
-                                                                    <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Drums</th>
-                                                                    <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Long</th>
-                                                                    <th style={{ fontWeight: 'normal', width: '25%' }}>Loose</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr style={{ height: '16px', borderTop: '1px solid #000' }}>
-                                                                    <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                    <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                    <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                    <td>&nbsp;</td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
                                                     </div>
 
                                                     {/* Bottom Payment Terms Checkboxes */}
@@ -312,13 +314,19 @@ export default function BillOfLadingAuto({ data }) {
                                             </div>
 
                                             <div className="bol-section-header">CUSTOMER ORDER INFORMATION</div>
-                                            <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000' }}>
-                                                MAWB: {shipmentId}, HWB: {shipmentId}, Pick up: {shipmentId}, Load: {shipmentId}, CID: {shipmentId}, SID: {shipmentId}, BOL: {shipmentId}
-                                            </div>
+                                            {formattedText ? (
+                                                <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000' }}>
+                                                    {formattedText}
+                                                </div>
+                                            ) : (
+                                                <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000', textAlign: 'center', color: '#000' }}>
+                                                    -
+                                                </div>
+                                            )}
 
                                             <div className="bol-section-header">NOTES</div>
                                             <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000', minHeight: '16px' }}>
-                                                {carrier?.pickupAlertDetails?.inboundNotes || '-'}
+                                                {data?.subModalType === 'pickup' ? data.carrierDetails?.pickupDetails?.pickupAlertDetails?.inboundNotes : data?.subModalType === 'linehaul' ? data.carrierDetails?.linehaulDetails?.linehaulCommonInfo?.linehaulNotes : data?.subModalType === 'delivery' ? data.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.deliveryNotes : '-'}
                                             </div>
                                         </>
                                     ) : (
@@ -343,11 +351,11 @@ export default function BillOfLadingAuto({ data }) {
                                                     <div style={{ padding: '4px 6px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                                                         <div>
                                                             <div style={{ borderTop: '1.5px solid #000', paddingTop: '4px', fontSize: '7.5pt' }}>
-                                                                <b>CARRIER NAME:</b> {carrier.carrierName || 'Dayton Freight Lines, Inc.'}<br />
+                                                                <b>CARRIER NAME:</b> {data?.subModalType === 'pickup' ? pickupCarrier.pickupCarrier : data?.subModalType === 'linehaul' ? linehaulCarrier?.fromCarrierName : data?.subModalType === 'delivery' ? deliveryCarrier?.fromCarrierName : '-'}<br />
                                                                 <b>SCAC:</b> DAFG
                                                             </div>
 
-                                                            <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', borderTop: '1.5px solid #000', marginTop: '4px', paddingTop: '4px' }}>
+                                                            <div style={{ display: 'grid', gridTemplateColumns: '20% 80%', borderTop: '1.5px solid #000', marginTop: '4px', paddingTop: '4px' }}>
                                                                 <div style={{ fontSize: '5pt', color: '#333', lineHeight: '1.1', paddingRight: '4px', textAlign: 'justify' }}>
                                                                     This shipment is subject exclusively to the Uniform Bill of Lading, the liability limitations, and all other applicable provisions of the carrier's individual and collective tariffs, including NMFC 100-Y series.
                                                                 </div>
@@ -358,27 +366,26 @@ export default function BillOfLadingAuto({ data }) {
                                                                         <BarcodeImage value={proNumber} />
                                                                     </div>
                                                                     <div style={{ fontSize: '6pt', marginTop: '-2px', transform: 'scale(0.9)' }}>DAFG BOL</div>
+                                                                    <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '2px', fontSize: '6.5pt', textAlign: 'center', borderTop: '1px solid #000' }}>
+                                                                        <thead>
+                                                                            <tr style={{ height: '14px' }}>
+                                                                                <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Skids</th>
+                                                                                <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Drums</th>
+                                                                                <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Long</th>
+                                                                                <th style={{ fontWeight: 'normal', width: '25%' }}>Loose</th>
+                                                                            </tr>
+                                                                        </thead>
+                                                                        <tbody>
+                                                                            <tr style={{ height: '16px', borderTop: '1px solid #000' }}>
+                                                                                <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                                <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                                <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
+                                                                                <td>&nbsp;</td>
+                                                                            </tr>
+                                                                        </tbody>
+                                                                    </table>
                                                                 </div>
                                                             </div>
-
-                                                            <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '2px', fontSize: '6.5pt', textAlign: 'center', borderTop: '1px solid #000' }}>
-                                                                <thead>
-                                                                    <tr style={{ height: '14px' }}>
-                                                                        <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Skids</th>
-                                                                        <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Drums</th>
-                                                                        <th style={{ borderRight: '1px solid #000', fontWeight: 'normal', width: '25%' }}>Long</th>
-                                                                        <th style={{ fontWeight: 'normal', width: '25%' }}>Loose</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    <tr style={{ height: '16px', borderTop: '1px solid #000' }}>
-                                                                        <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                        <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                        <td style={{ borderRight: '1px solid #000' }}>&nbsp;</td>
-                                                                        <td>&nbsp;</td>
-                                                                    </tr>
-                                                                </tbody>
-                                                            </table>
                                                         </div>
                                                         <div style={{ display: 'flex', justifyContent: 'space-around', padding: '6px 0 2px 0', borderTop: '1.5px solid #000', fontWeight: 'bold', fontSize: '8pt' }}>
                                                             <label style={{ display: 'flex', alignItems: 'center' }}>Prepaid <span className="bol-checkbox" style={{ marginLeft: '6px' }}></span></label>
@@ -390,9 +397,15 @@ export default function BillOfLadingAuto({ data }) {
                                             </div>
 
                                             <div className="bol-section-header">CUSTOMER ORDER INFORMATION</div>
-                                            <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000' }}>
-                                                {formattedText}
-                                            </div>
+                                            {formattedText ? (
+                                                <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000' }}>
+                                                    {formattedText}
+                                                </div>
+                                            ) : (
+                                                <div style={{ padding: '3px 6px', fontSize: '7.5pt', borderBottom: '1px solid #000', textAlign: 'center', color: '#000' }}>
+                                                    -
+                                                </div>
+                                            )}
                                         </>
                                     )}
 

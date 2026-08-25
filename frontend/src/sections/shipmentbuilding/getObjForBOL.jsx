@@ -2,11 +2,14 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
     selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
-    watchedLinehaulAddAcc, subModal
+    watchedLinehaulAddAcc, subModal, selectedShipmentBuildObj,
 ) => {
     const currentValues = getValues();
     let obj = {};
-
+    obj.subModalType = subModal.type;
+    obj.shipmentId = selectedShipmentBuildObj?.shipmentId;
+    obj.selectedRouting = selectedRouting;
+    obj.watchedLinehaulSelectRouting = watchedLinehaulSelectRouting;
     // adding to object
     // step 0
     obj.shipmentDetails = {
@@ -29,8 +32,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
         "destinationAirportCode": currentValues?.destinationAirport,
         // we have to update address when we select shipper details
         "shipperDetails": {
-            'shipperId': currentValues?.shipperName?.shipperId || null,
-            "shipperName": currentValues?.shipperName?.shipperName,
+            "shipperName": currentValues?.shipperName?.shipperName || currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.shipperName?.airlineName || '',
             "addressLine1": currentValues.shipperAddr1,
             "addressLine2": currentValues.shipperAddr2,
             "city": currentValues.shipperCity,
@@ -38,28 +40,10 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             "zipCode": currentValues.shipperZip,
             "contactPersonName": currentValues.shipperContact,
             "phoneNumber": currentValues.shipperPhone,
-            'entityId': currentValues?.shipperName?.entityId || null,
         },
-        "pickupAirlineDetails": {
-            "airlineId": currentValues?.shipperName?.shipperId || currentValues?.shipperName?.airlineId || null,
-            "airlineNumber": Number(currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[0]) || Number(currentValues?.shipperName?.airlineNumber) || null,
-            "airlineCode": currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[1] || currentValues?.shipperName?.airlineCode || '',
-            "airportCode": currentValues?.shipperName?.airportCode || watchedOriginAirport,
-            "airlineName": currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.shipperName?.airlineName || '',
-            "addressLine1": currentValues?.shipperAddr1,
-            "addressLine2": currentValues?.shipperAddr2,
-            "city": currentValues.shipperCity,
-            "state": currentValues.shipperState,
-            "zipCode": currentValues.shipperZip,
-            "contactPersonName": currentValues?.shipperContact,
-            "phoneNumber": currentValues.shipperPhone,
-            "handler": '',
-            'entityId': currentValues?.shipperName?.entityId || null,
-            "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
-        },
+
         "consigneeDetails": {
-            "consigneeId": currentValues?.consigneeName?.consigneeId || null,
-            "consigneeName": currentValues?.consigneeName?.consigneeName,
+            "consigneeName": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
             "addressLine1": currentValues.consigneeAddr1,
             "addressLine2": currentValues.consigneeAddr2,
             "city": currentValues.consigneeCity,
@@ -67,37 +51,10 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             "zipCode": currentValues.consigneeZip,
             "contactPersonName": currentValues.consigneeContact,
             "phoneNumber": currentValues.consigneePhone,
-            'entityId': currentValues?.consigneeName?.entityId || null,
-        },
-        "deliveryAirlineDetails": {
-            "airlineId": currentValues?.consigneeName?.consigneeId || currentValues?.consigneeName?.airlineId || null,
-            "airlineNumber": Number(currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[0]) || Number(currentValues?.consigneeName?.airlineNumber) || '',
-            "airlineCode": currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[1] || currentValues?.consigneeName?.airlineCode || '',
-            "airportCode": currentValues?.consigneeName?.airportCode || watchedDestinationAirport,
-            "airlineName": currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
-            "addressLine1": currentValues.consigneeAddr1,
-            "addressLine2": currentValues.consigneeAddr2,
-            "city": currentValues.consigneeCity,
-            "state": currentValues.consigneeState,
-            "zipCode": currentValues.consigneeZip,
-            "contactPersonName": currentValues?.consigneeContact,
-            "phoneNumber": currentValues.consigneePhone,
-            "handler": '',
-            'entityId': currentValues?.consigneeName?.entityId || null,
-            "scenarioType": (currentValues?.shipmentType?.includes('IMPORT') || currentValues?.shipmentType?.includes('DOMESTIC')) ? 'IMPORT' : (currentValues?.shipmentType?.includes('EXPORT') || currentValues?.shipmentType?.includes('NON_FORWARDER_DOMESTIC')) ? 'EXPORT' : "",
         },
         "customerReferenceNumbers": subModal?.type === 'pickup' ? currentValues.printablePickupReferenceRows : subModal?.type === 'linehaul' ? currentValues.printableLinehaulReferenceRows : currentValues.printableDeliveryReferenceRows,
     };
-    if (watchedAirportPickupService) {
-        delete obj.customerDetails.shipperDetails;
-    } else {
-        delete obj.customerDetails.pickupAirlineDetails;
-    }
-    if (watchedAirportDeliveryService) {
-        delete obj.customerDetails.consigneeDetails;
-    } else {
-        delete obj.customerDetails.deliveryAirlineDetails;
-    }
+
     // step 2
     if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
         obj.commodityDetails = {
@@ -176,7 +133,6 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
         // obj to send
         // when pickupAgentTerminal is Y no need of pickupAgentTerminalDetails
         obj.carrierDetails = {
-
             "pickupDetails": {
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
@@ -193,6 +149,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                     "state": currentValues?.carrierInfo?.manualAddress?.state,
                     "zipCode": currentValues?.carrierInfo?.manualAddress?.zip
                 },
+                "pickupCarrier" : selectedPickupCarrierObject?.carrierName,
                 "pickupAgentTerminal": currentValues?.carrierInfo?.pickupAgentTerminal ? "Y" : "N",
                 "pickupAgentTerminalDetails": {
                     "toLocationType": "Carrier",
@@ -228,6 +185,8 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                     "linehaulRouting": "LINE_HAUL_ONLY",
                     "carrierId": Number(linehaulCarrierId),
                     "terminalId": Number(linehaulTerminalId),
+                    "fromCarrierName": selectedLinehaulCarrierObject?.carrierName,
+                    "toCarrierName": selectedLinehaulToCarrierObject?.carrierName,
                     "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
                     "fromLocationType": "Carrier",
                     "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
@@ -273,6 +232,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                     "carrierId": Number(deliveryCarrierId),
                     "terminalId": Number(deliveryTerminalId),
                     "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,
+                    "fromCarrierName": selectedDeliveryCarrierObject?.carrierName,
                     "fromLocationType": "Carrier",
                     "fromLocation": currentValues?.carrierInfo?.deliveryDetails?.fromLocation,
                     "fromLocationEntityId": selectedDeliveryCarrierObject?.terminalEntityId || null,
@@ -320,8 +280,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                     }
                 }
             }
-
-        }
+        };
     }
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
         obj.carrierDetails = {
@@ -335,6 +294,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                 "carrierId": Number(pickupCarrierId),
                 "terminalId": Number(pickupTerminalId),
                 "editFromLocation": currentValues?.carrierInfo?.isManualFromLocation ? "Y" : 'N',
+                "pickupCarrier" : selectedPickupCarrierObject?.carrierName,
                 "editFromLocationDetails": {
                     "addressLine1": currentValues?.carrierInfo?.manualAddress?.line1,
                     "addressLine2": currentValues?.carrierInfo?.manualAddress?.line2,
@@ -378,6 +338,8 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
                     "carrierId": Number(linehaulCarrierId),
                     "terminalId": Number(linehaulTerminalId),
                     "carrierBillNumber": currentValues?.carrierInfo?.lineHaul?.billNumber,
+                    "fromCarrierName": selectedLinehaulCarrierObject?.carrierName,
+                    "toCarrierName": selectedLinehaulToCarrierObject?.carrierName,
                     "fromLocationType": "Carrier",
                     "fromLocation": currentValues?.carrierInfo?.lineHaul?.fromLocation,
                     "fromLocationEntityId": selectedLinehaulCarrierObject?.terminalEntityId || null,
@@ -441,6 +403,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             "pickupDetails": {
                 "pickupRouting": "PICKUP_LINE_HAUL",
                 "fromLocationType": "Shipper",
+                "pickupCarrier" : selectedPickupCarrierObject?.carrierName,
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
@@ -551,6 +514,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             "pickupDetails": {
                 "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
                 "fromLocationType": "Shipper",
+                "pickupCarrier" : selectedPickupCarrierObject?.carrierName,
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
@@ -623,6 +587,116 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             }
 
         }
+    }
+
+    if (subModal.type === 'pickup') {
+        if (selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') {
+            obj.customerDetails.shipperDetails = {
+                "shipperName": currentValues?.shipperName?.shipperName || currentValues?.shipperName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.shipperName?.airlineName || '',
+                "addressLine1": currentValues.shipperAddr1,
+                "addressLine2": currentValues.shipperAddr2,
+                "city": currentValues.shipperCity,
+                "state": currentValues.shipperState,
+                "zipCode": currentValues.shipperZip,
+                "contactPersonName": currentValues.shipperContact,
+                "phoneNumber": currentValues.shipperPhone,
+            };
+            obj.customerDetails.consigneeDetails = {
+                "consigneeName": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2 || selectedPickupCarrierObject?.address?.addressLine2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city || selectedPickupCarrierObject?.address?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state || selectedPickupCarrierObject?.address?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip || selectedPickupCarrierObject?.address?.zipCode,
+                "contactPersonName": "",
+                "phoneNumber": "",
+            };
+        }
+    }
+    if (subModal.type === 'linehaul') {
+        if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only') {
+            obj.customerDetails.shipperDetails = {
+                "shipperName": selectedLinehaulCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+                "addressLine2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zip,
+                "contactPersonName": '',
+                "phoneNumber": "",
+            };
+
+            obj.customerDetails.consigneeDetails = {
+                "consigneeName": selectedLinehaulToCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line1,
+                "addressLine2": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualToLocationDetails?.zip,
+                "contactPersonName": '',
+                "phoneNumber": '',
+            }
+        }
+        if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery') {
+            obj.customerDetails.shipperDetails = {
+                "shipperName": selectedLinehaulCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line1,
+                "addressLine2": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.lineHaul?.manualFromLocationDetails?.zip,
+                "contactPersonName": '',
+                "phoneNumber": "",
+            };
+            obj.customerDetails.consigneeDetails = {
+                "consigneeName": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+                "addressLine1": currentValues.consigneeAddr1,
+                "addressLine2": currentValues.consigneeAddr2,
+                "city": currentValues.consigneeCity,
+                "state": currentValues.consigneeState,
+                "zipCode": currentValues.consigneeZip,
+                "contactPersonName": currentValues.consigneeContact,
+                "phoneNumber": currentValues.consigneePhone,
+            };
+        }
+    }
+    if (subModal.type === 'delivery') {
+        if ((selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_only')) {
+            // delivery from
+            obj.customerDetails.shipperDetails = {
+                "shipperName": selectedDeliveryCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line1,
+                "addressLine2": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.line2,
+                "city": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.city,
+                "state": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.state,
+                "zipCode": currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zip,
+                "contactPersonName": "",
+                "phoneNumber": "",
+            };
+        }
+        if (selectedRouting === 'pickup_linehaul') {
+            // pickup agent to
+            obj.customerDetails.shipperDetails = {
+                "shipperName": currentValues?.carrierInfo?.pickupAgentTerminal ? selectedPickupCarrierObject?.carrierName : selectedPickupToCarrierObject?.carrierName,
+                "addressLine1": currentValues?.carrierInfo?.manualToAddress?.line1 || selectedPickupCarrierObject?.address?.addressLine1,
+                "addressLine2": currentValues?.carrierInfo?.manualToAddress?.line2 || selectedPickupCarrierObject?.address?.addressLine2,
+                "city": currentValues?.carrierInfo?.manualToAddress?.city || selectedPickupCarrierObject?.address?.city,
+                "state": currentValues?.carrierInfo?.manualToAddress?.state || selectedPickupCarrierObject?.address?.state,
+                "zipCode": currentValues?.carrierInfo?.manualToAddress?.zip || selectedPickupCarrierObject?.address?.zipCode,
+                "contactPersonName": "",
+                "phoneNumber": "",
+            };
+        }
+        obj.customerDetails.consigneeDetails = {
+            "consigneeName": currentValues?.consigneeName?.consigneeName || currentValues?.consigneeName?.airlineName?.split('-').map(item => item.trim())[2] || currentValues?.consigneeName?.airlineName || '',
+            "addressLine1": currentValues.consigneeAddr1,
+            "addressLine2": currentValues.consigneeAddr2,
+            "city": currentValues.consigneeCity,
+            "state": currentValues.consigneeState,
+            "zipCode": currentValues.consigneeZip,
+            "contactPersonName": currentValues.consigneeContact,
+            "phoneNumber": currentValues.consigneePhone,
+        };
     }
 
     return obj;

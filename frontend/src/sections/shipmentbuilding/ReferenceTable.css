@@ -1,93 +1,103 @@
 .table-container {
-max-width: 700px;
-margin: 20px auto;
+    max-width: 700px;
+    margin: 20px auto;
 }
 
 .reference-table {
-width: 100%;
-border-collapse: collapse;
-text-align: left;
-background-color: rgba(215, 215, 215, 1);
-box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-border-radius: 12px;
-padding: 16px;
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    background-color: rgba(215, 215, 215, 1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    padding: 16px;
 }
 
 .reference-table th {
-padding: 12px 8px;
-font-size: 15px;
-font-weight: 700;
-color: #374151;
-border-bottom: 2px solid #cbd5e1;
+    padding: 12px 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #374151;
+    border-bottom: 2px solid #cbd5e1;
 }
 
 .reference-table td {
-padding: 8px;
-border-bottom: 1px solid #d1d5db;
+    padding: 8px;
+    border-bottom: 1px solid #d1d5db;
 }
 
 .sno-cell {
-font-weight: 600;
-color: #4b5563;
-padding-left: 12px;
+    font-weight: 600;
+    color: #4b5563;
+    padding-left: 12px;
 }
 
 .table-input {
-width: 100%;
-padding: 8px 10px;
-border: 1px solid #9ca3af;
-border-radius: 4px;
-background-color: #ffffff;
-font-size: 14px;
-box-sizing: border-box;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #9ca3af;
+    border-radius: 4px;
+    background-color: #ffffff;
+    font-size: 14px;
+    box-sizing: border-box;
 }
 
 .table-input:focus {
-outline: none;
-border-color: #3b82f6;
-box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.table-input:disabled {
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    /* Forces rendering engine overrides on Safari/Chrome */
+    opacity: 1 !important;
+    /* Eliminates the default faded look */
+    background-color: transparent;
+    /* Optional: keeps background clean if browser paints it grey */
 }
 
 .action-cell {
-text-align: center;
+    text-align: center;
 }
 
 .delete-btn {
-background: none;
-border: none;
-cursor: pointer;
-font-size: 16px;
-padding: 4px 8px;
-border-radius: 4px;
-transition: background-color 0.2s;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
 }
 
 .delete-btn:hover {
-background-color: #fca5a5;
+    background-color: #fca5a5;
 }
 
 .add-btn-container {
-display: flex;
-justify-content: flex-end;
-margin-top: 12px;
-margin-right: 5%;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 12px;
+    margin-right: 5%;
 }
 
 .add-btn {
-background-color: #b91c1c;
-color: white;
-border: none;
-width: 32px;
-height: 32px;
-border-radius: 4px;
-font-size: 20px;
-font-weight: bold;
-cursor: pointer;
-display: flex;
-align-items: center;
-justify-content: center;
+    background-color: #b91c1c;
+    color: white;
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .add-btn:hover {
-background-color: #A22;
+    background-color: #A22;
 }

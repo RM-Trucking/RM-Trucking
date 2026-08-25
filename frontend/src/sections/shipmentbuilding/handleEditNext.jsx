@@ -268,7 +268,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                         hazmatId: item?.hazmatData?.hazmatId || '',
                         unNumber: item?.hazmatData?.unNumber,
                         properShippingName: item?.hazmatData?.shippingName,
-                        hazardClass: `Class ${item?.hazmatData?.hazmatClass}`,
+                        hazardClass: `${item?.hazmatData?.hazmatClass}`,
                         packingGroup: `${item?.hazmatData?.packagingGroup}`,
                         weight: Number(item?.hazmatData?.weight) || 0,
                         weightUnit: item?.hazmatData?.weightUnit,

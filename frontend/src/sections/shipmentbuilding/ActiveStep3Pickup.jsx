@@ -48,6 +48,7 @@ import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
 import BillOfLadingAuto from './BillOfLadingAuto';
 import ReferenceDialog from './ReferenceDialog';
+import { getObjectForBOL } from './getObjForBOL';
 
 const ActiveStep3Pickup = ({
     type,
@@ -107,6 +108,19 @@ const ActiveStep3Pickup = ({
     carrierPickupSearchValue,
     setCarrierPickupSearchValue,
     getValues,
+    watchedLinehaulSelectRouting,
+    watchedAirportPickupService,
+    watchedAirportDeliveryService,
+    isHazmatSelected,
+    watchedSelectedPickupCarrier,
+    watchedSelectedLineHaulCarrier,
+    watchedSelectedDeliveryCarrier,
+    watchedToLocation,
+    watchedLinehaulToLocation,
+    watchedDeliveryToLocation,
+    watchedOriginAirport,
+    watchedDestinationAirport,
+    watchedLinehaulAddAcc
 }) => {
     const contentRef = useRef(null);
     const [subModal, setSubModal] = useState({ type: 'pickup', open: false });
@@ -148,30 +162,53 @@ const ActiveStep3Pickup = ({
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
                     />
                 </Box>
-                {type === 'Edit' && <Box display={'flex'} alignItems={'center'} justifyContent={'flex-end'} sx={{ mb: 2 }}>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => setSubModal({ type: 'pickup', open: true })} // Opens the Dialog
-                        sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
-                    >
-                        Ref No
-                    </Button>
-                    <Button
-                        variant="contained"
-                        size="small"
-                        onClick={handlePrint} // Opens the Dialog
-                        sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                    >
-                        Print Bill
-                    </Button>
-                    <div style={{ display: 'none' }}>
-                        <div ref={contentRef} className='bol-print-wrapper'>
-                            <BillOfLadingAuto data={selectedShipmentBuildObj} />
-                        </div>
-                    </div>
-                    <ReferenceDialog open={subModal.open} fromSection={subModal.type} onClose={() => setSubModal({ type: 'pickup', open: false })} control={control} setValue={setValue} getValues={getValues}/>
-                </Box>}
+                {type === 'Edit' && (
+                    // Streamlined routing assessment block
+                    (selectedRouting === 'pickup_only' && ['linehaul_only', 'linehaul_delivery'].includes(watchedLinehaulSelectRouting)) ||
+                    ['pickup_linehaul', 'pickup_linehaul_delivery'].includes(selectedRouting)
+                ) && (
+                        <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ mb: 2 }}>
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={() => setSubModal({ type: 'pickup', open: true })}
+                                sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
+                            >
+                                Ref No
+                            </Button>
+
+                            <Button
+                                variant="contained"
+                                size="small"
+                                onClick={handlePrint}
+                                sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                            >
+                                Print Bill
+                            </Button>
+
+                            {/* Hidden print container wrapper frame */}
+                            <div style={{ display: 'none' }}>
+                                <div ref={contentRef} className="bol-print-wrapper">
+                                    <BillOfLadingAuto data={getObjectForBOL(getValues, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
+                                        selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
+                                        watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
+                                        carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
+                                        watchedLinehaulAddAcc, subModal)} />
+                                </div>
+                            </div>
+
+                            {/* Modal target element wrapper */}
+                            <ReferenceDialog
+                                open={subModal.open}
+                                fromSection={subModal.type}
+                                onClose={() => setSubModal({ type: 'pickup', open: false })}
+                                control={control}
+                                setValue={setValue}
+                                getValues={getValues}
+                            />
+                        </Box>
+                    )}
+
                 {isPickupPending === false && <>
 
                     <Paper variant="outlined" sx={{ p: 3, borderRadius: 2, position: 'relative' }}>

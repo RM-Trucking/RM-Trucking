@@ -52,7 +52,7 @@ const slice = createSlice({
     patchNetworkShipmentSuccess(state, action) {
       state.isLoading = false;
       state.shipmentSuccess = true;
-      state.operationalMessage = "Network shipment updated successfully.";
+      state.operationalMessage = "Shipment updated successfully.";
     },
     getCustomerStationDropdownSuccess(state, action) {
       state.isLoading = false;

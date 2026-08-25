@@ -454,7 +454,7 @@ export default function ShipmentViewTable({ }) {
                     variant="filled"
                     sx={{ width: '100%' }}
                 >
-                    New shipment created successfully.
+                    {operationalMessage}
                 </Alert>
             </Snackbar>
 

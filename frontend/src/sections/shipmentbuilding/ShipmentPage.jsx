@@ -1904,6 +1904,19 @@ const ShipmentPage = ({ type }) => {
                 carrierPickupSearchValue={carrierPickupSearchValue}
                 setCarrierPickupSearchValue={setCarrierPickupSearchValue}
                 getValues={getValues}
+                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                watchedAirportPickupService={watchedAirportPickupService}
+                watchedAirportDeliveryService={watchedAirportDeliveryService}
+                isHazmatSelected={isHazmatSelected}
+                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                watchedToLocation={watchedToLocation}
+                watchedLinehaulToLocation={watchedLinehaulToLocation}
+                watchedDeliveryToLocation={watchedDeliveryToLocation}
+                watchedOriginAirport={watchedOriginAirport}
+                watchedDestinationAirport={watchedDestinationAirport}
+                watchedLinehaulAddAcc={watchedLinehaulAddAcc}
               />
               {
                 isPickupPending === false &&
@@ -1957,6 +1970,15 @@ const ShipmentPage = ({ type }) => {
                   watchedToLocation={watchedToLocation}
                   isPickupPending={isPickupPending}
                   getValues={getValues}
+                  watchedAirportPickupService={watchedAirportPickupService}
+                  watchedAirportDeliveryService={watchedAirportDeliveryService}
+                  isHazmatSelected={isHazmatSelected}
+                  watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                  watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                  watchedLinehaulToLocation={watchedLinehaulToLocation}
+                  watchedDeliveryToLocation={watchedDeliveryToLocation}
+                  watchedOriginAirport={watchedOriginAirport}
+                  watchedDestinationAirport={watchedDestinationAirport}
                 />
               }
               {isPickupPending === false && <ActiveStep3Delivery type={type}
@@ -2012,6 +2034,16 @@ const ShipmentPage = ({ type }) => {
                 isPickupPending={isPickupPending}
                 watchedPickupAgentTerminal={watchedPickupAgentTerminal}
                 getValues={getValues}
+                watchedAirportPickupService={watchedAirportPickupService}
+                watchedAirportDeliveryService={watchedAirportDeliveryService}
+                isHazmatSelected={isHazmatSelected}
+                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                watchedToLocation={watchedToLocation}
+                watchedDeliveryToLocation={watchedDeliveryToLocation}
+                watchedOriginAirport={watchedOriginAirport}
+                watchedDestinationAirport={watchedDestinationAirport}
+                watchedLinehaulAddAcc={watchedLinehaulAddAcc}
               />
               }
             </>

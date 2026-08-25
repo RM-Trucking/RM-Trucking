@@ -511,7 +511,6 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "deliveryPrimaryInfo": {
                     deliveryInfoId: selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.deliveryInfoId,
                     shipmentId: selectedShipmentBuildObj?.shipmentId,
-                    "deliveryRouting": "LINE_HAUL_DELIVERY",
                     "carrierId": Number(deliveryCarrierId),
                     "terminalId": Number(deliveryTerminalId),
                     "carrierBillNumber": currentValues?.carrierInfo?.deliveryDetails?.billNumber,

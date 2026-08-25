@@ -85,9 +85,7 @@ export default function BillOfLadingAuto({ data }) {
     const shipper = data?.customerDetails?.shipperDetails || {};
     const consignee = data?.customerDetails?.consigneeDetails || {};
     const carrier = data?.carrierDetails?.pickupDetails || {};
-    const proNumber =
-        data?.carrierDetails?.linehaulDetails?.linehaulPrimaryInfo?.carrierBillNumber ||
-        '00744265994';
+    const proNumber = data?.shipmentId;
     const shipmentId = data?.shipmentId || '';
     const date = data?.shipmentDetails?.shipmentDate || '';
 

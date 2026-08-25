@@ -44,6 +44,7 @@ export default function PrintLabelConfirmationDialog({ open, handleClose, onConf
       {/* Dialog Body Content */}
       <DialogContent sx={{ p: 2, pt: 0, pb: 4, textAlign: 'center' }}>
         <Typography variant="body1" sx={{ color: '#222', fontSize: '0.95rem' }}>
+            {/* 20 labels already printed successfully. The remaining 30 labels will now be PrintedAre you sure you to Print 30 Labels ? */}
           Are you sure you want to Print <strong>{labelCount} Labels</strong> ?
         </Typography>
       </DialogContent>

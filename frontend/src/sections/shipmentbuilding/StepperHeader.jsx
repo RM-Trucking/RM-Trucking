@@ -158,7 +158,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
             setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
         }
     };
-    const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000' };
+    const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000', whiteSpace: 'nowrap'  };
     const labelStyle = { fontSize: '0.75rem', color: '#555' };
 
     useEffect(() => {
@@ -444,7 +444,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
-                                <Typography sx={valueStyle}>{liveShipmentStatus}</Typography>
+                                <Typography sx={valueStyle}>{liveShipmentStatus?.replace(/_/g, ' ')}</Typography>
                                 <Button
                                     variant="contained"
                                     size="small"
@@ -462,7 +462,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                             </Box>
                             <Box sx={{ display: 'flex' }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
-                                <Typography sx={valueStyle}>Air Import</Typography>
+                                <Typography sx={valueStyle}>{getValues('shipmentType')?.replace(/_/g, ' ')}</Typography>
                             </Box>
                         </Stack>
                     </Box>
@@ -473,11 +473,11 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
                             <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
-                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>Weekend Delivery</Typography>
+                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>{getValues('serviceLevel')}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex' }}>
                                 <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
-                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>03/29/2026</Typography>
+                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>{getValues('date')}</Typography>
                             </Box>
                         </Box>
 

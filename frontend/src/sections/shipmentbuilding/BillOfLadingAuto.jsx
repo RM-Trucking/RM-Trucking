@@ -236,9 +236,10 @@ export default function BillOfLadingAuto({ data }) {
 
                                                     <div className="bol-section-header">THIRD PARTY FREIGHT CHARGES BILL TO</div>
                                                     <div style={{ padding: '4px 6px', minHeight: '30px', lineHeight: '1.25' }}>
-                                                        <b>Name:</b> - <br />
-                                                        <b>Address:</b> - <br />
-                                                        <b>City/State/Zip:</b> -
+                                                        <b>Name:</b> {!shipper.shipperName?.includes('RM') && !consignee.consigneeName?.includes('RM') ? 'R&M Trucking Co.' : ''} <br />
+                                                        <b>Address:</b> {!shipper.shipperName?.includes('RM') && !consignee.consigneeName?.includes('RM') ? '840 E. Green St. Suite 100' : ''}<br />
+                                                        <b>City/State/Zip:</b> {!shipper.shipperName?.includes('RM') && !consignee.consigneeName?.includes('RM') ? 'Bensenville, IL 60106' : ''} <br />
+                                                        <b>Contact:</b> {!shipper.shipperName?.includes('RM') && !consignee.consigneeName?.includes('RM') ? '(847) 616-1080' : ''}
                                                     </div>
                                                 </div>
 
@@ -255,7 +256,7 @@ export default function BillOfLadingAuto({ data }) {
 
                                                         <div style={{ borderTop: '1.5px solid #000', paddingTop: '4px', fontSize: '7.5pt' }}>
                                                             <b>CARRIER NAME:</b> {data?.subModalType === 'pickup' ? pickupCarrier?.pickupCarrier : data?.subModalType === 'linehaul' ? linehaulCarrier?.fromCarrierName : data?.subModalType === 'delivery' ? deliveryCarrier?.fromCarrierName : '-'}<br />
-                                                            <b>SCAC:</b> DAFG
+                                                            <b>SCAC:</b> -
                                                         </div>
 
                                                         {/* Pro Number Grid with Legal Disclaimer */}
@@ -352,7 +353,7 @@ export default function BillOfLadingAuto({ data }) {
                                                         <div>
                                                             <div style={{ borderTop: '1.5px solid #000', paddingTop: '4px', fontSize: '7.5pt' }}>
                                                                 <b>CARRIER NAME:</b> {data?.subModalType === 'pickup' ? pickupCarrier.pickupCarrier : data?.subModalType === 'linehaul' ? linehaulCarrier?.fromCarrierName : data?.subModalType === 'delivery' ? deliveryCarrier?.fromCarrierName : '-'}<br />
-                                                                <b>SCAC:</b> DAFG
+                                                                <b>SCAC:</b> -
                                                             </div>
 
                                                             <div style={{ display: 'grid', gridTemplateColumns: '20% 80%', borderTop: '1.5px solid #000', marginTop: '4px', paddingTop: '4px' }}>

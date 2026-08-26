@@ -32,6 +32,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('serviceLevel', shipmentDetails?.serviceLevel);
         setValue('date', shipmentDetails?.shipmentDate);
         setValue('time', shipmentDetails?.shipmentTime);
+        setValue('shipmentStatus.status', shipmentDetails.status)
     }
     // step 2
     if (customerDetails && Object.keys(customerDetails).length > 0) {

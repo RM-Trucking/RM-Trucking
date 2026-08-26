@@ -118,14 +118,10 @@ const HazmatDialogView = ({ state, onClose, setValue, getValues }) => {
         {/* Row 1: UN, Shipping Name, PKG Group, Class */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3 }}>
           <Box sx={{ flex: '1 1 22%' }}>
-            <StyledTextField select label="UN Number *" variant="standard" fullWidth value={localData.unNumber} disabled>
-              <MenuItem value="UN1567">UN1567</MenuItem>
-            </StyledTextField>
+            <StyledTextField label="UN Number *" variant="standard" fullWidth value={localData.unNumber} disabled />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <StyledTextField select label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} disabled>
-              <MenuItem value="Hazard Substance,liquid.n.o.s">Hazard Substance,liquid.n.o.s</MenuItem>
-            </StyledTextField>
+            <StyledTextField label="Shipping Name *" variant="standard" fullWidth value={localData.shippingName} disabled />
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
             <StyledTextField label="Packaging Group *" variant="standard" fullWidth value={localData.packagingGroup} disabled />

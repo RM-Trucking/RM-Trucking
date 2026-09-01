@@ -49,7 +49,7 @@ paths:
                     airportDeliveryService: "N"
                     originAirportCode: "LAX"
                     destinationAirportCode: "JFK"
-                    referenceNumbers:
+                    customerReferenceNumbers:
                       - referenceNumberId: 80
                         referenceType: "PO"
                         referenceNumber: "PO-1001"
@@ -57,7 +57,7 @@ paths:
                         referenceNumber: "BOL-2002"
                       - referenceNumberId: 88
                         delete: true
-                    shipper:
+                    shipperDetails:
                       shipperId: 200
                       entityId: 150
                       shipperName: "Updated Shipper"
@@ -67,7 +67,7 @@ paths:
                       zipCode: "90002"
                       contactPersonName: "Jane Updated"
                       phoneNumber: "+1-555-0102"
-                    consignee:
+                    consigneeDetails:
                       consigneeId: 201
                       entityId: 160
                       consigneeName: "Updated Consignee"
@@ -110,52 +110,108 @@ paths:
                       - handlingUnitId: 44
                         delete: true
                   carrierDetails:
-                    pickup:
+                    pickupDetails:
                       pickupInfoId: 60
                       carrierId: 146
                       terminalId: 148
                       pickupRouting: "PICKUP_ONLY"
                       fromLocationType: "Shipper"
                       fromLocation: "Pickup Warehouse"
+                      fromLocationEntityId: 150
+                      editFromLocation: "N"
+                      editFromLocationDetails:
+                        addressId: 501
+                        addressLine1: "321 Updated St"
+                        addressLine2: "Suite 4"
+                        city: "Los Angeles"
+                        state: "CA"
+                        zipCode: "90002"
                       pickupAgentTerminal: "N"
+                      pickupAgentTerminalDetails:
+                        pickupAgentTerminalId: 63
+                        toLocationType: "Carrier"
+                        toLocation: "Updated Terminal"
+                        toLocationEntityId: 170
+                        editToLocation: "N"
+                        editToLocationDetails:
+                          addressId: 502
+                          addressLine1: "500 Terminal Road"
+                          addressLine2: "Dock 2"
+                          city: "Chicago"
+                          state: "IL"
+                          zipCode: "60601"
                       pickupAccessorial: "N"
                       pickupAlert: "N"
-                    linehaul:
-                      linehaulInfoId: 61
-                      carrierId: 146
-                      terminalId: 148
-                      carrierBillNumber: "LH-999-001"
-                      linehaulRouting: "LINE_HAUL_ONLY"
-                      fromLocationType: "Carrier"
-                      fromLocation: "Carrier Hub"
-                      toLocationType: "Carrier"
-                      toLocation: "Terminal Hub"
-                      etaDate: "2026-08-14"
-                      etaTime: "12:00:00"
-                      pieces: 10
-                      weight: 250
-                    delivery:
-                      deliveryInfoId: 62
-                      carrierId: 146
-                      terminalId: 148
-                      carrierBillNumber: "DL-999-001"
-                      fromLocationType: "Carrier"
-                      fromLocation: "Delivery Hub"
-                      toLocationType: "Consignee"
-                      toLocation: "Consignee Warehouse"
-                      etaDate: "2026-08-15"
-                      etaTime: "10:30:00"
-                      pieces: 10
-                      weight: 200
-                    accessorials:
-                      - accessorialId: 70
-                        chargeType: "FLAT_VALUE"
-                        chargeValue: 50
-                      - accessorialId: 301
-                        chargeType: "FLAT_VALUE"
-                        chargeValue: 75
-                      - accessorialId: 71
-                        delete: true
+                    linehaulDetails:
+                      linehaulPrimaryInfo:
+                        linehaulInfoId: 61
+                        entityId: 1700
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "LH-999-001"
+                        linehaulRouting: "LINE_HAUL_ONLY"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Carrier Hub"
+                        fromLocationEntityId: 170
+                        editFromLocation: "N"
+                        editFromLocationDetails:
+                          addressId: 503
+                          addressLine1: "500 Terminal Road"
+                          addressLine2: "Dock 2"
+                          city: "Chicago"
+                          state: "IL"
+                          zipCode: "60601"
+                        toLocationType: "Carrier"
+                        toLocation: "Terminal Hub"
+                        toLocationEntityId: 180
+                        editToLocation: "Y"
+                        editToLocationDetails:
+                          addressLine1: "800 Hub Avenue"
+                          city: "New York"
+                          state: "NY"
+                          zipCode: "10001"
+                        etaDate: "2026-08-14"
+                        etaTime: "12:00:00"
+                        pieces: 10
+                        weight: 250
+                      linehaulCommonInfo:
+                        linehaulCommonInfoId: 64
+                        linehaulNotes: "Updated handling instructions"
+                        linehaulAccessorial: "N"
+                    deliveryDetails:
+                      deliveryPrimaryInfo:
+                        deliveryInfoId: 62
+                        entityId: 1800
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "DL-999-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Delivery Hub"
+                        fromLocationEntityId: 180
+                        editFromLocation: "N"
+                        editFromLocationDetails:
+                          addressLine1: "800 Hub Avenue"
+                          city: "New York"
+                          state: "NY"
+                          zipCode: "10001"
+                        toLocationType: "Consignee"
+                        toLocation: "Consignee Warehouse"
+                        toLocationEntityId: 160
+                        editToLocation: "N"
+                        editToLocationDetails:
+                          addressLine1: "654 Updated Ave"
+                          city: "New York"
+                          state: "NY"
+                          zipCode: "10002"
+                        etaDate: "2026-08-15"
+                        etaTime: "10:30:00"
+                        pieces: 10
+                        weight: 200
+                      deliveryCommonInfo:
+                        deliveryCommonInfoId: 65
+                        airportTransfer: "N"
+                        deliveryAccessorial: "N"
+                        deliveryAlert: "N"
                   shipmentRateDetails:
                     carrierRateDetails:
                       pickupRateDetails:
@@ -485,13 +541,13 @@ components:
         destinationAirportCode:
           type: string
           example: JFK
-        referenceNumbers:
+        customerReferenceNumbers:
           type: array
           items:
             $ref: "#/components/schemas/CustomerReferenceNumberUpdate"
-        shipper:
+        shipperDetails:
           $ref: "#/components/schemas/ShipperUpdate"
-        consignee:
+        consigneeDetails:
           $ref: "#/components/schemas/ConsigneeUpdate"
 
     HazmatUpdate:
@@ -607,15 +663,90 @@ components:
         accessorialId:
           type: integer
           example: 300
+        pickupAccessorialId:
+          type: integer
+        linehaulAccessorialId:
+          type: integer
+        deliveryAccessorialId:
+          type: integer
+        accessorialName:
+          type: string
         chargeType:
           type: string
           example: FLAT_VALUE
         chargeValue:
           type: number
           example: 50
+        entityId:
+          type: integer
+        noteThreadId:
+          type: integer
+          nullable: true
         delete:
           type: boolean
           example: false
+
+    AccessorialGroupUpdate:
+      type: object
+      properties:
+        accessorials:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccessorialUpdate"
+
+    AddressUpdate:
+      type: object
+      properties:
+        addressId:
+          type: integer
+        addressLine1:
+          type: string
+        addressLine2:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zipCode:
+          type: string
+        delete:
+          type: boolean
+
+    EmailInfoUpdate:
+      type: object
+      properties:
+        primaryEmail:
+          type: string
+          nullable: true
+        additionalEmails:
+          oneOf:
+            - type: array
+              items:
+                type: string
+            - type: string
+          nullable: true
+
+    PickupAgentTerminalUpdate:
+      type: object
+      properties:
+        pickupAgentTerminalId:
+          type: integer
+        toLocationType:
+          type: string
+          enum: [Carrier, Consignee]
+        toLocation:
+          type: string
+        toLocationEntityId:
+          type: integer
+        editToLocation:
+          type: string
+          enum: [Y, N]
+        editToLocationDetails:
+          $ref: "#/components/schemas/AddressUpdate"
+        delete:
+          type: boolean
 
     PickupCarrierUpdate:
       allOf:
@@ -637,24 +768,49 @@ components:
             fromLocation:
               type: string
               example: Pickup Warehouse
+            fromLocationEntityId:
+              type: integer
+              example: 150
+            editFromLocation:
+              type: string
+              enum: [Y, N]
+            editFromLocationDetails:
+              $ref: "#/components/schemas/AddressUpdate"
             pickupAgentTerminal:
               type: string
               enum: [Y, N]
               example: N
+            pickupAgentTerminalDetails:
+              $ref: "#/components/schemas/PickupAgentTerminalUpdate"
             pickupAccessorial:
               type: string
               enum: [Y, N]
               example: N
+            pickupAccessorialDetails:
+              $ref: "#/components/schemas/AccessorialGroupUpdate"
             pickupAlert:
               type: string
               enum: [Y, N]
               example: N
+            pickupAlertDetails:
+              type: object
+              properties:
+                inboundNotes:
+                  type: string
+                emailInfo:
+                  $ref: "#/components/schemas/EmailInfoUpdate"
 
     LinehaulCarrierUpdate:
       allOf:
         - $ref: "#/components/schemas/LinehaulPKDeleteFlag"
         - type: object
           properties:
+            entityId:
+              type: integer
+            fromLocationEntityId:
+              type: integer
+            toLocationEntityId:
+              type: integer
             carrierId:
               type: integer
               example: 146
@@ -673,12 +829,22 @@ components:
             fromLocation:
               type: string
               example: Carrier Hub
+            editFromLocation:
+              type: string
+              enum: [Y, N]
+            editFromLocationDetails:
+              $ref: "#/components/schemas/AddressUpdate"
             toLocationType:
               type: string
               example: Carrier
             toLocation:
               type: string
               example: Terminal Hub
+            editToLocation:
+              type: string
+              enum: [Y, N]
+            editToLocationDetails:
+              $ref: "#/components/schemas/AddressUpdate"
             etaDate:
               type: string
               format: date
@@ -693,11 +859,42 @@ components:
               type: number
               example: 250
 
+    LinehaulCommonUpdate:
+      type: object
+      properties:
+        linehaulCommonInfoId:
+          type: integer
+        linehaulNotes:
+          type: string
+        linehaulAccessorial:
+          type: string
+          enum: [Y, N]
+        linehaulAccessorialDetails:
+          $ref: "#/components/schemas/AccessorialGroupUpdate"
+        delete:
+          type: boolean
+
+    LinehaulDetailsUpdate:
+      type: object
+      properties:
+        linehaulPrimaryInfo:
+          $ref: "#/components/schemas/LinehaulCarrierUpdate"
+        linehaulCommonInfo:
+          $ref: "#/components/schemas/LinehaulCommonUpdate"
+        delete:
+          type: boolean
+
     DeliveryCarrierUpdate:
       allOf:
         - $ref: "#/components/schemas/DeliveryPKDeleteFlag"
         - type: object
           properties:
+            entityId:
+              type: integer
+            fromLocationEntityId:
+              type: integer
+            toLocationEntityId:
+              type: integer
             carrierId:
               type: integer
               example: 146
@@ -713,12 +910,22 @@ components:
             fromLocation:
               type: string
               example: Delivery Hub
+            editFromLocation:
+              type: string
+              enum: [Y, N]
+            editFromLocationDetails:
+              $ref: "#/components/schemas/AddressUpdate"
             toLocationType:
               type: string
               example: Consignee
             toLocation:
               type: string
               example: Consignee Warehouse
+            editToLocation:
+              type: string
+              enum: [Y, N]
+            editToLocationDetails:
+              $ref: "#/components/schemas/AddressUpdate"
             etaDate:
               type: string
               format: date
@@ -733,19 +940,55 @@ components:
               type: number
               example: 200
 
+    DeliveryCommonUpdate:
+      type: object
+      properties:
+        deliveryCommonInfoId:
+          type: integer
+        airportTransfer:
+          type: string
+          enum: [Y, N]
+        deliveryAccessorial:
+          type: string
+          enum: [Y, N]
+        deliveryAccessorialDetails:
+          $ref: "#/components/schemas/AccessorialGroupUpdate"
+        deliveryAlert:
+          type: string
+          enum: [Y, N]
+        deliveryAlertDetails:
+          type: object
+          properties:
+            linehaulNotes:
+              type: string
+            deliveryNotes:
+              type: string
+            emailInfo:
+              $ref: "#/components/schemas/EmailInfoUpdate"
+        delete:
+          type: boolean
+
+    DeliveryDetailsUpdate:
+      type: object
+      properties:
+        deliveryPrimaryInfo:
+          $ref: "#/components/schemas/DeliveryCarrierUpdate"
+        deliveryCommonInfo:
+          $ref: "#/components/schemas/DeliveryCommonUpdate"
+        delete:
+          type: boolean
+
     CarrierUpdate:
       type: object
       properties:
-        pickup:
+        pickupDetails:
           $ref: "#/components/schemas/PickupCarrierUpdate"
-        linehaul:
-          $ref: "#/components/schemas/LinehaulCarrierUpdate"
-        delivery:
-          $ref: "#/components/schemas/DeliveryCarrierUpdate"
-        accessorials:
-          type: array
-          items:
-            $ref: "#/components/schemas/AccessorialUpdate"
+        linehaulDetails:
+          $ref: "#/components/schemas/LinehaulDetailsUpdate"
+        deliveryDetails:
+          $ref: "#/components/schemas/DeliveryDetailsUpdate"
+        delete:
+          type: boolean
 
     RateItemUpdate:
       allOf:

@@ -27,23 +27,48 @@ import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
 
-const AccCheckDialog = ({ state, setAccCheckModal, setValue, watchedAddPickupAccessorial, watchedLinehaulAddAcc, watchedDeliveryAddAcc }) => {
+const AccCheckDialog = ({ state, setAccCheckModal, setValue, watchedAddPickupAccessorial, watchedLinehaulAddAcc, watchedDeliveryAddAcc, PICKUP_MASTER_ACCESSORIALS,
+    LINEHAUL_MASTER_ACCESSORIALS, DELIVERY_MASTER_ACCESSORIALS, setPICKUP_MASTER_Accessorials, setLINEHAUL_MASTER_Accessorials, setDELIVERY_MASTER_Accessorials }) => {
     const { open, acc } = state;
     const onSave = () => {
         // 1. If Pickup Accessorials checkbox is unchecked, clear the pickup array
         if (!watchedAddPickupAccessorial && acc === 'pickup') {
             setValue('carrierInfo.pickupAccessorials', []);
             setValue('carrierRates.pickUp.pickupAccessorials', []);
+            const updatedMasterList = PICKUP_MASTER_ACCESSORIALS?.map((item) => {
+                return {
+                    ...item,
+                    selected: false // Explicitly uncheck this item
+                };
+            });
+            //  Update the master accessorials state
+            setPICKUP_MASTER_Accessorials(updatedMasterList);
         }
         // 2. If Linehaul Accessorials checkbox is unchecked, clear the linehaul array
         if (!watchedLinehaulAddAcc && acc === 'linehaul') {
             setValue('carrierInfo.lineHaul.linehaulAccessorials', []);
             setValue('carrierRates.lineHaul.lineHaulAccessorials', []);
+            const updatedMasterList = LINEHAUL_MASTER_ACCESSORIALS?.map((item) => {
+                return {
+                    ...item,
+                    selected: false // Explicitly uncheck this item
+                };
+            });
+            //  Update the master accessorials state
+            setLINEHAUL_MASTER_Accessorials(updatedMasterList);
         }
         // 3. If Delivery Accessorials checkbox is unchecked, clear the delivery array
         if (!watchedDeliveryAddAcc && acc === 'delivery') {
             setValue('carrierInfo.deliveryDetails.deliveryAccessorials', []);
             setValue('carrierRates.delivery.deliveryAccessorials', []);
+            const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS?.map((item) => {
+                return {
+                    ...item,
+                    selected: false // Explicitly uncheck this item
+                };
+            });
+            //  Update the master accessorials state
+            setDELIVERY_MASTER_Accessorials(updatedMasterList);
         }
         setAccCheckModal({
             open: false,
@@ -52,12 +77,12 @@ const AccCheckDialog = ({ state, setAccCheckModal, setValue, watchedAddPickupAcc
     }
     return (
         <>
-            <Dialog open={open} onClose={(event,reason) => {
+            <Dialog open={open} onClose={(event, reason) => {
                 if (reason === 'backdropClick' || reason === 'escapeKeyDown') return;
                 setAccCheckModal({
-                open: false,
-                acc: ''
-            })
+                    open: false,
+                    acc: ''
+                })
             }} fullWidth>
                 <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee' }}>Information</DialogTitle>
                 <DialogContent>

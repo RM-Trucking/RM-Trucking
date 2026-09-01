@@ -79,7 +79,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     watchedDestinationAirport,
     setActiveStep,
     totals,
-    watchedLinehaulAddAcc, patchNetworkShipment,
+    watchedLinehaulAddAcc, patchNetworkShipment, watch
 }) => {
     const [manifestDialogOpen, setManifestDialogOpen] = useState(false);
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
@@ -158,7 +158,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
             setValue('doDetails.emergencyContactPhone', currentValues.emergencyContactPhone);
         }
     };
-    const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000', whiteSpace: 'nowrap'  };
+    const valueStyle = { fontSize: '0.85rem', fontWeight: 'bold', color: '#000', whiteSpace: 'nowrap' };
     const labelStyle = { fontSize: '0.75rem', color: '#555' };
 
     useEffect(() => {
@@ -462,7 +462,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                             </Box>
                             <Box sx={{ display: 'flex' }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>
-                                <Typography sx={valueStyle}>{getValues('shipmentType')?.replace(/_/g, ' ')}</Typography>
+                                <Typography sx={valueStyle}>{watch('shipmentType')?.replace(/_/g, ' ')}</Typography>
                             </Box>
                         </Stack>
                     </Box>
@@ -473,11 +473,17 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         <Box sx={{ bgcolor: '#bdbdbd', borderRadius: '8px', p: 1, minWidth: '250px' }}>
                             <Box sx={{ display: 'flex', borderBottom: '1px solid #999', pb: 0.5, mb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, flex: 1 }}>Service Level :</Typography>
-                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>{getValues('serviceLevel')}</Typography>
+                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>{watch('serviceLevel')}</Typography>
                             </Box>
+
                             <Box sx={{ display: 'flex' }}>
                                 <Typography sx={{ ...labelStyle, flex: 1 }}>Date Specific :</Typography>
-                                <Typography sx={{ ...valueStyle, textAlign: 'right' }}>{getValues('date')}</Typography>
+                                {/* Format the Dayjs object to a clean string before rendering */}
+                                <Typography sx={{ ...valueStyle, textAlign: 'right' }} >
+                                    {watch('date') && dayjs(watch('date')).isValid()
+                                        ? dayjs(watch('date')).format('MM/DD/YYYY')
+                                        : '-'}
+                                </Typography>
                             </Box>
                         </Box>
 

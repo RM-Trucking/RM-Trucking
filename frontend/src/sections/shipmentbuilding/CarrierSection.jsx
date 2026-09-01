@@ -343,7 +343,8 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                           size="small"
                           onClick={() => {
                             // 1. Fetch the entire current object at this specific index from React Hook Form state
-                            const currentItem = getValues(`carrierRates.pickUp.pickupAccessorials[${index}]`);
+                            // const currentItem = getValues(`carrierRates.pickUp.pickupAccessorials[${index}]`);
+                            const currentItem = fields[index];
 
                             // 2. Fetch the current text/number stored inside your custom input field
                             const typedInputValue = getValues(`${path}[${index}].input`);
@@ -484,9 +485,15 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
                     size="small"
                     onClick={() => {
                       // 1. Get the current value from the form
+                      const currentItem = fields[index];
                       const currentVal = getValues(`${path}[${index}].chargeValue`);
                       // 2. Get the original value from the fields array
-                      const originalVal = item.chargeValue;
+                      const originalVal = item.apiCharges;
+
+                      updateAccessorials(index, {
+                        ...currentItem,
+                        chargeValue: currentVal // Inject the freshly committed value into the target key
+                      });
 
                       // 3. If they differ, update the 'isManual' key in the form state
                       if (currentVal !== originalVal) {

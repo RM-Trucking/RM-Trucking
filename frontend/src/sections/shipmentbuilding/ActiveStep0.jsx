@@ -237,22 +237,18 @@ const ActiveStep0 = ({ control,
                                         textField: {
                                             variant: 'standard',
                                             fullWidth: true,
+                                            // Force boolean conversion
                                             error: !!errors.date,
-                                            helperText: errors.date ? errors.date.message : '',
+                                            // Ensure we only render string messages, never objects
+                                            helperText: errors.date && typeof errors.date.message === 'string' ? errors.date.message : '',
                                             sx: {
-                                                '& .MuiInputBase-input.Mui-disabled': {
-                                                    WebkitTextFillColor: '#000000',
-                                                    color: '#000000',
-                                                },
-                                                '& .MuiInputLabel-root.Mui-disabled': {
-                                                    color: '#000000',
-                                                },
-                                                '& .MuiInput-root.Mui-disabled:before': {
-                                                    borderBottomColor: '#000000',
-                                                }
+                                                '& .MuiInputBase-input.Mui-disabled': { WebkitTextFillColor: '#000000', color: '#000000' },
+                                                '& .MuiInputLabel-root.Mui-disabled': { color: '#000000' },
+                                                '& .MuiInput-root.Mui-disabled:before': { borderBottomColor: '#000000' }
                                             }
                                         }
                                     }}
+
                                     disabled={type === "View"}
                                 />
                             )}

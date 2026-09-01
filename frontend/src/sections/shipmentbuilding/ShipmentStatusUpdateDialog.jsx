@@ -26,6 +26,7 @@ import NotesTableForAccessorials from './NotesTableForAccessorials';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import CloseIcon from '@mui/icons-material/Close';
 import {
   getCustomerStationDropdown, getCarrierTerminalDropdown, searchCustomerStationDropdown,
   getShipperDropdown, getConsigneeDropdown, getShipperAirlineDropdown,
@@ -119,7 +120,16 @@ const ShipmentStatusUpdateDialog = ({ open, onClose, setValue, getValues, contro
         maxWidth: 'none',
       }
     }}>
-      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>Shipment Status</DialogTitle>
+      <DialogTitle sx={{ fontWeight: 'bold', borderBottom: '1px solid #eee', py: 2 }}>
+        <Box display="flex" alignItems="center" justifyContent="space-between">
+          <Typography variant="h6" sx={{ fontWeight: '600', color: '#111', fontSize: '1.1rem' }}>
+            Shipment Status
+          </Typography>
+          <IconButton onClick={onClose} aria-label="close" size="small">
+            <CloseIcon sx={{ color: '#000', fontSize: '1.2rem' }} />
+          </IconButton>
+        </Box>
+      </DialogTitle>
       <DialogContent sx={{ mt: 2, pb: 4 }}>
         <LocalizationProvider dateAdapter={AdapterDayjs}>
           <Box>

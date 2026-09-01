@@ -25,7 +25,7 @@ import SharedSearchField from '../shared/SharedSearchField';
 import ShipmentViewTable from './ShipmentViewTable';
 
 import {
-    setError, getCarrierTerminalDropdown
+    setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj
 } from '../../redux/slices/shipmentbuilding';
 // ----------------------------------------------------------------------
 
@@ -98,6 +98,7 @@ export default function HomePage() {
     };
 
     const onClickOfNewDashboard = () => {
+        dispatch(setSelectedShipmentBuildObj({}));
         // route to shipment
         navigate(PATH_DASHBOARD.shipmentBuilding.shipmentAdd);
     }

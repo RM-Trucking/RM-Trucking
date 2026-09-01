@@ -123,6 +123,7 @@ const AddAccessorialDialog = ({ open, onClose, onSave, actionType, setActionType
         else if (actionType === 'Edit') {
             const dataObj = {
                 accessorialId: editableObj.accessorialId,
+                entityId : editableObj.entityId,
                 accessorialName: editableObj.accessorialName,
                 chargeType: data.chargesType,
                 chargeValue: data.charges,

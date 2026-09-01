@@ -21,9 +21,9 @@ export const updateControls = (dispatch, setValue, selectedObj,
     const pickupDetails = selectedObj?.carrierDetails?.pickupDetails;
     const linehaulDetails = selectedObj?.carrierDetails?.linehaulDetails;
     const deliveryDetails = selectedObj?.carrierDetails?.deliveryDetails;
-    const pickupRateDetails = selectedObj?.shipmentRateDetails?.pickupRateDetails;
-    const linehaulRateDetails = selectedObj?.shipmentRateDetails?.linehaulRateDetails;
-    const deliveryRateDetails = selectedObj?.shipmentRateDetails?.deliveryRateDetails;
+    const pickupRateDetails = selectedObj?.shipmentRateDetails?.carrierRateDetails?.pickupRateDetails;
+    const linehaulRateDetails = selectedObj?.shipmentRateDetails?.carrierRateDetails?.linehaulRateDetails;
+    const deliveryRateDetails = selectedObj?.shipmentRateDetails?.carrierRateDetails?.deliveryRateDetails;
     const customerRateDetails = selectedObj?.shipmentRateDetails?.customerRateDetails;
 
     // step 1
@@ -124,7 +124,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
             weightUnit: (hu.handlingWeightUnit).toLowerCase() === 'lb' ? 'lbs' : (hu.handlingWeightUnit).toLowerCase() === 'kg' ? 'kgs' : '',
             class: hu.class || '',
             calculatedFC: '',
-            badFreight : hu?.badFreight || false,
+            badFreight: hu?.badFreight || false,
             freightClass: ['50', '55', '60', '65', '70', '85', '92.5', '100', '125', '175', '250', '300', '400'],
             items: (hu.palletDetails || []).map((pallet, pIndex) => ({
                 id: Date.now() + huIndex + pIndex + 1000, // Added unique ID for nested items
@@ -237,7 +237,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.pcs', deliveryDetails?.deliveryPrimaryInfo?.pieces);
         setValue('carrierInfo.deliveryDetails.weight', deliveryDetails?.deliveryPrimaryInfo?.weight);
         setValue('carrierInfo.deliveryDetails.deliveryAddAcc', deliveryDetails?.deliveryCommonInfo?.deliveryAccessorial === 'Y');
-        setValue('carrierInfo.deliveryDetails.deliveryAlert', deliveryDetails?.deliveryCommonInfo?.deliveryAlert === 'Y');
+        setValue('carrierInfo.deliveryDetails.deliveryAlert', deliveryDetails?.deliveryCommonInfo?.deliveryAlert === 'Y' ? true : false);
         const updatedAccessorials = (deliveryDetails?.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials || []).map((item) => ({
             ...item,
             isManual: false,
@@ -349,7 +349,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
 };
 export const updateStep2Controls = (dispatch, setValue, selectedObj,
     customerStationDropdown, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown,
-    carrierTerminalDropdown
+    carrierTerminalDropdown, getValues
 ) => {
     const customerDetails = selectedObj?.customerDetails;
     const pickupDetails = selectedObj?.carrierDetails?.pickupDetails;
@@ -363,28 +363,28 @@ export const updateStep2Controls = (dispatch, setValue, selectedObj,
         dispatch(getStationAccessorialData(selectedStation?.stationEntityId));
         setValue('billingCustomer', selectedStation);
 
-        if (customerDetails?.airportPickupService === 'Y') {
+        if (getValues('airportPickupService')) {
             const selectedAirline = shipperAirlineDropdown?.find(
                 (item) => item?.airlineId === customerDetails?.pickupAirlineDetails?.airlineId
             ) || null;
             setValue('shipperName', selectedAirline);
 
         }
-        else if (customerDetails?.airportPickupService === 'N') {
+        else if (!getValues('airportPickupService')) {
             const selectedShipper = shipperDropdown?.find(
                 (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
             ) || null;
             setValue('shipperName', selectedShipper);
 
         }
-        if (customerDetails?.airportDeliveryService === 'Y') {
+        if (getValues('airportDeliveryService')) {
             const selectedAirline = consigneeAirlineDropdown?.find(
                 (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
             ) || null;
             setValue('consigneeName', selectedAirline);
 
         }
-        else if (customerDetails?.airportDeliveryService === 'N') {
+        else if (!getValues('airportDeliveryService')) {
             const selectedConsignee = consigneeDropdown?.find(
                 (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
             ) || null;
@@ -447,76 +447,6 @@ export const updateStep2Controls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.city', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.city);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.state', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state);
         setValue('carrierInfo.deliveryDetails.manualToLocationDetails.zip', deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode);
-    }
-    // setting
-    if (customerDetails && Object.keys(customerDetails).length > 0) {
-        const selectedStation = customerStationDropdown?.find(
-            (item) => item?.customerId === customerDetails?.customerId && item?.stationId === customerDetails?.stationId
-        ) || null;
-        setValue('billingCustomer', selectedStation);
-        setValue('airportPickupService', customerDetails?.airportPickupService === 'Y' ? true : false);
-        setValue('originAirport', customerDetails?.originAirportCode);
-        setValue('airportDeliveryService', customerDetails?.airportDeliveryService === 'Y' ? true : false);
-        setValue('destinationAirport', customerDetails?.destinationAirportCode);
-        setValue('referenceTableRows', (customerDetails?.customerReferenceNumbers || []).map((row, index) => ({
-            id: Date.now() + index,
-            ...row
-        })), {
-            shouldValidate: true,
-            shouldDirty: true
-        });
-        if (customerDetails?.airportPickupService === 'Y') {
-            const selectedAirline = shipperAirlineDropdown?.find(
-                (item) => item?.airlineId === customerDetails?.pickupAirlineDetails?.airlineId
-            ) || null;
-            setValue('shipperName', selectedAirline);
-            setValue('shipperAddr1', customerDetails?.pickupAirlineDetails?.addressLine1);
-            setValue('shipperAddr2', customerDetails?.pickupAirlineDetails?.addressLine2);
-            setValue('shipperCity', customerDetails?.pickupAirlineDetails?.city);
-            setValue('shipperState', customerDetails?.pickupAirlineDetails?.state);
-            setValue('shipperZip', customerDetails?.pickupAirlineDetails?.zipCode);
-            setValue('shipperContact', customerDetails?.pickupAirlineDetails?.contactPersonName);
-            setValue('shipperPhone', customerDetails?.pickupAirlineDetails?.phoneNumber);
-        }
-        else if (customerDetails?.airportPickupService === 'N') {
-            const selectedShipper = shipperDropdown?.find(
-                (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
-            ) || null;
-            setValue('shipperName', selectedShipper);
-            setValue('shipperAddr1', customerDetails?.shipperDetails?.addressLine1);
-            setValue('shipperAddr2', customerDetails?.shipperDetails?.addressLine2);
-            setValue('shipperCity', customerDetails?.shipperDetails?.city);
-            setValue('shipperState', customerDetails?.shipperDetails?.state);
-            setValue('shipperZip', customerDetails?.shipperDetails?.zipCode);
-            setValue('shipperContact', customerDetails?.shipperDetails?.contactPersonName);
-            setValue('shipperPhone', customerDetails?.shipperDetails?.phoneNumber);
-        }
-        if (customerDetails?.airportDeliveryService === 'Y') {
-            const selectedAirline = consigneeAirlineDropdown?.find(
-                (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
-            ) || null;
-            setValue('consigneeName', selectedAirline);
-            setValue('consigneeAddr1', customerDetails?.deliveryAirlineDetails?.addressLine1);
-            setValue('consigneeAddr2', customerDetails?.deliveryAirlineDetails?.addressLine2);
-            setValue('consigneeCity', customerDetails?.deliveryAirlineDetails?.city);
-            setValue('consigneeState', customerDetails?.deliveryAirlineDetails?.state);
-            setValue('consigneeZip', customerDetails?.deliveryAirlineDetails?.zipCode);
-            setValue('consigneeContact', customerDetails?.deliveryAirlineDetails?.contactPersonName);
-            setValue('consigneePhone', customerDetails?.deliveryAirlineDetails?.phoneNumber);
-        }
-        else if (customerDetails?.airportDeliveryService === 'N') {
-            const selectedConsignee = consigneeDropdown?.find(
-                (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
-            ) || null;
-            setValue('consigneeName', selectedConsignee);
-            setValue('consigneeAddr1', customerDetails?.consigneeDetails?.addressLine1);
-            setValue('consigneeAddr2', customerDetails?.consigneeDetails?.addressLine2);
-            setValue('consigneeCity', customerDetails?.consigneeDetails?.city);
-            setValue('consigneeState', customerDetails?.consigneeDetails?.state);
-            setValue('consigneeZip', customerDetails?.consigneeDetails?.zipCode);
-            setValue('consigneeContact', customerDetails?.consigneeDetails?.contactPersonName);
-            setValue('consigneePhone', customerDetails?.consigneeDetails?.phoneNumber);
-        }
     }
 };
 

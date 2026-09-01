@@ -178,7 +178,6 @@ const ShipmentPage = ({ type }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
-
   const filter = createFilterOptions();
 
   const {
@@ -1079,27 +1078,36 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
+        chargeValue: Number(watchedCRPickupAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRPickupAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
+    } else if (watchedCarrierInfo?.pickupAccessorials?.length === 0) {
+      setValue('carrierRates.pickUp.pickupAccessorials', []);
     }
     if (watchedCarrierInfo?.lineHaul?.linehaulAccessorials?.length > 0) {
       const updatedLineHaulAcc = watchedCarrierInfo.lineHaul.linehaulAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
+        chargeValue: Number(watchedCRLinehaulAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRLinehaulAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
+    } else if (watchedCarrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
+      setValue('carrierRates.lineHaul.lineHaulAccessorials', []);
     }
     if (watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials?.length > 0) {
       const updatedDeliveryAcc = watchedCarrierInfo.deliveryDetails.deliveryAccessorials.map((acc, index) => ({
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
+        chargeValue: Number(watchedCRDeliveryAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRDeliveryAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);
+    } else if (watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
+      setValue('carrierRates.delivery.deliveryAccessorials', []);
     }
 
   }, [watchedCarrierInfo])
@@ -1113,6 +1121,8 @@ const ShipmentPage = ({ type }) => {
         chargeType: selectedData.chargeType,
         chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
+        entityId: selectedData?.entityId,
+        accessorialId: selectedData?.accessorialId || selectedData?.id
       });
     }
     if (activeAccType === 'LineHaul') {
@@ -1123,6 +1133,8 @@ const ShipmentPage = ({ type }) => {
         chargeType: selectedData.chargeType,
         chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
+        entityId: selectedData?.entityId,
+        accessorialId: selectedData?.accessorialId || selectedData?.id
       }
       );
     }
@@ -1133,6 +1145,8 @@ const ShipmentPage = ({ type }) => {
         chargeType: selectedData.chargeType,
         chargeValue: selectedData.chargeValue,
         notes: selectedData.notes,
+        entityId: selectedData?.entityId,
+        accessorialId: selectedData?.accessorialId || selectedData?.id
       });
     }
     setActionType('');
@@ -1542,6 +1556,21 @@ const ShipmentPage = ({ type }) => {
       setValue('shipperContact', '');
       setValue('shipperPhone', '');
     }
+    // if false if there are values and edit give previous values
+    if (watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
+      const customerDetails = selectedShipmentBuildObj?.customerDetails;
+      const selectedShipper = shipperDropdown?.find(
+        (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
+      ) || null;
+      setValue('shipperName', selectedShipper);
+      setValue('shipperAddr1', customerDetails?.shipperDetails?.addressLine1);
+      setValue('shipperAddr2', customerDetails?.shipperDetails?.addressLine2);
+      setValue('shipperCity', customerDetails?.shipperDetails?.city);
+      setValue('shipperState', customerDetails?.shipperDetails?.state);
+      setValue('shipperZip', customerDetails?.shipperDetails?.zipCode);
+      setValue('shipperContact', customerDetails?.shipperDetails?.contactPersonName);
+      setValue('shipperPhone', customerDetails?.shipperDetails?.phoneNumber);
+    }
   }, [watchedAirportPickupService])
   useEffect(() => {
     if (watchedAirportDeliveryService !== undefined) {
@@ -1555,6 +1584,21 @@ const ShipmentPage = ({ type }) => {
       setValue('consigneeContact', '');
       setValue('consigneePhone', '');
     }
+    if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
+      const customerDetails = selectedShipmentBuildObj?.customerDetails;
+      const selectedConsignee = consigneeDropdown?.find(
+        (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
+      ) || null;
+      setValue('consigneeName', selectedConsignee);
+      setValue('consigneeAddr1', customerDetails?.consigneeDetails?.addressLine1);
+      setValue('consigneeAddr2', customerDetails?.consigneeDetails?.addressLine2);
+      setValue('consigneeCity', customerDetails?.consigneeDetails?.city);
+      setValue('consigneeState', customerDetails?.consigneeDetails?.state);
+      setValue('consigneeZip', customerDetails?.consigneeDetails?.zipCode);
+      setValue('consigneeContact', customerDetails?.consigneeDetails?.contactPersonName);
+      setValue('consigneePhone', customerDetails?.consigneeDetails?.phoneNumber);
+    }
+    // if false if there are values and edit give previous values
   }, [watchedAirportDeliveryService])
   useEffect(() => {
     if (pickupAccessorialsByEntityId.length > 0) {
@@ -1675,7 +1719,8 @@ const ShipmentPage = ({ type }) => {
   useEffect(() => {
     if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
       updateStep2Controls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
     }
   }, [type, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, customerStationDropdown, carrierTerminalDropdown])
 
@@ -1741,6 +1786,7 @@ const ShipmentPage = ({ type }) => {
             totals={totals}
             watchedLinehaulAddAcc={watchedLinehaulAddAcc}
             patchNetworkShipment={patchNetworkShipment}
+            watch={watch}
           />
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog
@@ -2140,7 +2186,8 @@ const ShipmentPage = ({ type }) => {
           setValue={setValue}
           getValues={getValues}
         />
-        <AccCheckDialog state={accCheckModal} setAccCheckModal={setAccCheckModal} setValue={setValue} watchedAddPickupAccessorial={watchedAddPickupAccessorial} watchedLinehaulAddAcc={watchedLinehaulAddAcc} watchedDeliveryAddAcc={watchedDeliveryAddAcc} />
+        <AccCheckDialog state={accCheckModal} setAccCheckModal={setAccCheckModal} setValue={setValue} watchedAddPickupAccessorial={watchedAddPickupAccessorial} watchedLinehaulAddAcc={watchedLinehaulAddAcc} watchedDeliveryAddAcc={watchedDeliveryAddAcc} PICKUP_MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS} LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS} DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS} setPICKUP_MASTER_Accessorials={setPICKUP_MASTER_Accessorials}
+          setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials} setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials} />
         <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
           if (event.key === 'Escape') {
             handleNotesCloseConfirmForShipmentAccs();

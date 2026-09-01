@@ -273,11 +273,43 @@ export async function editHandlingUnitsRecord(
 export async function editPickupInfoRecord(
     conn: Connection,
     shipmentId: number,
-    pickupDetails: UpdatePickupDetails & { entityId?: number }
+    pickupDetails: UpdatePickupDetails & { entityId?: number },
+    userId: number
 ) {
-    console.log("[editShipmentFlow] editPickupInfoRecord start", { shipmentId, pickupDetails });
+    console.log("[editShipmentFlow] editPickupInfoRecord start", { shipmentId, userId, pickupDetails });
     if (!shipmentId) throw new Error("Shipment ID is required");
-    await shipmentDB.replacePickupInfo(conn, shipmentId, pickupDetails as Record<string, any>);
+
+    const existingEntityId = await shipmentDB.getExistingPickupEntityId(conn, shipmentId);
+    const entityId = pickupDetails.entityId ?? pickupDetails.fromLocationEntityId ?? existingEntityId;
+    if (!entityId) {
+        throw new Error("Pickup entityId is required. Provide entityId/fromLocationEntityId or ensure the shipment has an existing pickup record.");
+    }
+
+    const accessorials = pickupDetails.pickupAccessorialDetails?.accessorials ?? [];
+    const accessorialsWithNoteThreads = await Promise.all(
+        accessorials.map(async (accessorial: any) => ({
+            ...accessorial,
+            entityId: accessorial.entityId ?? entityId,
+            noteThreadId: accessorial.noteThreadId ?? await createNoteThreadRecord(conn, accessorial.entityId ?? entityId, userId),
+        }))
+    );
+
+    const resolvedPickupDetails = {
+        ...pickupDetails,
+        entityId,
+        pickupAccessorialDetails: pickupDetails.pickupAccessorialDetails
+            ? { ...pickupDetails.pickupAccessorialDetails, accessorials: accessorialsWithNoteThreads }
+            : undefined,
+    };
+
+    console.log("[editShipmentFlow] resolved pickup identifiers", {
+        shipmentId,
+        entityId,
+        existingEntityId,
+        accessorialCount: accessorialsWithNoteThreads.length,
+        noteThreadIds: accessorialsWithNoteThreads.map((accessorial) => accessorial.noteThreadId),
+    });
+    await shipmentDB.replacePickupInfo(conn, shipmentId, resolvedPickupDetails as Record<string, any>);
     console.log("[editShipmentFlow] editPickupInfoRecord complete", { shipmentId });
     return { shipmentId };
 }
@@ -285,10 +317,56 @@ export async function editPickupInfoRecord(
 export async function editLinehaulInfoRecord(
     conn: Connection,
     shipmentId: number,
-    linehaulDetails: UpdateLinehaulDetails
+    linehaulDetails: UpdateLinehaulDetails,
+    userId: number
 ) {
-    console.log("[editShipmentFlow] editLinehaulInfoRecord start", { shipmentId, linehaulDetails });
+    console.log("[editShipmentFlow] editLinehaulInfoRecord start", { shipmentId, userId, linehaulDetails });
     if (!shipmentId) throw new Error("Shipment ID is required");
+
+    const primary = linehaulDetails.linehaulPrimaryInfo;
+    const existingEntityId = await shipmentDB.getExistingLinehaulEntityId(conn, shipmentId);
+    const entityId = primary?.entityId ?? existingEntityId ?? (
+        primary
+            ? await createRelatedEntityRecord(conn, "LINEHAUL", `Linehaul for shipment ${shipmentId}`)
+            : undefined
+    );
+    const accessorials = linehaulDetails.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials ?? [];
+    if (!entityId && (primary || accessorials.length > 0)) {
+        throw new Error("Linehaul entityId is required. Provide it or ensure the shipment has an existing linehaul record.");
+    }
+
+    if (primary || accessorials.length > 0) {
+        const accessorialsWithNoteThreads = await Promise.all(
+            accessorials.map(async (accessorial: any) => ({
+                ...accessorial,
+                entityId: accessorial.entityId ?? entityId,
+                noteThreadId: accessorial.noteThreadId ?? await createNoteThreadRecord(conn, accessorial.entityId ?? entityId, userId),
+            }))
+        );
+
+        linehaulDetails = {
+            ...linehaulDetails,
+            linehaulPrimaryInfo: primary ? { ...primary, entityId } : undefined,
+            linehaulCommonInfo: linehaulDetails.linehaulCommonInfo
+                ? {
+                    ...linehaulDetails.linehaulCommonInfo,
+                    linehaulAccessorialDetails: linehaulDetails.linehaulCommonInfo.linehaulAccessorialDetails
+                        ? { ...linehaulDetails.linehaulCommonInfo.linehaulAccessorialDetails, accessorials: accessorialsWithNoteThreads }
+                        : undefined,
+                }
+                : undefined,
+        };
+
+        console.log("[editShipmentFlow] resolved linehaul identifiers", {
+            shipmentId,
+            userId,
+            entityId,
+            existingEntityId,
+            accessorialCount: accessorialsWithNoteThreads.length,
+            noteThreadIds: accessorialsWithNoteThreads.map((accessorial) => accessorial.noteThreadId),
+        });
+    }
+
     await shipmentDB.replaceLinehaulInfo(conn, shipmentId, linehaulDetails as Record<string, any>);
     console.log("[editShipmentFlow] editLinehaulInfoRecord complete", { shipmentId });
     return { shipmentId };
@@ -297,10 +375,55 @@ export async function editLinehaulInfoRecord(
 export async function editDeliveryInfoRecord(
     conn: Connection,
     shipmentId: number,
-    deliveryDetails: UpdateDeliveryDetails
+    deliveryDetails: UpdateDeliveryDetails,
+    userId: number
 ) {
-    console.log("[editShipmentFlow] editDeliveryInfoRecord start", { shipmentId, deliveryDetails });
+    console.log("[editShipmentFlow] editDeliveryInfoRecord start", { shipmentId, userId, deliveryDetails });
     if (!shipmentId) throw new Error("Shipment ID is required");
+
+    const primary = deliveryDetails.deliveryPrimaryInfo;
+    const existingEntityId = await shipmentDB.getExistingDeliveryEntityId(conn, shipmentId);
+    const entityId = primary?.entityId ?? existingEntityId ?? (
+        primary
+            ? await createRelatedEntityRecord(conn, "DELIVERY", `Delivery for shipment ${shipmentId}`)
+            : undefined
+    );
+    const accessorials = deliveryDetails.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials ?? [];
+    if (!entityId && (primary || accessorials.length > 0)) {
+        throw new Error("Delivery entityId is required. Provide it or ensure the shipment has an existing delivery record.");
+    }
+
+    if (primary || accessorials.length > 0) {
+        const accessorialsWithNoteThreads = await Promise.all(
+            accessorials.map(async (accessorial: any) => ({
+                ...accessorial,
+                entityId: accessorial.entityId ?? entityId,
+                noteThreadId: accessorial.noteThreadId ?? await createNoteThreadRecord(conn, accessorial.entityId ?? entityId, userId),
+            }))
+        );
+
+        deliveryDetails = {
+            ...deliveryDetails,
+            deliveryPrimaryInfo: primary ? { ...primary, entityId } : undefined,
+            deliveryCommonInfo: deliveryDetails.deliveryCommonInfo
+                ? {
+                    ...deliveryDetails.deliveryCommonInfo,
+                    deliveryAccessorialDetails: deliveryDetails.deliveryCommonInfo.deliveryAccessorialDetails
+                        ? { ...deliveryDetails.deliveryCommonInfo.deliveryAccessorialDetails, accessorials: accessorialsWithNoteThreads }
+                        : undefined,
+                }
+                : undefined,
+        };
+        console.log("[editShipmentFlow] resolved delivery identifiers", {
+            shipmentId,
+            userId,
+            entityId,
+            existingEntityId,
+            accessorialCount: accessorialsWithNoteThreads.length,
+            noteThreadIds: accessorialsWithNoteThreads.map((accessorial) => accessorial.noteThreadId),
+        });
+    }
+
     await shipmentDB.replaceDeliveryInfo(conn, shipmentId, deliveryDetails as Record<string, any>);
     console.log("[editShipmentFlow] editDeliveryInfoRecord complete", { shipmentId });
     return { shipmentId };
@@ -388,13 +511,13 @@ export async function editShipmentFlow(
         }
 
         const shipperDetails = customerDetails ? getShipperDetail(customerDetails) : undefined;
-        if (customerDetails?.airportPickupService === "N" && shipperDetails) {
+        if (shipperDetails) {
             console.log("[editShipmentFlow] processing shipperDetails", { shipmentId, shipperDetails });
             await editShipperInfoRecord(conn, shipmentId, shipperDetails);
         }
 
         const consigneeDetails = customerDetails ? getConsigneeDetail(customerDetails) : undefined;
-        if (customerDetails?.airportDeliveryService === "N" && consigneeDetails) {
+        if (consigneeDetails) {
             console.log("[editShipmentFlow] processing consigneeDetails", { shipmentId, consigneeDetails });
             await editConsigneeInfoRecord(conn, shipmentId, consigneeDetails);
         }
@@ -422,17 +545,17 @@ export async function editShipmentFlow(
         const carrierDetails = payload.carrierDetails as UpdateCarrierDetails | undefined;
         if (carrierDetails?.pickupDetails) {
             console.log("[editShipmentFlow] processing pickupDetails", { shipmentId, pickupDetails: carrierDetails.pickupDetails });
-            await editPickupInfoRecord(conn, shipmentId, carrierDetails.pickupDetails as UpdatePickupDetails & { entityId?: number });
+            await editPickupInfoRecord(conn, shipmentId, carrierDetails.pickupDetails as UpdatePickupDetails & { entityId?: number }, userId);
         }
 
         if (carrierDetails?.linehaulDetails) {
             console.log("[editShipmentFlow] processing linehaulDetails", { shipmentId, linehaulDetails: carrierDetails.linehaulDetails });
-            await editLinehaulInfoRecord(conn, shipmentId, carrierDetails.linehaulDetails as UpdateLinehaulDetails);
+            await editLinehaulInfoRecord(conn, shipmentId, carrierDetails.linehaulDetails as UpdateLinehaulDetails, userId);
         }
 
         if (carrierDetails?.deliveryDetails) {
             console.log("[editShipmentFlow] processing deliveryDetails", { shipmentId, deliveryDetails: carrierDetails.deliveryDetails });
-            await editDeliveryInfoRecord(conn, shipmentId, carrierDetails.deliveryDetails as UpdateDeliveryDetails);
+            await editDeliveryInfoRecord(conn, shipmentId, carrierDetails.deliveryDetails as UpdateDeliveryDetails, userId);
         }
 
         if (payload.shipmentRateDetails) {

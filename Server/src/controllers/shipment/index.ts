@@ -111,26 +111,3 @@ export async function editShipmentFlow(req: Request, res: Response, conn: Connec
     }
 }
 
-export async function updateNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const shipmentId = Number(req.params.shipmentId);
-        if (Number.isNaN(shipmentId) || shipmentId <= 0) {
-            res.status(400).json({ success: false, message: "Invalid shipmentId" });
-            return;
-        }
-
-        const payload = req.body;
-        const userId = (req as any).user?.userId || 1;
-
-        const result = await shipmentService.editShipmentFlow(conn, shipmentId, payload, userId);
-
-        res.status(200).json({
-            success: true,
-            message: "Shipment update successful",
-            data: result
-        });
-    } catch (error: any) {
-        console.log(error);
-        res.status(400).json({ success: false, message: error.message });
-    }
-}

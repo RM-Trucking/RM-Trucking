@@ -43,7 +43,7 @@ export async function createNetworkShipmentAddress(
 ): Promise<{ addressId: number }> {
     const payload: Record<string, SqlValue> = {
         line1: addressDetails.addressLine1,
-        line2: addressDetails.addressLine2 ?? "",
+        line2: addressDetails.addressLine2 ?? addressDetails.line2 ?? "",
         city: addressDetails.city,
         state: addressDetails.state,
         zipCode: addressDetails.zipCode,
@@ -67,6 +67,63 @@ export async function createNetworkShipmentEntityAddressMapping(
     };
 
     return insertWithReturning(conn, '"Entity_Network_Shipment_Address_Map"', payload);
+}
+
+export async function getExistingPickupEntityId(
+    conn: Connection,
+    shipmentId: number
+): Promise<number | undefined> {
+    const result = await conn.query(
+        `SELECT "entityId" FROM ${SCHEMA}."Network_Shipment_Pickup_Info"
+         WHERE "shipmentId" = ?
+         FETCH FIRST 1 ROW ONLY`,
+        [shipmentId]
+    ) as any[];
+
+    return result[0]?.entityId;
+}
+
+export async function getExistingLinehaulEntityId(
+    conn: Connection,
+    shipmentId: number
+): Promise<number | undefined> {
+    const result = await conn.query(
+        `SELECT "entityId" FROM ${SCHEMA}."Network_Shipment_Linehaul_Info"
+         WHERE "shipmentId" = ?
+         FETCH FIRST 1 ROW ONLY`,
+        [shipmentId]
+    ) as any[];
+
+    return result[0]?.entityId;
+}
+
+export async function getExistingDeliveryEntityId(
+    conn: Connection,
+    shipmentId: number
+): Promise<number | undefined> {
+    const result = await conn.query(
+        `SELECT "entityId" FROM ${SCHEMA}."Network_Shipment_Delivery_Info"
+         WHERE "shipmentId" = ?
+         FETCH FIRST 1 ROW ONLY`,
+        [shipmentId]
+    ) as any[];
+
+    return result[0]?.entityId;
+}
+
+async function clearAddressMapping(
+    conn: Connection,
+    entityId: number | undefined,
+    addressType: "FROM" | "TO",
+    locationType: "PICKUP" | "LINE_HAUL" | "DELIVERY"
+): Promise<void> {
+    if (!entityId) return;
+
+    await conn.query(
+        `DELETE FROM ${SCHEMA}."Entity_Network_Shipment_Address_Map"
+         WHERE "entityId" = ? AND "addressType" = ? AND "locationType" = ?`,
+        [entityId, addressType, locationType]
+    );
 }
 
 export async function updateNetworkShipment(
@@ -176,8 +233,12 @@ export async function replaceShipmentEntityMapping(
     if (!entityId) return undefined;
 
     await conn.query(
-        `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" WHERE "shipmentId" = ? AND "entityId" = ?`,
-        [shipmentId, entityId]
+        `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+         WHERE "shipmentId" = ?
+           AND "entityId" IN (
+               SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = ?
+           )`,
+        [shipmentId, entityType]
     );
 
     await insertWithReturning(conn, '"Network_Shipment_Shipper_Consignee_Airline_Mapping"', {
@@ -426,18 +487,34 @@ export async function replacePickupInfo(
         pickupAlert: pickupDetails.pickupAlert,
     });
 
-    if (pickupDetails.pickupAgentTerminal === "Y" && pickupDetails.pickupAgentTerminalDetails) {
+    if (pickupDetails.editFromLocationDetails) {
+        const fromEntityId = pickupDetails.fromLocationEntityId ?? pickup.entityId;
+        if (fromEntityId) {
+            await clearAddressMapping(conn, fromEntityId, "FROM", "PICKUP");
+            const createdAddress = await createNetworkShipmentAddress(conn, pickupDetails.editFromLocationDetails);
+            await createNetworkShipmentEntityAddressMapping(conn, fromEntityId, createdAddress.addressId, "FROM", "PICKUP");
+        }
+    }
+
+    if (pickupDetails.pickupAgentTerminalDetails) {
         await insertWithReturning(conn, '"Network_Shipment_Pickup_Agent_Terminal_Info"', {
             shipmentId,
-            entityId: pickup.entityId,
             toLocationType: pickupDetails.pickupAgentTerminalDetails.toLocationType,
             toLocation: pickupDetails.pickupAgentTerminalDetails.toLocation,
             toLocationEntityId: pickupDetails.pickupAgentTerminalDetails.toLocationEntityId,
             editToLocation: pickupDetails.pickupAgentTerminalDetails.editToLocation,
         });
+
+        const terminalAddress = pickupDetails.pickupAgentTerminalDetails.editToLocationDetails;
+        const terminalEntityId = pickupDetails.pickupAgentTerminalDetails.toLocationEntityId ?? pickup.entityId;
+        if (terminalAddress && terminalEntityId) {
+            await clearAddressMapping(conn, terminalEntityId, "TO", "PICKUP");
+            const createdAddress = await createNetworkShipmentAddress(conn, terminalAddress);
+            await createNetworkShipmentEntityAddressMapping(conn, terminalEntityId, createdAddress.addressId, "TO", "PICKUP");
+        }
     }
 
-    if (pickupDetails.pickupAlert === "Y" && pickupDetails.pickupAlertDetails) {
+    if (pickupDetails.pickupAlertDetails) {
         await insertWithReturning(conn, '"Network_Shipment_Pickup_Alert_Info"', {
             shipmentId,
             inboundNotes: pickupDetails.pickupAlertDetails.inboundNotes,
@@ -454,7 +531,7 @@ export async function replacePickupInfo(
             chargeType: accessorial.chargeType,
             chargeValue: accessorial.chargeValue,
             entityId: pickup.entityId,
-            noteThreadId: accessorial.noteThreadId ?? null,
+            noteThreadId: accessorial.noteThreadId,
         });
     }
 }
@@ -466,11 +543,13 @@ export async function replaceLinehaulInfo(
 ): Promise<void> {
     if (!linehaulDetails) return;
 
+    const primary = linehaulDetails.linehaulPrimaryInfo;
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Linehaul_Accessorial" WHERE "shipmentId" = ?`, [shipmentId]);
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Linehaul_Common_Info" WHERE "shipmentId" = ?`, [shipmentId]);
-    await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Linehaul_Info" WHERE "shipmentId" = ?`, [shipmentId]);
+    if (primary) {
+        await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Linehaul_Info" WHERE "shipmentId" = ?`, [shipmentId]);
+    }
 
-    const primary = linehaulDetails.linehaulPrimaryInfo;
     if (primary) {
         await insertWithReturning(conn, '"Network_Shipment_Linehaul_Info"', {
             shipmentId,
@@ -492,6 +571,24 @@ export async function replaceLinehaulInfo(
             editFromLocation: primary.editFromLocation,
             editToLocation: primary.editToLocation,
         });
+
+        if (primary.editFromLocationDetails) {
+            const fromEntityId = primary.fromLocationEntityId ?? primary.entityId;
+            if (fromEntityId) {
+                await clearAddressMapping(conn, fromEntityId, "FROM", "LINE_HAUL");
+                const createdAddress = await createNetworkShipmentAddress(conn, primary.editFromLocationDetails);
+                await createNetworkShipmentEntityAddressMapping(conn, fromEntityId, createdAddress.addressId, "FROM", "LINE_HAUL");
+            }
+        }
+
+        if (primary.editToLocationDetails) {
+            const toEntityId = primary.toLocationEntityId ?? primary.entityId;
+            if (toEntityId) {
+                await clearAddressMapping(conn, toEntityId, "TO", "LINE_HAUL");
+                const createdAddress = await createNetworkShipmentAddress(conn, primary.editToLocationDetails);
+                await createNetworkShipmentEntityAddressMapping(conn, toEntityId, createdAddress.addressId, "TO", "LINE_HAUL");
+            }
+        }
     }
 
     if (linehaulDetails.linehaulCommonInfo) {
@@ -508,7 +605,7 @@ export async function replaceLinehaulInfo(
                 accessorialName: accessorial.accessorialName,
                 chargeType: accessorial.chargeType,
                 chargeValue: accessorial.chargeValue,
-                entityId: primary?.entityId ?? null,
+                entityId: accessorial.entityId ?? primary?.entityId,
                 noteThreadId: accessorial.noteThreadId ?? null,
             });
         }
@@ -522,12 +619,14 @@ export async function replaceDeliveryInfo(
 ): Promise<void> {
     if (!deliveryDetails) return;
 
+    const primary = deliveryDetails.deliveryPrimaryInfo;
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Delivery_Accessorial" WHERE "shipmentId" = ?`, [shipmentId]);
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Delivery_Alert_Info" WHERE "shipmentId" = ?`, [shipmentId]);
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Delivery_Common_Info" WHERE "shipmentId" = ?`, [shipmentId]);
-    await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Delivery_Info" WHERE "shipmentId" = ?`, [shipmentId]);
+    if (primary) {
+        await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Delivery_Info" WHERE "shipmentId" = ?`, [shipmentId]);
+    }
 
-    const primary = deliveryDetails.deliveryPrimaryInfo;
     if (primary) {
         await insertWithReturning(conn, '"Network_Shipment_Delivery_Info"', {
             shipmentId,
@@ -548,6 +647,24 @@ export async function replaceDeliveryInfo(
             editFromLocation: primary.editFromLocation,
             editToLocation: primary.editToLocation,
         });
+
+        if (primary.editFromLocationDetails) {
+            const fromEntityId = primary.fromLocationEntityId ?? primary.entityId;
+            if (fromEntityId) {
+                await clearAddressMapping(conn, fromEntityId, "FROM", "DELIVERY");
+                const createdAddress = await createNetworkShipmentAddress(conn, primary.editFromLocationDetails);
+                await createNetworkShipmentEntityAddressMapping(conn, fromEntityId, createdAddress.addressId, "FROM", "DELIVERY");
+            }
+        }
+
+        if (primary.editToLocationDetails) {
+            const toEntityId = primary.toLocationEntityId ?? primary.entityId;
+            if (toEntityId) {
+                await clearAddressMapping(conn, toEntityId, "TO", "DELIVERY");
+                const createdAddress = await createNetworkShipmentAddress(conn, primary.editToLocationDetails);
+                await createNetworkShipmentEntityAddressMapping(conn, toEntityId, createdAddress.addressId, "TO", "DELIVERY");
+            }
+        }
     }
 
     if (deliveryDetails.deliveryCommonInfo) {
@@ -565,12 +682,12 @@ export async function replaceDeliveryInfo(
                 accessorialName: accessorial.accessorialName,
                 chargeType: accessorial.chargeType,
                 chargeValue: accessorial.chargeValue,
-                entityId: primary?.entityId ?? null,
+                entityId: accessorial.entityId ?? primary?.entityId,
                 noteThreadId: accessorial.noteThreadId ?? null,
             });
         }
 
-        if (deliveryDetails.deliveryCommonInfo.deliveryAlert === "Y" && deliveryDetails.deliveryCommonInfo.deliveryAlertDetails) {
+        if (deliveryDetails.deliveryCommonInfo.deliveryAlertDetails) {
             await insertWithReturning(conn, '"Network_Shipment_Delivery_Alert_Info"', {
                 shipmentId,
                 linehaulNotes: deliveryDetails.deliveryCommonInfo.deliveryAlertDetails.linehaulNotes,
@@ -597,11 +714,12 @@ export async function replaceRateDetails(
 
     const carrierRateDetails = shipmentRateDetails.carrierRateDetails ?? {};
     const mapInvoiceRates = async (invoiceType: "PICKUP" | "LINE_HAUL" | "DELIVERY", invoiceNumber: string | undefined, subtotal?: number, rateList: Array<Record<string, any>> = []) => {
-        if (!invoiceNumber) return;
+        const hasInvoiceData = (invoiceNumber !== undefined && invoiceNumber !== null) || subtotal !== undefined || (rateList?.length ?? 0) > 0;
+        if (!hasInvoiceData) return;
         const invoice = await insertWithReturning(conn, '"Network_Shipment_Invoice_Info"', {
             shipmentId,
             invoiceType,
-            invoiceNumber,
+            invoiceNumber: invoiceNumber ?? "",
             subTotalRate: subtotal,
             approvalStatus: "N",
         });

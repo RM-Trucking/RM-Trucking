@@ -61,13 +61,13 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
     const pickupAccessorials = pickupInfo ? await shipmentDB.getShipmentPickupAccessorials(conn, shipmentId) : [];
 
     const linehaulInfo = await shipmentDB.getShipmentLinehaulInfoByShipmentId(conn, shipmentId);
-    const linehaulCommonInfo = linehaulInfo ? await shipmentDB.getShipmentLinehaulCommonInfo(conn, shipmentId) : null;
-    const linehaulAccessorials = linehaulInfo ? await shipmentDB.getShipmentLinehaulAccessorials(conn, shipmentId) : [];
+    const linehaulCommonInfo = await shipmentDB.getShipmentLinehaulCommonInfo(conn, shipmentId);
+    const linehaulAccessorials = await shipmentDB.getShipmentLinehaulAccessorials(conn, shipmentId);
 
     const deliveryInfo = await shipmentDB.getShipmentDeliveryInfoByShipmentId(conn, shipmentId);
-    const deliveryCommonInfo = deliveryInfo ? await shipmentDB.getShipmentDeliveryCommonInfo(conn, shipmentId) : null;
-    const deliveryAccessorials = deliveryInfo ? await shipmentDB.getShipmentDeliveryAccessorials(conn, shipmentId) : [];
-    const deliveryAlertInfo = deliveryInfo ? await shipmentDB.getShipmentDeliveryAlertInfo(conn, shipmentId) : null;
+    const deliveryCommonInfo = await shipmentDB.getShipmentDeliveryCommonInfo(conn, shipmentId);
+    const deliveryAccessorials = await shipmentDB.getShipmentDeliveryAccessorials(conn, shipmentId);
+    const deliveryAlertInfo = await shipmentDB.getShipmentDeliveryAlertInfo(conn, shipmentId);
 
     console.log("Pickup Terminal Info:", pickupAgentTerminalInfo);
 
@@ -156,23 +156,24 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         editToLocationDetails: linehaulInfo.toLocationEntityId
             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.toLocationEntityId ?? linehaulInfo.entityId, "LINE_HAUL", "TO")
             : undefined,
-        linehaulCommonInfo: linehaulCommonInfo ? {
-            linehaulCommonInfoId: linehaulCommonInfo.linehaulCommonInfoId,
-            shipmentId: linehaulCommonInfo.shipmentId,
-            linehaulAccessorial: linehaulCommonInfo.linehaulAccessorial,
-            linehaulNotes: linehaulCommonInfo.linehaulNotes,
-            linehaulAccessorialDetails: linehaulAccessorials.length > 0 ? {
-                accessorials: linehaulAccessorials.map((row: any) => ({
-                    linehaulAccessorialId: row.linehaulAccessorialId,
-                    shipmentId: row.shipmentId,
-                    accessorialId: row.accessorialId,
-                    accessorialName: row.accessorialName,
-                    chargeType: row.chargeType,
-                    chargeValue: row.chargeValue,
-                    entityId: row.entityId,
-                    noteThreadId: row.noteThreadId,
-                }))
-            } : undefined,
+    } : undefined;
+
+    const linehaulCommonInfoResponse = linehaulCommonInfo ? {
+        linehaulCommonInfoId: linehaulCommonInfo.linehaulCommonInfoId,
+        shipmentId: linehaulCommonInfo.shipmentId,
+        linehaulAccessorial: linehaulCommonInfo.linehaulAccessorial,
+        linehaulNotes: linehaulCommonInfo.linehaulNotes,
+        linehaulAccessorialDetails: linehaulAccessorials.length > 0 ? {
+            accessorials: linehaulAccessorials.map((row: any) => ({
+                linehaulAccessorialId: row.linehaulAccessorialId,
+                shipmentId: row.shipmentId,
+                accessorialId: row.accessorialId,
+                accessorialName: row.accessorialName,
+                chargeType: row.chargeType,
+                chargeValue: row.chargeValue,
+                entityId: row.entityId,
+                noteThreadId: row.noteThreadId,
+            }))
         } : undefined,
     } : undefined;
 
@@ -201,46 +202,47 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         editToLocationDetails: deliveryInfo.toLocationEntityId
             ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.toLocationEntityId ?? deliveryInfo.entityId, "DELIVERY", "TO")
             : undefined,
-        deliveryCommonInfo: deliveryCommonInfo ? {
-            deliveryCommonInfoId: deliveryCommonInfo.deliveryCommonInfoId,
-            shipmentId: deliveryCommonInfo.shipmentId,
-            deliveryAccessorial: deliveryCommonInfo.deliveryAccessorial,
-            airportTransfer: deliveryCommonInfo.airportTransfer,
-            deliveryAlert: deliveryCommonInfo.deliveryAlert,
-            deliveryAccessorialDetails: deliveryAccessorials.length > 0 ? {
-                accessorials: deliveryAccessorials.map((row: any) => ({
-                    deliveryAccessorialId: row.deliveryAccessorialId,
-                    shipmentId: row.shipmentId,
-                    accessorialId: row.accessorialId,
-                    accessorialName: row.accessorialName,
-                    chargeType: row.chargeType,
-                    chargeValue: row.chargeValue,
-                    entityId: row.entityId,
-                    noteThreadId: row.noteThreadId,
-                }))
-            } : undefined,
-            deliveryAlertDetails: deliveryAlertInfo ? {
-                deliveryAlertId: deliveryAlertInfo.deliveryAlertId,
-                shipmentId: deliveryAlertInfo.shipmentId,
-                linehaulNotes: deliveryAlertInfo.linehaulNotes,
-                deliveryNotes: deliveryAlertInfo.deliveryNotes,
-                emailInfo: {
-                    primaryEmail: deliveryAlertInfo.primaryEmail,
-                    additionalEmails: parseEmailArray(deliveryAlertInfo.additionalEmail),
-                },
-            } : undefined,
+    } : undefined;
+
+    const deliveryCommonInfoResponse = deliveryCommonInfo ? {
+        deliveryCommonInfoId: deliveryCommonInfo.deliveryCommonInfoId,
+        shipmentId: deliveryCommonInfo.shipmentId,
+        deliveryAccessorial: deliveryCommonInfo.deliveryAccessorial,
+        airportTransfer: deliveryCommonInfo.airportTransfer,
+        deliveryAlert: deliveryCommonInfo.deliveryAlert,
+        deliveryAccessorialDetails: deliveryAccessorials.length > 0 ? {
+            accessorials: deliveryAccessorials.map((row: any) => ({
+                deliveryAccessorialId: row.deliveryAccessorialId,
+                shipmentId: row.shipmentId,
+                accessorialId: row.accessorialId,
+                accessorialName: row.accessorialName,
+                chargeType: row.chargeType,
+                chargeValue: row.chargeValue,
+                entityId: row.entityId,
+                noteThreadId: row.noteThreadId,
+            }))
+        } : undefined,
+        deliveryAlertDetails: deliveryAlertInfo ? {
+            deliveryAlertId: deliveryAlertInfo.deliveryAlertId,
+            shipmentId: deliveryAlertInfo.shipmentId,
+            linehaulNotes: deliveryAlertInfo.linehaulNotes,
+            deliveryNotes: deliveryAlertInfo.deliveryNotes,
+            emailInfo: {
+                primaryEmail: deliveryAlertInfo.primaryEmail,
+                additionalEmails: parseEmailArray(deliveryAlertInfo.additionalEmail),
+            },
         } : undefined,
     } : undefined;
 
     const carrierDetails: any = {};
     if (pickupDetailsResponse) carrierDetails.pickupDetails = pickupDetailsResponse;
-    if (linehaulDetailsResponse) carrierDetails.linehaulDetails = {
+    if (linehaulDetailsResponse || linehaulCommonInfoResponse) carrierDetails.linehaulDetails = {
         linehaulPrimaryInfo: linehaulDetailsResponse,
-        linehaulCommonInfo: linehaulDetailsResponse.linehaulCommonInfo,
+        linehaulCommonInfo: linehaulCommonInfoResponse,
     };
-    if (deliveryDetailsResponse) carrierDetails.deliveryDetails = {
+    if (deliveryDetailsResponse || deliveryCommonInfoResponse) carrierDetails.deliveryDetails = {
         deliveryPrimaryInfo: deliveryDetailsResponse,
-        deliveryCommonInfo: deliveryDetailsResponse.deliveryCommonInfo,
+        deliveryCommonInfo: deliveryCommonInfoResponse,
     };
 
     return carrierDetails;
@@ -305,12 +307,17 @@ async function getShipmentRateDetails(conn: Connection, shipmentId: number) {
         }
         : null;
 
+    const carrierRateDetails: any = {};
+    if (pickupRateDetails) carrierRateDetails.pickupRateDetails = pickupRateDetails;
+    if (linehaulRateDetails) carrierRateDetails.linehaulRateDetails = linehaulRateDetails;
+    if (deliveryRateDetails) carrierRateDetails.deliveryRateDetails = deliveryRateDetails;
+    if (carrierRateInfo) {
+        carrierRateDetails.carrierRateId = carrierRateInfo.carrierRateId;
+        carrierRateDetails.totalCarrierRate = carrierRateInfo.totalCarrierRate;
+    }
+
     const shipmentRateDetails: any = {};
-    if (pickupRateDetails) shipmentRateDetails.pickupRateDetails = pickupRateDetails;
-    if (linehaulRateDetails) shipmentRateDetails.linehaulRateDetails = linehaulRateDetails;
-    if (deliveryRateDetails) shipmentRateDetails.deliveryRateDetails = deliveryRateDetails;
-    if (carrierRateInfo) shipmentRateDetails.carrierRateId = carrierRateInfo.carrierRateId;
-    if (carrierRateInfo) shipmentRateDetails.totalCarrierRate = carrierRateInfo.totalCarrierRate;
+    if (Object.keys(carrierRateDetails).length > 0) shipmentRateDetails.carrierRateDetails = carrierRateDetails;
     if (customerRateDetails) shipmentRateDetails.customerRateDetails = customerRateDetails;
 
     return shipmentRateDetails;

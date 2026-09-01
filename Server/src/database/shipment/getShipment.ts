@@ -53,6 +53,7 @@ export async function getShipmentShipperInfoByShipmentId(conn: Connection, shipm
         JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
           ON m."entityId" = s."entityId"
         WHERE m."shipmentId" = ?
+                ORDER BY m."mappingId" DESC
         FETCH FIRST 1 ROW ONLY
     `;
 
@@ -66,6 +67,7 @@ export async function getShipmentConsigneeInfoByShipmentId(conn: Connection, shi
         JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
           ON m."entityId" = c."entityId"
         WHERE m."shipmentId" = ?
+                ORDER BY m."mappingId" DESC
         FETCH FIRST 1 ROW ONLY
     `;
 

@@ -282,7 +282,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                 sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
                                 disabled={isSubmittingFinal}
                             >
-                                {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : 'Submit' : 'Next'}
+                                {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : (type === "Edit") ? "Update" : "Submit" : 'Next'}
                             </Button>
                         }
                         {type !== 'View' && activeStep === 3 && isPickupPending &&
@@ -312,7 +312,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                     '&:hover': { bgcolor: '#811' }
                                 }}
                             >
-                                {isSubmitting ? 'Submitting...' : 'Submit'}
+                                {isSubmitting ? 'Submitting...' : (type === 'Edit') ? "Update" : 'Submit'}
                             </Button>}
                         {
                             type !== 'View' && activeStep === 3 && selectedRouting === 'pickup_only' && getValues('carrierInfo.selectCarrier') && !isPickupPending && watchedLinehaulSelectRouting === '' &&
@@ -343,7 +343,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                         '&:hover': { bgcolor: '#811' }
                                     }}
                                 >
-                                    {isSubmitting ? 'Submitting...' : 'Submit'}
+                                    {isSubmitting ? 'Submitting...' : (type === 'Edit') ? "Update" : 'Submit'}
                                 </Button>
                             </>
                         }
@@ -378,7 +378,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                     '&:disabled': { bgcolor: '#cca' }
                                 }}
                             >
-                                {isSubmittingFinal ? 'Submitting...' : activeStep === STEPS.length - 1 ? 'Submit' : 'Next'}
+                                {isSubmittingFinal ? 'Submitting...' : activeStep === STEPS.length - 1 ? (type === 'Edit') ? 'Update' : 'Submit' : 'Next'}
                             </Button>
                         }
                         {type === 'View' && activeStep !== 4 && (

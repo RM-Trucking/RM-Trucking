@@ -1078,7 +1078,7 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        chargeValue: Number(watchedCRPickupAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
+        chargeValue: Number(watchedCRPickupAccessorials?.[index]?.chargeValue).toFixed(2) !== "NaN" ? Number(watchedCRPickupAccessorials?.[index]?.chargeValue).toFixed(2) : acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRPickupAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.pickUp.pickupAccessorials', updatedPickupAcc);
@@ -1090,7 +1090,7 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        chargeValue: Number(watchedCRLinehaulAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
+        chargeValue: Number(watchedCRLinehaulAccessorials?.[index]?.chargeValue).toFixed(2) !== "NaN" ? Number(watchedCRLinehaulAccessorials?.[index]?.chargeValue).toFixed(2) : acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRLinehaulAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.lineHaul.lineHaulAccessorials', updatedLineHaulAcc);
@@ -1102,7 +1102,7 @@ const ShipmentPage = ({ type }) => {
         ...acc,
         isManual: false,
         apiCharges: acc.chargeValue,
-        chargeValue: Number(watchedCRDeliveryAccessorials?.[index]?.chargeValue).toFixed(2) || acc.chargeValue,
+        chargeValue: Number(watchedCRDeliveryAccessorials?.[index]?.chargeValue).toFixed(2) !== "NaN" ? Number(watchedCRDeliveryAccessorials?.[index]?.chargeValue).toFixed(2) : acc.chargeValue,
         input: (acc?.chargeType?.toLowerCase() === 'per_pound') ? (watchedHU[0].weightUnit === 'lbs') ? totals.totalWeight : `${(Number(totals.totalWeight) * 2.20462).toFixed(2)}` : (acc?.chargeType?.toLowerCase() === 'hourly') ? watchedCRDeliveryAccessorials?.[index]?.input || '' : '',
       }));
       setValue('carrierRates.delivery.deliveryAccessorials', updatedDeliveryAcc);

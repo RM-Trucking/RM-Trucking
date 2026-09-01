@@ -445,7 +445,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                             <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>
                                 <Typography sx={valueStyle}>{liveShipmentStatus?.replace(/_/g, ' ')}</Typography>
-                                <Button
+                                {/* <Button
                                     variant="contained"
                                     size="small"
                                     sx={{
@@ -458,7 +458,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                     onClick={() => setShipmentStatusModal(true)}
                                 >
                                     Update
-                                </Button>
+                                </Button> */}
                             </Box>
                             <Box sx={{ display: 'flex' }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Shipment Type :</Typography>

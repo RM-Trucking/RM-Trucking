@@ -655,7 +655,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
             }
 
             {/* add acc button  */}
-            {!addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
+            {masterAccessorials?.length > 0 && !addFlag && <Box sx={{ display: 'flex', borderBottom: '1px solid #eee', alignItems: 'center', }}>
 
               {type !== 'View' && <Box sx={{
                 flex: 1.5, p: 1,

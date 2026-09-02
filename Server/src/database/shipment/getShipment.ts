@@ -52,8 +52,11 @@ export async function getShipmentShipperInfoByShipmentId(conn: Connection, shipm
         SELECT s.* FROM ${SCHEMA}."Network_Shipment_Shipper_Info" s
         JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
           ON m."entityId" = s."entityId"
+        JOIN ${SCHEMA}."Entity" e
+          ON e."entityId" = s."entityId"
         WHERE m."shipmentId" = ?
-                ORDER BY m."mappingId" DESC
+          AND e."entityType" = 'SHIPPER'
+        ORDER BY m."mappingId" DESC
         FETCH FIRST 1 ROW ONLY
     `;
 
@@ -66,8 +69,11 @@ export async function getShipmentConsigneeInfoByShipmentId(conn: Connection, shi
         SELECT c.* FROM ${SCHEMA}."Network_Shipment_Consignee_Info" c
         JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
           ON m."entityId" = c."entityId"
+        JOIN ${SCHEMA}."Entity" e
+          ON e."entityId" = c."entityId"
         WHERE m."shipmentId" = ?
-                ORDER BY m."mappingId" DESC
+          AND e."entityType" = 'CONSIGNEE'
+        ORDER BY m."mappingId" DESC
         FETCH FIRST 1 ROW ONLY
     `;
 
@@ -80,7 +86,10 @@ export async function getShipmentAirlinesByShipmentId(conn: Connection, shipment
         SELECT a.* FROM ${SCHEMA}."Airline" a
         JOIN ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" m
           ON m."entityId" = a."entityId"
+        JOIN ${SCHEMA}."Entity" e
+          ON e."entityId" = a."entityId"
         WHERE m."shipmentId" = ?
+          AND e."entityType" = 'AIRLINE'
     `;
 
     const result = await conn.query(query, [shipmentId]) as any[];

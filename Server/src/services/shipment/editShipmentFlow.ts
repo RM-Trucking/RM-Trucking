@@ -134,7 +134,7 @@ export async function editShipperInfoRecord(
     }
 
     if (!entityId && shipperDetails.shipperName) {
-        entityId = await entityDB.createEntity(conn, "SHIPPER", shipperDetails.shipperName);
+        entityId = await createRelatedEntityRecord(conn, "SHIPPER", shipperDetails.shipperName);
         console.log("[editShipmentFlow] created new shipper entity", { shipmentId, entityId, shipperName: shipperDetails.shipperName });
 
         await shipmentDB.upsertShipperInfo(conn, {
@@ -192,7 +192,7 @@ export async function editConsigneeInfoRecord(
     }
 
     if (!entityId && consigneeDetails.consigneeName) {
-        entityId = await entityDB.createEntity(conn, "CONSIGNEE", consigneeDetails.consigneeName);
+        entityId = await createRelatedEntityRecord(conn, "CONSIGNEE", consigneeDetails.consigneeName);
         console.log("[editShipmentFlow] created new consignee entity", { shipmentId, entityId, consigneeName: consigneeDetails.consigneeName });
 
         await shipmentDB.upsertConsigneeInfo(conn, {
@@ -232,18 +232,36 @@ export async function editAirlineRecord(
         throw new Error("Airline entity ID or airline name is required");
     }
 
+    let entityId = airlineDetails.entityId;
+
+    if (!entityId && airlineDetails.airlineId) {
+        const existingAirline = await shipmentIndexDB.getAirlineById(conn, airlineDetails.airlineId);
+        if (!existingAirline) {
+            throw new Error("Invalid airlineId provided");
+        }
+        entityId = existingAirline.entityId;
+        console.log("[editShipmentFlow] resolved airline entityId from airlineId", { shipmentId, airlineId: airlineDetails.airlineId, entityId });
+    }
+
+    if (!entityId && airlineDetails.airlineName) {
+        entityId = await createRelatedEntityRecord(conn, "AIRLINE", airlineDetails.airlineName);
+        console.log("[editShipmentFlow] created new airline entity", { shipmentId, entityId, airlineName: airlineDetails.airlineName });
+    }
+
     const result = await shipmentDB.upsertAirlineInfo(conn, {
         ...airlineDetails,
         shipmentId,
+        entityId,
     });
-    console.log("[editShipmentFlow] airline upsert result", { shipmentId, result });
+    console.log("[editShipmentFlow] airline upsert result", { shipmentId, result, entityId });
 
-    if (result?.entityId) {
-        await shipmentDB.replaceShipmentEntityMapping(conn, shipmentId, result.entityId, "AIRLINE", airlineDetails.airlineName ?? "AIRLINE");
+    const mappedEntityId = result?.entityId ?? entityId;
+    if (mappedEntityId) {
+        await shipmentDB.replaceShipmentEntityMapping(conn, shipmentId, mappedEntityId, "AIRLINE", airlineDetails.airlineName ?? "AIRLINE");
     }
 
-    console.log("[editShipmentFlow] editAirlineRecord complete", { shipmentId, result });
-    return result;
+    console.log("[editShipmentFlow] editAirlineRecord complete", { shipmentId, result, entityId: mappedEntityId });
+    return result ?? { entityId: mappedEntityId };
 }
 
 export async function editCommodityInfoRecord(
@@ -510,26 +528,57 @@ export async function editShipmentFlow(
             }
         }
 
-        const shipperDetails = customerDetails ? getShipperDetail(customerDetails) : undefined;
+        const isPickupAirlineFlow = customerDetails?.airportPickupService === "Y";
+        const isDeliveryAirlineFlow = customerDetails?.airportDeliveryService === "Y";
+        const shipperDetails = customerDetails && !isPickupAirlineFlow ? getShipperDetail(customerDetails) : undefined;
+        const consigneeDetails = customerDetails && !isDeliveryAirlineFlow ? getConsigneeDetail(customerDetails) : undefined;
+        const pickupAirlineDetails = customerDetails && isPickupAirlineFlow ? customerDetails.pickupAirlineDetails : undefined;
+        const deliveryAirlineDetails = customerDetails && isDeliveryAirlineFlow ? customerDetails.deliveryAirlineDetails : undefined;
+
+        if (isPickupAirlineFlow) {
+            console.log("[editShipmentFlow] removing old shipper mapping for airline-only pickup flow", { shipmentId });
+            await shipmentDB.deleteShipmentEntityMappingsByType(conn, shipmentId, "SHIPPER");
+        }
+
+        if (!isPickupAirlineFlow) {
+            console.log("[editShipmentFlow] removing old pickup airline mapping when switching to shipper", {
+                shipmentId,
+                originAirportCode: customerDetails?.originAirportCode ?? null,
+            });
+            await shipmentDB.deleteShipmentAirlineMappingsByAirportCode(conn, shipmentId, customerDetails?.originAirportCode ?? null);
+        }
+
+        if (isDeliveryAirlineFlow) {
+            console.log("[editShipmentFlow] removing old consignee mapping for airline-only delivery flow", { shipmentId });
+            await shipmentDB.deleteShipmentEntityMappingsByType(conn, shipmentId, "CONSIGNEE");
+        }
+
+        if (!isDeliveryAirlineFlow) {
+            console.log("[editShipmentFlow] removing old delivery airline mapping when switching to consignee", {
+                shipmentId,
+                destinationAirportCode: customerDetails?.destinationAirportCode ?? null,
+            });
+            await shipmentDB.deleteShipmentAirlineMappingsByAirportCode(conn, shipmentId, customerDetails?.destinationAirportCode ?? null);
+        }
+
         if (shipperDetails) {
             console.log("[editShipmentFlow] processing shipperDetails", { shipmentId, shipperDetails });
             await editShipperInfoRecord(conn, shipmentId, shipperDetails);
         }
 
-        const consigneeDetails = customerDetails ? getConsigneeDetail(customerDetails) : undefined;
         if (consigneeDetails) {
             console.log("[editShipmentFlow] processing consigneeDetails", { shipmentId, consigneeDetails });
             await editConsigneeInfoRecord(conn, shipmentId, consigneeDetails);
         }
 
-        if (customerDetails?.airportPickupService === "Y" && customerDetails.pickupAirlineDetails) {
-            console.log("[editShipmentFlow] processing pickup airline details", { shipmentId, pickupAirlineDetails: customerDetails.pickupAirlineDetails });
-            await editAirlineRecord(conn, shipmentId, customerDetails.pickupAirlineDetails);
+        if (pickupAirlineDetails) {
+            console.log("[editShipmentFlow] processing pickup airline details", { shipmentId, pickupAirlineDetails });
+            await editAirlineRecord(conn, shipmentId, pickupAirlineDetails);
         }
 
-        if (customerDetails?.airportDeliveryService === "Y" && customerDetails.deliveryAirlineDetails) {
-            console.log("[editShipmentFlow] processing delivery airline details", { shipmentId, deliveryAirlineDetails: customerDetails.deliveryAirlineDetails });
-            await editAirlineRecord(conn, shipmentId, customerDetails.deliveryAirlineDetails);
+        if (deliveryAirlineDetails) {
+            console.log("[editShipmentFlow] processing delivery airline details", { shipmentId, deliveryAirlineDetails });
+            await editAirlineRecord(conn, shipmentId, deliveryAirlineDetails);
         }
 
         const commodityDetails = payload.commodityDetails as UpdateCommodityDetails | undefined;

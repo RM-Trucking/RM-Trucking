@@ -218,33 +218,63 @@ export async function replaceShipmentEntityMapping(
     entityType: "SHIPPER" | "CONSIGNEE" | "AIRLINE",
     entityName: string
 ): Promise<number | undefined> {
-    if (!entityId) {
-        const entityQuery = `
-            SELECT "entityId" FROM ${SCHEMA}."Entity"
-            WHERE "entityType" = ? AND "entityName" = ?
-            FETCH FIRST 1 ROW ONLY
-        `;
-        const match = await conn.query(entityQuery, [entityType, entityName]) as any[];
-        if (match[0]?.entityId) {
+    const entityQuery = `
+        SELECT "entityId" FROM ${SCHEMA}."Entity"
+        WHERE "entityType" = ? AND "entityName" = ?
+        FETCH FIRST 1 ROW ONLY
+    `;
+
+    if (entityId) {
+        const entityTypeCheck = await conn.query(
+            `SELECT "entityId" FROM ${SCHEMA}."Entity"
+             WHERE "entityId" = ? AND "entityType" = ?
+             FETCH FIRST 1 ROW ONLY`,
+            [entityId, entityType]
+        ) as any[];
+
+        if (!entityTypeCheck[0]) {
+            const match = await conn.query(entityQuery, [entityType, entityName]) as any[];
+            if (!match[0]?.entityId) return undefined;
             entityId = match[0].entityId;
         }
+    } else {
+        const match = await conn.query(entityQuery, [entityType, entityName]) as any[];
+        if (!match[0]?.entityId) return undefined;
+        entityId = match[0].entityId;
     }
 
-    if (!entityId) return undefined;
+    if (entityType === "AIRLINE") {
+        await conn.query(
+            `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+             WHERE "shipmentId" = ?
+               AND "entityId" IN (
+                   SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = 'AIRLINE'
+               )`,
+            [shipmentId]
+        );
+    } else {
+        await conn.query(
+            `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+             WHERE "shipmentId" = ?
+               AND "entityId" IN (
+                   SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = ?
+               )`,
+            [shipmentId, entityType]
+        );
+    }
 
-    await conn.query(
-        `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
-         WHERE "shipmentId" = ?
-           AND "entityId" IN (
-               SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = ?
-           )`,
-        [shipmentId, entityType]
-    );
-
-    await insertWithReturning(conn, '"Network_Shipment_Shipper_Consignee_Airline_Mapping"', {
-        shipmentId,
-        entityId,
-    });
+    const existingMappingQuery = `
+        SELECT "mappingId" FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+        WHERE "shipmentId" = ? AND "entityId" = ?
+        FETCH FIRST 1 ROW ONLY
+    `;
+    const existingMapping = await conn.query(existingMappingQuery, [shipmentId, entityId] as any[]) as any[];
+    if (!existingMapping[0]) {
+        await insertWithReturning(conn, '"Network_Shipment_Shipper_Consignee_Airline_Mapping"', {
+            shipmentId,
+            entityId,
+        });
+    }
 
     return entityId;
 }
@@ -255,7 +285,19 @@ export async function deleteShipmentEntityMapping(
     entityId: number | undefined,
     entityType?: "SHIPPER" | "CONSIGNEE" | "AIRLINE"
 ): Promise<void> {
-    if (!entityId) return;
+    if (!entityId && !entityType) return;
+
+    if (!entityId && entityType) {
+        await conn.query(
+            `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+             WHERE "shipmentId" = ?
+               AND "entityId" IN (
+                   SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = ?
+               )`,
+            [shipmentId, entityType as "SHIPPER" | "CONSIGNEE" | "AIRLINE"]
+        );
+        return;
+    }
 
     const conditions = [`"shipmentId" = ?`, `"entityId" = ?`];
     const values = [shipmentId, entityId];
@@ -266,19 +308,57 @@ export async function deleteShipmentEntityMapping(
             WHERE "entityType" = ? AND "entityId" = ?
             FETCH FIRST 1 ROW ONLY
         `;
-        const match = await conn.query(query, [entityType, entityId]) as any[];
+        const match = (await conn.query(query, [entityType, entityId] as any[])) as unknown as Array<Record<string, any>>;
         if (!match[0]) {
-            await conn.query(
-                `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" WHERE "shipmentId" = ? AND "entityId" = ?`,
-                values
-            );
             return;
         }
     }
 
     await conn.query(
         `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping" WHERE "shipmentId" = ? AND "entityId" = ?`,
-        values
+        values as any[]
+    );
+}
+
+export async function deleteShipmentEntityMappingsByType(
+    conn: Connection,
+    shipmentId: number,
+    entityType: "SHIPPER" | "CONSIGNEE" | "AIRLINE"
+): Promise<void> {
+    await conn.query(
+        `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+         WHERE "shipmentId" = ?
+           AND "entityId" IN (
+               SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = ?
+           )`,
+        [shipmentId, entityType]
+    );
+}
+
+export async function deleteShipmentAirlineMappingsByAirportCode(
+    conn: Connection,
+    shipmentId: number,
+    airportCode?: string | null
+): Promise<void> {
+    if (!airportCode) {
+        await conn.query(
+            `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+             WHERE "shipmentId" = ?
+               AND "entityId" IN (
+                   SELECT "entityId" FROM ${SCHEMA}."Entity" WHERE "entityType" = 'AIRLINE'
+               )`,
+            [shipmentId]
+        );
+        return;
+    }
+
+    await conn.query(
+        `DELETE FROM ${SCHEMA}."Network_Shipment_Shipper_Consignee_Airline_Mapping"
+         WHERE "shipmentId" = ?
+           AND "entityId" IN (
+               SELECT "entityId" FROM ${SCHEMA}."Airline" WHERE "airportCode" = ?
+           )`,
+        [shipmentId, airportCode]
     );
 }
 
@@ -296,11 +376,18 @@ export async function upsertShipperInfo(conn: Connection, shipperDetails: Record
     };
 
     if (shipperDetails.entityId) {
-        await conn.query(
-            `UPDATE ${SCHEMA}."Network_Shipment_Shipper_Info" SET "shipperName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ? WHERE "entityId" = ?`,
-            [payload.shipperName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, shipperDetails.entityId]
-        );
-        return { entityId: shipperDetails.entityId };
+        const existing = await conn.query(
+            `SELECT "entityId" FROM ${SCHEMA}."Network_Shipment_Shipper_Info" WHERE "entityId" = ? FETCH FIRST 1 ROW ONLY`,
+            [shipperDetails.entityId]
+        ) as any[];
+
+        if (existing[0]) {
+            await conn.query(
+                `UPDATE ${SCHEMA}."Network_Shipment_Shipper_Info" SET "shipperName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ? WHERE "entityId" = ?`,
+                [payload.shipperName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, shipperDetails.entityId]
+            );
+            return { entityId: shipperDetails.entityId };
+        }
     }
 
     return insertWithReturning(conn, '"Network_Shipment_Shipper_Info"', payload);
@@ -320,11 +407,18 @@ export async function upsertConsigneeInfo(conn: Connection, consigneeDetails: Re
     };
 
     if (consigneeDetails.entityId) {
-        await conn.query(
-            `UPDATE ${SCHEMA}."Network_Shipment_Consignee_Info" SET "consigneeName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ? WHERE "entityId" = ?`,
-            [payload.consigneeName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, consigneeDetails.entityId]
-        );
-        return { entityId: consigneeDetails.entityId };
+        const existing = await conn.query(
+            `SELECT "entityId" FROM ${SCHEMA}."Network_Shipment_Consignee_Info" WHERE "entityId" = ? FETCH FIRST 1 ROW ONLY`,
+            [consigneeDetails.entityId]
+        ) as any[];
+
+        if (existing[0]) {
+            await conn.query(
+                `UPDATE ${SCHEMA}."Network_Shipment_Consignee_Info" SET "consigneeName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ? WHERE "entityId" = ?`,
+                [payload.consigneeName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, consigneeDetails.entityId]
+            );
+            return { entityId: consigneeDetails.entityId };
+        }
     }
 
     return insertWithReturning(conn, '"Network_Shipment_Consignee_Info"', payload);
@@ -348,11 +442,18 @@ export async function upsertAirlineInfo(conn: Connection, airlineDetails: Record
     };
 
     if (airlineDetails.entityId) {
-        await conn.query(
-            `UPDATE ${SCHEMA}."Airline" SET "airlineNumber" = ?, "airlineCode" = ?, "airportCode" = ?, "airlineName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ?, "scenarioType" = ? WHERE "entityId" = ?`,
-            [payload.airlineNumber, payload.airlineCode, payload.airportCode, payload.airlineName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, payload.scenarioType, airlineDetails.entityId]
-        );
-        return { entityId: airlineDetails.entityId };
+        const existing = await conn.query(
+            `SELECT "entityId" FROM ${SCHEMA}."Airline" WHERE "entityId" = ? FETCH FIRST 1 ROW ONLY`,
+            [airlineDetails.entityId]
+        ) as any[];
+
+        if (existing[0]) {
+            await conn.query(
+                `UPDATE ${SCHEMA}."Airline" SET "airlineNumber" = ?, "airlineCode" = ?, "airportCode" = ?, "airlineName" = ?, "addressLine1" = ?, "addressLine2" = ?, "city" = ?, "state" = ?, "zipCode" = ?, "contactPersonName" = ?, "phoneNumber" = ?, "scenarioType" = ? WHERE "entityId" = ?`,
+                [payload.airlineNumber, payload.airlineCode, payload.airportCode, payload.airlineName, payload.addressLine1, payload.addressLine2, payload.city, payload.state, payload.zipCode, payload.contactPersonName, payload.phoneNumber, payload.scenarioType, airlineDetails.entityId]
+            );
+            return { entityId: airlineDetails.entityId };
+        }
     }
 
     return insertWithReturning(conn, '"Airline"', payload);
@@ -706,6 +807,29 @@ export async function replaceRateDetails(
 ): Promise<void> {
     if (!shipmentRateDetails) return;
 
+    const validateRateEntries = (rateList: Array<Record<string, any>> = [], label: string) => {
+        for (const rate of rateList) {
+            if (!rate || typeof rate !== "object") {
+                throw new Error(`${label} rate entry is invalid`);
+            }
+
+            const hasAnyValue = Object.values(rate).some((value) => value !== undefined && value !== null && value !== "");
+            if (!hasAnyValue) {
+                continue;
+            }
+
+            if (!rate.rateType) {
+                throw new Error(`${label} rate type is required`);
+            }
+            if (rate.rateValue === undefined || rate.rateValue === null || rate.rateValue === 0 || rate.rateValue === "") {
+                throw new Error(`${label} rate value is required`);
+            }
+            if (rate.totalRate === undefined || rate.totalRate === null || rate.totalRate === "") {
+                throw new Error(`${label} total rate is required`);
+            }
+        }
+    };
+
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Invoice_Rate_Map" WHERE "invoiceId" IN (SELECT "invoiceId" FROM ${SCHEMA}."Network_Shipment_Invoice_Info" WHERE "shipmentId" = ?)`, [shipmentId]);
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Invoice_Info" WHERE "shipmentId" = ?`, [shipmentId]);
     await conn.query(`DELETE FROM ${SCHEMA}."Network_Shipment_Carrier_Rate_Info" WHERE "shipmentId" = ?`, [shipmentId]);
@@ -716,6 +840,7 @@ export async function replaceRateDetails(
     const mapInvoiceRates = async (invoiceType: "PICKUP" | "LINE_HAUL" | "DELIVERY", invoiceNumber: string | undefined, subtotal?: number, rateList: Array<Record<string, any>> = []) => {
         const hasInvoiceData = (invoiceNumber !== undefined && invoiceNumber !== null) || subtotal !== undefined || (rateList?.length ?? 0) > 0;
         if (!hasInvoiceData) return;
+        validateRateEntries(rateList, `${invoiceType.toLowerCase()} rate`);
         const invoice = await insertWithReturning(conn, '"Network_Shipment_Invoice_Info"', {
             shipmentId,
             invoiceType,
@@ -739,6 +864,11 @@ export async function replaceRateDetails(
             });
         }
     };
+
+    validateRateEntries(carrierRateDetails.pickupRateDetails?.rateDetails ?? [], "pickup rate");
+    validateRateEntries(carrierRateDetails.linehaulRateDetails?.rateDetails ?? [], "linehaul rate");
+    validateRateEntries(carrierRateDetails.deliveryRateDetails?.rateDetails ?? [], "delivery rate");
+    validateRateEntries(shipmentRateDetails.customerRateDetails?.rateDetails ?? [], "customer rate");
 
     await mapInvoiceRates("PICKUP", carrierRateDetails.pickupRateDetails?.invoiceNumber, carrierRateDetails.pickupRateDetails?.pickupSubTotalRate, carrierRateDetails.pickupRateDetails?.rateDetails ?? []);
     await mapInvoiceRates("LINE_HAUL", carrierRateDetails.linehaulRateDetails?.invoiceNumber, carrierRateDetails.linehaulRateDetails?.linehaulSubTotalRate, carrierRateDetails.linehaulRateDetails?.rateDetails ?? []);

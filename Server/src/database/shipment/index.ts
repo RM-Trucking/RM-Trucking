@@ -139,6 +139,16 @@ export async function getConsigneeById(conn: Connection, consigneeId: number) {
   return result[0];
 }
 
+export async function getAirlineById(conn: Connection, airlineId: number) {
+  const query = `
+        SELECT * FROM ${SCHEMA}."Airline"
+        WHERE "airlineId" = ?
+        FETCH FIRST 1 ROW ONLY
+    `;
+  const result = await conn.query(query, [airlineId]) as any[];
+  return result[0];
+}
+
 export async function createAirlineInfo(conn: Connection, airlineDetails: AirlineDetails) {
   const query = `
        SELECT * FROM FINAL TABLE (

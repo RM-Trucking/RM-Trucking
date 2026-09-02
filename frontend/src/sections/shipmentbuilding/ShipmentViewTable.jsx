@@ -285,6 +285,7 @@ export default function ShipmentViewTable({ }) {
     // get call for notes
     useEffect(() => {
         dispatch(setTableBeingViewed('shipment view'));
+        dispatch(setSelectedShipmentBuildObj({}));
         dispatch(getShipmentBuildData({
             pageNo: paginationModel.page,
             pageSize: paginationModel.pageSize,

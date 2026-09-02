@@ -1721,13 +1721,8 @@ const ShipmentPage = ({ type }) => {
     }
   }, [type, shipperDropdown])
   useEffect(() => {
-    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-    if (shipperAirlineDropdown?.length === 0) {
-      setValue('shipperName', '');
+    if (watchedAirportPickupService) {
+      setValue('shipperName', {});
       setValue('shipperAddr1', '');
       setValue('shipperAddr2', '');
       setValue('shipperCity', '');
@@ -1735,6 +1730,11 @@ const ShipmentPage = ({ type }) => {
       setValue('shipperZip', '');
       setValue('shipperContact', '');
       setValue('shipperPhone', '');
+    }
+    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
     }
   }, [type, shipperAirlineDropdown])
   useEffect(() => {
@@ -1745,13 +1745,8 @@ const ShipmentPage = ({ type }) => {
     }
   }, [type, consigneeDropdown])
   useEffect(() => {
-    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-    if(consigneeAirlineDropdown?.length === 0){
-      setValue('consigneeName', '');
+    if (watchedAirportDeliveryService) {
+      setValue('consigneeName', {});
       setValue('consigneeAddr1', '');
       setValue('consigneeAddr2', '');
       setValue('consigneeCity', '');
@@ -1759,6 +1754,11 @@ const ShipmentPage = ({ type }) => {
       setValue('consigneeZip', '');
       setValue('consigneeContact', '');
       setValue('consigneePhone', '');
+    }
+    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
     }
   }, [type, consigneeAirlineDropdown])
   useEffect(() => {

@@ -57,52 +57,52 @@ export const updateControls = (dispatch, setValue, selectedObj,
                 (item) => item?.airlineId === customerDetails?.pickupAirlineDetails?.airlineId
             ) || null;
             setValue('shipperName', selectedAirline);
-            setValue('shipperAddr1', customerDetails?.pickupAirlineDetails?.addressLine1);
-            setValue('shipperAddr2', customerDetails?.pickupAirlineDetails?.addressLine2);
-            setValue('shipperCity', customerDetails?.pickupAirlineDetails?.city);
-            setValue('shipperState', customerDetails?.pickupAirlineDetails?.state);
-            setValue('shipperZip', customerDetails?.pickupAirlineDetails?.zipCode);
-            setValue('shipperContact', customerDetails?.pickupAirlineDetails?.contactPersonName);
-            setValue('shipperPhone', customerDetails?.pickupAirlineDetails?.phoneNumber);
+            setValue('shipperAddr1', selectedAirline?.addressLine1);
+            setValue('shipperAddr2', selectedAirline?.addressLine2);
+            setValue('shipperCity', selectedAirline?.city);
+            setValue('shipperState', selectedAirline?.state);
+            setValue('shipperZip', selectedAirline?.zipCode);
+            setValue('shipperContact', selectedAirline?.contactPersonName);
+            setValue('shipperPhone', selectedAirline?.phoneNumber);
         }
         else if (customerDetails?.airportPickupService === 'N') {
             const selectedShipper = shipperDropdown?.find(
                 (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
             ) || null;
             setValue('shipperName', selectedShipper);
-            setValue('shipperAddr1', customerDetails?.shipperDetails?.addressLine1);
-            setValue('shipperAddr2', customerDetails?.shipperDetails?.addressLine2);
-            setValue('shipperCity', customerDetails?.shipperDetails?.city);
-            setValue('shipperState', customerDetails?.shipperDetails?.state);
-            setValue('shipperZip', customerDetails?.shipperDetails?.zipCode);
-            setValue('shipperContact', customerDetails?.shipperDetails?.contactPersonName);
-            setValue('shipperPhone', customerDetails?.shipperDetails?.phoneNumber);
+            setValue('shipperAddr1', selectedShipper?.addressLine1);
+            setValue('shipperAddr2', selectedShipper?.addressLine2);
+            setValue('shipperCity', selectedShipper?.city);
+            setValue('shipperState', selectedShipper?.state);
+            setValue('shipperZip', selectedShipper?.zipCode);
+            setValue('shipperContact', selectedShipper?.contactPersonName);
+            setValue('shipperPhone', selectedShipper?.phoneNumber);
         }
         if (customerDetails?.airportDeliveryService === 'Y') {
             const selectedAirline = consigneeAirlineDropdown?.find(
                 (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
             ) || null;
             setValue('consigneeName', selectedAirline);
-            setValue('consigneeAddr1', customerDetails?.deliveryAirlineDetails?.addressLine1);
-            setValue('consigneeAddr2', customerDetails?.deliveryAirlineDetails?.addressLine2);
-            setValue('consigneeCity', customerDetails?.deliveryAirlineDetails?.city);
-            setValue('consigneeState', customerDetails?.deliveryAirlineDetails?.state);
-            setValue('consigneeZip', customerDetails?.deliveryAirlineDetails?.zipCode);
-            setValue('consigneeContact', customerDetails?.deliveryAirlineDetails?.contactPersonName);
-            setValue('consigneePhone', customerDetails?.deliveryAirlineDetails?.phoneNumber);
+            setValue('consigneeAddr1', selectedAirline?.addressLine1);
+            setValue('consigneeAddr2', selectedAirline?.addressLine2);
+            setValue('consigneeCity', selectedAirline?.city);
+            setValue('consigneeState', selectedAirline?.state);
+            setValue('consigneeZip', selectedAirline?.zipCode);
+            setValue('consigneeContact', selectedAirline?.contactPersonName);
+            setValue('consigneePhone', selectedAirline?.phoneNumber);
         }
         else if (customerDetails?.airportDeliveryService === 'N') {
             const selectedConsignee = consigneeDropdown?.find(
                 (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
             ) || null;
             setValue('consigneeName', selectedConsignee);
-            setValue('consigneeAddr1', customerDetails?.consigneeDetails?.addressLine1);
-            setValue('consigneeAddr2', customerDetails?.consigneeDetails?.addressLine2);
-            setValue('consigneeCity', customerDetails?.consigneeDetails?.city);
-            setValue('consigneeState', customerDetails?.consigneeDetails?.state);
-            setValue('consigneeZip', customerDetails?.consigneeDetails?.zipCode);
-            setValue('consigneeContact', customerDetails?.consigneeDetails?.contactPersonName);
-            setValue('consigneePhone', customerDetails?.consigneeDetails?.phoneNumber);
+            setValue('consigneeAddr1', selectedConsignee?.addressLine1);
+            setValue('consigneeAddr2', selectedConsignee?.addressLine2);
+            setValue('consigneeCity', selectedConsignee?.city);
+            setValue('consigneeState', selectedConsignee?.state);
+            setValue('consigneeZip', selectedConsignee?.zipCode);
+            setValue('consigneeContact', selectedConsignee?.contactPersonName);
+            setValue('consigneePhone', selectedConsignee?.phoneNumber);
         }
     }
     // step 3
@@ -385,14 +385,14 @@ export const updateShipperAilineDropdown = (dispatch, setValue, selectedObj,
         const selectedAirline = shipperAirlineDropdown?.find(
             (item) => item?.airlineId === customerDetails?.pickupAirlineDetails?.airlineId
         ) || null;
-        setValue('shipperName', selectedAirline);
-        setValue('shipperAddr1', selectedAirline?.addressLine1);
-        setValue('shipperAddr2', selectedAirline?.addressLine2);
-        setValue('shipperCity', selectedAirline?.city);
-        setValue('shipperState', selectedAirline?.state);
+        setValue('shipperName', selectedAirline || {});
+        setValue('shipperAddr1', selectedAirline?.addressLine1 || "");
+        setValue('shipperAddr2', selectedAirline?.addressLine2 || "");
+        setValue('shipperCity', selectedAirline?.city || "");
+        setValue('shipperState', selectedAirline?.state || "");
         setValue('shipperZip', selectedAirline?.zipCode);
-        setValue('shipperContact', selectedAirline?.contactPersonName);
-        setValue('shipperPhone', selectedAirline?.phoneNumber);
+        setValue('shipperContact', selectedAirline?.contactPersonName || "");
+        setValue('shipperPhone', selectedAirline?.phoneNumber || "");
 
     }
 };
@@ -430,21 +430,21 @@ export const updateConsigneeAirlineDropdown = (dispatch, setValue, selectedObj,
     const linehaulDetails = selectedObj?.carrierDetails?.linehaulDetails;
     const deliveryDetails = selectedObj?.carrierDetails?.deliveryDetails;
     // step 2
-    
-        if (getValues('airportDeliveryService')) {
-            const selectedAirline = consigneeAirlineDropdown?.find(
-                (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
-            ) || null;
-            setValue('consigneeName', selectedAirline);
-            setValue('consigneeAddr1', selectedAirline?.addressLine1);
-            setValue('consigneeAddr2', selectedAirline?.addressLine2);
-            setValue('consigneeCity', selectedAirline?.city);
-            setValue('consigneeState', selectedAirline?.state);
-            setValue('consigneeZip', selectedAirline?.zipCode);
-            setValue('consigneeContact', selectedAirline?.contactPersonName);
-            setValue('consigneePhone', selectedAirline?.phoneNumber);
-        }
-       
+
+    if (getValues('airportDeliveryService')) {
+        const selectedAirline = consigneeAirlineDropdown?.find(
+            (item) => item?.airlineId === customerDetails?.deliveryAirlineDetails?.airlineId
+        ) || null;
+        setValue('consigneeName', selectedAirline || {});
+        setValue('consigneeAddr1', selectedAirline?.addressLine1 || "");
+        setValue('consigneeAddr2', selectedAirline?.addressLine2 || "");
+        setValue('consigneeCity', selectedAirline?.city || "");
+        setValue('consigneeState', selectedAirline?.state || "");
+        setValue('consigneeZip', selectedAirline?.zipCode || "");
+        setValue('consigneeContact', selectedAirline?.contactPersonName || "");
+        setValue('consigneePhone', selectedAirline?.phoneNumber || "");
+    }
+
 };
 
 export const updateCustomerStationDropdown = (dispatch, setValue, selectedObj,
@@ -472,7 +472,7 @@ export const updateCarrierTerminalDropdown = (dispatch, setValue, selectedObj,
     const pickupDetails = selectedObj?.carrierDetails?.pickupDetails;
     const linehaulDetails = selectedObj?.carrierDetails?.linehaulDetails;
     const deliveryDetails = selectedObj?.carrierDetails?.deliveryDetails;
-    
+
     // step 4
     if (carrierTerminalDropdown?.length > 0) {
         const selectedPickupFromTerminal = carrierTerminalDropdown?.find(

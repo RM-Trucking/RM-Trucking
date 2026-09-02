@@ -66,7 +66,7 @@ import ActiveStep4 from './ActiveStep4';
 import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
 import { handleEditNext, onFormEditSubmit } from './handleEditNext';
-import { updateControls, updateStep2Controls } from './UpdateControls';
+import { updateControls, updateShipperDropdown, updateShipperAilineDropdown, updateConsigneeDropdown, updateConsigneeAirlineDropdown, updateCustomerStationDropdown, updateCarrierTerminalDropdown } from './UpdateControls';
 
 // --------------------------------------------------------------
 
@@ -178,6 +178,7 @@ const ShipmentPage = ({ type }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
+  const hasBoundData = useRef(false);
   const filter = createFilterOptions();
 
   const {
@@ -1541,10 +1542,6 @@ const ShipmentPage = ({ type }) => {
   }, [watchedDestinationAirport])
 
   useEffect(() => {
-    console.log(shipperAirlineDropdown);
-  }, [shipperAirlineDropdown])
-
-  useEffect(() => {
     if (watchedAirportPickupService !== undefined) {
       // if they check or uncheck the values have to be empty for the new select
       setValue('shipperName', '');
@@ -1557,19 +1554,19 @@ const ShipmentPage = ({ type }) => {
       setValue('shipperPhone', '');
     }
     // if false if there are values and edit give previous values
-    if (watchedAirportPickupService !== undefined && !watchedAirportPickupService) {
+    if (watchedAirportPickupService !== undefined && !watchedAirportPickupService && type === 'Edit') {
       const customerDetails = selectedShipmentBuildObj?.customerDetails;
       const selectedShipper = shipperDropdown?.find(
         (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
       ) || null;
       setValue('shipperName', selectedShipper);
-      setValue('shipperAddr1', customerDetails?.shipperDetails?.addressLine1);
-      setValue('shipperAddr2', customerDetails?.shipperDetails?.addressLine2);
-      setValue('shipperCity', customerDetails?.shipperDetails?.city);
-      setValue('shipperState', customerDetails?.shipperDetails?.state);
-      setValue('shipperZip', customerDetails?.shipperDetails?.zipCode);
-      setValue('shipperContact', customerDetails?.shipperDetails?.contactPersonName);
-      setValue('shipperPhone', customerDetails?.shipperDetails?.phoneNumber);
+      setValue('shipperAddr1', selectedShipper?.addressLine1);
+      setValue('shipperAddr2', selectedShipper?.addressLine2);
+      setValue('shipperCity', selectedShipper?.city);
+      setValue('shipperState', selectedShipper?.state);
+      setValue('shipperZip', selectedShipper?.zipCode);
+      setValue('shipperContact', selectedShipper?.contactPersonName);
+      setValue('shipperPhone', selectedShipper?.phoneNumber);
     }
   }, [watchedAirportPickupService])
   useEffect(() => {
@@ -1584,19 +1581,19 @@ const ShipmentPage = ({ type }) => {
       setValue('consigneeContact', '');
       setValue('consigneePhone', '');
     }
-    if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService) {
+    if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService && type === 'Edit') {
       const customerDetails = selectedShipmentBuildObj?.customerDetails;
       const selectedConsignee = consigneeDropdown?.find(
         (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
       ) || null;
       setValue('consigneeName', selectedConsignee);
-      setValue('consigneeAddr1', customerDetails?.consigneeDetails?.addressLine1);
-      setValue('consigneeAddr2', customerDetails?.consigneeDetails?.addressLine2);
-      setValue('consigneeCity', customerDetails?.consigneeDetails?.city);
-      setValue('consigneeState', customerDetails?.consigneeDetails?.state);
-      setValue('consigneeZip', customerDetails?.consigneeDetails?.zipCode);
-      setValue('consigneeContact', customerDetails?.consigneeDetails?.contactPersonName);
-      setValue('consigneePhone', customerDetails?.consigneeDetails?.phoneNumber);
+      setValue('consigneeAddr1', selectedConsignee?.addressLine1);
+      setValue('consigneeAddr2', selectedConsignee?.addressLine2);
+      setValue('consigneeCity', selectedConsignee?.city);
+      setValue('consigneeState', selectedConsignee?.state);
+      setValue('consigneeZip', selectedConsignee?.zipCode);
+      setValue('consigneeContact', selectedConsignee?.contactPersonName);
+      setValue('consigneePhone', selectedConsignee?.phoneNumber);
     }
     // if false if there are values and edit give previous values
   }, [watchedAirportDeliveryService])
@@ -1717,12 +1714,67 @@ const ShipmentPage = ({ type }) => {
     }
   }, [type])
   useEffect(() => {
-    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateStep2Controls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateShipperDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
-  }, [type, shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, customerStationDropdown, carrierTerminalDropdown])
+  }, [type, shipperDropdown])
+  useEffect(() => {
+    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
+    }
+    if (shipperAirlineDropdown?.length === 0) {
+      setValue('shipperName', '');
+      setValue('shipperAddr1', '');
+      setValue('shipperAddr2', '');
+      setValue('shipperCity', '');
+      setValue('shipperState', '');
+      setValue('shipperZip', '');
+      setValue('shipperContact', '');
+      setValue('shipperPhone', '');
+    }
+  }, [type, shipperAirlineDropdown])
+  useEffect(() => {
+    if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateConsigneeDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
+    }
+  }, [type, consigneeDropdown])
+  useEffect(() => {
+    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
+    }
+    if(consigneeAirlineDropdown?.length === 0){
+      setValue('consigneeName', '');
+      setValue('consigneeAddr1', '');
+      setValue('consigneeAddr2', '');
+      setValue('consigneeCity', '');
+      setValue('consigneeState', '');
+      setValue('consigneeZip', '');
+      setValue('consigneeContact', '');
+      setValue('consigneePhone', '');
+    }
+  }, [type, consigneeAirlineDropdown])
+  useEffect(() => {
+    if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateCustomerStationDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
+    }
+  }, [type, customerStationDropdown])
+  useEffect(() => {
+    if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+      updateCarrierTerminalDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+        getValues);
+    }
+  }, [type, carrierTerminalDropdown])
 
   return (
     <ErrorBoundary

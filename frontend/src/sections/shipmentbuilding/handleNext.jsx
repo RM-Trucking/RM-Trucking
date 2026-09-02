@@ -521,7 +521,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -633,7 +633,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -743,7 +743,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -822,7 +822,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
                     },
                     "deliveryAlert": currentValues?.carrierInfo?.deliveryDetails?.deliveryAlert ? "Y" : "N",
                     "deliveryAlertDetails": {
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,

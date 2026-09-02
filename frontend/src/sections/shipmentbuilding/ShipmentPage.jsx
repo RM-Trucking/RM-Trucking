@@ -1559,14 +1559,14 @@ const ShipmentPage = ({ type }) => {
       const selectedShipper = shipperDropdown?.find(
         (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
       ) || null;
-      setValue('shipperName', selectedShipper);
-      setValue('shipperAddr1', selectedShipper?.addressLine1);
-      setValue('shipperAddr2', selectedShipper?.addressLine2);
-      setValue('shipperCity', selectedShipper?.city);
-      setValue('shipperState', selectedShipper?.state);
-      setValue('shipperZip', selectedShipper?.zipCode);
-      setValue('shipperContact', selectedShipper?.contactPersonName);
-      setValue('shipperPhone', selectedShipper?.phoneNumber);
+      setValue('shipperName', selectedShipper || {});
+      setValue('shipperAddr1', selectedShipper?.addressLine1 || '');
+      setValue('shipperAddr2', selectedShipper?.addressLine2 || '');
+      setValue('shipperCity', selectedShipper?.city || '');
+      setValue('shipperState', selectedShipper?.state || '');
+      setValue('shipperZip', selectedShipper?.zipCode || '');
+      setValue('shipperContact', selectedShipper?.contactPersonName || '');
+      setValue('shipperPhone', selectedShipper?.phoneNumber || '');
     }
   }, [watchedAirportPickupService])
   useEffect(() => {
@@ -1586,14 +1586,14 @@ const ShipmentPage = ({ type }) => {
       const selectedConsignee = consigneeDropdown?.find(
         (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
       ) || null;
-      setValue('consigneeName', selectedConsignee);
-      setValue('consigneeAddr1', selectedConsignee?.addressLine1);
-      setValue('consigneeAddr2', selectedConsignee?.addressLine2);
-      setValue('consigneeCity', selectedConsignee?.city);
-      setValue('consigneeState', selectedConsignee?.state);
-      setValue('consigneeZip', selectedConsignee?.zipCode);
-      setValue('consigneeContact', selectedConsignee?.contactPersonName);
-      setValue('consigneePhone', selectedConsignee?.phoneNumber);
+      setValue('consigneeName', selectedConsignee || {});
+      setValue('consigneeAddr1', selectedConsignee?.addressLine1 || '');
+      setValue('consigneeAddr2', selectedConsignee?.addressLine2 || '');
+      setValue('consigneeCity', selectedConsignee?.city || '');
+      setValue('consigneeState', selectedConsignee?.state || '');
+      setValue('consigneeZip', selectedConsignee?.zipCode || "");
+      setValue('consigneeContact', selectedConsignee?.contactPersonName || '');
+      setValue('consigneePhone', selectedConsignee?.phoneNumber || '');
     }
     // if false if there are values and edit give previous values
   }, [watchedAirportDeliveryService])

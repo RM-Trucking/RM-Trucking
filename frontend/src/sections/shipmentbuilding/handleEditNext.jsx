@@ -563,7 +563,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                             deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
                         }),
                         shipmentId: selectedShipmentBuildObj?.shipmentId,
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -695,7 +695,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                             deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
                         }),
                         shipmentId: selectedShipmentBuildObj?.shipmentId,
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -826,7 +826,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                             deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
                         }),
                         shipmentId: selectedShipmentBuildObj?.shipmentId,
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,
@@ -925,7 +925,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                             deliveryAlertId: selectedShipmentBuildObj.carrierDetails.deliveryDetails.deliveryAlertDetails.deliveryAlertId
                         }),
                         shipmentId: selectedShipmentBuildObj?.shipmentId,
-                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes ? "Y" : "N",
+                        "linehaulNotes": currentValues?.carrierInfo?.deliveryDetails?.lineHaulNotes,
                         "deliveryNotes": currentValues?.carrierInfo?.deliveryDetails?.deliveryNotes,
                         "emailInfo": {
                             "primaryEmail": currentValues?.carrierInfo?.deliveryDetails?.primaryEmail,

@@ -119,7 +119,7 @@ const ActiveStep2 = ({
                     Commodities Details
                 </Typography>
 
-                {
+                {/* {
                     type === 'Edit' && <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
                         <Button variant="contained"
                             size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
@@ -132,7 +132,7 @@ const ActiveStep2 = ({
                             Print All Labels
                         </Button>
                     </Box>
-                }
+                } */}
 
                 {huFields.map((hu, huIdx) => (
                     <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
@@ -147,15 +147,15 @@ const ActiveStep2 = ({
 
                         {/* bad freight  */}
                         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                            {
+                            {/* {
                                 type === 'Edit' && <Button variant="contained"
                                     size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
                                     onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: watchedHU.length, totalHU: watchedHU[huIdx].unitsCount })}
                                 >
                                     Print Label
                                 </Button>
-                            }
-                            {type === 'Edit' && (
+                            } */}
+                            {/* {type === 'Edit' && (
                                 <FormControlLabel
                                     sx={{ alignItems: 'center', m: 0 }} // Centers checkbox with label, removes default margin offsets
                                     control={
@@ -212,7 +212,7 @@ const ActiveStep2 = ({
                                         </Typography>
                                     }
                                 />
-                            )}
+                            )} */}
 
                             {/* Clear/Remove Logic */}
                             {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>

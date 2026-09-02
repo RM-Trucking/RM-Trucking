@@ -223,7 +223,7 @@ export default function BillOfLadingAuto({ data }) {
                                                         <b>Name:</b> {shipper.shipperName}<br />
                                                         <b>Address:</b> {shipper.addressLine1} {shipper.addressLine2}<br />
                                                         <b>City/State/Zip:</b> {shipper.city}, {shipper.state} {shipper.zipCode}<br />
-                                                        <b>Contact:</b> {shipper.contactPersonName} {shipper.phoneNumber}
+                                                        <b>Contact:</b> {shipper.contactPersonName} &nbsp; {shipper.phoneNumber}
                                                     </div>
 
                                                     <div className="bol-section-header">SHIP TO</div>
@@ -231,7 +231,7 @@ export default function BillOfLadingAuto({ data }) {
                                                         <b>Name:</b> {consignee.consigneeName}<br />
                                                         <b>Address:</b> {consignee.addressLine1} {consignee.addressLine2}<br />
                                                         <b>City/State/Zip:</b> {consignee.city}, {consignee.state} {consignee.zipCode}<br />
-                                                        <b>Contact:</b> {consignee.contactPersonName} {consignee.phoneNumber}
+                                                        <b>Contact:</b> {consignee.contactPersonName} &nbsp; {consignee.phoneNumber}
                                                     </div>
 
                                                     <div className="bol-section-header">THIRD PARTY FREIGHT CHARGES BILL TO</div>

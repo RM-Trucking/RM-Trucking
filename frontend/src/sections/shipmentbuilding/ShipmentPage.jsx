@@ -1487,31 +1487,20 @@ const ShipmentPage = ({ type }) => {
             setValue('carrierInfo.pickupAlert', true);
           }
         }
-      }
-    }
-  }, [watchedSelectedPickupCarrier])
-  // useeffect for updating primary mail and additional mails
-  useEffect(() => {
-    // updating primary mail
-    if (watchedSelectedPickupCarrier) {
-      const [terminalId, carrierId] = typeof watchedSelectedPickupCarrier === 'string'
-        ? watchedSelectedPickupCarrier.split('-')
-        : [];
-      if (terminalId && carrierId) {
-        const selectedObject = carrierTerminalDropdown.find(
-          (item) => item.terminalId === Number(terminalId) && item.carrierId === Number(carrierId)
-        );
         if (selectedObject && Object.keys(selectedObject).length > 0 && type !== 'View') {
-          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedObject?.terminalEmail);
+          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedObject?.terminalEmail || "");
           setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedObject?.emails);
         }
         if (selectedObject && Object.keys(selectedObject).length > 0 && type === 'Edit') {
-          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail);
+          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail || "");
           setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
         }
       }
     }
 
+  }, [watchedSelectedPickupCarrier])
+  // useeffect for updating primary mail and additional mails
+  useEffect(() => {
     if (watchedSelectedDeliveryCarrier) {
       const [terminalId, carrierId] = watchedSelectedDeliveryCarrier.split('-');
       if (terminalId && carrierId) {
@@ -1528,8 +1517,7 @@ const ShipmentPage = ({ type }) => {
         }
       }
     }
-
-  }, [watchedSelectedPickupCarrier, watchedSelectedDeliveryCarrier])
+  }, [watchedSelectedDeliveryCarrier])
 
   useEffect(() => {
     if (watchedOriginAirport?.length > 2) {

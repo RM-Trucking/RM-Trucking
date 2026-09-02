@@ -57,6 +57,7 @@ export const handleNext = async (dispatch, setValue, getValues, trigger, errors,
         if (carrierInfo?.pickupAlert) {
             const isSpecialRouting = selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery';
             const prefix = isSpecialRouting ? 'carrierInfo.' : 'carrierInfo.pickupAlertDetails.';
+            
             fieldsToValidate.push(`${prefix}pickupNotes`, `${prefix}primaryEmail`);
         }
         if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert && type !== 'View') {

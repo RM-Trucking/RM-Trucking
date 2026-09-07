@@ -10,7 +10,7 @@ import {
     CircularProgress,
     Divider,
     Typography,
-    Dialog, DialogContent, Snackbar, FormControlLabel
+    Dialog, DialogContent, Snackbar, FormControlLabel, Alert
 } from '@mui/material';
 import StyledTextField from '../shared/StyledTextField';
 import { useDispatch, useSelector } from '../../redux/store';
@@ -76,6 +76,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
 
     const {
         control,
@@ -137,6 +138,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: data.warehouse }));
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
+            const { origin, originZipCode, destination, destinationZipCode } = data;
+            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
+                value => value && value.trim() !== ''
+            );
+            if (!hasAtLeastOneField) {
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                return; // Stop the form submission
+            }
             if (pathname.includes('/customer-maintenance/station-view')) {
                 dispatch(getStationRateSearchData({
                     stationId: selectedCustomerStationDetails?.stationId || localStorage.getItem('stationId'),
@@ -169,6 +180,16 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             }
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
+            const { origin, originZipCode, destination, destinationZipCode } = data;
+            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
+                value => value && value.trim() !== ''
+            );
+            if (!hasAtLeastOneField) {
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                return; // Stop the form submission
+            }
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
                 dispatch(getTerminalRateSearchData({
                     terminalId: selectedCarrierTabRowDetails?.terminalId || localStorage.getItem('terminalId'),
@@ -208,6 +229,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             if (!hasAtLeastOneCharge) {
                 // Replace with your preferred notification (toast, alert, etc.)
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please enter at least one rate value.");
                 return; // Stop the dispatch
             }
@@ -231,6 +253,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             if (!hasAtLeastOneCharge) {
                 // Replace with your preferred notification (toast, alert, etc.)
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please enter at least one rate value.");
                 return; // Stop the dispatch
             }
@@ -258,6 +281,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             // 2. Validation Check: Ensure at least one valid row exists
             if (details.length === 0) {
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
                 return;
             }
@@ -289,6 +313,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             // 2. Validation Check: Ensure at least one valid row exists
             if (details.length === 0) {
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
                 return;
             }
@@ -321,6 +346,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             // 2. Validation Check: Ensure at least one valid row exists
             if (details.length === 0) {
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
                 return;
             }
@@ -350,6 +376,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             // 2. Validation Check: Ensure at least one valid row exists
             if (details.length === 0) {
                 setSnackbarOpen(true);
+                setSnackbarSeverity("error");
                 setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
                 return;
             }
@@ -929,7 +956,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             Search
                         </Button>}
                     </Stack>
-                    {type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier' && <Box sx={{ pl: 2 }}>
+                    {/* {type === 'Add' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier' && <Box sx={{ pl: 2 }}>
                         <Controller
                             name="airportCheck"
                             control={control}
@@ -969,7 +996,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                 />
                             )}
                         />
-                    </Box>}
+                    </Box>} */}
                     {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <Box sx={{ mt: '16px !important' }}>
                         <RateFieldAndChargeTableWarehouse type={type} />
                     </Box>}
@@ -1134,11 +1161,24 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 autoHideDuration={3000} // Adjust the duration as needed
                 onClose={() => {
                     setSnackbarOpen(false);
+                    setSnackbarSeverity("");
                     setSnackbarMessage("");
                 }}
-                message={snackbarMessage}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            />
+            >
+                <Alert
+                    onClose={() => {
+                        setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
+                    }}
+                    severity={snackbarSeverity} // This dynamically turns it red when "error"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </>
     );
 };

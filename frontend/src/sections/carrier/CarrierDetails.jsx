@@ -45,6 +45,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
     // Define default values for the form
     const defaultValues = {
         carrierName: '',
+        scacCode: "",
         carrierType: [],
         corporatePhoneNumber: '',
         carrierStatus: type === 'Add' ? 'active' : '',
@@ -97,9 +98,10 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         const dateObjTRD = new Date(rawValueTRD);
         const formattedTRD = dateObjTRD.toLocaleDateString('en-CA'); // Result: "2026-03-10"
 
-        if (type === 'Add') {
+        if (type === 'Add') {   
             const obj = {
                 "carrierName": data.carrierName,
+                "scacCode": data.scacCode,
                 "carrierType": data.carrierType.join(", "),
                 "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
                 "isLTLCarrier": (data.carrierType.includes('LTL Carrier') || data.carrierType.includes('Truck Load Carriers') || data.carrierType.includes('LTL Truck Load Carriers') || data.carrierType.includes('Dedicated Carriers') || data.carrierType.includes('Parcel Carriers')) ? "Y" : "N",
@@ -143,6 +145,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
         if (type === 'Edit') {
             const obj = {
                 "carrierName": data.carrierName,
+                "scacCode": data.scacCode,
                 "carrierType": data.carrierType.join(", "),
                 "isParcelCarrier": data.carrierType.includes('Parcel Carriers') ? 'Y' : 'N',
                 "isLTLCarrier": (data.carrierType.includes('LTL Carrier') || data.carrierType.includes('Truck Load Carriers') || data.carrierType.includes('LTL Truck Load Carriers') || data.carrierType.includes('Dedicated Carriers') || data.carrierType.includes('Parcel Carriers')) ? "Y" : "N",
@@ -205,6 +208,7 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
 
         if ((type === 'Edit' || type === 'View') && selectedCarrierRowDetails) {
             setValue('carrierName', selectedCarrierRowDetails?.carrierName || '');
+            setValue('scacCode', selectedCarrierRowDetails?.scacCode || '');
             setValue('carrierType', selectedCarrierRowDetails?.carrierType?.split(",")?.map(s => s.trim()) || []);
             if (selectedCarrierRowDetails?.carrierStatus?.toLowerCase() === 'incomplete') {
                 setValue('carrierStatus', 'active');
@@ -302,6 +306,46 @@ export default function CarrierDetails({ type, handleCloseConfirm, selectedCarri
                                 />
                             )}
                         />
+                        <Controller
+                            name="scacCode"
+                            control={control}
+                            rules={{
+                                required: 'SCAC Code is required',
+                                pattern: {
+                                    value: /^[A-Z]{2,4}$/,
+                                    message: 'SCAC code must be 2 to 4 letters only'
+                                },
+                                // Fallback trim check just in case
+                                validate: (value) => (value && value.trim().length > 0) || 'SCAC code cannot be only spaces'
+                            }}
+                            render={({ field, fieldState: { error } }) => (
+                                <StyledTextField
+                                    {...field}
+                                    variant="standard"
+                                    fullWidth
+                                    sx={{
+                                        width: '30%',
+                                    }}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        // 1. Force uppercase and strip away spaces/numbers/symbols instantly
+                                        const cleanValue = value.toUpperCase().replace(/[^A-Z]/g, '');
+
+                                        // 2. Limit the input length to a maximum of 4 characters on-the-fly
+                                        if (cleanValue.length <= 4) {
+                                            field.onChange(cleanValue);
+                                        }
+                                    }}
+                                    label="SCAC code *"
+                                    error={!!error}
+                                    helperText={error ? error.message : ''}
+                                    disabled={type === 'View' ? readOnly : false}
+                                    // HTML level restriction to stop typing beyond 4 characters
+                                    inputProps={{ maxLength: 4 }}
+                                />
+                            )}
+                        />
+
                         <Controller
                             name="carrierType"
                             control={control}

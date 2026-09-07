@@ -59,6 +59,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             stationNotes: '',
             hasWarehouseService: 'N',
             warehouseEmails: [],
+            isNonBillable : 'N',
         }
     });
 
@@ -78,6 +79,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             "warehouseDetail": data.warehouseDetails,
             "hasWarehouseService": (data.hasWarehouseService) ? 'Y' : 'N',
             "warehouseEmails": data.hasWarehouseService ? data.warehouseEmails : [],
+            "isNonBillable": (data.isNonBillable) ? 'Y' : 'N',
             "addresses": [
                 {
                     "line1": data.addressLine1,
@@ -142,6 +144,7 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
             setValue('warehouseDetails', selectedCustomerStationDetails.warehouseDetail || "");
             // for hasWarehouseService
             setHasWarehouseServiceFlag(selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
+            setValue('isNonBillable', selectedCustomerStationDetails?.isNonBillable === 'Y' ? true : false);
             setValue('hasWarehouseService', selectedCustomerStationDetails?.hasWarehouseService === 'Y' ? true : false);
             setValue('warehouseEmails', selectedCustomerStationDetails?.warehouseEmails || []);
         }
@@ -961,6 +964,49 @@ export default function SharedStationDetails({ type, handleCloseConfirm, selecte
 
 
                         }
+                    </Stack>
+                    <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3}>
+                        <Controller
+                            name="isNonBillable"
+                            control={control}
+                            render={({ field: { onChange, value } }) => (
+                                <FormControlLabel
+                                    sx={{
+                                        width: '40%',
+                                        display: 'flex',
+                                        alignItems: 'flex-end',
+                                        pointerEvents: 'none', // Keeps the "Warehouse" text unclickable
+                                        "& .MuiFormControlLabel-label.Mui-disabled": {
+                                            color: 'black',
+                                            opacity: 1,
+                                            WebkitTextFillColor: 'black',
+                                        },
+                                        "& .MuiCheckbox-root.Mui-disabled": {
+                                            color: 'rgba(0, 25, 76, 1)',
+                                            opacity: 1,
+                                        }
+                                    }}
+                                    control={
+                                        <StyledCheckbox
+                                            sx={{
+                                                pointerEvents: 'auto',
+                                                padding: 0, // 1. Removes the invisible clickable padding
+                                                marginRight: '8px' // 2. Adds back space between box and label
+                                            }}
+                                            disableRipple // 3. Removes the circular highlight when clicked
+                                            checked={!!value}
+                                            disabled={readOnly}
+                                            onChange={(e) => {
+                                                const isChecked = e.target.checked;
+                                                onChange(isChecked);
+                                            }}
+                                        />
+                                    }
+                                    label="Non Billable Customer"
+                                />
+                            )}
+                        />
+
                     </Stack>
 
                     {/* customer notes */}

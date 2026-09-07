@@ -348,6 +348,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                 "carrierId": Number(pickupCarrierId),
@@ -408,6 +409,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                 "carrierId": Number(pickupCarrierId),
@@ -583,6 +585,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "pickupRouting": "PICKUP_ONLY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                 "carrierId": Number(pickupCarrierId),
@@ -715,6 +718,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "pickupRouting": "PICKUP_LINE_HAUL",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                 "carrierId": Number(pickupCarrierId),
@@ -847,6 +851,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                 "pickupRouting": "PICKUP_LINE_HAUL_DELIVERY",
                 "fromLocationType": "Shipper",
                 "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                 "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                 "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                 "carrierId": Number(pickupCarrierId),
@@ -1155,7 +1160,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
 };
 // Helper 1: Extract routing fields logic for step 3
 const getRoutingFields = (routing, linehaulRouting) => {
-    const base = ['carrierInfo.selectCarrier', 'carrierInfo.fromLocation'];
+    const base = ['carrierInfo.selectCarrier', 'carrierInfo.fromLocation','carrierInfo.billNumber'];
 
     if (routing === 'pickup_only' && linehaulRouting === 'linehaul_only') {
         return [
@@ -1471,6 +1476,7 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
                     "pickupRouting": "PICKUP_ONLY",
                     "fromLocationType": "Shipper",
                     "fromLocation": currentValues?.carrierInfo?.fromLocation,
+                    "carrierBillNumber": currentValues?.carrierInfo?.billNumber,
                     "fromLocationEntityId": currentValues?.shipperName?.entityId || null,
                     "airportTransfer": currentValues?.carrierInfo?.airportTransfer ? 'Y' : 'N',
                     "carrierId": Number(pickupCarrierId),

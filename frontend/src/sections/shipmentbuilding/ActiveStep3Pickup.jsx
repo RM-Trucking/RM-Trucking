@@ -410,6 +410,26 @@ const ActiveStep3Pickup = ({
                             </Box>
                             <Box sx={{ flex: '1 1 200px' }}>
                                 <Controller
+                                    name="carrierInfo.billNumber"
+                                    rules={{ required: true }}
+                                    control={control}
+                                    render={({ field }) => (
+                                        <StyledTextField
+                                            {...field}
+                                            fullWidth
+                                            label="Carrier's Bill Number"
+                                            required
+                                            variant="standard"
+                                            // Natively restricts entry to 50 characters max
+                                            inputProps={{ maxLength: 50 }}
+                                            disabled={type === 'View'}
+                                        />
+                                    )}
+                                />
+
+                            </Box>
+                            <Box sx={{ flex: '1 1 200px' }}>
+                                <Controller
                                     name="carrierInfo.fromLocation"
                                     control={control}
                                     // 1. Adds validation rules to enforce the 50-character limit on form submission

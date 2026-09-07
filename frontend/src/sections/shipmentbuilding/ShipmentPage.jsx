@@ -259,6 +259,7 @@ const ShipmentPage = ({ type }) => {
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
+        billNumber : '',
         selectCarrier: '',
         fromLocation: '',
         isManualFromLocation: false,

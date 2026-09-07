@@ -170,6 +170,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.orderReceivedPending', shipmentDetails?.orderReceivedPickupPending === 'Y');
         setValue('carrierInfo.airportTransfer', pickupDetails?.airportTransfer === 'Y');
         setValue('carrierInfo.pickupAgentTerminal', pickupDetails?.pickupAgentTerminal === 'Y');
+        setValue('carrierInfo.billNumber', pickupDetails?.carrierBillNumber);
         setValue('carrierInfo.toLocationType', pickupDetails?.pickupAgentTerminalDetails?.toLocationType);
         setValue('carrierInfo.addPickupAccessorial', pickupDetails?.pickupAccessorial === 'Y');
         setValue('carrierInfo.pickupAlert', pickupDetails?.pickupAlert === 'Y');

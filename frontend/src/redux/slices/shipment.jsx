@@ -195,7 +195,8 @@ export function patchNetworkShipment(shipmentId,obj) {
   return async () => {
     dispatch(slice.actions.startLoading());
     try {
-      const response = await axios.patch(`network-shipment/${shipmentId}/enhanced`, obj);
+      const response = await axios.patch(`network-shipment/${shipmentId}`, obj);
+      // const response = await axios.patch(`network-shipment/${shipmentId}/enhanced`, obj);
       dispatch(slice.actions.patchNetworkShipmentSuccess(response));
     } catch (error) {
       dispatch(slice.actions.hasError(error));

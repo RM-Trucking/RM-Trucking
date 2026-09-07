@@ -87,8 +87,7 @@ export default function BillOfLadingAuto({ data }) {
     const pickupCarrier = data?.carrierDetails?.pickupDetails || {};
     const linehaulCarrier = data?.carrierDetails?.linehaulDetails?.linehaulPrimaryInfo || {};
     const deliveryCarrier = data?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo || {};
-    const proNumber = data?.shipmentId;
-    const shipmentId = data?.shipmentId || '';
+    const proNumber = data?.shipmentDetails?.shipmentProNumber;
     const date = data?.shipmentDetails?.shipmentDate || '';
 
     return (
@@ -247,10 +246,10 @@ export default function BillOfLadingAuto({ data }) {
                                                     {/* Bill of Lading Block with Dedicated Barcode Space */}
                                                     <div>
                                                         <div style={{ paddingBottom: '4px' }}>
-                                                            <div style={{ fontSize: '8pt' }}><b>Bill of Lading #:</b> {shipmentId}</div>
+                                                            <div style={{ fontSize: '8pt' }}><b>Bill of Lading #:</b> {proNumber}</div>
                                                             {/* Added Bill of Lading Barcode Image underneath the number */}
                                                             <div style={{ textAlign: 'center', margin: '4px 0', minHeight: '36px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                                                                <BarcodeImage value={shipmentId} />
+                                                                <BarcodeImage value={proNumber} />
                                                             </div>
                                                         </div>
 

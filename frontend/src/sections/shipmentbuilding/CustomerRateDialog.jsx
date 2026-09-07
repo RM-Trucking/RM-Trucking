@@ -775,7 +775,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
         </Dialog>
       </DialogContent>
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
-        {type !== 'View' && <Button onClick={() => {
+        {/* {type !== 'View' && <Button onClick={() => {
           if (!getValues('customerRate.rate')) {
             setValue('customerRate.rate', getValues('customerRate.apiRate'));
           }
@@ -786,7 +786,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
           onClose();
         }} variant="outlined" sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000', px: 4 }}>
           Cancel
-        </Button>}
+        </Button>} */}
         {type !== 'View' && <Button onClick={() => {
           setValue('customerRate.selectedAccToAdd.chargeType', '');
           if (Number(getValues('customerRate.apiRate')) === Number(getValues('customerRate.rate'))) {

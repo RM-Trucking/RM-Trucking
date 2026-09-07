@@ -19,6 +19,7 @@ export const getObjectForBOL = (getValues, watchedAirportPickupService, watchedA
             ? new Date(currentValues.date).toLocaleDateString('en-CA')
             : "",
         "shipmentTime": currentValues.time,
+        "shipmentProNumber": selectedShipmentBuildObj?.shipmentDetails?.shipmentProNumber,
         "orderReceivedPickupPending": currentValues?.carrierInfo?.orderReceivedPending ? "Y" : "N",
         "status": currentValues?.carrierInfo?.orderReceivedPending ? "ORDER_RECEIVED_PICKUP_PENDING" : "ORDER_RECEIVED_PICKUP_SETUP",
     };

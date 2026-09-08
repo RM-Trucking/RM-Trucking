@@ -1160,7 +1160,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
 };
 // Helper 1: Extract routing fields logic for step 3
 const getRoutingFields = (routing, linehaulRouting) => {
-    const base = ['carrierInfo.selectCarrier', 'carrierInfo.fromLocation','carrierInfo.billNumber'];
+    const base = ['carrierInfo.selectCarrier', 'carrierInfo.fromLocation', 'carrierInfo.billNumber'];
 
     if (routing === 'pickup_only' && linehaulRouting === 'linehaul_only') {
         return [
@@ -1453,6 +1453,12 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
                 valid = false;
                 missingRequiredFields.push('Pickup Location Type', 'Pickup To Location');
             }
+        }
+        if (currentValues?.carrierInfo?.billNumber) {
+            valid = true;
+        } else {
+            valid = false;
+            missingRequiredFields.push('Pickup Bill Number');
         }
         if (currentValues?.carrierInfo?.pickupAlert) {
             if (currentValues?.carrierInfo?.pickupAlertDetails?.pickupNotes && currentValues?.carrierInfo?.pickupAlertDetails?.primaryEmail) {

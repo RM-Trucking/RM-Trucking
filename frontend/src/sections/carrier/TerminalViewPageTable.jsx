@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider,
-    IconButton
+    IconButton, Alert
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -64,6 +64,7 @@ export default function TerminalViewPageTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
     const [tableColumns, setTableColumns] = useState([]);
     const notesRef = useRef({});
 
@@ -620,12 +621,14 @@ export default function TerminalViewPageTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error")
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
     }, [error])
     useEffect(() => {
         if (errorAccessorialMessage) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(errorAccessorialMessage?.error && errorAccessorialMessage?.message) ? `${errorAccessorialMessage?.error}. ${errorAccessorialMessage?.message}` : `${errorAccessorialMessage}`}`);
             setSnackbarOpen(true);
         }
@@ -633,6 +636,7 @@ export default function TerminalViewPageTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -645,6 +649,7 @@ export default function TerminalViewPageTable() {
     }, [operationalMessage])
     useEffect(() => {
         if (operationalAccessorialMessage) {
+            setSnackbarSeverity("success")
             setSnackbarMessage(operationalAccessorialMessage);
             setSnackbarOpen(true);
         }
@@ -801,14 +806,32 @@ export default function TerminalViewPageTable() {
                     autoHideDuration={3000} // Adjust the duration as needed
                     onClose={() => {
                         setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
                         dispatch(setOperationalMessage());
                         dispatch(setError());
                         dispatch(setOpertionalMessageOfCustomer(''));
                         dispatch(setErrorOfCustomer());
                     }}
-                    message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                />
+                >
+                    <Alert
+                        onClose={() => {
+                            setSnackbarOpen(false);
+                            setSnackbarSeverity("");
+                            setSnackbarMessage("");
+                            dispatch(setOperationalMessage());
+                            dispatch(setError());
+                            dispatch(setOpertionalMessageOfCustomer(''));
+                            dispatch(setErrorOfCustomer());
+                        }}
+                        severity={snackbarSeverity} // This dynamically turns it red when "error"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </ErrorBoundary>
         </>
     );

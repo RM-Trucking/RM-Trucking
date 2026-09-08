@@ -4,7 +4,7 @@ import { useForm, Controller } from 'react-hook-form';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { DataGrid, GridToolbar, GridFilterPanel, useGridApiContext, gridFilterModelSelector, useGridSelector, gridVisibleColumnDefinitionsSelector, gridFilterableColumnDefinitionsSelector } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, Select, IconButton } from '@mui/material';
+import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, Alert, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import { clearNotesState } from '../../redux/slices/note';
 import Iconify from '../../components/iconify';
@@ -147,6 +147,7 @@ export default function CustomerHomePageTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
     // filter text
     const [filterFieldText, setFilterFieldText] = useState('');
 
@@ -324,6 +325,7 @@ export default function CustomerHomePageTable() {
 
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
@@ -331,6 +333,7 @@ export default function CustomerHomePageTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -563,16 +566,33 @@ export default function CustomerHomePageTable() {
 
             </DialogContent>
         </Dialog>
+       
         <Snackbar
             open={snackbarOpen}
             autoHideDuration={3000} // Adjust the duration as needed
             onClose={() => {
                 setSnackbarOpen(false);
+                setSnackbarSeverity("");
+                setSnackbarMessage("");
                 dispatch(setOperationalMessage());
                 dispatch(setError());
             }}
-            message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        />
+        >
+            <Alert
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    setSnackbarSeverity("");
+                    setSnackbarMessage("");
+                    dispatch(setOperationalMessage());
+                    dispatch(setError());
+                }}
+                severity={snackbarSeverity} // This dynamically turns it red when "error"
+                variant="filled"
+                sx={{ width: '100%' }}
+            >
+                {snackbarMessage}
+            </Alert>
+        </Snackbar>
     </>)
 }

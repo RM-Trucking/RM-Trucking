@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DataGrid } from '@mui/x-data-grid';
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Switch, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, IconButton } from '@mui/material';
+import { Box, Alert, Stack, Typography, Button, Chip, Tooltip, Divider, Dialog, DialogContent, Snackbar, MenuItem, IconButton } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
@@ -40,6 +40,7 @@ export default function ZoneTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
     const handleDialogOpen = (row) => {
         setOpenConfirmDialog(true);
         notesRef.current = row;
@@ -221,6 +222,7 @@ export default function ZoneTable() {
 
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.message || error}`}`);
             setSnackbarOpen(true);
         }
@@ -228,6 +230,7 @@ export default function ZoneTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -370,11 +373,27 @@ export default function ZoneTable() {
             autoHideDuration={3000} // Adjust the duration as needed
             onClose={() => {
                 setSnackbarOpen(false);
+                setSnackbarSeverity("");
+                setSnackbarMessage("");
                 dispatch(setOperationalMessage());
                 dispatch(setError());
             }}
-            message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        />
+        >
+            <Alert
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    setSnackbarSeverity("");
+                    setSnackbarMessage("");
+                    dispatch(setOperationalMessage());
+                    dispatch(setError());
+                }}
+                severity={snackbarSeverity} // This dynamically turns it red when "error"
+                variant="filled"
+                sx={{ width: '100%' }}
+            >
+                {snackbarMessage}
+            </Alert>
+        </Snackbar>
     </>)
 }

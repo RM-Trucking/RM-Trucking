@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Button, Divider,
-    IconButton
+    IconButton, Alert
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -47,6 +47,7 @@ export default function RateTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
 
     // selectedRates array
     const [selectedRatesArr, setSelectedRatesArr] = useState([]);
@@ -571,6 +572,7 @@ export default function RateTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
@@ -578,6 +580,7 @@ export default function RateTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -631,6 +634,7 @@ export default function RateTable() {
             if (selectedRatesArr && selectedRatesArr.length > 0) {
                 dispatch(postStationRate(selectedRatesArr));
             } else {
+                setSnackbarSeverity("error");
                 setSnackbarMessage('Please select at least one rate to add.');
                 setSnackbarOpen(true);
             }
@@ -639,6 +643,7 @@ export default function RateTable() {
             if (selectedRatesArr && selectedRatesArr.length > 0) {
                 dispatch(postTerminalRate(selectedRatesArr));
             } else {
+                setSnackbarSeverity("error");
                 setSnackbarMessage('Please select at least one rate to add.');
                 setSnackbarOpen(true);
             }
@@ -696,7 +701,7 @@ export default function RateTable() {
                                 fontWeight: 600,
                                 color: '#fff',
                                 textTransform: 'none', // Prevent uppercase styling
-                                ml:1,
+                                ml: 1,
                                 '&.MuiButton-outlined': {
                                     borderRadius: '4px',
                                     color: '#fff',
@@ -869,17 +874,34 @@ export default function RateTable() {
                         </Box>
                     </DialogContent>
                 </Dialog>
+
                 <Snackbar
                     open={snackbarOpen}
                     autoHideDuration={3000} // Adjust the duration as needed
                     onClose={() => {
                         setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
                         dispatch(setOperationalMessage());
                         dispatch(setError());
                     }}
-                    message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                />
+                >
+                    <Alert
+                        onClose={() => {
+                            setSnackbarOpen(false);
+                            setSnackbarSeverity("");
+                            setSnackbarMessage("");
+                            dispatch(setOperationalMessage());
+                            dispatch(setError());
+                        }}
+                        severity={snackbarSeverity} // This dynamically turns it red when "error"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </ErrorBoundary>
         </>
     );

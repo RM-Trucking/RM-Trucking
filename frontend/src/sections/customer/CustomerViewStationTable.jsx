@@ -4,7 +4,7 @@ import { DataGrid } from '@mui/x-data-grid';
 import {
     Box, Stack, Typography, Button, Dialog,
     DialogContent, Tooltip, Divider, Snackbar,
-    IconButton, 
+    IconButton, Alert
 } from '@mui/material';
 import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
@@ -44,6 +44,7 @@ export default function CustomerViewStationTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
 
     // datagrid columns
     const handleDialogOpen = (row) => {
@@ -253,19 +254,19 @@ export default function CustomerViewStationTable() {
             filterable: false,
             sortable: false,
             renderCell: (params) => (
-            <IconButton
-                onClick={() => handleDialogOpen(params?.row)}
-            >
-                <Iconify
-                    icon="icon-park-solid:notes"
-                    sx={{
-                        color: '#7fbfc4',
-                        cursor: 'pointer',
-                        pointerEvents: 'none'
-                    }}
-                />
-            </IconButton>
-        ),
+                <IconButton
+                    onClick={() => handleDialogOpen(params?.row)}
+                >
+                    <Iconify
+                        icon="icon-park-solid:notes"
+                        sx={{
+                            color: '#7fbfc4',
+                            cursor: 'pointer',
+                            pointerEvents: 'none'
+                        }}
+                    />
+                </IconButton>
+            ),
         },
         {
             field: "actions",
@@ -277,7 +278,7 @@ export default function CustomerViewStationTable() {
             renderCell: (params) => {
                 const element = (
                     <Box>
-                        <Tooltip title={'View'} arrow sx={{ mr : 2}}>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
                             <IconButton onClick={() => {
                                 setActionType('View');
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
@@ -287,7 +288,7 @@ export default function CustomerViewStationTable() {
                                 <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
                             </IconButton>
                         </Tooltip>
-                        <Tooltip title={'Edit'} arrow sx={{ mr : 2}}>
+                        <Tooltip title={'Edit'} arrow sx={{ mr: 2 }}>
                             <IconButton onClick={() => {
                                 dispatch(setSelectedCustomerStationRowDetails(params?.row));
                                 localStorage.setItem('stationId', params?.row?.stationId);
@@ -333,6 +334,7 @@ export default function CustomerViewStationTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
@@ -340,6 +342,7 @@ export default function CustomerViewStationTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -440,16 +443,33 @@ export default function CustomerViewStationTable() {
                 {!openNotesDilog && <SharedStationDetails type={actionType} handleCloseConfirm={handleCloseConfirm} selectedCustomerStationDetails={selectedCustomerStationDetails} customerId={selectedCustomerRowDetails.customerId} />}
             </DialogContent>
         </Dialog>
+
         <Snackbar
             open={snackbarOpen}
             autoHideDuration={3000} // Adjust the duration as needed
             onClose={() => {
                 setSnackbarOpen(false);
+                setSnackbarSeverity("");
+                setSnackbarMessage("");
                 dispatch(setOperationalMessage());
                 dispatch(setError());
             }}
-            message={snackbarMessage}
             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-        />
+        >
+            <Alert
+                onClose={() => {
+                    setSnackbarOpen(false);
+                    setSnackbarSeverity("");
+                    setSnackbarMessage("");
+                    dispatch(setOperationalMessage());
+                    dispatch(setError());
+                }}
+                severity={snackbarSeverity} // This dynamically turns it red when "error"
+                variant="filled"
+                sx={{ width: '100%' }}
+            >
+                {snackbarMessage}
+            </Alert>
+        </Snackbar>
     </>)
 }

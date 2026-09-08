@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import {
-    Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider, IconButton
+    Box, Typography, Alert, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider, IconButton
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -42,6 +42,7 @@ export default function FuelSurchargeHomeTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
     const [tableColumns, setTableColumns] = useState([]);
     const [showStationList, setShowStationList] = useState(false);
     const stationsRef = useRef([]);
@@ -117,7 +118,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 const element = (
                     <Typography
-                    sx={{fontSize : '14px'}}
+                        sx={{ fontSize: '14px' }}
                     >
                         {params?.row?.effectiveTime}
                     </Typography>
@@ -178,7 +179,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 const element = (
                     <Typography
-                    sx={{fontSize : '14px'}}
+                        sx={{ fontSize: '14px' }}
                     >
                         {params?.row?.expireTime}
                     </Typography>
@@ -299,7 +300,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 const element = (
                     <Typography
-                    sx={{fontSize : '14px'}}
+                        sx={{ fontSize: '14px' }}
                     >
                         {params?.row?.effectiveTime}
                     </Typography>
@@ -395,7 +396,7 @@ export default function FuelSurchargeHomeTable() {
             renderCell: (params) => {
                 const element = (
                     <Typography
-                    sx={{fontSize : '14px'}}
+                        sx={{ fontSize: '14px' }}
                     >
                         {params?.row?.expireTime}
                     </Typography>
@@ -483,6 +484,7 @@ export default function FuelSurchargeHomeTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error.error || error.message}`}`);
             setSnackbarOpen(true);
         }
@@ -490,6 +492,7 @@ export default function FuelSurchargeHomeTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -625,12 +628,28 @@ export default function FuelSurchargeHomeTable() {
                     autoHideDuration={3000} // Adjust the duration as needed
                     onClose={() => {
                         setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
                         dispatch(setOperationalMessage());
                         dispatch(setError());
                     }}
-                    message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                />
+                >
+                    <Alert
+                        onClose={() => {
+                            setSnackbarOpen(false);
+                            setSnackbarSeverity("");
+                            setSnackbarMessage("");
+                            dispatch(setOperationalMessage());
+                            dispatch(setError());
+                        }}
+                        severity={snackbarSeverity} // This dynamically turns it red when "error"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </ErrorBoundary>
         </>
     );

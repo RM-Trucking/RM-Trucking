@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Typography, Chip, Stack, Tooltip, Dialog, DialogContent, Snackbar, Divider,
-    IconButton
+    IconButton, Alert
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -49,6 +49,7 @@ export default function CarrierViewTable() {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
     const [tableColumns, setTableColumns] = useState([]);
 
     const notesRef = useRef({});
@@ -498,6 +499,7 @@ export default function CarrierViewTable() {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
@@ -505,6 +507,7 @@ export default function CarrierViewTable() {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -642,14 +645,32 @@ export default function CarrierViewTable() {
                     autoHideDuration={3000} // Adjust the duration as needed
                     onClose={() => {
                         setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
                         dispatch(setOperationalMessage());
                         dispatch(setOpertionalMessageOfCustomer(''));
                         dispatch(setError());
                         dispatch(setErrorOfCustomer());
                     }}
-                    message={snackbarMessage}
                     anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                />
+                >
+                    <Alert
+                        onClose={() => {
+                            setSnackbarOpen(false);
+                            setSnackbarSeverity("");
+                            setSnackbarMessage("");
+                            dispatch(setOperationalMessage());
+                            dispatch(setOpertionalMessageOfCustomer(''));
+                            dispatch(setError());
+                            dispatch(setErrorOfCustomer());
+                        }}
+                        severity={snackbarSeverity} // This dynamically turns it red when "error"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    >
+                        {snackbarMessage}
+                    </Alert>
+                </Snackbar>
             </ErrorBoundary>
         </>
     );

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Stack, Typography, Snackbar, Dialog,
-    DialogContent, Tooltip, Divider, Chip, IconButton,
+    DialogContent, Tooltip, Divider, Chip, IconButton, Alert
 
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
@@ -57,6 +57,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState("");
 
     // columns for department, personnel, rate, accessorial
     const handleDialogOpen = (row) => {
@@ -695,6 +696,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     }, [pagination]);
     useEffect(() => {
         if (error) {
+            setSnackbarSeverity("error");
             setSnackbarMessage(`${(error?.error && error?.message) ? `${error?.error}. ${error?.message}` : `${error}`}`);
             setSnackbarOpen(true);
         }
@@ -702,6 +704,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
     // operational message on customer
     useEffect(() => {
         if (operationalMessage) {
+            setSnackbarSeverity("success");
             setSnackbarMessage(operationalMessage);
             setSnackbarOpen(true);
         }
@@ -820,17 +823,34 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                     </Box>
                 </DialogContent>
             </Dialog>
+           
             <Snackbar
                 open={snackbarOpen}
                 autoHideDuration={3000} // Adjust the duration as needed
                 onClose={() => {
                     setSnackbarOpen(false);
+                    setSnackbarSeverity("");
+                    setSnackbarMessage("");
                     dispatch(setOperationalMessage());
                     dispatch(setError());
                 }}
-                message={snackbarMessage}
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-            />
+            >
+                <Alert
+                    onClose={() => {
+                        setSnackbarOpen(false);
+                        setSnackbarSeverity("");
+                        setSnackbarMessage("");
+                        dispatch(setOperationalMessage());
+                        dispatch(setError());
+                    }}
+                    severity={snackbarSeverity} // This dynamically turns it red when "error"
+                    variant="filled"
+                    sx={{ width: '100%' }}
+                >
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </>
     );
 }

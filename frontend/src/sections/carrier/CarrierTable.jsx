@@ -169,8 +169,6 @@ export default function RateTable() {
             field: 'actions',
             headerName: 'Actions',
             width: 300,
-            align: 'center',
-            cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
             renderCell: (params) => {

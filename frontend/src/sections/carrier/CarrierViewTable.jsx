@@ -278,7 +278,6 @@ export default function CarrierViewTable() {
             headerName: "Status",
             minWidth: 150,
             cellClassName: 'center-status-cell',
-            headerAlign: 'center',
             filterable: false,
             sortable: false,
             renderCell: (params) => {
@@ -333,7 +332,6 @@ export default function CarrierViewTable() {
             field: 'actions',
             headerName: 'Actions',
             width: 300,
-            cellClassName: 'center-status-cell',
             sortable: false,
             filterable: false,
             renderCell: (params) => {

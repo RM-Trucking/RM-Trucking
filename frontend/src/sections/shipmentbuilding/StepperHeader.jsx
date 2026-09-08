@@ -440,7 +440,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                         <Stack spacing={0.5}>
                             <Box sx={{ display: 'flex', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>PRO :</Typography>
-                                <Typography sx={valueStyle}>CPRO9289280207</Typography>
+                                <Typography sx={valueStyle}>{selectedShipmentBuildObj?.shipmentDetails?.shipmentProNumber}</Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid #ccc', pb: 0.5 }}>
                                 <Typography sx={{ ...labelStyle, width: '100px' }}>Status :</Typography>

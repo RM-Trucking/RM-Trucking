@@ -253,7 +253,7 @@ export default function RateFieldAndChargeTable({ type }) {
         },
         type !== 'View' && {
             field: 'actions',
-            headerName: '',
+            headerName: 'Actions',
             width: 200,
             cellClassName: 'center-status-cell',
             sortable: false,

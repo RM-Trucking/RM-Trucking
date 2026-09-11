@@ -47,6 +47,7 @@ import ItemsSection from './ItemsSection';
 import CommoditiesList from './CommoditiesList';
 import BadFreightDialog from './BadFreightDialog';
 import PrintLabelDialog from './PrintLabelDialog';
+import ImageUploadDilog from './ImageUpload';
 
 const ActiveStep2 = ({
     type,
@@ -68,6 +69,35 @@ const ActiveStep2 = ({
 }) => {
     const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
     const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null, totalHU: null });
+    const [uploadDialog, setUploadDialog] = useState({
+        open: false,
+        mode: "upload",
+        key: null,
+        formId: null,
+        itemId: null,
+        imageField: "images",
+    });
+    const fileInputRef = useRef(null);
+    const cameraInputRef = useRef(null);
+    const cameraVideoRef = useRef(null);
+    const cameraStreamRef = useRef(null);
+    const [stagedFiles, setStagedFiles] = useState([]);
+    const [isDraggingFiles, setIsDraggingFiles] = useState(false);
+    const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
+    const [imagePreviewDialog, setImagePreviewDialog] = useState({
+    open: false,
+    images: [],
+    itemLabel: "",
+    key: null,
+    formId: null,
+    itemId: null,
+  });
+  const [fullImageDialog, setFullImageDialog] = useState({
+    open: false,
+    image: null,
+    title: "",
+  });
+
     const logError = (e, i) => {
         // Use an error reporting service here
         console.log('error', i);
@@ -105,6 +135,13 @@ const ActiveStep2 = ({
             setErrorVisible(true);
         }
     };
+    const handleOpenImagePreview = (
+        images = [],
+        itemLabel = "",
+        context = {},
+    ) => {
+        setImagePreviewDialog({ open: true, images, itemLabel, ...context });
+    };
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -139,9 +176,63 @@ const ActiveStep2 = ({
                         {/* Label on Border */}
                         <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
                             Handling Unit {huIdx + 1}/{huFields.length}
-                            {/* <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml:1 }} /></IconButton> */}
-                            {/* <IconButton> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton> */}
-                            {/* <IconButton> <Iconify icon="clarity:image-gallery-solid" sx={{ color: '#000' }} /></IconButton> */}
+                            {/* {type === 'Edit' && <>
+                                <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml: 1 }} /></IconButton>
+                                <IconButton onClick={() => {
+                                    setUploadDialog({
+                                        open: true,
+                                        mode: "upload",
+                                        key: null,
+                                        formId: null,
+                                        itemId: null,
+                                        imageField: "images",
+                                    });
+                                }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
+                                {(hu?.images?.length || 0) > 0 && (
+                                    <IconButton
+                                        size="small"
+                                        title="View images"
+                                        onClick={() =>
+                                            handleOpenImagePreview(
+                                                item.images || [],
+                                                `Item ${String(iIdx + 1).padStart(2, "0")}`,
+                                                {
+                                                    key: pr.key,
+                                                    formId: form.id,
+                                                    itemId: item.id,
+                                                },
+                                            )
+                                        }
+                                        sx={{ p: 0.4, position: "relative" }}
+                                    >
+                                        <Iconify
+                                            icon="mdi:image-multiple"
+                                            width={30}
+                                            sx={{ color: "#000" }}
+                                        />
+                                        <Box
+                                            sx={{
+                                                position: "absolute",
+                                                top: -5,
+                                                right: -3,
+                                                width: 22,
+                                                height: 22,
+                                                borderRadius: "50%",
+                                                bgcolor: "#102a63",
+                                                color: "#fff",
+                                                display: "flex",
+                                                alignItems: "center",
+                                                justifyContent: "center",
+                                                fontSize: 14,
+                                                fontWeight: 700,
+                                                lineHeight: 1,
+                                            }}
+                                        >
+                                            {hu?.images?.length}
+                                        </Box>
+                                    </IconButton>
+                                )}
+                            </>} */}
                         </Typography>
 
 
@@ -564,6 +655,22 @@ const ActiveStep2 = ({
                     </Paper>
                 ))}
 
+                {/* image upload  */}
+                <ImageUploadDilog
+                    uploadDialog={uploadDialog}
+                    setUploadDialog={setUploadDialog}
+                    fileInputRef={fileInputRef}
+                    stagedFiles={stagedFiles}
+                    setStagedFiles={setStagedFiles}
+                    isDraggingFiles={isDraggingFiles}
+                    setIsDraggingFiles={setIsDraggingFiles}
+                    cameraDialogOpen={cameraDialogOpen}
+                    setCameraDialogOpen={setCameraDialogOpen}
+                    cameraInputRef={cameraInputRef}
+                    cameraVideoRef={cameraVideoRef}
+                    cameraStreamRef={cameraStreamRef}
+                />
+
                 {/* bad freight modal  */}
                 <BadFreightDialog
                     open={badFreightModal.open}
@@ -576,10 +683,10 @@ const ActiveStep2 = ({
                 />
                 <PrintLabelDialog
                     open={printLabelModal.open}
-                    handleClose={() => setPrintLabelModal({ open: false, huIdx: null, totalUnits: null, totalHU : null })}
+                    handleClose={() => setPrintLabelModal({ open: false, huIdx: null, totalUnits: null, totalHU: null })}
                     huIdx={printLabelModal.huIdx}
                     totalUnits={printLabelModal.totalUnits}
-                    totalHU = {printLabelModal.totalHU}
+                    totalHU={printLabelModal.totalHU}
                 />
 
                 {/* Add Handling Unit Button */}

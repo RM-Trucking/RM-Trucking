@@ -304,8 +304,8 @@ export default function ShipmentViewTable({ }) {
             const { shipmentId, shipmentDetails, customerDetails, carrierDetails } = row;
 
             // 2. Destructure deep nested objects safely using optional chaining (?.)
-            const shipper = customerDetails?.shipperDetails;
-            const consignee = customerDetails?.consigneeDetails;
+            const shipper = customerDetails?.airportPickupService === 'Y' ? customerDetails?.pickupAirlineDetails : customerDetails?.shipperDetails;
+            const consignee = customerDetails?.airportDeliveryService === 'Y' ? customerDetails?.deliveryAirlineDetails : customerDetails?.consigneeDetails;
             const pickup = carrierDetails?.pickupDetails;
             const linehaul = carrierDetails?.linehaulDetails;
             const delivery = carrierDetails?.deliveryDetails;
@@ -354,7 +354,7 @@ export default function ShipmentViewTable({ }) {
             <Box sx={{ height: 600, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
-                    disableVirtualization={true} 
+                    disableVirtualization={true}
                     rows={shipmentViewTableData}
                     columns={shipmentColumns}
                     loading={isLoading}

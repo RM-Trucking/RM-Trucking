@@ -199,7 +199,7 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('carrierInfo.manualAddress.zip', pickupDetails?.editFromLocationDetails?.zipCode);
     }
     if (linehaulDetails && Object.keys(linehaulDetails).length > 0) {
-        setValue('carrierInfo.lineHaul.selectRouting', linehaulDetails?.linehaulPrimaryInfo?.linehaulRouting?.toLowerCase() === 'line_haul_only' ? 'linehaul_only' : 'linehaul_delivery');
+        setValue('carrierInfo.lineHaul.selectRouting', linehaulDetails?.linehaulPrimaryInfo?.linehaulRouting?.toLowerCase() === 'line_haul_only' ? 'linehaul_only' : linehaulDetails?.linehaulPrimaryInfo?.linehaulRouting?.toLowerCase() === 'line_haul_delivery' ? "linehaul_delivery" : "");
         setValue('carrierInfo.lineHaul.billNumber', linehaulDetails?.linehaulPrimaryInfo?.carrierBillNumber);
         setValue('carrierInfo.lineHaul.toLocationType', linehaulDetails?.linehaulPrimaryInfo?.toLocationType);
         setValue('carrierInfo.lineHaul.fromLocation', linehaulDetails?.linehaulPrimaryInfo?.fromLocationType);

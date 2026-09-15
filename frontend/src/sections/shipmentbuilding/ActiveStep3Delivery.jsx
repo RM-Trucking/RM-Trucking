@@ -1199,7 +1199,9 @@ const ActiveStep3Delivery = ({
 
                                             // Map your personnel array down to a flat array of email strings
                                             // Replace 'deliveryDropdownEmails' with your actual data source variable name
-                                            const emailOptions = (watchedDeliveryAdditionalMails || []).map(item => item.email);
+                                            const emailOptions = Array.isArray(watchedDeliveryAdditionalMails)
+                                                ? watchedDeliveryAdditionalMails.map(item => item?.email).filter(Boolean)
+                                                : [];
 
                                             return (
                                                 <Autocomplete

@@ -44,7 +44,9 @@ import {
   getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
 } from '../../redux/slices/shipment';
-
+import CustomerRateInvoiceApproval from './CustomerRateInvoiceApproval';
+import CustomerRateNotesDilog from './CustomerRateNotesDilog';
+import CustomerApprovalHistoryDialog from './ApprovalRateHistoryDilog';
 
 const commonBtnStyle = {
 
@@ -64,7 +66,8 @@ const commonBtnStyle = {
 
 };
 // customer Rate pop up dialog box
-const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials, watch }) => {
+const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control, totals, customerRateAccFields, appendCustomerRateAccFields, replaceCustomerRateAccFields, watchedHU, masterAccessorials, watch, customerRateNotesArr,
+  appendCustomerRateNotesArr, currentCustomerNoteText, customerApprovalRateHistory }) => {
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
   const [isRateEditing, setIsRateEditing] = useState(false);
@@ -75,7 +78,9 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
 
   const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
   const selectedAcc = watch('customerRate.selectedAccToAdd');
-
+  const [invoiceRateApprovalModal, setInvoiceRateApprovalModal] = useState(false);
+  const [customerRateNotesModal, setCustomerRateNotesModal] = useState(false);
+  const [customerApprovalRateHistoryModal, setCustomerApprovalRateHistoryModal] = useState(false);
 
   const addAccessorial = () => {
     const selectedObj = getValues('customerRate.selectedAccToAdd');
@@ -115,13 +120,45 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
           <Box component="span" sx={{ fontWeight: 'bold' }}>
             Customer Rate
           </Box>
-          <IconButton onClick={onClose} aria-label="close" size="small">
-            <CloseIcon />
-          </IconButton>
+          <Box>
+            <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+              onClick={() => {
+                setInvoiceRateApprovalModal(true);
+              }}
+            >
+              Invoice Approval
+            </Button>
+            <IconButton onClick={onClose} aria-label="close" size="small" sx={{ ml: 2 }}>
+              <CloseIcon />
+            </IconButton>
+          </Box>
         </Box>
       </DialogTitle>
       <DialogContent sx={{ p: 3, pb: 0 }}>
         <Box>
+          <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
+            <Box>
+              <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+                onClick={() => setCustomerRateNotesModal(true)}
+              >
+                Rate Notes
+              </Button>
+              <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+              onClick={() => setCustomerApprovalRateHistoryModal(true)}
+              >
+                Approval History
+              </Button>
+            </Box>
+
+            <Box sx={{ backgroundColor: "rgba(181, 181, 181, 1)", p: 0.5, pl: 1.5, borderRadius: '5px' }}>
+              <Typography sx={{ fontWeight: 'bold', fontSize: "12px" }}>Approval Pending
+                <IconButton>
+                  <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(230, 181, 4, 1)' }} />
+                  <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(92, 172, 105, 1)' }} />
+                </IconButton>
+              </Typography>
+            </Box>
+          </Box>
 
           <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', mt: 2 }}>
             {/* Header Row */}
@@ -773,6 +810,42 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
             </Button>
           </DialogActions>
         </Dialog>
+        <CustomerRateInvoiceApproval open={invoiceRateApprovalModal}
+          handleClose={() => setInvoiceRateApprovalModal(false)}
+          handleSubmit={() => setInvoiceRateApprovalModal(false)}
+          setInvoiceRateApprovalModal={setInvoiceRateApprovalModal}
+          amount={(
+            parseFloat(getValues('customerRate.rate') || 0) +
+            parseFloat(getValues('customerRate.fuelSurchargeRate') || 0) +
+            getValues('customerRate.customerAccessorials').reduce((sum, item) => {
+              const charge = parseFloat(item.chargeValue) || 0;
+
+              // Check if input exists and isn't an empty string
+              if (item.input !== undefined && item.input !== "" && item.input !== null) {
+                const input = parseFloat(item.input) || 0;
+                return sum + (charge * input);
+              }
+
+              // Otherwise, treat as a flat fee
+              return sum + charge;
+            }, 0)
+          ).toFixed(2)} />
+        <CustomerRateNotesDilog
+          open={customerRateNotesModal}
+          handleClose={() => setCustomerRateNotesModal(false)}
+          notes={[]}
+          setValue={setValue}
+          getValues={getValues}
+          control={control}
+          customerRateNotesArr={customerRateNotesArr}
+          appendCustomerRateNotesArr={appendCustomerRateNotesArr}
+          currentCustomerNoteText={currentCustomerNoteText}
+        />
+        <CustomerApprovalHistoryDialog
+          open={customerApprovalRateHistoryModal}
+          handleClose={() => setCustomerApprovalRateHistoryModal(false)}
+          customerApprovalRateHistory={customerApprovalRateHistory}
+        />
       </DialogContent>
       <DialogActions sx={{ p: 3, justifyContent: 'flex-start', gap: 2 }}>
         {/* {type !== 'View' && <Button onClick={() => {

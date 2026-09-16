@@ -24,8 +24,8 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     } else if (activeStep === 1) {
         fieldsToValidate = [
             'billingCustomer', 'consigneeName', 'shipperName', 'shipperAddr1', 'shipperAddr2', 'shipperCity', 'shipperState',
-            'shipperZip', 'shipperContact', 'shipperPhone', 'consigneeAddr1', 'consigneeAddr2', 'consigneeCity', 'consigneeState',
-            'consigneeZip', 'consigneeContact', 'consigneePhone'];
+            'shipperZip', 'consigneeAddr1', 'consigneeAddr2', 'consigneeCity', 'consigneeState',
+            'consigneeZip'];
         if (watchedAirportPickupService) {
             fieldsToValidate.push('originAirport');
         }

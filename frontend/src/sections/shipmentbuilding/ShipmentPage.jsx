@@ -259,7 +259,7 @@ const ShipmentPage = ({ type }) => {
       carrierInfo: {
         orderReceivedPending: false,
         airportPickup: false,
-        billNumber : '',
+        billNumber: '',
         selectCarrier: '',
         fromLocation: '',
         isManualFromLocation: false,
@@ -412,6 +412,9 @@ const ShipmentPage = ({ type }) => {
         fuelSurchargeRate: '',
         customerAccessorials: [],
         selectedAccToAdd: null,
+        rateNotes: '',
+        rateNotesArr: [],
+        approvalRateHistory: []
       },
     },
   });
@@ -425,11 +428,22 @@ const ShipmentPage = ({ type }) => {
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
-
+  const customerApprovalRateHistory = useWatch({
+    control,
+    name: 'customerRate.approvalRateHistory',
+  });
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
   const watchedCarrierInfoSubmit = useWatch({ control, name: "carrierInfoSubmit" });
   const watchedServiceLevel = useWatch({ control, name: "serviceLevel" });
+  const { fields: customerRateNotesArr, append: appendCustomerRateNotesArr } = useFieldArray({
+    control,
+    name: 'customerRate.rateNotesArr'
+  });
+  const currentCustomerNoteText = useWatch({
+    control,
+    name: 'customerRate.rateNotes'
+  });
 
   const showEmergencyContact = watchedHandlingUnits.some(hu =>
     hu?.items?.some(item => item.hazmatInfo)
@@ -1866,6 +1880,10 @@ const ShipmentPage = ({ type }) => {
             watchedHU={watchedHU}
             masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
             watch={watch}
+            customerRateNotesArr={customerRateNotesArr}
+            appendCustomerRateNotesArr={appendCustomerRateNotesArr}
+            currentCustomerNoteText={currentCustomerNoteText}
+            customerApprovalRateHistory={customerApprovalRateHistory}
           />
           <HandleCancelDialog
             open={handleCancelModal}

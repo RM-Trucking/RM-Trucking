@@ -86,6 +86,8 @@ export default function HomePage() {
             carrier: '',
             rmChecked: false,
             othersChecked: false,
+            carrierRateReq: false,
+            customerRateReq: false,
 
         },
 
@@ -338,6 +340,45 @@ export default function HomePage() {
 //                                     />
 //                                 }
 //                                 label={<Typography variant="body2">Others</Typography>}
+//                             />
+//                         </Box>
+
+//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+//                             <FormControlLabel
+//                                 control={
+//                                     <Controller
+//                                         name="carrierRateReq"
+//                                         control={control}
+//                                         render={({ field }) => (
+//                                             <Checkbox
+//                                                 {...field}
+//                                                 checked={field.value}
+//                                                 size="small"
+//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+//                                             />
+//                                         )}
+//                                     />
+//                                 }
+//                                 label={<Typography variant="body2">Carrier Rate Req</Typography>}
+//                             />
+//                         </Box>
+//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+//                             <FormControlLabel
+//                                 control={
+//                                     <Controller
+//                                         name="customerRateReq"
+//                                         control={control}
+//                                         render={({ field }) => (
+//                                             <Checkbox
+//                                                 {...field}
+//                                                 checked={field.value}
+//                                                 size="small"
+//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+//                                             />
+//                                         )}
+//                                     />
+//                                 }
+//                                 label={<Typography variant="body2">Customer Rate Req</Typography>}
 //                             />
 //                         </Box>
 //                     </Stack>

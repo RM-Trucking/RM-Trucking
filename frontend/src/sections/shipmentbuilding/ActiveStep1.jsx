@@ -601,9 +601,9 @@ const ActiveStep1 = ({ control,
                         {renderTextField('shipperState', 'State', true)}
 
                         {renderZipCodeField('shipperZip', true)}
-                        {renderTextField('shipperContact', 'Contact Person Name', true)}
+                        {renderTextField('shipperContact', 'Contact Person Name', false)}
 
-                        {renderPhoneField('shipperPhone', 'Phone Number', true)}
+                        {renderPhoneField('shipperPhone', 'Phone Number', false)}
 
                     </Box>
 
@@ -978,10 +978,9 @@ const ActiveStep1 = ({ control,
 
                         {renderZipCodeField('consigneeZip', true)}
 
-                        {renderTextField('consigneeContact', 'Contact Person Name', true)}
+                        {renderTextField('consigneeContact', 'Contact Person Name', false)}
 
-
-                        {renderPhoneField('consigneePhone', 'Phone Number', true)}
+                        {renderPhoneField('consigneePhone', 'Phone Number', false)}
 
 
                     </Box>

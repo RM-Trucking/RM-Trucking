@@ -43,6 +43,8 @@ import {
   getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
 
 } from '../../redux/slices/shipment';
+import CarrierRateNotesDilog from './CarrierRateNotesDilog';
+import CarrierApprovalHistoryDilog from './CarrierApprovalHistoryDilog';
 
 const commonBtnStyle = {
 
@@ -63,7 +65,8 @@ const commonBtnStyle = {
 };
 
 // step 5 carrier rate
-const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues, totals, apiZipRate, invoiceNo, updateAccessorials }) => {
+const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watchedCarrierRateInfo, setValue, path, control, getValues,
+  totals, apiZipRate, invoiceNo, updateAccessorials, approvalHistory, notesArr, appendNotesArr, currentNoteText }) => {
   // Track which row index is currently in "Edit Mode"
   const [editInputIndex, setEditInputIndex] = useState(null);
   const [editIndex, setEditIndex] = useState(null);
@@ -75,17 +78,41 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
   // invoice approval dialogs
   const [invoiceApprovalModal, setInvoiceApprovalModal] = useState(false);
   const hasManualEntry = fields.some(item => item.isManual === true);
+  const [carrierRateNotesModal, setCarrierRateNotesModal] = useState(false);
+  const [carrierApprovalRateHistoryModal, setCarrierApprovalRateHistoryModal] = useState(false);
 
   return (
     <Box sx={{ mb: 4 }}>
-      {type && type !== 'Add' && type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-        <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none' }}
-          onClick={() => {
-            setInvoiceApprovalModal(true);
-          }}
-        >
-          Invoice Approval
-        </Button>
+      {type && type !== 'Add' && type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+            onClick={() => setCarrierRateNotesModal(true)}
+          >
+            Rate Notes
+          </Button>
+          <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+            onClick={() => setCarrierApprovalRateHistoryModal(true)}
+          >
+            Approval History
+          </Button>
+        </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ backgroundColor: "rgba(181, 181, 181, 1)", pl: 1.5, borderRadius: '5px' }}>
+            <Typography sx={{ fontWeight: 'bold', fontSize: "12px" }}>Approval Pending
+              <IconButton>
+                <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(230, 181, 4, 1)' }} />
+                <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(92, 172, 105, 1)' }} />
+              </IconButton>
+            </Typography>
+          </Box>
+          <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+            onClick={() => {
+              setInvoiceApprovalModal(true);
+            }}
+          >
+            Invoice Approval
+          </Button>
+        </Box>
       </Box>}
 
       <Box sx={{ border: '1px solid #ccc', borderRadius: '4px' }}>
@@ -596,7 +623,8 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
           }
           {
             manual && <Box>
-              <Typography variant='body-2'>Are you sure you to submit the Invoice Approval for {`${sectionName}`} ?</Typography>
+              <Typography component="div" variant='body-2' sx={{ textAlign: 'center' }}>Are you sure you to submit the Invoice Approval for {`${sectionName}`} ?</Typography>
+              <Typography component="div" variant='body-2' sx={{ textAlign: 'center' }}>Once approved, the amount cannot be changed or reverted. Do you want to continue ?</Typography>
               <Box sx={{ display: 'flex', border: '1px solid #000', mt: 2, borderBottom: 'none' }}>
                 <Box sx={{ flex: 3, p: 1 }}><Typography variant="subtitle2">Initial API amount</Typography></Box>
                 <Box sx={{ flex: 1.5, p: 1, borderLeft: '1px solid #ccc' }}><Typography variant="subtitle2" fontWeight={'700'}>$ {apiZipRate}</Typography></Box>
@@ -630,6 +658,20 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
           </Button>
         </DialogActions>
       </Dialog>
+      <CarrierRateNotesDilog
+        sectionName={sectionName}
+        open={carrierRateNotesModal}
+        handleClose={() => setCarrierRateNotesModal(false)}
+        notes={[]}
+        setValue={setValue}
+        getValues={getValues}
+        control={control}
+        customerRateNotesArr={notesArr}
+        appendCustomerRateNotesArr={appendNotesArr}
+        currentCustomerNoteText={currentNoteText} />
+      <CarrierApprovalHistoryDilog sectionName={sectionName} open={carrierApprovalRateHistoryModal}
+        handleClose={() => setCarrierApprovalRateHistoryModal(false)}
+        customerApprovalRateHistory={approvalHistory} />
     </Box>
   );
 }

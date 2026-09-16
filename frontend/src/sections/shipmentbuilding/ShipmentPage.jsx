@@ -388,6 +388,9 @@ const ShipmentPage = ({ type }) => {
           apiPickUpRate: '',
           invoiceNo: '',
           pickupAccessorials: [],
+          rateNotes: '',
+          rateNotesArr: [],
+          approvalRateHistory: []
         },
         lineHaul: {
           lineHaulCarrier: '',
@@ -395,6 +398,9 @@ const ShipmentPage = ({ type }) => {
           apiLineHaulRate: '',
           invoiceNo: '',
           lineHaulAccessorials: [],
+          rateNotes: '',
+          rateNotesArr: [],
+          approvalRateHistory: []
         },
         delivery: {
           deliveryCarrier: '',
@@ -402,6 +408,9 @@ const ShipmentPage = ({ type }) => {
           apiDeliveryRate: '',
           invoiceNo: '',
           deliveryAccessorials: [],
+          rateNotes: '',
+          rateNotesArr: [],
+          approvalRateHistory: []
         },
       },
       customerRate: {
@@ -432,6 +441,18 @@ const ShipmentPage = ({ type }) => {
     control,
     name: 'customerRate.approvalRateHistory',
   });
+  const carrierPickupApprovalRateHistory = useWatch({
+    control,
+    name: 'carrierRates.pickUp.approvalRateHistory',
+  });
+  const carrierLinehaulApprovalRateHistory = useWatch({
+    control,
+    name: 'carrierRates.lineHaul.approvalRateHistory',
+  });
+  const carrierDeliveryApprovalRateHistory = useWatch({
+    control,
+    name: 'carrierRates.delivery.approvalRateHistory',
+  });
   // Watch for any hazmat info selection to toggle Emergency Contact 
   const watchedHandlingUnits = useWatch({ control, name: "handlingUnits" });
   const watchedCarrierInfoSubmit = useWatch({ control, name: "carrierInfoSubmit" });
@@ -443,6 +464,30 @@ const ShipmentPage = ({ type }) => {
   const currentCustomerNoteText = useWatch({
     control,
     name: 'customerRate.rateNotes'
+  });
+  const { fields: carrierPickupRateNotesArr, append: appendCarrierPickupRateNotesArr } = useFieldArray({
+    control,
+    name: 'carrierRates.pickUp.rateNotesArr'
+  });
+  const currentCarrierPickupNoteText = useWatch({
+    control,
+    name: 'carrierRates.pickUp.rateNotes'
+  });
+  const { fields: carrierLinehaulRateNotesArr, append: appendCarrierLinehaulRateNotesArr } = useFieldArray({
+    control,
+    name: 'carrierRates.lineHaul.rateNotesArr'
+  });
+  const currentCarrierLinehaulNoteText = useWatch({
+    control,
+    name: 'carrierRates.lineHaul.rateNotes'
+  });
+  const { fields: carrierDeliveryRateNotesArr, append: appendCarrierDeliveryRateNotesArr } = useFieldArray({
+    control,
+    name: 'carrierRates.delivery.rateNotesArr'
+  });
+  const currentCarrierDeliveryNoteText = useWatch({
+    control,
+    name: 'carrierRates.delivery.rateNotes'
   });
 
   const showEmergencyContact = watchedHandlingUnits.some(hu =>
@@ -2177,6 +2222,19 @@ const ShipmentPage = ({ type }) => {
                 watchedCRPickupAccessorials={watchedCRPickupAccessorials}
                 watchedCRLinehaulAccessorials={watchedCRLinehaulAccessorials}
                 watchedCRDeliveryAccessorials={watchedCRDeliveryAccessorials}
+
+                carrierPickupApprovalRateHistory={carrierPickupApprovalRateHistory}
+                carrierLinehaulApprovalRateHistory={carrierLinehaulApprovalRateHistory}
+                carrierDeliveryApprovalRateHistory={carrierDeliveryApprovalRateHistory}
+                carrierPickupRateNotesArr={carrierPickupRateNotesArr}
+                appendCarrierPickupRateNotesArr={appendCarrierPickupRateNotesArr}
+                currentCarrierPickupNoteText={currentCarrierPickupNoteText}
+                carrierLinehaulRateNotesArr={carrierLinehaulRateNotesArr}
+                appendCarrierLinehaulRateNotesArr={appendCarrierLinehaulRateNotesArr}
+                currentCarrierLinehaulNoteText={currentCarrierLinehaulNoteText}
+                carrierDeliveryRateNotesArr={carrierDeliveryRateNotesArr}
+                appendCarrierDeliveryRateNotesArr={appendCarrierDeliveryRateNotesArr}
+                currentCarrierDeliveryNoteText={currentCarrierDeliveryNoteText}
               />
             )
           }

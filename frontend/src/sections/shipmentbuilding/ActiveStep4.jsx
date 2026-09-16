@@ -51,6 +51,18 @@ const ActiveStep4 = ({ type,
     watchedCRPickupAccessorials,
     watchedCRLinehaulAccessorials,
     watchedCRDeliveryAccessorials,
+    carrierPickupApprovalRateHistory,
+    carrierLinehaulApprovalRateHistory,
+    carrierDeliveryApprovalRateHistory,
+    carrierPickupRateNotesArr,
+    appendCarrierPickupRateNotesArr,
+    currentCarrierPickupNoteText,
+    carrierLinehaulRateNotesArr,
+    appendCarrierLinehaulRateNotesArr,
+    currentCarrierLinehaulNoteText,
+    carrierDeliveryRateNotesArr,
+    appendCarrierDeliveryRateNotesArr,
+    currentCarrierDeliveryNoteText,
 }) => {
     const logError = (error, info) => {
         // Use an error reporting service here
@@ -104,6 +116,10 @@ const ActiveStep4 = ({ type,
                     apiZipRate={`${watchedCarrierRateInfo.pickUp.apiPickUpRate || ''}`}
                     invoiceNo={'watchedCarrierRateInfo.pickUp.invoiceNo'}
                     updateAccessorials={carrierRatesPickUpUpdateAccessorials}
+                    approvalHistory = {carrierPickupApprovalRateHistory}
+                    notesArr = {carrierPickupRateNotesArr}
+                    appendNotesArr = {appendCarrierPickupRateNotesArr}
+                    currentNoteText = {currentCarrierPickupNoteText}
                 />
                 <CarrierSection
                     type={type}
@@ -136,6 +152,10 @@ const ActiveStep4 = ({ type,
                     apiZipRate={`${watchedCarrierRateInfo.lineHaul.apiLineHaulRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.lineHaul.invoiceNo`}
                     updateAccessorials={carrierRatesLineHaulUpdateAccessorials}
+                    approvalHistory = {carrierLinehaulApprovalRateHistory}
+                    notesArr = {carrierLinehaulRateNotesArr}
+                    appendNotesArr = {appendCarrierLinehaulRateNotesArr}
+                    currentNoteText = {currentCarrierLinehaulNoteText}
                 />
                 <CarrierSection
                     type={type}
@@ -168,6 +188,10 @@ const ActiveStep4 = ({ type,
                     apiZipRate={`${watchedCarrierRateInfo.delivery.apiDeliveryRate || ''}`}
                     invoiceNo={`watchedCarrierRateInfo.delivery.invoiceNo`}
                     updateAccessorials={carrierRatesDeliveryUpdateAccessorials}
+                    approvalHistory = {carrierDeliveryApprovalRateHistory}
+                    notesArr = {carrierDeliveryRateNotesArr}
+                    appendNotesArr = {appendCarrierDeliveryRateNotesArr}
+                    currentNoteText = {currentCarrierDeliveryNoteText}
                 />
 
                 {/* Grand total  */}

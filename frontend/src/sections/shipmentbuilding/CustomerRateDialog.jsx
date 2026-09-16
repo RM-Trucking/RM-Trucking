@@ -144,7 +144,7 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                 Rate Notes
               </Button>
               <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
-              onClick={() => setCustomerApprovalRateHistoryModal(true)}
+                onClick={() => setCustomerApprovalRateHistoryModal(true)}
               >
                 Approval History
               </Button>

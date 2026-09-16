@@ -121,13 +121,13 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
             Customer Rate
           </Box>
           <Box>
-            <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+            {/* <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
               onClick={() => {
                 setInvoiceRateApprovalModal(true);
               }}
             >
               Invoice Approval
-            </Button>
+            </Button> */}
             <IconButton onClick={onClose} aria-label="close" size="small" sx={{ ml: 2 }}>
               <CloseIcon />
             </IconButton>
@@ -138,26 +138,26 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
         <Box>
           <Box display="flex" alignItems="center" justifyContent="space-between" sx={{ mt: 1 }}>
             <Box>
-              <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+              {/* <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
                 onClick={() => setCustomerRateNotesModal(true)}
               >
                 Rate Notes
-              </Button>
-              <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+              </Button> */}
+              {/* <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
                 onClick={() => setCustomerApprovalRateHistoryModal(true)}
               >
                 Approval History
-              </Button>
+              </Button> */}
             </Box>
 
-            <Box sx={{ backgroundColor: "rgba(181, 181, 181, 1)", p: 0.5, pl: 1.5, borderRadius: '5px' }}>
+            {/* <Box sx={{ backgroundColor: "rgba(181, 181, 181, 1)", p: 0.5, pl: 1.5, borderRadius: '5px' }}>
               <Typography sx={{ fontWeight: 'bold', fontSize: "12px" }}>Approval Pending
                 <IconButton>
                   <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(230, 181, 4, 1)' }} />
                   <Iconify icon="lets-icons:check-fill" width={18} sx={{ color: 'rgba(92, 172, 105, 1)' }} />
                 </IconButton>
               </Typography>
-            </Box>
+            </Box> */}
           </Box>
 
           <Box sx={{ border: '1px solid #ccc', borderRadius: '4px', mt: 2 }}>

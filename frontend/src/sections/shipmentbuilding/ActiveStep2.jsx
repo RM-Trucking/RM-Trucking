@@ -176,7 +176,7 @@ const ActiveStep2 = ({
                         {/* Label on Border */}
                         <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
                             Handling Unit {huIdx + 1}/{huFields.length}
-                            {type === 'Edit' && <>
+                            {/* {type === 'Edit' && <>
                                 <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml: 1 }} /></IconButton>
                                 <IconButton onClick={() => {
                                     setUploadDialog({
@@ -232,7 +232,7 @@ const ActiveStep2 = ({
                                         </Box>
                                     </IconButton>
                                 )}
-                            </>}
+                            </>} */}
                         </Typography>
 
 

@@ -85,7 +85,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
     <Box sx={{ mb: 4 }}>
       {type && type !== 'Add' && type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
+          {/* <Button variant="contained" size="small" sx={{ bgcolor: '#a22', textTransform: 'none', ml: 1 }}
             onClick={() => setCarrierRateNotesModal(true)}
           >
             Rate Notes
@@ -94,9 +94,9 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
             onClick={() => setCarrierApprovalRateHistoryModal(true)}
           >
             Approval History
-          </Button>
+          </Button> */}
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ backgroundColor: "rgba(181, 181, 181, 1)", pl: 1.5, borderRadius: '5px' }}>
             <Typography sx={{ fontWeight: 'bold', fontSize: "12px" }}>Approval Pending
               <IconButton>
@@ -112,7 +112,7 @@ const CarrierSection = ({ type, fields, sectionName, rate, totalSubCharges, watc
           >
             Invoice Approval
           </Button>
-        </Box>
+        </Box> */}
       </Box>}
 
       <Box sx={{ border: '1px solid #ccc', borderRadius: '4px' }}>

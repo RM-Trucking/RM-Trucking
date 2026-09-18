@@ -83,6 +83,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
 }) => {
     const [manifestDialogOpen, setManifestDialogOpen] = useState(false);
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+    const shipmentError = useSelector((state) => state?.shipmentdata?.error);
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
@@ -280,7 +281,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                     }
                                 }}
                                 sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-                                disabled={isSubmittingFinal}
+                                disabled={isSubmittingFinal || shipmentError}
                             >
                                 {activeStep === STEPS.length - 1 ? isSubmittingFinal ? 'Submitting...' : (type === "Edit") ? "Update" : "Submit" : 'Next'}
                             </Button>
@@ -305,7 +306,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj, patchNetworkShipment)
                                     }
                                 }}
-                                disabled={isSubmitting} // 👈 This disables the button instantly on click
+                                disabled={isSubmitting || shipmentError} // 👈 This disables the button instantly on click
                                 sx={{
                                     ...commonBtnStyle,
                                     bgcolor: '#a22',
@@ -336,7 +337,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                                 setIsSubmitting, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, isPickupPending, selectedShipmentBuildObj, patchNetworkShipment)
                                         }
                                     }}
-                                    disabled={isSubmitting} // 👈 This disables the button instantly on click
+                                    disabled={isSubmitting || shipmentError} // 👈 This disables the button instantly on click
                                     sx={{
                                         ...commonBtnStyle,
                                         bgcolor: '#a22',
@@ -370,7 +371,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                         )
                                     }
                                 }}
-                                disabled={isSubmittingFinal}
+                                disabled={isSubmittingFinal || shipmentError}
                                 sx={{
                                     ...commonBtnStyle,
                                     bgcolor: '#a22',

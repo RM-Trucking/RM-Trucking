@@ -47,38 +47,40 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     } else if (activeStep === 2 && isHazmatSelected) {
         fieldsToValidate = ['emergencyContactName', 'emergencyContactPhone'];
     } else if (activeStep === 3) {
-        fieldsToValidate = getRoutingFields(selectedRouting, watchedLinehaulSelectRouting);
+        if (!currentValues?.carrierInfo?.orderReceivedPending) {
+            fieldsToValidate = getRoutingFields(selectedRouting, watchedLinehaulSelectRouting);
 
-        // Add common carrier conditional fields
-        const { carrierInfo } = currentValues || {};
-        if (!carrierInfo?.pickupAgentTerminal) {
-            fieldsToValidate.push('carrierInfo.toLocationType', 'carrierInfo.toLocation');
-        }
-        if (carrierInfo?.pickupAlert) {
-            const isSpecialRouting = selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery';
-            const prefix = isSpecialRouting ? 'carrierInfo.' : 'carrierInfo.pickupAlertDetails.';
-            fieldsToValidate.push(`${prefix}pickupNotes`, `${prefix}primaryEmail`);
-        }
-        if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert && type !== 'View') {
-            fieldsToValidate.push(
-                'carrierInfo.deliveryDetails.lineHaulNotes',
-                'carrierInfo.deliveryDetails.deliveryNotes',
-                'carrierInfo.deliveryDetails.primaryEmail'
-            );
-        }
+            // Add common carrier conditional fields
+            const { carrierInfo } = currentValues || {};
+            if (!carrierInfo?.pickupAgentTerminal) {
+                fieldsToValidate.push('carrierInfo.toLocationType', 'carrierInfo.toLocation');
+            }
+            if (carrierInfo?.pickupAlert) {
+                const isSpecialRouting = selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === 'linehaul_delivery';
+                const prefix = isSpecialRouting ? 'carrierInfo.' : 'carrierInfo.pickupAlertDetails.';
+                fieldsToValidate.push(`${prefix}pickupNotes`, `${prefix}primaryEmail`);
+            }
+            if (carrierInfo?.deliveryDetails?.carrier && carrierInfo?.deliveryDetails?.deliveryAlert && type !== 'View') {
+                fieldsToValidate.push(
+                    'carrierInfo.deliveryDetails.lineHaulNotes',
+                    'carrierInfo.deliveryDetails.deliveryNotes',
+                    'carrierInfo.deliveryDetails.primaryEmail'
+                );
+            }
 
-        // Accessorials cross-checking & manual error tracking
-        if (carrierInfo?.addPickupAccessorial && carrierInfo?.pickupAccessorials?.length === 0) {
-            validAccessorials = false;
-            missingRequiredFields.push('Pickup Accessorials');
-        }
-        if (carrierInfo?.lineHaul?.linehaulAddAcc && carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
-            validAccessorials = false;
-            missingRequiredFields.push('Linehaul Accessorials');
-        }
-        if (carrierInfo?.deliveryDetails?.deliveryAddAcc && carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
-            validAccessorials = false;
-            missingRequiredFields.push('Delivery Accessorials');
+            // Accessorials cross-checking & manual error tracking
+            if (carrierInfo?.addPickupAccessorial && carrierInfo?.pickupAccessorials?.length === 0) {
+                validAccessorials = false;
+                missingRequiredFields.push('Pickup Accessorials');
+            }
+            if (carrierInfo?.lineHaul?.linehaulAddAcc && carrierInfo?.lineHaul?.linehaulAccessorials?.length === 0) {
+                validAccessorials = false;
+                missingRequiredFields.push('Linehaul Accessorials');
+            }
+            if (carrierInfo?.deliveryDetails?.deliveryAddAcc && carrierInfo?.deliveryDetails?.deliveryAccessorials?.length === 0) {
+                validAccessorials = false;
+                missingRequiredFields.push('Delivery Accessorials');
+            }
         }
     }
 

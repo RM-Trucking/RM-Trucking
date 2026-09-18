@@ -1446,6 +1446,12 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
         }
     }
     if (selectedRouting === 'pickup_only' && watchedLinehaulSelectRouting === '' && watchedSelectedPickupCarrier && !isPickupPending) {
+        if (selectedPickupCarrierObject === undefined) {
+            valid = false;
+            missingRequiredFields.push('Pickup Select Carrier');
+        } else {
+            valid = true;
+        }
         if (!currentValues?.carrierInfo?.pickupAgentTerminal) {
             if (currentValues?.carrierInfo?.toLocationType && currentValues?.carrierInfo.toLocation) {
                 valid = true;

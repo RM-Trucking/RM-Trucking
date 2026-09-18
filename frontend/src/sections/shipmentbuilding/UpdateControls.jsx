@@ -32,7 +32,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
         setValue('serviceLevel', shipmentDetails?.serviceLevel);
         setValue('date', shipmentDetails?.shipmentDate);
         setValue('time', shipmentDetails?.shipmentTime);
-        setValue('shipmentStatus.status', shipmentDetails.status)
+        setValue('shipmentStatus.status', shipmentDetails.status);
+        setValue('carrierInfo.orderReceivedPending', shipmentDetails?.orderReceivedPickupPending === 'Y');
     }
     // step 2
     if (customerDetails && Object.keys(customerDetails).length > 0) {

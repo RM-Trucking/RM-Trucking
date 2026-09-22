@@ -55,7 +55,7 @@ import AddAccessorialDialog from './AddAccessorialDialog';
 import DoDetailsDialog from './DoDetailsDialog';
 import CustomerRateDialog from './CustomerRateDialog';
 import HandleCancelDialog from './HandleCancelDialog';
-import StepperHeader from './StepperHeader';
+import DelCarrierStepper from './DelCarrierStepper';
 import ActiveStep0 from './ActiveStep0';
 import ActiveStep1 from './ActiveStep1';
 import ActiveStep2 from './ActiveStep2';
@@ -65,7 +65,10 @@ import ActiveStep3Delivery from './ActiveStep3Delivery';
 import ActiveStep4 from './ActiveStep4';
 import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
-import { handleEditNext, onFormEditSubmit } from './handleEditNext';
+import { handleDelCarrierEditNext } from './DelCarrierSubmit';
+import {
+    setSelectedDelRowObj,
+} from '../../redux/slices/shipmentbuilding';
 import { updateControls, updateShipperDropdown, updateShipperAilineDropdown, updateConsigneeDropdown, updateConsigneeAirlineDropdown, updateCustomerStationDropdown, updateCarrierTerminalDropdown } from './UpdateControls';
 
 // --------------------------------------------------------------
@@ -97,7 +100,7 @@ const getFreightClass = (length, width, height, lbs) => {
   return '400'; // Less than 1 lb/cu ft
 }
 
-const ShipmentPage = ({ type }) => {
+const DelCarrierEditPage = ({ type }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
@@ -118,7 +121,7 @@ const ShipmentPage = ({ type }) => {
   const zipToZipCarrierLinehaulRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierLinehaulRate);
   const zipToZipCarrierDeliveryRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierDeliveryRate);
   const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
-  const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+  const selectedDelRowObj = useSelector((state) => state?.shipmentbuildingdata?.selectedDelRowObj);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -137,7 +140,7 @@ const ShipmentPage = ({ type }) => {
   const isSelectingToCarrierLinehaulRef = useRef(false);
   const isSelectingToCarrierDeliveryRef = useRef(false);
 
-  const [activeStep, setActiveStep] = useState(0);
+  const [activeStep, setActiveStep] = useState(3);
   const [errorVisible, setErrorVisible] = useState(false);
   const [errorVisibleFields, setErrorVisibleFields] = useState([]);
   // This state controls the opening, closing, and index of the Hazmat modal
@@ -1082,7 +1085,7 @@ const ShipmentPage = ({ type }) => {
   }, [watchedHU]);
 
   useEffect(() => {
-    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj === undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length === 0)) {
+    if ((type === 'View' || type === 'Edit') && (selectedDelRowObj === undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length === 0)) {
       navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
     }
     else {
@@ -1550,8 +1553,8 @@ const ShipmentPage = ({ type }) => {
           setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedObject?.emails);
         }
         if (selectedObject && Object.keys(selectedObject).length > 0 && type === 'Edit') {
-          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail || "");
-          setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedShipmentBuildObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
+          setValue('carrierInfo.pickupAlertDetails.primaryEmail', selectedDelRowObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail || "");
+          setValue('carrierInfo.pickupAlertDetails.additionalEmailsArray', selectedDelRowObj?.carrierDetails?.pickupDetails?.pickupAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
         }
       }
     }
@@ -1570,8 +1573,8 @@ const ShipmentPage = ({ type }) => {
           setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedObject?.emails);
         }
         if (selectedObject && Object.keys(selectedObject).length > 0 && type === 'Edit') {
-          setValue('carrierInfo.deliveryDetails.primaryEmail', selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail);
-          setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedShipmentBuildObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
+          setValue('carrierInfo.deliveryDetails.primaryEmail', selectedDelRowObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.primaryEmail || selectedObject?.terminalEmail);
+          setValue('carrierInfo.deliveryDetails.additionalEmailsArray', selectedDelRowObj?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails || selectedObject?.emails);
         }
       }
     }
@@ -1601,7 +1604,7 @@ const ShipmentPage = ({ type }) => {
     }
     // if false if there are values and edit give previous values
     if (watchedAirportPickupService !== undefined && !watchedAirportPickupService && type === 'Edit') {
-      const customerDetails = selectedShipmentBuildObj?.customerDetails;
+      const customerDetails = selectedDelRowObj?.customerDetails;
       const selectedShipper = shipperDropdown?.find(
         (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
       ) || null;
@@ -1628,7 +1631,7 @@ const ShipmentPage = ({ type }) => {
       setValue('consigneePhone', '');
     }
     if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService && type === 'Edit') {
-      const customerDetails = selectedShipmentBuildObj?.customerDetails;
+      const customerDetails = selectedDelRowObj?.customerDetails;
       const selectedConsignee = consigneeDropdown?.find(
         (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
       ) || null;
@@ -1754,14 +1757,14 @@ const ShipmentPage = ({ type }) => {
   }, [watchedDeliveryAddAcc,]);
 
   useEffect(() => {
-    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if ((type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateControls(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
   }, [type])
   useEffect(() => {
-    if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateShipperDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
@@ -1777,15 +1780,15 @@ const ShipmentPage = ({ type }) => {
       setValue('shipperContact', '');
       setValue('shipperPhone', '');
     }
-    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateShipperAilineDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, shipperAirlineDropdown])
   useEffect(() => {
-    if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateConsigneeDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
@@ -1801,22 +1804,22 @@ const ShipmentPage = ({ type }) => {
       setValue('consigneeContact', '');
       setValue('consigneePhone', '');
     }
-    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateConsigneeAirlineDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, consigneeAirlineDropdown])
   useEffect(() => {
-    if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCustomerStationDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateCustomerStationDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, customerStationDropdown])
   useEffect(() => {
-    if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCarrierTerminalDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedDelRowObj !== undefined || selectedDelRowObj && Object.keys(selectedDelRowObj).length > 0)) {
+      updateCarrierTerminalDropdown(dispatch, setValue, selectedDelRowObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
@@ -1834,14 +1837,13 @@ const ShipmentPage = ({ type }) => {
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <Box sx={{ p: 2, mt: 2 }}>
           {/* HEADER & STEPPER */}
-          <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
+          <DelCarrierStepper location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
             PATH_DASHBOARD={PATH_DASHBOARD}
             setHandleCancelModal={setHandleCancelModal}
             hasInitialData={hasInitialData}
             handleNext={handleNext}
             onFormSubmit={onFormSubmit}
-            handleEditNext={handleEditNext}
-            onFormEditSubmit={onFormEditSubmit}
+            handleDelCarrierEditNext={handleDelCarrierEditNext}
             isPickupPending={isPickupPending}
             isSubmitting={isSubmitting} isSubmittingFinal={isSubmittingFinal}
             type={type}
@@ -1886,120 +1888,23 @@ const ShipmentPage = ({ type }) => {
             patchNetworkShipment={patchNetworkShipment}
             watch={watch}
           />
-          {/* dialog for update shipment status  */}
-          <ShipmentStatusUpdateDialog
-            open={shipmentStatusModal}
-            onClose={() => setShipmentStatusModal(false)}
-            setValue={setValue}
-            getValues={getValues}
-            control={control}
-            errors={errors}
-            liveShipmentStatus={liveShipmentStatus}
-          />
-          {/* dialog for DO details */}
-          <DoDetailsDialog
-            open={doDetailsModal}
-            onClose={() => setDoDetailsModal(false)}
-            getValues={getValues}
-            setValue={setValue}
-            control={control}
-            doDetailsFields={doDetailsFields}
-            isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
-          />
-          {/* dialog for customer rate  */}
-          <CustomerRateDialog
-            type={type}
-            open={custommerRateModal}
-            onClose={() => {
-              setCustomerRateModal(false);
-            }}
-            getValues={getValues}
-            setValue={setValue}
-            control={control}
-            totals={totals}
-            customerRateAccFields={customerRateAccFields}
-            appendCustomerRateAccFields={appendCustomerRateAccFields}
-            replaceCustomerRateAccFields={replaceCustomerRateAccFields}
-            watchedHU={watchedHU}
-            masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
-            watch={watch}
-            customerRateNotesArr={customerRateNotesArr}
-            appendCustomerRateNotesArr={appendCustomerRateNotesArr}
-            currentCustomerNoteText={currentCustomerNoteText}
-            customerApprovalRateHistory={customerApprovalRateHistory}
-          />
           <HandleCancelDialog
             open={handleCancelModal}
             onClose={() => setHandleCancelModal(false)}
             onSave={() => {
-              // Handle cancel save logic here
-              if (activeStep === 0) {
-                reset();
-                setActiveStep(0);
-                setHandleCancelModal(false);
-                navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
-              } else {
-                reset();
-                setActiveStep(0);
-                setHandleCancelModal(false);
-              }
+              reset();
+              setHandleCancelModal(false);
+              navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+              dispatch(setSelectedDelRowObj({}));
             }}
           />
-          {/* STEP 0 */}
-          {activeStep === 0 && (
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} type={type} />
-          )}
-          {/* STEP 1 */}
-          {activeStep === 1 && (
-            <ActiveStep1 control={control} errors={errors} type={type}
-              customerStationDropdown={customerStationDropdown}
-              renderTextField={renderTextField}
-              renderZipCodeField={renderZipCodeField}
-              renderPhoneField={renderPhoneField}
-              watchedAirportPickupService={watchedAirportPickupService}
-              watchedAirportDeliveryService={watchedAirportDeliveryService}
-              shipperDropdown={shipperDropdown}
-              watchedOriginAirport={watchedOriginAirport}
-              shipperAirlineDropdown={shipperAirlineDropdown}
-              consigneeDropdown={consigneeDropdown}
-              consigneeAirlineDropdown={consigneeAirlineDropdown}
-              watchedDestinationAirport={watchedDestinationAirport}
-              dispatch={dispatch}
-              navigate={navigate}
-              location={location}
-              setValue={setValue}
-              clearErrors={clearErrors}
-              getValues={getValues}
-              watch={watch} watchedShipperName={watchedShipperName}
-              watchedConsigneeName={watchedConsigneeName}
-            />
-          )}
-          {/* STEP 2 */}
-          {activeStep === 2 && (
-            <ActiveStep2
-              type={type}
-              control={control}
-              dispatch={dispatch}
-              navigate={navigate}
-              location={location}
-              setValue={setValue}
-              huFields={huFields}
-              removeHU={removeHU}
-              errors={errors}
-              watchedHU={watchedHU}
-              getValues={getValues}
-              appendHU={appendHU}
-              setErrorVisible={setErrorVisible}
-              isHazmatSelected={isHazmatSelected}
-              setHazmatModal={setHazmatModal}
-              trigger={trigger}
-            />
-          )}
+
           {/* STEP 3 */}
           {activeStep === 3 && (
             <>
               <ActiveStep3Pickup
                 type={type}
+                from = {'DelCarrierEditPage'}
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
@@ -2196,46 +2101,7 @@ const ShipmentPage = ({ type }) => {
               }
             </>
           )}
-          {/* step 4 */}
-          {
-            activeStep === 4 && (
-              <ActiveStep4 type={type}
-                carrierRatesPickUpAccessorials={carrierRatesPickUpAccessorials}
-                watchedCarrierRateInfo={watchedCarrierRateInfo}
-                carrierTerminalDropdown={carrierTerminalDropdown}
-                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                setValue={setValue}
-                control={control}
-                getValues={getValues}
-                totals={totals}
-                carrierRatesLineHaulAccessorials={carrierRatesLineHaulAccessorials}
-                selectedRouting={selectedRouting}
-                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-                carrierRatesDeliveryAccessorials={carrierRatesDeliveryAccessorials}
-                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                carrierRatesPickUpUpdateAccessorials={carrierRatesPickUpUpdateAccessorials}
-                carrierRatesLineHaulUpdateAccessorials={carrierRatesLineHaulUpdateAccessorials}
-                carrierRatesDeliveryUpdateAccessorials={carrierRatesDeliveryUpdateAccessorials}
-                watchedCRPickupAccessorials={watchedCRPickupAccessorials}
-                watchedCRLinehaulAccessorials={watchedCRLinehaulAccessorials}
-                watchedCRDeliveryAccessorials={watchedCRDeliveryAccessorials}
 
-                carrierPickupApprovalRateHistory={carrierPickupApprovalRateHistory}
-                carrierLinehaulApprovalRateHistory={carrierLinehaulApprovalRateHistory}
-                carrierDeliveryApprovalRateHistory={carrierDeliveryApprovalRateHistory}
-                carrierPickupRateNotesArr={carrierPickupRateNotesArr}
-                appendCarrierPickupRateNotesArr={appendCarrierPickupRateNotesArr}
-                currentCarrierPickupNoteText={currentCarrierPickupNoteText}
-                carrierLinehaulRateNotesArr={carrierLinehaulRateNotesArr}
-                appendCarrierLinehaulRateNotesArr={appendCarrierLinehaulRateNotesArr}
-                currentCarrierLinehaulNoteText={currentCarrierLinehaulNoteText}
-                carrierDeliveryRateNotesArr={carrierDeliveryRateNotesArr}
-                appendCarrierDeliveryRateNotesArr={appendCarrierDeliveryRateNotesArr}
-                currentCarrierDeliveryNoteText={currentCarrierDeliveryNoteText}
-              />
-            )
-          }
           <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
             <Alert severity="error" variant="filled">
@@ -2294,13 +2160,7 @@ const ShipmentPage = ({ type }) => {
             </Alert>
           </Snackbar>
         </Box>
-        {/* Place this at the end of your return block */}
-        <HazmatDialog
-          state={hazmatModal}
-          onClose={() => setHazmatModal({ ...hazmatModal, open: false })}
-          setValue={setValue}
-          getValues={getValues}
-        />
+
         <AccCheckDialog state={accCheckModal} setAccCheckModal={setAccCheckModal} setValue={setValue} watchedAddPickupAccessorial={watchedAddPickupAccessorial} watchedLinehaulAddAcc={watchedLinehaulAddAcc} watchedDeliveryAddAcc={watchedDeliveryAddAcc} PICKUP_MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS} LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS} DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS} setPICKUP_MASTER_Accessorials={setPICKUP_MASTER_Accessorials}
           setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials} setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials} />
         <Dialog open={openNotesDialogForShipmentAccs} onClose={handleNotesCloseConfirmForShipmentAccs} onKeyDown={(event) => {
@@ -2366,4 +2226,4 @@ const ShipmentPage = ({ type }) => {
     </ErrorBoundary>
   );
 };
-export default ShipmentPage; 
+export default DelCarrierEditPage; 

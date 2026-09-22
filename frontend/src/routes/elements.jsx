@@ -44,6 +44,8 @@ export const ShipmentFormEdit = Loadable(lazy(() => import('../pages/shipment/Sh
 export const ShipmentFormView = Loadable(lazy(() => import('../pages/shipment/ShipmentFormView')));
 export const ShipmentBuildingHomeLayout = Loadable(lazy(() => import('../pages/shipment/ShipmentBuildingHomeLayout')));
 export const ShipmentBuildingPage = Loadable(lazy (() => import('../pages/shipment/ShipmentBuildingPage')));
+export const ConsolidatedView = Loadable(lazy (() => import('../pages/shipment/ConsolidatedView')));
+export const DelCarrierEdit = Loadable(lazy (() => import('../pages/shipment/DelCarrierEdit')));
 
 // Error pages
 export const Page500 = Loadable(lazy(() => import('../pages/Page500')));

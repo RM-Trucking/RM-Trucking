@@ -19,6 +19,18 @@ const initialState = {
     shipmentViewData: [],
     operationalMessage: '',
     selectedShipmentBuildObj : {},
+    carrierList: [
+        {
+            carrierId: 1,
+            carrierName: 'Carrier 1',
+        },
+        {
+            carrierId: 2,
+            carrierName: 'Carrier 2',
+        }
+    ],
+    selectedShipments: [],
+    selectedDelRowObj: {},
 };
 
 const slice = createSlice({
@@ -75,6 +87,12 @@ const slice = createSlice({
         setSelectedShipmentBuildObj(state,action){
             state.selectedShipmentBuildObj = action.payload;
         },
+        setSelectedShipments(state, action) {
+            state.selectedShipments = action.payload;
+        },
+        setSelectedDelRowObj(state, action) {
+            state.selectedDelRowObj = action.payload;
+        },
 
     },
 });
@@ -85,6 +103,8 @@ export const {
     setShipmentBuildPaginationObject,
     setOperationalMessage,
     setSelectedShipmentBuildObj,
+    setSelectedShipments,
+    setSelectedDelRowObj,
 } = slice.actions;
 export default slice.reducer;
 

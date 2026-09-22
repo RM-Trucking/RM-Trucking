@@ -27,6 +27,8 @@ import ShipmentViewTable from './ShipmentViewTable';
 import {
     setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj
 } from '../../redux/slices/shipmentbuilding';
+import WeightAlert from './WeightAlert';
+import AddressAlert from './AddressAlert';
 // ----------------------------------------------------------------------
 
 const commonBtnStyle = {
@@ -67,8 +69,12 @@ export default function HomePage() {
     ];
     const isLoading = useSelector((state) => state?.shipmentbuildingdata?.isLoading);
     const carrierTerminalDropdown = useSelector((state) => state?.shipmentbuildingdata?.carrierTerminalDropdown);
+    const selectedShipments = useSelector((state) => state?.shipmentbuildingdata?.selectedShipments);
+    const shipmentViewData = useSelector((state) => state?.shipmentbuildingdata?.shipmentViewData);
     const isSelectingCarrierRef = useRef(false);
     const [selectCarrierSearchValue, setSelectCarrierSearchValue] = useState('');
+    const [showWeightLimitAlert, setShowWeightLimitAlert] = useState(false);
+    const [showAddressAlert, setShowAddressAlert] = useState(false);
     // form values
     const {
         control,
@@ -105,7 +111,71 @@ export default function HomePage() {
         navigate(PATH_DASHBOARD.shipmentBuilding.shipmentAdd);
     }
     const handleConsolidate = () => {
-        console.log('handle consolidate');
+        const matchingShipments = shipmentViewData.filter((shipment) =>
+            selectedShipments.includes(shipment?.shipmentId)
+        );
+
+        const totalHandlingWeight = matchingShipments.reduce((sum, shipment) => {
+            // 1. Safely access the handlingUnits array inside commodityDetails
+            const handlingUnits = shipment?.commodityDetails?.handlingUnits;
+
+            // 2. Loop through handlingUnits if it exists and add weights to our accumulator
+            if (Array.isArray(handlingUnits)) {
+                handlingUnits.forEach((unit) => {
+                    // Parse as float to prevent string concatenation bugs, fallback to 0 if null/missing
+                    const weight = parseFloat(unit?.handlingWeight) || 0;
+                    sum += weight;
+                });
+            }
+
+            return sum;
+        }, 0);
+        if (totalHandlingWeight.toFixed(2) > 5000) {
+            setShowWeightLimitAlert(true);
+        } else {
+            setShowWeightLimitAlert(false);
+        }
+
+        // Ensure we have at least one shipment to compare against
+        if (matchingShipments.length > 0) {
+            // 1. Helper function to extract the correct address object based on your conditional logic
+            const getTargetAddress = (shipment) => {
+                const cust = shipment?.customerDetails;
+                // Conditional routing rule for the address object
+                const addressSource = cust?.airportPickupService === 'Y'
+                    ? cust?.pickupAirlineDetails
+                    : cust?.shipperDetails;
+
+                return {
+                    addressLine1: addressSource?.addressLine1?.trim() || '',
+                    addressLine2: addressSource?.addressLine2?.trim() || '',
+                    city: addressSource?.city?.trim() || '',
+                    state: addressSource?.state?.trim() || '',
+                    zipCode: addressSource?.zipCode?.trim() || '',
+                };
+            };
+
+            // 2. Extract the baseline reference address from the first shipment object
+            const firstAddress = getTargetAddress(matchingShipments[0]);
+            const firstAddressStr = JSON.stringify(firstAddress);
+
+            // 3. Loop through every shipment to check if any address doesn't match the baseline
+            const hasMismatch = matchingShipments.some((shipment) => {
+                const currentAddress = getTargetAddress(shipment);
+                return JSON.stringify(currentAddress) !== firstAddressStr;
+            });
+
+            // 4. Update your alert state based on the result
+            setShowAddressAlert(hasMismatch);
+        } else {
+            // Reset alert state if no items are selected
+            setShowAddressAlert(false);
+        }
+
+        if(!showWeightLimitAlert && !showAddressAlert) {
+            navigate(PATH_DASHBOARD.shipmentBuilding.consolidatedView);
+        }
+
     }
     useEffect(() => {
         dispatch(getCarrierTerminalDropdown());
@@ -125,12 +195,279 @@ export default function HomePage() {
                 {/* The components within this boundary are protected */}
                 <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
 
+                <Stack direction={{ xs: 'column', lg: 'row' }} alignItems={{ xs: 'stretch', lg: 'center' }} sx={{ width: '100%' }}>
+                    <Stack direction={{ xs: 'column', md: 'row' }}
+                        spacing={2}
+                        alignItems='stretch'
+                        sx={{ mt: 2, mb: 2, width: '100%' }}>
 
+                        {/* Field 1: Shipment Status - Flex allocated layout */}
+                        <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' } }}>
+                            <Controller
+                                name="shipmentStatus"
+                                control={control}
+                                render={({ field }) => (
+                                    <StyledTextField {...field} select fullWidth label="Select Shipment Status" variant="standard" error={!!errors.shipmentStatus} SelectProps={{
+                                        displayEmpty: true,
+                                        MenuProps: {
+                                            getContentAnchorEl: null,
+                                            disableScrollLock: true,
+                                            anchorOrigin: {
+                                                vertical: 'bottom',
+                                                horizontal: 'left',
+                                            },
+                                            transformOrigin: {
+                                                vertical: 'top',
+                                                horizontal: 'left',
+                                            },
+                                            PaperProps: {
+                                                sx: {
+                                                    marginTop: '4px',
+                                                    maxHeight: 300,
+                                                    maxWidth: 300
+                                                }
+                                            }
+                                        },
+                                    }} sx={{ width: '100%' }}>
+                                        {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
+                                    </StyledTextField>
+                                )}
+                            />
+                        </Box>
+
+                        {/* Field 2: Customer Reference - Flex allocated layout */}
+                        <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' } }}>
+                            <Box>
+                                <Controller name="customerReference" control={control} render={({ field }) => (
+                                    <TextField {...field} fullWidth label="Customer Reference #" variant="standard" error={!!errors.customerReference} />
+                                )} />
+                            </Box>
+                        </Box>
+
+                        {/* Field 3: NEW Carrier Autocomplete - Flex allocated layout */}
+                        <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 30%' } }}>
+                            <Controller
+                                name="carrier"
+                                control={control}
+                                render={({ field: { onChange, value, ref, ...fieldProps } }) => (
+                                    <Autocomplete
+                                        {...fieldProps}
+                                        fullWidth
+                                        options={carrierTerminalDropdown || []}
+
+                                        // Generates explicit, unique keys for each option item
+                                        renderOption={(props, option, state) => {
+                                            const uniqueKey = `carrier-terminal-${option.terminalId}-${option.carrierId}-${state.index}`;
+                                            return (
+                                                <li {...props} key={uniqueKey}>
+                                                    {option.carrierName && option.terminalName
+                                                        ? `${option.carrierName} | ${option.terminalName}`
+                                                        : ""}
+                                                </li>
+                                            );
+                                        }}
+
+                                        // Ensures accurate component highlighting matching values
+                                        isOptionEqualToValue={(option, val) => {
+                                            const optionKey = `${option?.terminalId}-${option?.carrierId}`;
+                                            const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
+                                            return optionKey === valueKey;
+                                        }}
+
+                                        filterOptions={(options, state) => {
+                                            const inputValue = state.inputValue.trim().toLowerCase();
+                                            if (!inputValue) return options;
+
+                                            return options.filter((option) => {
+                                                const carrierName = (option.carrierName || '').toLowerCase();
+                                                const terminalName = (option.terminalName || '').toLowerCase();
+                                                const carrierId = String(option.carrierId || '');
+                                                const terminalId = String(option.terminalId || '');
+                                                const stateName = (option.address?.state || '').toLowerCase();
+                                                const mainEmail = (option.terminalEmail || '').toLowerCase();
+                                                const personnelEmails = (option.emails || []).map(e => (e.email || '').toLowerCase());
+
+                                                return (
+                                                    carrierName.includes(inputValue) ||
+                                                    terminalName.includes(inputValue) ||
+                                                    carrierId.includes(inputValue) ||
+                                                    terminalId.includes(inputValue) ||
+                                                    stateName.includes(inputValue) ||
+                                                    mainEmail.includes(inputValue) ||
+                                                    personnelEmails.some(email => email.includes(inputValue))
+                                                );
+                                            });
+                                        }}
+
+                                        getOptionLabel={(option) => {
+                                            if (option && option.carrierName && option.terminalName) {
+                                                return `${option.carrierName} | ${option.terminalName}`;
+                                            }
+                                            return "";
+                                        }}
+
+                                        value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                                        onChange={(event, newValue) => {
+                                            isSelectingCarrierRef.current = true;
+                                            const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                            onChange(formValue);
+                                        }}
+
+                                        onInputChange={(event, newInputValue, reason) => {
+                                            if (reason !== "reset") {
+                                                setSelectCarrierSearchValue(newInputValue);
+                                            }
+                                        }}
+
+                                        loading={isLoading}
+                                        loadingText="Searching carriers..."
+
+                                        // Added your conditional empty results messaging
+                                        noOptionsText={selectCarrierSearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                                        renderInput={(params) => (
+                                            <TextField
+                                                {...params}
+                                                inputRef={ref} // Keeps React Hook Form validation focus operational
+                                                variant="standard"
+                                                label="Select Carrier"
+                                                error={!!errors.carrier}
+                                                // Added space layout preservation helper text rule
+                                                helperText={errors.carrier ? errors.carrier.message : ' '}
+                                                sx={{
+                                                    '& .MuiInputBase-input:disabled': {
+                                                        color: '#000',
+                                                        WebkitTextFillColor: '#000'
+                                                    }
+                                                }}
+                                                InputProps={{
+                                                    ...params.InputProps,
+                                                    endAdornment: (
+                                                        <>
+                                                            {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                            {params.InputProps.endAdornment}
+                                                        </>
+                                                    ),
+                                                }}
+                                            />
+                                        )}
+                                    />
+                                )}
+                            />
+                        </Box>
+
+
+                        {/* Checkbox: R&M */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+                            <FormControlLabel
+                                control={
+                                    <Controller
+                                        name="rmChecked"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                {...field}
+                                                checked={field.value}
+                                                size="small"
+                                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            />
+                                        )}
+                                    />
+                                }
+                                label={<Typography variant="body2">R&M</Typography>}
+                            />
+                        </Box>
+
+                        {/* Checkbox: Others */}
+                        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+                            <FormControlLabel
+                                control={
+                                    <Controller
+                                        name="othersChecked"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                {...field}
+                                                checked={field.value}
+                                                size="small"
+                                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            />
+                                        )}
+                                    />
+                                }
+                                label={<Typography variant="body2">Others</Typography>}
+                            />
+                        </Box>
+
+                        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+                            <FormControlLabel
+                                control={
+                                    <Controller
+                                        name="carrierRateReq"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                {...field}
+                                                checked={field.value}
+                                                size="small"
+                                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            />
+                                        )}
+                                    />
+                                }
+                                label={<Typography variant="body2">Carrier Rate Req</Typography>}
+                            />
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
+                            <FormControlLabel
+                                control={
+                                    <Controller
+                                        name="customerRateReq"
+                                        control={control}
+                                        render={({ field }) => (
+                                            <Checkbox
+                                                {...field}
+                                                checked={field.value}
+                                                size="small"
+                                                sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
+                                            />
+                                        )}
+                                    />
+                                }
+                                label={<Typography variant="body2">Customer Rate Req</Typography>}
+                            />
+                        </Box>
+                    </Stack>
+
+                    {/* Actions Section Container */}
+                    <Stack
+                        direction="row"
+                        alignItems="center"
+                        justifyContent={{ xs: 'flex-start', lg: 'flex-end' }}
+                        sx={{ mt: 2, mb: 2, ml: { xs: 0, lg: 2 }, width: { xs: '100%', lg: 'auto' }, minWidth: 'fit-content' }}
+                    >
+                        <Button
+                            variant="contained"
+                            onClick={handleConsolidate}
+                            sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
+                        >
+                            Consolidate
+                        </Button>
+                        <SharedSearchField page="shipmentbuilding" />
+                    </Stack>
+                </Stack>
                 <ShipmentViewTable />
-
-
-
-
+                <WeightAlert
+                    open={showWeightLimitAlert}
+                    onClose={() => setShowWeightLimitAlert(false)}
+                    title="Alert"
+                    message="LTL is over 5000 lbs"
+                />
+                <AddressAlert
+                    open={showAddressAlert}
+                    onClose={() => setShowAddressAlert(false)}
+                />
             </ErrorBoundary>
 
         </>
@@ -138,265 +475,3 @@ export default function HomePage() {
 }
 
 
-//   <Stack direction={{ xs: 'column', lg: 'row' }} alignItems={{ xs: 'stretch', lg: 'center' }} sx={{ width: '100%' }}>
-//                     <Stack direction={{ xs: 'column', md: 'row' }}
-//                         spacing={2}
-//                         alignItems='stretch'
-//                         sx={{ mt: 2, mb: 2, width: '100%' }}>
-
-//                         {/* Field 1: Shipment Status - Flex allocated layout */}
-//                         <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' } }}>
-//                             <Controller
-//                                 name="shipmentStatus"
-//                                 control={control}
-//                                 render={({ field }) => (
-//                                     <StyledTextField {...field} select fullWidth label="Select Shipment Status" variant="standard" error={!!errors.shipmentStatus} SelectProps={{
-//                                         displayEmpty: true,
-//                                         MenuProps: {
-//                                             getContentAnchorEl: null,
-//                                             disableScrollLock: true,
-//                                             anchorOrigin: {
-//                                                 vertical: 'bottom',
-//                                                 horizontal: 'left',
-//                                             },
-//                                             transformOrigin: {
-//                                                 vertical: 'top',
-//                                                 horizontal: 'left',
-//                                             },
-//                                             PaperProps: {
-//                                                 sx: {
-//                                                     marginTop: '4px',
-//                                                     maxHeight: 300,
-//                                                     maxWidth: 300
-//                                                 }
-//                                             }
-//                                         },
-//                                     }} sx={{ width: '100%' }}>
-//                                         {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-//                                     </StyledTextField>
-//                                 )}
-//                             />
-//                         </Box>
-
-//                         {/* Field 2: Customer Reference - Flex allocated layout */}
-//                         <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 25%' } }}>
-//                             <Box>
-//                                 <Controller name="customerReference" control={control} render={({ field }) => (
-//                                     <TextField {...field} fullWidth label="Customer Reference #" variant="standard" error={!!errors.customerReference} />
-//                                 )} />
-//                             </Box>
-//                         </Box>
-
-//                         {/* Field 3: NEW Carrier Autocomplete - Flex allocated layout */}
-//                         <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 30%' } }}>
-//                             <Controller
-//                                 name="carrier"
-//                                 control={control}
-//                                 render={({ field: { onChange, value, ref, ...fieldProps } }) => (
-//                                     <Autocomplete
-//                                         {...fieldProps}
-//                                         fullWidth
-//                                         options={carrierTerminalDropdown || []}
-
-//                                         // Generates explicit, unique keys for each option item
-//                                         renderOption={(props, option, state) => {
-//                                             const uniqueKey = `carrier-terminal-${option.terminalId}-${option.carrierId}-${state.index}`;
-//                                             return (
-//                                                 <li {...props} key={uniqueKey}>
-//                                                     {option.carrierName && option.terminalName
-//                                                         ? `${option.carrierName} | ${option.terminalName}`
-//                                                         : ""}
-//                                                 </li>
-//                                             );
-//                                         }}
-
-//                                         // Ensures accurate component highlighting matching values
-//                                         isOptionEqualToValue={(option, val) => {
-//                                             const optionKey = `${option?.terminalId}-${option?.carrierId}`;
-//                                             const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
-//                                             return optionKey === valueKey;
-//                                         }}
-
-//                                         filterOptions={(options, state) => {
-//                                             const inputValue = state.inputValue.trim().toLowerCase();
-//                                             if (!inputValue) return options;
-
-//                                             return options.filter((option) => {
-//                                                 const carrierName = (option.carrierName || '').toLowerCase();
-//                                                 const terminalName = (option.terminalName || '').toLowerCase();
-//                                                 const carrierId = String(option.carrierId || '');
-//                                                 const terminalId = String(option.terminalId || '');
-//                                                 const stateName = (option.address?.state || '').toLowerCase();
-//                                                 const mainEmail = (option.terminalEmail || '').toLowerCase();
-//                                                 const personnelEmails = (option.emails || []).map(e => (e.email || '').toLowerCase());
-
-//                                                 return (
-//                                                     carrierName.includes(inputValue) ||
-//                                                     terminalName.includes(inputValue) ||
-//                                                     carrierId.includes(inputValue) ||
-//                                                     terminalId.includes(inputValue) ||
-//                                                     stateName.includes(inputValue) ||
-//                                                     mainEmail.includes(inputValue) ||
-//                                                     personnelEmails.some(email => email.includes(inputValue))
-//                                                 );
-//                                             });
-//                                         }}
-
-//                                         getOptionLabel={(option) => {
-//                                             if (option && option.carrierName && option.terminalName) {
-//                                                 return `${option.carrierName} | ${option.terminalName}`;
-//                                             }
-//                                             return "";
-//                                         }}
-
-//                                         value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-//                                         onChange={(event, newValue) => {
-//                                             isSelectingCarrierRef.current = true;
-//                                             const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-//                                             onChange(formValue);
-//                                         }}
-
-//                                         onInputChange={(event, newInputValue, reason) => {
-//                                             if (reason !== "reset") {
-//                                                 setSelectCarrierSearchValue(newInputValue);
-//                                             }
-//                                         }}
-
-//                                         loading={isLoading}
-//                                         loadingText="Searching carriers..."
-
-//                                         // Added your conditional empty results messaging
-//                                         noOptionsText={selectCarrierSearchValue ? "No carriers found" : "Type to search for carriers"}
-
-//                                         renderInput={(params) => (
-//                                             <TextField
-//                                                 {...params}
-//                                                 inputRef={ref} // Keeps React Hook Form validation focus operational
-//                                                 variant="standard"
-//                                                 label="Select Carrier"
-//                                                 error={!!errors.carrier}
-//                                                 // Added space layout preservation helper text rule
-//                                                 helperText={errors.carrier ? errors.carrier.message : ' '}
-//                                                 sx={{
-//                                                     '& .MuiInputBase-input:disabled': {
-//                                                         color: '#000',
-//                                                         WebkitTextFillColor: '#000'
-//                                                     }
-//                                                 }}
-//                                                 InputProps={{
-//                                                     ...params.InputProps,
-//                                                     endAdornment: (
-//                                                         <>
-//                                                             {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-//                                                             {params.InputProps.endAdornment}
-//                                                         </>
-//                                                     ),
-//                                                 }}
-//                                             />
-//                                         )}
-//                                     />
-//                                 )}
-//                             />
-//                         </Box>
-
-
-//                         {/* Checkbox: R&M */}
-//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-//                             <FormControlLabel
-//                                 control={
-//                                     <Controller
-//                                         name="rmChecked"
-//                                         control={control}
-//                                         render={({ field }) => (
-//                                             <Checkbox
-//                                                 {...field}
-//                                                 checked={field.value}
-//                                                 size="small"
-//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-//                                             />
-//                                         )}
-//                                     />
-//                                 }
-//                                 label={<Typography variant="body2">R&M</Typography>}
-//                             />
-//                         </Box>
-
-//                         {/* Checkbox: Others */}
-//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-//                             <FormControlLabel
-//                                 control={
-//                                     <Controller
-//                                         name="othersChecked"
-//                                         control={control}
-//                                         render={({ field }) => (
-//                                             <Checkbox
-//                                                 {...field}
-//                                                 checked={field.value}
-//                                                 size="small"
-//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-//                                             />
-//                                         )}
-//                                     />
-//                                 }
-//                                 label={<Typography variant="body2">Others</Typography>}
-//                             />
-//                         </Box>
-
-//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-//                             <FormControlLabel
-//                                 control={
-//                                     <Controller
-//                                         name="carrierRateReq"
-//                                         control={control}
-//                                         render={({ field }) => (
-//                                             <Checkbox
-//                                                 {...field}
-//                                                 checked={field.value}
-//                                                 size="small"
-//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-//                                             />
-//                                         )}
-//                                     />
-//                                 }
-//                                 label={<Typography variant="body2">Carrier Rate Req</Typography>}
-//                             />
-//                         </Box>
-//                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-//                             <FormControlLabel
-//                                 control={
-//                                     <Controller
-//                                         name="customerRateReq"
-//                                         control={control}
-//                                         render={({ field }) => (
-//                                             <Checkbox
-//                                                 {...field}
-//                                                 checked={field.value}
-//                                                 size="small"
-//                                                 sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-//                                             />
-//                                         )}
-//                                     />
-//                                 }
-//                                 label={<Typography variant="body2">Customer Rate Req</Typography>}
-//                             />
-//                         </Box>
-//                     </Stack>
-
-//                     {/* Actions Section Container */}
-//                     <Stack
-//                         direction="row"
-//                         alignItems="center"
-//                         justifyContent={{ xs: 'flex-start', lg: 'flex-end' }}
-//                         sx={{ mt: 2, mb: 2, ml: { xs: 0, lg: 2 }, width: { xs: '100%', lg: 'auto' }, minWidth: 'fit-content' }}
-//                     >
-//                         <Button
-//                             variant="contained"
-//                             onClick={handleConsolidate}
-//                             sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}
-//                         >
-//                             Consolidate
-//                         </Button>
-//                         <SharedSearchField page="shipmentbuilding" />
-//                     </Stack>
-//                 </Stack>

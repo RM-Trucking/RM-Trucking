@@ -52,6 +52,7 @@ import { getObjectForBOL } from './getObjForBOL';
 
 const ActiveStep3Pickup = ({
     type,
+    from,
     dispatch,
     navigate,
     location,
@@ -149,7 +150,7 @@ const ActiveStep3Pickup = ({
                     <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
                         Carrier Information
                     </Typography>
-                    <FormControlLabel
+                    {from !== 'DelCarrierEditPage' && <FormControlLabel
                         control={<Controller name="carrierInfo.orderReceivedPending" control={control} render={({ field }) => <Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
                             color: 'rgba(0, 25, 76, 1)',
                             '&.Mui-checked': {
@@ -160,7 +161,7 @@ const ActiveStep3Pickup = ({
                             }
                         }} />} />}
                         label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
-                    />
+                    />}
                 </Box>
                 {type === 'Edit' && (
                     // Streamlined routing assessment block

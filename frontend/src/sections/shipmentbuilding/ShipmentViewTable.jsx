@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     Box, Stack, Typography, Button, Dialog,
     DialogContent, Tooltip, Divider, IconButton, Chip, Snackbar, Alert,
-    MenuItem, FormControlLabel, Checkbox,
+    MenuItem, FormControlLabel, Checkbox, FormControl, InputLabel, Select
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -17,7 +17,8 @@ import { getNotesData, postNote } from '../../redux/slices/note';
 import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
 import {
-    getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage, setSelectedShipmentBuildObj
+    getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage, setSelectedShipmentBuildObj, setSelectedShipments,
+    setSelectedDelRowObj,
 } from '../../redux/slices/shipmentbuilding';
 import {
     setOperationalMessage,
@@ -38,6 +39,8 @@ export default function ShipmentViewTable({ }) {
     const shipmentSuccess = useSelector((state) => state?.shipmentdata?.shipmentSuccess);
     const shipmentBuildSearchStr = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildSearchStr);
     const error = useSelector((state) => state?.shipmentbuildingdata?.error);
+    const carrierList = useSelector((state) => state?.shipmentbuildingdata?.carrierList);
+    const selectedDelRowObj = useSelector((state) => state?.shipmentbuildingdata?.selectedDelRowObj);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -50,6 +53,9 @@ export default function ShipmentViewTable({ }) {
     // snackbar
     const [snackbarOpen, setSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [delCheckedRowIds, setDelCheckedRowIds] = useState([]);
+    const [selectedRowIds, setSelectedRowIds] = useState([]);
+
 
     const handleUserMenu = (event) => {
         setOpenPopover(true);
@@ -66,10 +72,32 @@ export default function ShipmentViewTable({ }) {
         setOpenPopover(false);
         setAnchorEl(null);
     }
-    const handleCheckboxDelete = (rowId, isChecked) => {
-        console.log(`Row ID: ${rowId} checked for delete: ${isChecked}`);
-        // Track checked items here in a useState array
+    // Toggles a row ID inside the "Del" tracking state array
+    const handleDelCheckboxChange = (rowId, isChecked) => {
+        if (isChecked) {
+            // 1. Add to Del checkbox state
+            setDelCheckedRowIds((prev) => [...prev, rowId]);
+
+            // 2. Clear this row ID from the standard row selection state array immediately
+            setSelectedRowIds((prev) => {
+                const currentSelected = Array.isArray(prev) ? prev : [];
+                return currentSelected.filter((id) => id !== rowId);
+            });
+        } else {
+            // If unchecked, simply remove it from the Del state array
+            setDelCheckedRowIds((prev) => prev.filter((id) => id !== rowId));
+        }
     };
+    const handleCarrierChange = (rowId, newCarrierId) => {
+        // Update the carrierId for the specific row in shipmentViewTableData
+        setShipmentViewTableData((prevData) =>
+            (prevData || []).map((row) =>
+                // 💡 THE FIX: Check against shipmentId to match your getRowId configuration
+                row?.shipmentId === rowId ? { ...row, carrierId: newCarrierId } : row
+            )
+        );
+    };
+
 
     const shipmentColumns = [
         {
@@ -212,12 +240,17 @@ export default function ShipmentViewTable({ }) {
         {
             field: "actions",
             headerName: "Actions",
-            width: 150, // Increased minWidth slightly to comfortably fit all 4 inline elements
+            width: 600,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
                 // Safe access to your underlying row data if needed
                 const rowId = params.id;
+                // Check current states
+                const isDelChecked = delCheckedRowIds.includes(rowId);
+                // Force row selection to be false if Del is active for mutual exclusivity
+                const isRowSelected = !isDelChecked && selectedRowIds.includes(rowId);
+                const currentCarrier = params?.row?.carrierId || '';
 
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -238,21 +271,21 @@ export default function ShipmentViewTable({ }) {
                             </IconButton>
                         </Tooltip>
 
-                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton> */}
+                        </IconButton>
 
-                        {/* Checkbox with Delete Label */}
-                        {/* <FormControlLabel
+                        {/* Checkbox with Del Label */}
+                        <FormControlLabel
                             label="Del"
                             control={
                                 <Checkbox
                                     size="small"
+                                    checked={isDelChecked}
                                     sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
                                     // Checked state should ideally bind to a tracking state array in your component
                                     onChange={(event) => {
-                                        event.stopPropagation(); // Stops DataGrid row-click selection triggers
-                                        handleCheckboxDelete(rowId, event.target.checked);
+                                        handleDelCheckboxChange(rowId, event.target.checked);
                                     }}
                                 />
                             }
@@ -260,10 +293,77 @@ export default function ShipmentViewTable({ }) {
                                 ml: 1,
                                 '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
                             }}
-                        /> */}
+                        />
+                        <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
+                            <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
+                            <Select
+                                labelId={`carrier-select-label-${rowId}`}
+                                id={`carrier-select-${rowId}`}
+                                value={currentCarrier} // Securely bound to row data now
+                                label="Select Carrier"
+                                onChange={(event) => handleCarrierChange(rowId, event.target.value)}
+                            >
+                                <MenuItem value="">
+                                    <em>None</em>
+                                </MenuItem>
+                                {carrierList?.map((carrier) => (
+                                    <MenuItem key={carrier.carrierId} value={carrier.carrierId}>
+                                        {carrier.carrierName}
+                                    </MenuItem>
+                                ))}
+                            </Select>
+                        </FormControl>
+                        {/* CONDITION 1: Row is selected via standard row checkbox selection */}
+                        {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
+                        {isRowSelected && (
+                            <Button
+                                variant="contained"
+                                size="small"
+                                sx={{ backgroundColor: '#A22', textTransform: 'none' }}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    dispatch(setSelectedDelRowObj(params?.row?.rowDetails));
+                                    console.log("Select Del Agent clicked for row:", rowId);
+                                    navigate(PATH_DASHBOARD.shipmentBuilding.delCarrierEdit);
+                                }}
+                            >
+                                Select Del Agent
+                            </Button>
+                        )}
+                        {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
+                        {isDelChecked && (
+                            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    sx={{ textTransform: 'none', backgroundColor: "#A22" }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log("Submit clicked for row:", rowId);
+                                    }}
+                                >
+                                    Submit
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    sx={{
+                                        textTransform: 'none',
+                                        backgroundColor: '#A22',
+                                        '&:hover': { backgroundColor: '#374151' }
+                                    }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        console.log("Add to Queue clicked for row:", rowId);
+                                    }}
+                                >
+                                    Add to Queue
+                                </Button>
+                            </Box>
+                        )}
 
                         {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
-                        {/* <MenuPopover
+                        <MenuPopover
                             open={openPopover}
                             anchorEl={anchorEl}
                             onClose={handleClosePopover}
@@ -275,7 +375,7 @@ export default function ShipmentViewTable({ }) {
                                     Delete
                                 </MenuItem>
                             </Stack>
-                        </MenuPopover> */}
+                        </MenuPopover>
                     </Box>
                 );
             },
@@ -330,11 +430,12 @@ export default function ShipmentViewTable({ }) {
                 linehaulRouting: ((pickup?.pickupRouting === 'PICKUP_LINE_HAUL' || pickup?.pickupRouting === 'PICKUP_LINE_HAUL_DELIVERY') && (pickup?.carrierId)) ? 'Success' : ((linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_ONLY' || linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_DELIVERY') && linehaul?.linehaulPrimaryInfo?.carrierId) ? 'Success' : 'Pending',
                 deliveryRouting: (pickup?.pickupRouting === 'PICKUP_LINE_HAUL_DELIVERY' && pickup?.carrierId) ? 'Success' : (linehaul?.linehaulPrimaryInfo?.linehaulRouting === 'LINE_HAUL_DELIVERY' && linehaul?.linehaulPrimaryInfo?.carrierId) ? 'Success' : delivery?.deliveryPrimaryInfo?.carrierId ? "Success" : 'Pending',
                 status: shipmentDetails?.status ?? '',
+                carrierId: '',
+                carrierName: '',
                 rowDetails: row // Stores the entire original 1st object unmodified
             };
         });
     };
-
     useEffect(() => {
         // Usage:
         const dataGridRows = shipmentViewData?.length > 0 ? transformDataGridRows(shipmentViewData) : [];
@@ -354,8 +455,30 @@ export default function ShipmentViewTable({ }) {
             <Box sx={{ height: 600, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
                     checkboxSelection
+                    isRowSelectable={(params) => !delCheckedRowIds.includes(params.id)}
+                    onRowSelectionModelChange={(newSelectionModel) => {
+                        let extractedIdsArray = [];
+
+                        // Support both old array structures and newer Set-based object shapes defensively
+                        if (newSelectionModel && typeof newSelectionModel === 'object' && 'ids' in newSelectionModel) {
+                            // Convert MUI's internal Set back into a standard array for your .includes() calls
+                            extractedIdsArray = Array.from(newSelectionModel.ids || []);
+                        } else if (Array.isArray(newSelectionModel)) {
+                            extractedIdsArray = newSelectionModel;
+                        }
+
+                        // 1. Now safely store a real primitive Array in your state
+                        setSelectedRowIds(extractedIdsArray);
+                        dispatch(setSelectedShipments(extractedIdsArray));
+
+                        // 2. Sync with your Del checkboxes safely using the extracted array
+                        setDelCheckedRowIds((prev) => {
+                            const currentDelIds = Array.isArray(prev) ? prev : [];
+                            return currentDelIds.filter(id => !extractedIdsArray.includes(id));
+                        });
+                    }}
                     disableVirtualization={true}
-                    rows={shipmentViewTableData}
+                    rows={shipmentViewTableData || []}
                     columns={shipmentColumns}
                     loading={isLoading}
                     getRowId={(row) => row?.shipmentId}
@@ -365,8 +488,9 @@ export default function ShipmentViewTable({ }) {
                     }}
                     hideFooterSelectedRowCount
                     paginationMode="server"
-                    paginationModel={paginationModel}
+                    paginationModel={paginationModel || { page: 0, pageSize: 10 }}
                     onPaginationModelChange={(newModel) => {
+                        if (!newModel) return;
                         setPaginationModel(newModel);
                         dispatch(getShipmentBuildData({
                             pageNo: newModel.page + 1,
@@ -381,7 +505,7 @@ export default function ShipmentViewTable({ }) {
                         dispatch(getShipmentBuildData({ pageNo: 1, pageSize: newPageSize, searchStr: shipmentBuildSearchStr, }));
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
-                    rowCount={parseInt(pagination?.totalRecords || '0', 10)}
+                    rowCount={isNaN(parseInt(pagination?.totalRecords, 10)) ? 0 : parseInt(pagination.totalRecords, 10)}
                     sx={{
                         // --- 1. Your existing checkbox styles ---
                         '& .MuiDataGrid-columnHeaderCheckbox .MuiDataGrid-checkboxInput': {
@@ -433,6 +557,11 @@ export default function ShipmentViewTable({ }) {
                         '& .MuiDataGrid-row:hover .MuiDataGrid-cell[data-field="actions"]': {
                             backgroundColor: '#f5f5f5',
                         },
+                    }}
+                    onCellClick={(params, event) => {
+                        if (params.field === 'actions') {
+                            event.defaultMuiPrevented = true;
+                        }
                     }}
                 />
             </Box>

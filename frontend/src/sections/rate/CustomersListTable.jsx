@@ -24,7 +24,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
         {
             field: 'customerName',
             headerName: 'Customer',
-            width: 150,
+            flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             filterable: false,
@@ -38,7 +38,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
         {
             field: 'stationName',
             headerName: 'Station',
-            width: 150,
+            flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             filterable: false,
@@ -55,7 +55,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
         {
             field: 'carrierName',
             headerName: 'Carrier',
-            width: 150,
+            flex: 1,
             headerAlign: 'center',
             cellClassName: 'center-status-cell',
             filterable: false,
@@ -91,6 +91,7 @@ export default function CustomerListTable({ handleCloseConfirm }) {
                     pagination
                     hideFooterSelectedRowCount
                     getRowHeight={() => 'auto'}
+                    disableColumnResize={true}
                 />
             </Box>
             <Button

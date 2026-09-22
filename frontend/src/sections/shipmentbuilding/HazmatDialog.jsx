@@ -386,7 +386,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
               }}
 
               renderInput={(params) => (
-                <TextField
+                <StyledTextField
                   {...params}
                   required
                   variant="standard"
@@ -424,7 +424,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
               }}
 
               renderInput={(params) => (
-                <TextField
+                <StyledTextField
                   {...params}
                   required
                   variant="standard"
@@ -446,7 +446,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
           </Box>
           <Box sx={{ flex: '1 1 22%' }}>
-            <TextField
+            <StyledTextField
               label="Packaging Group"
               required
               variant="standard"
@@ -496,7 +496,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
                 }
               }}
               renderInput={(params) => (
-                <TextField
+                <StyledTextField
                   {...params}
                   required
                   variant="standard"
@@ -522,7 +522,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
         {/* Row 2: Weight, Technical Name, Contact Phone */}
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 4 }}>
           <Box sx={{ flex: '1 1 20%', }}>
-            <TextField
+            <StyledTextField
               label="Weight"
               required
               variant="standard"
@@ -557,7 +557,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             />
           </Box>
           <Box sx={{ flex: '1 1 15%', }}>
-            <TextField
+            <StyledTextField
               label="UOM"
               required
               variant="standard"
@@ -579,7 +579,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
 
           </Box>
           <Box sx={{ flex: '1 1 25%' }}>
-            <TextField
+            <StyledTextField
               label="Technical Name"
               variant="standard"
               fullWidth
@@ -602,7 +602,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
           </Box>
           <Box sx={{ flex: '1 1 28%' }}>
 
-            <TextField
+            <StyledTextField
               label="Contact phone"
               required
               variant="standard"
@@ -656,7 +656,7 @@ const HazmatDialog = ({ state, onClose, setValue, getValues }) => {
             <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
               Hazmat Description
             </Typography>
-            <TextField
+            <StyledTextField
               multiline
               fullWidth
               rows={4}

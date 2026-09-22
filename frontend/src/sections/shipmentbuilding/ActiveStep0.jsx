@@ -309,6 +309,9 @@ const ActiveStep0 = ({ control,
                                                 fullWidth: true,
                                                 error: !!errors.time,
                                                 helperText: errors.time ? errors.time.message : '',
+                                                InputLabelProps: {
+                                                    shrink: true,
+                                                },
                                                 sx: {
                                                     '& .MuiInputBase-input.Mui-disabled': {
                                                         WebkitTextFillColor: '#000000',

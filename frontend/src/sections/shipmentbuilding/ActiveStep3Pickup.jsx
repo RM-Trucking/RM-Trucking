@@ -160,7 +160,7 @@ const ActiveStep3Pickup = ({
                                 color: 'rgba(0, 25, 76, 1) !important'
                             }
                         }} />} />}
-                        label={<Typography variant="body2">Order Received Pickup Pending</Typography>}
+                        label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Order Received Pickup Pending</Typography>}
                     />}
                 </Box>
                 {type === 'Edit' && (
@@ -279,7 +279,7 @@ const ActiveStep3Pickup = ({
                                             )}
                                         />
                                     }
-                                    label={<Typography variant="body2">Airport Transfer</Typography>}
+                                    label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Airport Transfer</Typography>}
                                 />
                             </Box>
                             {/* )} */}
@@ -477,7 +477,7 @@ const ActiveStep3Pickup = ({
                                             color: 'rgba(0, 25, 76, 1) !important'
                                         }
                                     }} />} />}
-                                    label={<Typography variant="body2">Edit From Location</Typography>}
+                                    label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Edit From Location</Typography>}
                                 />
                             </Box>
                         </Box>
@@ -585,7 +585,7 @@ const ActiveStep3Pickup = ({
                                             color: 'rgba(0, 25, 76, 1) !important'
                                         }
                                     }} />} />}
-                                    label={<Typography variant="body2">Pickup Agent Terminal</Typography>}
+                                    label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Pickup Agent Terminal</Typography>}
                                 />
                             </Box>
                         </Box>}
@@ -750,7 +750,7 @@ const ActiveStep3Pickup = ({
                                                 color: 'rgba(0, 25, 76, 1) !important'
                                             }
                                         }} />} />}
-                                        label={<Typography variant="body2">Edit To Location</Typography>}
+                                        label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Edit To Location</Typography>}
                                     />
                                 </Box>
 
@@ -857,7 +857,7 @@ const ActiveStep3Pickup = ({
                                             color: 'rgba(0, 25, 76, 1) !important'
                                         }
                                     }} />} />}
-                                    label={<Typography variant="body2">Add Pickup Accessorial</Typography>}
+                                    label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Add Pickup Accessorial</Typography>}
                                 />
                             </Box>
                             <Box sx={{ flex: '0 1 150px' }}>
@@ -871,7 +871,7 @@ const ActiveStep3Pickup = ({
                                             color: 'rgba(0, 25, 76, 1) !important'
                                         }
                                     }} />} />}
-                                    label={<Typography variant="body2">Pickup Alert</Typography>}
+                                    label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Pickup Alert</Typography>}
                                 />
                             </Box>
                         </Box>

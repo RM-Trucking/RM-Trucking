@@ -378,7 +378,7 @@ const ActiveStep3Linehaul = ({
                                                     color: 'rgba(0, 25, 76, 1) !important'
                                                 }
                                             }} />}
-                                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
+                                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit From Location</Typography>}
                                         />
                                     )}
                                 />
@@ -572,7 +572,7 @@ const ActiveStep3Linehaul = ({
                                                     color: 'rgba(0, 25, 76, 1) !important'
                                                 }
                                             }} />}
-                                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
+                                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit To Location</Typography>}
                                         />
                                     )}
                                 />
@@ -851,7 +851,7 @@ const ActiveStep3Linehaul = ({
                                     color: 'rgba(0, 25, 76, 1) !important'
                                 }
                             }} />} />}
-                            label={<Typography variant="body2">Add Linehaul Accessorials</Typography>}
+                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Add Linehaul Accessorials</Typography>}
                         />
                     </Box>
 

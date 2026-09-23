@@ -327,7 +327,7 @@ const ActiveStep3Delivery = ({
                                                     color: 'rgba(0, 25, 76, 1) !important'
                                                 }
                                             }} />}
-                                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit From Location</Typography>}
+                                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit From Location</Typography>}
                                         />
                                     )}
                                 />
@@ -536,7 +536,7 @@ const ActiveStep3Delivery = ({
                                                     color: 'rgba(0, 25, 76, 1) !important'
                                                 }
                                             }} />}
-                                            label={<Typography sx={{ fontSize: '0.8rem' }}>Edit To Location</Typography>}
+                                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit To Location</Typography>}
                                         />
                                     )}
                                 />
@@ -838,7 +838,7 @@ const ActiveStep3Delivery = ({
                                     color: 'rgba(0, 25, 76, 1) !important'
                                 }
                             }} />} />}
-                            label={<Typography variant="body2">Add Delivery Accessorials</Typography>}
+                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Add Delivery Accessorials</Typography>}
                         />
                         <Box sx={{ display: 'flex', gap: 4 }}>
 
@@ -858,7 +858,7 @@ const ActiveStep3Delivery = ({
                                                     color: 'rgba(0, 25, 76, 1) !important'
                                                 }
                                             }} />}
-                                        label={<Typography variant="body2">Airport Transfer</Typography>}
+                                        label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Airport Transfer</Typography>}
                                     />
                                 )}
                             />
@@ -1003,7 +1003,7 @@ const ActiveStep3Delivery = ({
                                     color: 'rgba(0, 25, 76, 1) !important'
                                 }
                             }} />} />}
-                            label={<Typography variant="body2">Delivery Alert </Typography>}
+                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Delivery Alert </Typography>}
                         />
                     </Box>
                     {watchedDeliveryAlert && <>

@@ -277,23 +277,36 @@ export default function ShipmentViewTable({ }) {
 
                         {/* Checkbox with Del Label */}
                         <FormControlLabel
-                            label="Del"
                             control={
                                 <Checkbox
                                     size="small"
                                     checked={isDelChecked}
-                                    sx={{ color: 'rgba(0, 25, 76, 1)', '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' } }}
-                                    // Checked state should ideally bind to a tracking state array in your component
+                                    sx={{
+                                        color: 'rgba(0, 25, 76, 1)',
+                                        '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' }
+                                    }}
                                     onChange={(event) => {
                                         handleDelCheckboxChange(rowId, event.target.checked);
                                     }}
                                 />
                             }
+                            label={
+                                <Typography
+                                    onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{
+                                        fontSize: '0.875rem',              // 👈 Maintained your custom font size
+                                        fontWeight: 500,                    // 👈 Maintained your custom font weight
+                                        cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    }}
+                                >
+                                    Del
+                                </Typography>
+                            }
                             sx={{
-                                ml: 1,
-                                '& .MuiFormControlLabel-label': { fontSize: '0.875rem', fontWeight: 500 }
+                                ml: 1 // 👈 Kept your original margin-left positioning
                             }}
                         />
+
                         <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
                             <Select

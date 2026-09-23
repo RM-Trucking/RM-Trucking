@@ -188,20 +188,24 @@ const ActiveStep1 = ({ control,
                                             disabled={type === 'View'}
                                             sx={{
                                                 color: 'rgba(0, 25, 76, 1)',
-                                                '&.Mui-checked': {
-                                                    color: 'rgba(0, 25, 76, 1)'
-                                                },
-                                                '&.Mui-disabled': {
-                                                    color: 'rgba(0, 25, 76, 1) !important'
-                                                }
+                                                '&.Mui-checked': { color: 'rgba(0, 25, 76, 1)' },
+                                                '&.Mui-disabled': { color: 'rgba(0, 25, 76, 1) !important' }
                                             }}
                                         />
-
                                     )}
                                 />
                             }
-                            label={<Typography variant="body2">Airport Pickup Service</Typography>}
+                            label={
+                                <Typography
+                                    variant="body2"
+                                    onClick={(e) => e.preventDefault()} // 👈 This prevents the label click from toggling the checkbox
+                                    sx={{ cursor: 'default' }} // Optional: Keeps the regular text cursor over the label
+                                >
+                                    Airport Pickup Service
+                                </Typography>
+                            }
                         />
+
                     </Box>
 
                     {renderTextField('originAirport', 'Origin Airport Code', watchedAirportPickupService)}
@@ -231,8 +235,17 @@ const ActiveStep1 = ({ control,
                                     )}
                                 />
                             }
-                            label={<Typography variant="body2">Airport Delivery Service</Typography>}
+                            label={
+                                <Typography
+                                    variant="body2"
+                                    onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{ cursor: 'default' }}          // 👈 Optional: Changes cursor to regular text arrow
+                                >
+                                    Airport Delivery Service
+                                </Typography>
+                            }
                         />
+
                     </Box>
 
                     {renderTextField('destinationAirport', 'Destination Airport Code', watchedAirportDeliveryService)}

@@ -244,17 +244,19 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                   <>
                     {
                       type !== 'View' && <FormControlLabel
-                        label="Spot Rate"
                         control={
                           <Checkbox
                             size="small"
                             checked={spotRateFlag}
                             disabled={type === 'View'}
-                            onChange={(event) => { setIsRateEditing(event.target.checked); setSpotRateFlag(event.target.checked); }}
+                            onChange={(event) => {
+                              setIsRateEditing(event.target.checked);
+                              setSpotRateFlag(event.target.checked);
+                            }}
                             sx={{
                               color: 'rgba(0, 25, 76, 1)',
                               '&.Mui-checked': {
-                                color: 'rgba(0, 25, 76, 1)', // Keeps the color consistent when checked
+                                color: 'rgba(0, 25, 76, 1)',
                               },
                               '&.Mui-disabled': {
                                 color: 'rgba(0, 25, 76, 1) !important'
@@ -262,12 +264,19 @@ const CustomerRateDialog = ({ type, open, onClose, getValues, setValue, control,
                             }}
                           />
                         }
-                        sx={{
-                          '& .MuiFormControlLabel-label': {
-                            fontSize: '0.875rem', // Adjust font size to match row scale if needed
-                          },
-                        }}
+                        label={
+                          <Typography
+                            onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                            sx={{
+                              fontSize: '0.875rem',              // 👈 Kept your original font size styling here
+                              cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                            }}
+                          >
+                            Spot Rate
+                          </Typography>
+                        }
                       />
+
                     }
                   </>
                 )}

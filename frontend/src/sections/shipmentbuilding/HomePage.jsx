@@ -172,7 +172,7 @@ export default function HomePage() {
             setShowAddressAlert(false);
         }
 
-        if(!showWeightLimitAlert && !showAddressAlert) {
+        if (!showWeightLimitAlert && !showAddressAlert) {
             navigate(PATH_DASHBOARD.shipmentBuilding.consolidatedView);
         }
 
@@ -375,7 +375,10 @@ export default function HomePage() {
                                         )}
                                     />
                                 }
-                                label={<Typography variant="body2">R&M</Typography>}
+                                label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{                 // 👈 Maintained your custom font weight
+                                        cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    }} variant="body2">R&M</Typography>}
                             />
                         </Box>
 
@@ -396,7 +399,10 @@ export default function HomePage() {
                                         )}
                                     />
                                 }
-                                label={<Typography variant="body2">Others</Typography>}
+                                label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{                 // 👈 Maintained your custom font weight
+                                        cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    }} variant="body2">Others</Typography>}
                             />
                         </Box>
 
@@ -416,7 +422,10 @@ export default function HomePage() {
                                         )}
                                     />
                                 }
-                                label={<Typography variant="body2">Carrier Rate Req</Typography>}
+                                label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{                 // 👈 Maintained your custom font weight
+                                        cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    }} variant="body2">Carrier Rate Req</Typography>}
                             />
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
@@ -435,7 +444,10 @@ export default function HomePage() {
                                         )}
                                     />
                                 }
-                                label={<Typography variant="body2">Customer Rate Req</Typography>}
+                                label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
+                                    sx={{                 // 👈 Maintained your custom font weight
+                                        cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    }} variant="body2">Customer Rate Req</Typography>}
                             />
                         </Box>
                     </Stack>

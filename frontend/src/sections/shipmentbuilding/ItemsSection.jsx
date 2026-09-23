@@ -213,7 +213,7 @@ const ItemsSection = ({ type, huIndex, control, watchedHU, openHazmat, setValue 
                       )}
                     />
                   }
-                  label={<Typography variant="caption">Hazmat Info</Typography>}
+                  label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="caption">Hazmat Info</Typography>}
                 />
                 {type !== 'View' && currentItem?.hazmatInfo && (
                   <IconButton onClick={() => openHazmat(huIndex, itemIndex)} size="small">

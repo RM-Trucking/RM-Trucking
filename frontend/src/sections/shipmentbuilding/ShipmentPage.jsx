@@ -42,6 +42,7 @@ import {
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
   getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment, patchNetworkShipment,
+  getZipToZipCustomerRate,
 
 } from '../../redux/slices/shipment';
 import ShipmentStatusUpdateDialog from './ShipmentStatusUpdateDialog';
@@ -117,6 +118,7 @@ const ShipmentPage = ({ type }) => {
   const zipToZipCarrierPickupRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierPickupRate);
   const zipToZipCarrierLinehaulRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierLinehaulRate);
   const zipToZipCarrierDeliveryRate = useSelector((state) => state?.shipmentdata?.zipToZipCarrierDeliveryRate);
+  const zipToZipCustomerRate = useSelector((state) => state?.shipmentdata?.zipToZipCustomerRate);
   const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
   const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
@@ -1720,13 +1722,20 @@ const ShipmentPage = ({ type }) => {
     }
   }, [shipmentError])
   useEffect(() => {
+    setValue('customerRate.rate', zipToZipCustomerRate || 0);
+    setValue('customerRate.apiRate', zipToZipCustomerRate || 0);
+  }, [zipToZipCustomerRate])
+  useEffect(() => {
     setValue('carrierRates.pickUp.apiPickUpRate', zipToZipCarrierPickupRate || 0);
+    setValue('carrierRates.pickUp.pickUpRate', zipToZipCarrierPickupRate || 0);
   }, [zipToZipCarrierPickupRate])
   useEffect(() => {
     setValue('carrierRates.lineHaul.apiLineHaulRate', zipToZipCarrierLinehaulRate || 0);
+    setValue('carrierRates.lineHaul.lineHaulRate', zipToZipCarrierLinehaulRate || 0);
   }, [zipToZipCarrierLinehaulRate])
   useEffect(() => {
     setValue('carrierRates.delivery.apiDeliveryRate', zipToZipCarrierDeliveryRate || 0);
+    setValue('carrierRates.delivery.deliveryRate', zipToZipCarrierDeliveryRate || 0);
   }, [zipToZipCarrierDeliveryRate])
   useEffect(() => {
     if (!watchedAddPickupAccessorial && activeStep === 3 && getValues('carrierInfo.pickupAccessorials')?.length > 0) {
@@ -1885,6 +1894,7 @@ const ShipmentPage = ({ type }) => {
             watchedLinehaulAddAcc={watchedLinehaulAddAcc}
             patchNetworkShipment={patchNetworkShipment}
             watch={watch}
+            getZipToZipCustomerRate = {getZipToZipCustomerRate}
           />
           {/* dialog for update shipment status  */}
           <ShipmentStatusUpdateDialog

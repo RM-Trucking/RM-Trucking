@@ -4,7 +4,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
     carrierTerminalDropdown, getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate,
     setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport, watchedDestinationAirport, setActiveStep, totals,
-    watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment
+    watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment, getZipToZipCustomerRate
 ) => {
     const currentValues = getValues();
     let fieldsToValidate = [];
@@ -338,6 +338,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         const deliveryFromZip = currentValues?.carrierInfo?.deliveryDetails?.manualFromLocationDetails?.zip;
         const deliveryToZip = currentValues?.carrierInfo?.deliveryDetails?.manualToLocationDetails?.zip;
         dispatch(getZipToZipCarrierDeliveryRate(deliveryFromZip, deliveryToZip, Number(totals.totalWeight), selectedDeliveryCarrierObject?.terminalId));
+        dispatch(getZipToZipCustomerRate(deliveryFromZip, deliveryToZip, Number(totals.totalWeight), currentValues.billingCustomer?.stationId));
     }
 
     if (selectedRouting === 'pickup_only') {

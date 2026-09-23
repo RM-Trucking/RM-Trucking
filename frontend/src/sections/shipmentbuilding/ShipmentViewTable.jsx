@@ -124,6 +124,54 @@ export default function ShipmentViewTable({ }) {
                 return element;
             },
         },
+        // {
+        //      field: "isShipperAirline",
+        //     headerName: "Shipper airline",
+        //     minWidth: 200,
+        //     flex: 1,
+        //     filterable: false,
+        //     sortable: false,
+        //     renderCell: (params) => {
+        //         const element = (
+        //             <Typography
+        //                 variant='normal'
+        //                 sx={{
+        //                     p: 2,
+        //                     color: '#AA2222',            // Applies the dark red/amber tone
+        //                     textDecoration: 'underline'  // Underlines the text
+        //                 }}
+        //             >
+        //                 {params?.row?.isShipperAirline ? 'Yes' : 'No'}
+        //             </Typography>
+
+        //         );
+        //         return element;
+        //     },
+        // },
+        // {
+        //      field: "isConsigneeAirline",
+        //     headerName: "Consignee airline",
+        //     minWidth: 200,
+        //     flex: 1,
+        //     filterable: false,
+        //     sortable: false,
+        //     renderCell: (params) => {
+        //         const element = (
+        //             <Typography
+        //                 variant='normal'
+        //                 sx={{
+        //                     p: 2,
+        //                     color: '#AA2222',            // Applies the dark red/amber tone
+        //                     textDecoration: 'underline'  // Underlines the text
+        //                 }}
+        //             >
+        //                 {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
+        //             </Typography>
+
+        //         );
+        //         return element;
+        //     },
+        // },
         {
             field: "customerName",
             headerName: "Customer Name",
@@ -240,7 +288,7 @@ export default function ShipmentViewTable({ }) {
         {
             field: "actions",
             headerName: "Actions",
-            width: 600,
+            width: 200,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -271,12 +319,12 @@ export default function ShipmentViewTable({ }) {
                             </IconButton>
                         </Tooltip>
 
-                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton>
+                        </IconButton> */}
 
                         {/* Checkbox with Del Label */}
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -305,9 +353,9 @@ export default function ShipmentViewTable({ }) {
                             sx={{
                                 ml: 1 // 👈 Kept your original margin-left positioning
                             }}
-                        />
+                        /> */}
 
-                        <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
+                        {/* <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
                             <Select
                                 labelId={`carrier-select-label-${rowId}`}
@@ -325,10 +373,10 @@ export default function ShipmentViewTable({ }) {
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl>
+                        </FormControl> */}
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
-                        {isRowSelected && (
+                        {/* {isRowSelected && (
                             <Button
                                 variant="contained"
                                 size="small"
@@ -342,9 +390,9 @@ export default function ShipmentViewTable({ }) {
                             >
                                 Select Del Agent
                             </Button>
-                        )}
+                        )} */}
                         {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
-                        {isDelChecked && (
+                        {/* {isDelChecked && (
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Button
                                     variant="contained"
@@ -373,10 +421,10 @@ export default function ShipmentViewTable({ }) {
                                     Add to Queue
                                 </Button>
                             </Box>
-                        )}
+                        )} */}
 
                         {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
-                        <MenuPopover
+                        {/* <MenuPopover
                             open={openPopover}
                             anchorEl={anchorEl}
                             onClose={handleClosePopover}
@@ -388,7 +436,7 @@ export default function ShipmentViewTable({ }) {
                                     Delete
                                 </MenuItem>
                             </Stack>
-                        </MenuPopover>
+                        </MenuPopover> */}
                     </Box>
                 );
             },
@@ -445,6 +493,8 @@ export default function ShipmentViewTable({ }) {
                 status: shipmentDetails?.status ?? '',
                 carrierId: '',
                 carrierName: '',
+                isShipperAirline: customerDetails?.airportPickupService === 'Y',
+                isConsigneeAirline: customerDetails?.airportDeliveryService === 'Y',
                 rowDetails: row // Stores the entire original 1st object unmodified
             };
         });

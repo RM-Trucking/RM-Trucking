@@ -27,6 +27,7 @@ const initialState = {
   zipToZipCarrierLinehaulRate: null,
   zipToZipCarrierDeliveryRate: null,
   operationalMessage : '',
+  zipToZipCustomerRate: null,
 };
 
 const slice = createSlice({
@@ -144,6 +145,11 @@ const slice = createSlice({
       state.isLoading = false;
       state.shipmentSuccess = true;
       state.zipToZipCarrierDeliveryRate = action?.payload?.data?.calculatedRate;
+    },
+    getZipToZipCustomerRateSuccess(state, action){
+      state.isLoading = false;
+      state.shipmentSuccess = true;
+      state.zipToZipCustomerRate = action?.payload?.data?.calculatedRate;
     },
     setError(state) {
       state.error = '';
@@ -365,6 +371,17 @@ export function getZipToZipCarrierDeliveryRate(originZip, destinationZip, weight
     try {
       const response = await axios.get(`maintenance/carrier-rate/transport-rate/quote?originZip=${originZip}&destinationZip=${destinationZip}&weight=${weight}&terminalId=${terminalId}`);
       dispatch(slice.actions.getZipToZipCarrierDeliveryRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  }
+}
+export function getZipToZipCustomerRate(originZip, destinationZip, weight, stationId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/customer-rate/transport-rate/quote?originZip=${originZip}&destinationZip=${destinationZip}&weight=${weight}&stationId=${stationId}`);
+      dispatch(slice.actions.getZipToZipCustomerRateSuccess(response.data));
     } catch (error) {
       dispatch(slice.actions.hasError(error));
     }

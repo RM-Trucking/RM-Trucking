@@ -79,7 +79,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
     watchedDestinationAirport,
     setActiveStep,
     totals,
-    watchedLinehaulAddAcc, patchNetworkShipment, watch
+    watchedLinehaulAddAcc, patchNetworkShipment, watch, getZipToZipCustomerRate
 }) => {
     const [manifestDialogOpen, setManifestDialogOpen] = useState(false);
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
@@ -169,7 +169,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                 setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                 watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                 getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, getZipToZipCustomerRate,
             );
         }
         if (watchedCarrierInfoSubmit && type === 'Edit') {
@@ -178,7 +178,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                 setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                 watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                 getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
+                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment, getZipToZipCustomerRate,
             );
         }
     }, [watchedCarrierInfoSubmit])
@@ -267,7 +267,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, getZipToZipCustomerRate,
                                         )
                                     } else if (type === 'Edit') {
                                         // setManifestDialogOpen(true);
@@ -276,7 +276,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment, getZipToZipCustomerRate,
                                         )
                                     }
                                 }}
@@ -358,7 +358,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, getZipToZipCustomerRate,
                                         )
                                     } else if (type === 'Edit') {
                                         // setManifestDialogOpen(true);
@@ -367,7 +367,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                             setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                             watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                             getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment,
+                                            watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, selectedShipmentBuildObj, patchNetworkShipment, getZipToZipCustomerRate,
                                         )
                                     }
                                 }}
@@ -389,7 +389,7 @@ const StepperHeader = ({ location, navigate, watchedCarrierInfoSubmit,
                                 setErrorVisible, setErrorVisibleFields, watchedSelectedPickupCarrier, watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier,
                                 watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation, carrierTerminalDropdown,
                                 getZipToZipCarrierPickupRate, getZipToZipCarrierLinehaulRate, getZipToZipCarrierDeliveryRate, setIsSubmittingFinal, postStep1, postNetworkShipment, watchedOriginAirport,
-                                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type
+                                watchedDestinationAirport, setActiveStep, totals, watchedLinehaulAddAcc, type, getZipToZipCustomerRate
                             )} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Next</Button>
 
                         )}

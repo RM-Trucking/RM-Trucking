@@ -2,11 +2,7 @@ import { styled } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 
 const StyledTextField = styled(TextField)({
-  // Force the standard variant label to be permanently shrunk
-  '& .MuiInputLabel-root': {
-    transform: 'translate(0, -1.5px) scale(0.75)',
-    transformOrigin: 'top left',
-  },
+  // 🔴 REMOVED: Static transform overrides so the label can float naturally
 
   // Target the MuiInput-underline class for the standard variant
   '& .MuiInput-underline:after': {
@@ -33,6 +29,5 @@ const StyledTextField = styled(TextField)({
     borderBottomColor: "#000",
   }
 });
-
 
 export default StyledTextField;

@@ -9,6 +9,7 @@ import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
+import StyledTextField from '../shared/StyledTextField';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { getNotesData, postNote } from '../../redux/slices/note';
 import convertLocalToET from '../../utils/timeConversion';
@@ -92,7 +93,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
 
     return (
         <>
-            <TextField
+            <StyledTextField
                 fullWidth
                 id={'Add Notes'}
                 label={'Add a new note'}

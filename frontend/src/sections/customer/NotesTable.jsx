@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import { useState, useEffect, useRef } from 'react';
 import {
     Box, Stack, Typography, Button, Dialog,
-    DialogContent, Tooltip, Divider
+    DialogContent, Tooltip, Divider, TextField
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
@@ -11,7 +11,6 @@ import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
 import Iconify from '../../components/iconify';
 import { setTableBeingViewed } from '../../redux/slices/customer';
 import { getNotesData, postNote } from '../../redux/slices/note';
-import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
 
 NotesTable.PropTypes = {
@@ -93,7 +92,7 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
 
     return (
         <>
-            <StyledTextField
+            <TextField
                 fullWidth
                 id={'Add Notes'}
                 label={'Add a new note'}
@@ -123,6 +122,17 @@ export default function NotesTable({ notes, handleCloseConfirm }) {
                         alignItems: 'flex-start',
                     },
                     '& .MuiInputBase-input.MuiOutlinedInput-input': {},
+                    "& .MuiInputBase-input.Mui-disabled": {
+                        WebkitTextFillColor: "#000", // Required for Safari/Chrome
+                        color: "#000",
+                    },
+                    "& .MuiInputLabel-root.Mui-disabled": {
+                        color: "#000",
+                    },
+                    "& .MuiInput-underline.Mui-disabled:before": {
+                        borderBottomStyle: "solid", // Keeps the line visible
+                        borderBottomColor: "#000",
+                    }
                 }}
             />
 

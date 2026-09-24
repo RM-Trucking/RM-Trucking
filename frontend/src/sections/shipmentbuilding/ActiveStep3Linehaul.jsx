@@ -48,7 +48,8 @@ import PickupAccessorialDialog from './PickupAccessorialDialog';
 import AddAccessorialDialog from './AddAccessorialDialog';
 import BillOfLadingAuto from './BillOfLadingAuto';
 import ReferenceDialog from './ReferenceDialog';
-import { getObjectForBOL } from './getObjForBOL';
+import { getObjectForBOL } from './getObjForBOL'
+import LinehaulClearDilog from './LinehaulClearDilog';
 
 const ActiveStep3Linehaul = ({
     type,
@@ -112,6 +113,7 @@ const ActiveStep3Linehaul = ({
 }) => {
     const contentRef = useRef(null);
     const [subModal, setSubModal] = useState({ type: 'linehaul', open: false });
+    const [clearModal, setClearModal] = useState({ type: watchedLinehaulSelectRouting, open: false });
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
     const handlePrint = useReactToPrint({
         contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
@@ -121,6 +123,48 @@ const ActiveStep3Linehaul = ({
         console.error("Error caught:", info);
         console.log(error);
     };
+    const clearLinehaulDetails = () => {
+        // Clear linehaul details logic here
+        setValue('carrierInfo.lineHaul.selectRouting', '');
+        setValue('carrierInfo.lineHaul.carrier', '');
+        setValue('carrierInfo.lineHaul.billNumber', '');
+        setValue('carrierInfo.lineHaul.toggleAddress', 'linehaul');
+        setValue('carrierInfo.lineHaul.fromLocation', '');
+        setValue('carrierInfo.lineHaul.manualFromLocation', false);
+        setValue('carrierInfo.lineHaul.manualFromLocationDetails', { line1: '', line2: '', city: '', state: '', zip: '' });
+        setValue('carrierInfo.lineHaul.toLocationType', '');
+        setValue('carrierInfo.lineHaul.toLocation', '');
+        setValue('carrierInfo.lineHaul.manualToLocation', false);
+        setValue('carrierInfo.lineHaul.manualToLocationDetails', { line1: '', line2: '', city: '', state: '', zip: '' });
+        setValue('carrierInfo.lineHaul.etaDate', dayjs().format('YYYY-MM-DD'));
+        setValue('carrierInfo.lineHaul.etaTime', null);
+        setValue('carrierInfo.lineHaul.pcs', '');
+        setValue('carrierInfo.lineHaul.weight', '');
+        setValue('carrierInfo.lineHaul.linehaulAddAcc', false);
+        setValue('carrierInfo.lineHaul.linehaulAccessorials', []);
+        setValue('carrierInfo.lineHaul.lineHaulNotes', '');
+
+        // clear delivery details
+        setValue('carrierInfo.deliveryDetails.carrier', '');
+        setValue('carrierInfo.deliveryDetails.disableDeliveryFromCarrier', false);
+        setValue('carrierInfo.deliveryDetails.billNumber', '');
+        setValue('carrierInfo.deliveryDetails.fromLocation', '');
+        setValue('carrierInfo.deliveryDetails.manualFromLocation', false);
+        setValue('carrierInfo.deliveryDetails.manualFromLocationDetails', { line1: '', line2: '', city: '', state: '', zip: '' });
+        setValue('carrierInfo.deliveryDetails.etaDate', dayjs().format('YYYY-MM-DD'));
+        setValue('carrierInfo.deliveryDetails.etaTime', null);
+        setValue('carrierInfo.deliveryDetails.pcs', '');
+        setValue('carrierInfo.deliveryDetails.weight', '');
+        setValue('carrierInfo.deliveryDetails.deliveryAddAcc', false);
+        setValue('carrierInfo.deliveryDetails.deliveryAlert', true);
+        setValue('carrierInfo.deliveryDetails.deliveryAccessorials', []);
+        setValue('carrierInfo.deliveryDetails.lineHaulNotes', '');
+        setValue('carrierInfo.deliveryDetails.deliveryNotes', '');
+        setValue('carrierInfo.deliveryDetails.primaryEmail', '');
+        setValue('carrierInfo.deliveryDetails.additionalEmail', '');
+        setValue('carrierInfo.deliveryDetails.additionalEmailsArray', []);
+        setValue('carrierInfo.deliveryDetails.airportTransfer', false);
+    }
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -133,7 +177,14 @@ const ActiveStep3Linehaul = ({
             {/* line haul details section  */}
             <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
+                    <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
+                        <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
+                        <Button variant="outlined" size="small"
+                            onClick={(e) => { e.preventDefault();  e.stopPropagation();  setClearModal({ type: watchedLinehaulSelectRouting, open: true }) }}
+                            sx={{ textTransform: 'none', color: '#a22', borderColor: '#a22', mr: 2 }} >
+                            Clear
+                        </Button>
+                    </Box>
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
@@ -1071,6 +1122,15 @@ const ActiveStep3Linehaul = ({
                     {/* </Box> */}
                 </AccordionDetails>
             </Accordion>
+            <LinehaulClearDilog
+                open={clearModal.open}
+                type={clearModal.type}
+                onClose={() => setClearModal({ ...clearModal, open: false })}
+                onSave={() => {
+                    clearLinehaulDetails();
+                    setClearModal({ ...clearModal, open: false });
+                }}
+            />
         </ErrorBoundary>
     );
 };

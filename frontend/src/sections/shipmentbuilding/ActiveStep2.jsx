@@ -733,6 +733,7 @@ const ActiveStep2 = ({
                                             required={isHazmatSelected}
                                             // 3. FIXED: Attaches the error indicator and string feedback message dynamically
                                             error={!!error}
+                                            InputLabelProps={{ shrink: true }} 
                                             helperText={error ? error.message : ''}
                                             // 4. FIXED: Hard browser barrier blocking physical keyboard strokes at character 100
                                             inputProps={{
@@ -792,6 +793,7 @@ const ActiveStep2 = ({
 
                                             error={!!error}
 
+                                            InputLabelProps={{ shrink: true }}
                                             helperText={error ? error.message : ''}
 
                                             onChange={(e) => {

@@ -421,6 +421,7 @@ const ActiveStep3Pickup = ({
                                             label="Carrier's Bill Number"
                                             required
                                             variant="standard"
+                                            InputLabelProps={{ shrink: true }} 
                                             // Natively restricts entry to 50 characters max
                                             inputProps={{ maxLength: 50 }}
                                             disabled={type === 'View'}

@@ -157,6 +157,7 @@ const ActiveStep1 = ({ control,
                                 renderInput={(params) => (
                                     <StyledTextField
                                         {...params}
+                                        InputLabelProps={{ shrink: true }}
                                         inputRef={ref}
                                         fullWidth
                                         label={`Billing Customer *`}
@@ -385,6 +386,7 @@ const ActiveStep1 = ({ control,
                                                 inputRef={ref}
                                                 fullWidth
                                                 required
+                                                InputLabelProps={{ shrink: true }}
                                                 label={`Shipper Name`}
                                                 variant="standard"
                                                 error={!!errors['shipperName']}
@@ -590,7 +592,7 @@ const ActiveStep1 = ({ control,
                                                     variant="standard"
                                                     error={!!errors['shipperName']}
                                                     helperText={errors['shipperName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
-
+                                                    InputLabelProps={{ shrink: true }}
                                                     // FIXED 5: Set hard layout barrier to 111 (Handles 11 prefix characters + 100 character custom name)
                                                     inputProps={{
                                                         ...params.inputProps,
@@ -756,6 +758,7 @@ const ActiveStep1 = ({ control,
                                                 {...params}
                                                 inputRef={ref}
                                                 fullWidth
+                                                InputLabelProps={{ shrink: true }}
                                                 label={`Consignee Name`}
                                                 variant="standard"
                                                 required
@@ -967,7 +970,7 @@ const ActiveStep1 = ({ control,
                                                     variant="standard"
                                                     error={!!errors['consigneeName']}
                                                     helperText={errors['consigneeName']?.message || 'Format: Airline Number - Airline Code - Airline Name'}
-
+                                                    InputLabelProps={{ shrink: true }}
                                                     // FIXED 5: Set hard layout barrier to 111 (Handles 11 prefix characters + 100 character custom name)
                                                     inputProps={{
                                                         ...params.inputProps,

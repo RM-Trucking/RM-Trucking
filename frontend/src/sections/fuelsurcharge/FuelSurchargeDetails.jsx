@@ -53,7 +53,7 @@ export default function FuelSurchargeDetails({ type, handleCloseConfirm, selecte
             customer: '',
             stationList: '',
             fuelsurchargePercentage: '',
-            effectiveDate: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+            effectiveDate: dayjs().format('YYYY-MM-DD'),
             effectiveTime: null,
         }
     });

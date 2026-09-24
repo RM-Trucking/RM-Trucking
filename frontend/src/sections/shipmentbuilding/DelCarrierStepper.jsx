@@ -206,6 +206,8 @@ const DelCarrierStepper = ({ location, navigate, watchedCarrierInfoSubmit,
                         {type !== 'View' && <Button variant="outlined" onClick={() => {
                             setHandleCancelModal(true);
                         }} sx={{ ...commonBtnStyle, color: '#000', borderColor: '#000' }}>Cancel</Button>}
+                        <Button variant="contained" onClick={() => {
+                        }} sx={{ ...commonBtnStyle, bgcolor: '#a22', '&:hover': { bgcolor: '#811' } }}>Add to Queue</Button>
 
                         {/* Conditional Submit Button for Step 3 */}
                         {

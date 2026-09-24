@@ -137,11 +137,11 @@ export default function StationDepartment({ type, stationName, handleCloseConfir
                                         inputProps: { maxLength: 100 }
                                     }}
                                 >
-                                    <MenuItem value="Air Export">Air Export</MenuItem>
-                                    <MenuItem value="Ocean Export">Ocean Export</MenuItem>
-                                    <MenuItem value="Air Import">Air Import</MenuItem>
-                                    <MenuItem value="Ocean Import">Ocean Import</MenuItem>
-                                    <MenuItem value="Domestic">Domestic</MenuItem>
+                                    <MenuItem value="AIR EXPORT">Air Export</MenuItem>
+                                    <MenuItem value="OCEAN EXPORT">Ocean Export</MenuItem>
+                                    <MenuItem value="AIR IMPORT">Air Import</MenuItem>
+                                    <MenuItem value="OCEAN IMPORT">Ocean Import</MenuItem>
+                                    <MenuItem value="DOMESTIC">Domestic</MenuItem>
                                 </StyledTextField>
                             )}
                         />

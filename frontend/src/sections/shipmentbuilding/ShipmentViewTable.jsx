@@ -60,6 +60,7 @@ export default function ShipmentViewTable({ }) {
     const [delCheckedRowIds, setDelCheckedRowIds] = useState([]);
     const [selectedRowIds, setSelectedRowIds] = useState([]);
     const [delSubmitModalOpen, setDelSubmitModalOpen] = useState(false);
+    const [actionType, setActionType] = useState('');
 
 
     const handleUserMenu = (event) => {
@@ -406,13 +407,14 @@ export default function ShipmentViewTable({ }) {
                                     size="small"
                                     sx={{ textTransform: 'none', backgroundColor: "#A22" }}
                                     onClick={(e) => {
+                                        setActionType('submit');
                                         e.stopPropagation();
                                         dispatch(setSelectedDelRowObj(params?.row?.rowDetails));
                                         if (selectedDelName && Object.keys(selectedDelName).length !== 0) {
                                             // call for getting carrier accessorials 
                                             // dispatch(getPickupAccessorials(newValue?.terminalEntityId));
                                             setDelSubmitModalOpen(true);
-                                        }else{
+                                        } else {
                                             setSnackbarMessage("Please select a carrier before submitting.");
                                             setSnackbarOpen(true);
                                         }
@@ -426,11 +428,21 @@ export default function ShipmentViewTable({ }) {
                                     sx={{
                                         textTransform: 'none',
                                         backgroundColor: '#A22',
-                                        '&:hover': { backgroundColor: '#374151' }
+                                        '&:hover': { backgroundColor: '#a22' }
                                     }}
                                     onClick={(e) => {
+                                        setActionType('addToQueue');
                                         e.stopPropagation();
                                         console.log("Add to Queue clicked for row:", rowId);
+                                        dispatch(setSelectedDelRowObj(params?.row?.rowDetails));
+                                        if (selectedDelName && Object.keys(selectedDelName).length !== 0) {
+                                            // call for getting carrier accessorials 
+                                            // dispatch(getPickupAccessorials(newValue?.terminalEntityId));
+                                            setDelSubmitModalOpen(true);
+                                        } else {
+                                            setSnackbarMessage("Please select a carrier before adding to queue.");
+                                            setSnackbarOpen(true);
+                                        }
                                     }}
                                 >
                                     Add to Queue
@@ -690,7 +702,7 @@ export default function ShipmentViewTable({ }) {
                 </Alert>
             </Snackbar>
 
-            <ShipmentDelSubmitDialog open={delSubmitModalOpen} onClose={() => setDelSubmitModalOpen(false)} />
+            <ShipmentDelSubmitDialog open={delSubmitModalOpen} onClose={() => setDelSubmitModalOpen(false)} actionType={actionType} />
         </>
     );
 }

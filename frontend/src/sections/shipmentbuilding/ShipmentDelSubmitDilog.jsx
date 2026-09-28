@@ -5,7 +5,7 @@ import {
 import ShipmentDelLinehaulPage from './ShipmentDelLinehaulPage';
 
 
-const ShipmentDelSubmitDialog = ({ open, onClose, }) => {
+const ShipmentDelSubmitDialog = ({ open, onClose, actionType }) => {
     return (
         <>
             <Dialog open={open} onClose={onClose} fullWidth
@@ -21,7 +21,7 @@ const ShipmentDelSubmitDialog = ({ open, onClose, }) => {
                     overflowY: 'auto',
                     mt: 2
                 }}>
-                    <ShipmentDelLinehaulPage type='Edit' />
+                    <ShipmentDelLinehaulPage type='Edit' actionDelType={actionType} onDelDialogClose={onClose} />
                 </DialogContent>
             </Dialog>
         </>

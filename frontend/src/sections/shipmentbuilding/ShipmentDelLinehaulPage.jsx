@@ -98,7 +98,7 @@ const getFreightClass = (length, width, height, lbs) => {
     return '400'; // Less than 1 lb/cu ft
 }
 
-const ShipmentDelLinehaulPage = ({ type }) => {
+const ShipmentDelLinehaulPage = ({ type, actionDelType, onDelDialogClose }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const location = useLocation();
@@ -1842,73 +1842,108 @@ const ShipmentDelLinehaulPage = ({ type }) => {
         >
             <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <Box sx={{ p: 2, mt: 2 }}>
+                    <Box display={'flex'} alignItems='center' justifyContent='flex-end' sx={{ mb: 2 }}>
+                        <Box>
+                            <Button
+                                variant="outlined"
+                                size="small"
+                                sx={{ textTransform: 'none', mr: 2, color: '#000', borderColor: '#000' }}
+                                onClick={() => {
+                                    onDelDialogClose();
+                                }}
+                            >
+                                Cancel
 
-                    
-                        <>
-                            
-                                <SubmitDeliveryLinehaul type={type}
-                                    dispatch={dispatch}
-                                    navigate={navigate}
-                                    location={location}
-                                    control={control}
-                                    errors={errors}
-                                    selectedRouting={selectedRouting}
-                                    carrierTerminalDropdown={carrierTerminalDropdown}
-                                    isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
-                                    setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
-                                    selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
-                                    watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                                    watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                                    renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
-                                    watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                                    watchedLinehaulToLocationType={watchedLinehaulToLocationType}
-                                    isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
-                                    setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
-                                    carrierLinehaulSearchValue={carrierLinehaulSearchValue}
-                                    watchedConsigneeName={watchedConsigneeName}
-                                    watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
-                                    watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-                                    setLineHaulAccModal={setLineHaulAccModal}
-                                    lineHaulAccFields={lineHaulAccFields}
-                                    setActiveAccType={setActiveAccType}
-                                    notesRefArray={notesRefArray}
-                                    notesRefArrayIndex={notesRefArrayIndex}
-                                    notesRefArrayObj={notesRefArrayObj}
-                                    setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
-                                    setEditAccIndex={setEditAccIndex}
-                                    setActionType={setActionType}
-                                    setAddLineHaulAccModal={setAddLineHaulAccModal}
-                                    removeLineHaulAcc={removeLineHaulAcc}
-                                    lineHaulAccModal={lineHaulAccModal}
-                                    replaceLineHaulAcc={replaceLineHaulAcc}
-                                    addLineHaulAccModal={addLineHaulAccModal}
-                                    actionType={actionType}
-                                    LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
-                                    setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
-                                    appendLineHaulAccFields={appendLineHaulAccFields}
-                                    lineHaulNotesArr={lineHaulNotesArr}
-                                    watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
-                                    onSaveOfEdit={onSaveOfEdit}
-                                    editAccIndex={editAccIndex}
-                                    isLoading={isLoading}
-                                    setValue={setValue}
-                                    watchedCarrierInfo={watchedCarrierInfo}
-                                    watchedToLocation={watchedToLocation}
-                                    isPickupPending={isPickupPending}
-                                    getValues={getValues}
-                                    watchedAirportPickupService={watchedAirportPickupService}
-                                    watchedAirportDeliveryService={watchedAirportDeliveryService}
-                                    isHazmatSelected={isHazmatSelected}
-                                    watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-                                    watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                                    watchedLinehaulToLocation={watchedLinehaulToLocation}
-                                    watchedDeliveryToLocation={watchedDeliveryToLocation}
-                                    watchedOriginAirport={watchedOriginAirport}
-                                    watchedDestinationAirport={watchedDestinationAirport}
-                                />
-                            
-                        </>
-                    
+                            </Button>
+                            {actionDelType === 'submit' && (
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    sx={{ textTransform: 'none', backgroundColor: '#a22', borderColor: '#a22', '&:hover': { backgroundColor: '#a22', borderColor: '#a22' } }}
+                                    onClick={() => {
+                                        onDelDialogClose();
+                                    }}
+                                >
+                                    Submit
+                                </Button>)}
+                            {actionDelType === 'addToQueue' && (
+                                <Button
+                                    variant="contained"
+                                    size="small"
+                                    sx={{ textTransform: 'none', backgroundColor: '#a22', borderColor: '#a22', '&:hover': { backgroundColor: '#a22', borderColor: '#a22' } }}
+                                    onClick={() => {
+                                        onDelDialogClose();
+                                    }}
+                                >
+                                    Add to Queue
+                                </Button>)}
+                        </Box>
+
+                    </Box>
+
+                    <>
+                        <SubmitDeliveryLinehaul type={type}
+                            dispatch={dispatch}
+                            navigate={navigate}
+                            location={location}
+                            control={control}
+                            errors={errors}
+                            selectedRouting={selectedRouting}
+                            carrierTerminalDropdown={carrierTerminalDropdown}
+                            isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
+                            setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
+                            selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
+                            watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                            watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                            renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                            watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                            watchedLinehaulToLocationType={watchedLinehaulToLocationType}
+                            isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
+                            setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
+                            carrierLinehaulSearchValue={carrierLinehaulSearchValue}
+                            watchedConsigneeName={watchedConsigneeName}
+                            watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
+                            watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                            setLineHaulAccModal={setLineHaulAccModal}
+                            lineHaulAccFields={lineHaulAccFields}
+                            setActiveAccType={setActiveAccType}
+                            notesRefArray={notesRefArray}
+                            notesRefArrayIndex={notesRefArrayIndex}
+                            notesRefArrayObj={notesRefArrayObj}
+                            setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
+                            setEditAccIndex={setEditAccIndex}
+                            setActionType={setActionType}
+                            setAddLineHaulAccModal={setAddLineHaulAccModal}
+                            removeLineHaulAcc={removeLineHaulAcc}
+                            lineHaulAccModal={lineHaulAccModal}
+                            replaceLineHaulAcc={replaceLineHaulAcc}
+                            addLineHaulAccModal={addLineHaulAccModal}
+                            actionType={actionType}
+                            LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
+                            setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
+                            appendLineHaulAccFields={appendLineHaulAccFields}
+                            lineHaulNotesArr={lineHaulNotesArr}
+                            watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
+                            onSaveOfEdit={onSaveOfEdit}
+                            editAccIndex={editAccIndex}
+                            isLoading={isLoading}
+                            setValue={setValue}
+                            watchedCarrierInfo={watchedCarrierInfo}
+                            watchedToLocation={watchedToLocation}
+                            isPickupPending={isPickupPending}
+                            getValues={getValues}
+                            watchedAirportPickupService={watchedAirportPickupService}
+                            watchedAirportDeliveryService={watchedAirportDeliveryService}
+                            isHazmatSelected={isHazmatSelected}
+                            watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                            watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                            watchedLinehaulToLocation={watchedLinehaulToLocation}
+                            watchedDeliveryToLocation={watchedDeliveryToLocation}
+                            watchedOriginAirport={watchedOriginAirport}
+                            watchedDestinationAirport={watchedDestinationAirport}
+                        />
+                    </>
+
 
                     <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 

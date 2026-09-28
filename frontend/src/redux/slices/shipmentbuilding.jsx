@@ -18,7 +18,7 @@ const initialState = {
     shipmentBuildPagination: { page: 1, pageSize: 10, totalRecords: 0 },
     shipmentViewData: [],
     operationalMessage: '',
-    selectedShipmentBuildObj : {},
+    selectedShipmentBuildObj: {},
     carrierList: [
         {
             carrierId: 1,
@@ -31,7 +31,73 @@ const initialState = {
     ],
     selectedShipments: [],
     selectedDelRowObj: {},
-    selectedDelName : {},
+    selectedDelName: {},
+    addToQueueData: [
+        {
+            id: 1,
+            shipmentPro: 'PRO9289280209',
+            isLocked: true,
+            customer: 'Oliver',
+            origin: 'Brooklyn, New York',
+            destination: 'Austin, Texas',
+            serviceLevel: 'Level 1',
+            totalWt: 500,
+            hazmat: 'Yes',
+            pickupAgent: 'Cal Sierra',
+            linehaulCarrier: 'Cal Sierra',
+            deliveryAgent: 'Cal Sierra',
+            user: 'Ross',
+        },
+        {
+            id: 2,
+            shipmentPro: 'PRO9289280209',
+            isLocked: false,
+            customer: 'Oliver',
+            origin: 'Austin, Texas',
+            destination: 'Seattle, Washington',
+            serviceLevel: 'Level 2',
+            totalWt: 2000,
+            hazmat: 'No',
+            pickupAgent: 'First Mile',
+            linehaulCarrier: 'First Mile',
+            deliveryAgent: 'First Mile',
+            user: 'Wills',
+        },
+        {
+            id: 3,
+            shipmentPro: 'PRO9289280209',
+            isLocked: true,
+            customer: 'Liam',
+            origin: 'Seattle, Washington',
+            destination: 'Miami, Florida',
+            serviceLevel: 'Level 3',
+            totalWt: 4000,
+            hazmat: 'Yes',
+            pickupAgent: 'Cal Sierra',
+            linehaulCarrier: 'Cal Sierra',
+            deliveryAgent: 'Cal Sierra',
+            user: 'Daniel',
+        },
+        {
+            id: 4,
+            shipmentPro: 'PRO9289280209',
+            isLocked: true,
+            customer: 'Liam',
+            origin: 'Miami, Florida',
+            destination: 'Miami, Florida',
+            serviceLevel: 'Level 4',
+            totalWt: 6000,
+            hazmat: 'No',
+            pickupAgent: 'First Mile',
+            linehaulCarrier: 'First Mile',
+            deliveryAgent: 'First Mile',
+            user: 'Mike',
+        },
+    ],
+    addToQueueSuccess: false,
+    addToQueueError: null,
+    addToQueueLoading: false,
+    addToQueuePagination: { page: 1, pageSize: 10, totalRecords: 0 },
 };
 
 const slice = createSlice({
@@ -85,7 +151,7 @@ const slice = createSlice({
             state.shipmentBuildPagination.pageSize = action.payload.pagination.limit;
             state.shipmentBuildPagination.totalRecords = action.payload.pagination.totalItems;
         },
-        setSelectedShipmentBuildObj(state,action){
+        setSelectedShipmentBuildObj(state, action) {
             state.selectedShipmentBuildObj = action.payload;
         },
         setSelectedShipments(state, action) {

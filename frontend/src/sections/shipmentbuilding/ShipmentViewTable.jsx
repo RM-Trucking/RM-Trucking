@@ -18,12 +18,16 @@ import StyledTextField from '../shared/StyledTextField';
 import convertLocalToET from '../../utils/timeConversion';
 import {
     getShipmentBuildData, setError, setOperationalMessage as setShipmentBuildOperationalMessage, setSelectedShipmentBuildObj, setSelectedShipments,
-    setSelectedDelRowObj,
+    setSelectedDelRowObj, setSelectedDelName,
 } from '../../redux/slices/shipmentbuilding';
 import {
     setOperationalMessage,
 } from '../../redux/slices/shipment';
 import { PATH_DASHBOARD } from '../../routes/paths';
+import ShipmentDelSubmitDialog from './ShipmentDelSubmitDilog';
+import {
+    getPickupAccessorials,
+} from '../../redux/slices/shipment';
 
 ShipmentViewTable.PropTypes = {
 
@@ -40,7 +44,7 @@ export default function ShipmentViewTable({ }) {
     const shipmentBuildSearchStr = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildSearchStr);
     const error = useSelector((state) => state?.shipmentbuildingdata?.error);
     const carrierList = useSelector((state) => state?.shipmentbuildingdata?.carrierList);
-    const selectedDelRowObj = useSelector((state) => state?.shipmentbuildingdata?.selectedDelRowObj);
+    const selectedDelName = useSelector((state) => state?.shipmentbuildingdata?.selectedDelName);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -55,6 +59,7 @@ export default function ShipmentViewTable({ }) {
     const [snackbarMessage, setSnackbarMessage] = useState('');
     const [delCheckedRowIds, setDelCheckedRowIds] = useState([]);
     const [selectedRowIds, setSelectedRowIds] = useState([]);
+    const [delSubmitModalOpen, setDelSubmitModalOpen] = useState(false);
 
 
     const handleUserMenu = (event) => {
@@ -90,6 +95,8 @@ export default function ShipmentViewTable({ }) {
     };
     const handleCarrierChange = (rowId, newCarrierId) => {
         // Update the carrierId for the specific row in shipmentViewTableData
+        const newCarrier = carrierList.find(item => item.carrierId === newCarrierId) || {};
+        dispatch(setSelectedDelName(newCarrier));
         setShipmentViewTableData((prevData) =>
             (prevData || []).map((row) =>
                 // 💡 THE FIX: Check against shipmentId to match your getRowId configuration
@@ -288,7 +295,7 @@ export default function ShipmentViewTable({ }) {
         {
             field: "actions",
             headerName: "Actions",
-            width: 200,
+            width: 600,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -319,12 +326,12 @@ export default function ShipmentViewTable({ }) {
                             </IconButton>
                         </Tooltip>
 
-                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton> */}
+                        </IconButton>
 
                         {/* Checkbox with Del Label */}
-                        {/* <FormControlLabel
+                        <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -353,9 +360,9 @@ export default function ShipmentViewTable({ }) {
                             sx={{
                                 ml: 1 // 👈 Kept your original margin-left positioning
                             }}
-                        /> */}
+                        />
 
-                        {/* <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
+                        <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
                             <Select
                                 labelId={`carrier-select-label-${rowId}`}
@@ -373,10 +380,10 @@ export default function ShipmentViewTable({ }) {
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl> */}
+                        </FormControl>
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
-                        {/* {isRowSelected && (
+                        {isRowSelected && (
                             <Button
                                 variant="contained"
                                 size="small"
@@ -390,9 +397,9 @@ export default function ShipmentViewTable({ }) {
                             >
                                 Select Del Agent
                             </Button>
-                        )} */}
+                        )}
                         {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
-                        {/* {isDelChecked && (
+                        {isDelChecked && (
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Button
                                     variant="contained"
@@ -400,7 +407,15 @@ export default function ShipmentViewTable({ }) {
                                     sx={{ textTransform: 'none', backgroundColor: "#A22" }}
                                     onClick={(e) => {
                                         e.stopPropagation();
-                                        console.log("Submit clicked for row:", rowId);
+                                        dispatch(setSelectedDelRowObj(params?.row?.rowDetails));
+                                        if (selectedDelName && Object.keys(selectedDelName).length !== 0) {
+                                            // call for getting carrier accessorials 
+                                            // dispatch(getPickupAccessorials(newValue?.terminalEntityId));
+                                            setDelSubmitModalOpen(true);
+                                        }else{
+                                            setSnackbarMessage("Please select a carrier before submitting.");
+                                            setSnackbarOpen(true);
+                                        }
                                     }}
                                 >
                                     Submit
@@ -421,10 +436,10 @@ export default function ShipmentViewTable({ }) {
                                     Add to Queue
                                 </Button>
                             </Box>
-                        )} */}
+                        )}
 
                         {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
-                        {/* <MenuPopover
+                        <MenuPopover
                             open={openPopover}
                             anchorEl={anchorEl}
                             onClose={handleClosePopover}
@@ -436,7 +451,7 @@ export default function ShipmentViewTable({ }) {
                                     Delete
                                 </MenuItem>
                             </Stack>
-                        </MenuPopover> */}
+                        </MenuPopover>
                     </Box>
                 );
             },
@@ -674,6 +689,8 @@ export default function ShipmentViewTable({ }) {
                     {snackbarMessage}
                 </Alert>
             </Snackbar>
+
+            <ShipmentDelSubmitDialog open={delSubmitModalOpen} onClose={() => setDelSubmitModalOpen(false)} />
         </>
     );
 }

@@ -31,6 +31,7 @@ const initialState = {
     ],
     selectedShipments: [],
     selectedDelRowObj: {},
+    selectedDelName : {},
 };
 
 const slice = createSlice({
@@ -93,7 +94,9 @@ const slice = createSlice({
         setSelectedDelRowObj(state, action) {
             state.selectedDelRowObj = action.payload;
         },
-
+        setSelectedDelName(state, action) {
+            state.selectedDelName = action.payload;
+        }
     },
 });
 
@@ -105,6 +108,7 @@ export const {
     setSelectedShipmentBuildObj,
     setSelectedShipments,
     setSelectedDelRowObj,
+    setSelectedDelName,
 } = slice.actions;
 export default slice.reducer;
 

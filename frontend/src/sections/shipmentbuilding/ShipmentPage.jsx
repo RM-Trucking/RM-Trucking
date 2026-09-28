@@ -298,6 +298,7 @@ const ShipmentPage = ({ type }) => {
         },
         lineHaul: {
           selectRouting: '',
+          airportCode : '',
           // selectRouting: 'linehaul_only',
           carrier: '',
           billNumber: "",

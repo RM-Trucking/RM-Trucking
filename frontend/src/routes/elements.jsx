@@ -46,6 +46,7 @@ export const ShipmentBuildingHomeLayout = Loadable(lazy(() => import('../pages/s
 export const ShipmentBuildingPage = Loadable(lazy (() => import('../pages/shipment/ShipmentBuildingPage')));
 export const ConsolidatedView = Loadable(lazy (() => import('../pages/shipment/ConsolidatedView')));
 export const DelCarrierEdit = Loadable(lazy (() => import('../pages/shipment/DelCarrierEdit')));
+export const AddToQueuePage = Loadable(lazy (() => import('../pages/shipment/AddToQueuePage')));
 
 // Error pages
 export const Page500 = Loadable(lazy(() => import('../pages/Page500')));

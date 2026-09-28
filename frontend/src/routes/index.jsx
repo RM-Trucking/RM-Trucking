@@ -42,6 +42,7 @@ import {
   BillOfLadingView,
   ConsolidatedView,
   DelCarrierEdit,
+  AddToQueuePage,
 } from './elements';
 
 
@@ -102,7 +103,8 @@ export default function Router() {
             { path: 'shipment-view', element: <ShipmentFormView /> },
             { path: 'bill-of-lading', element: <BillOfLadingView /> },
             { path: 'consolidated-view', element: <ConsolidatedView /> },
-            { path: 'del-carrier-edit', element: <DelCarrierEdit /> }
+            { path: 'del-carrier-edit', element: <DelCarrierEdit /> },
+            { path: 'add-to-queue', element: <AddToQueuePage /> }
           ]
         },
         {

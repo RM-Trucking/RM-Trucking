@@ -47,6 +47,7 @@ export const PATH_DASHBOARD = {
     bolView : path(ROOTS_DASHBOARD, '/shipment-building/bill-of-lading'),
     consolidatedView: path(ROOTS_DASHBOARD, '/shipment-building/consolidated-view'),
     delCarrierEdit: path(ROOTS_DASHBOARD, '/shipment-building/del-carrier-edit'),
+    addToQueue: path(ROOTS_DASHBOARD, '/shipment-building/add-to-queue'),
   },
   warehouseMaintenance: path(ROOTS_DASHBOARD, '/warehouse-maintenance'),
   maintenance: {

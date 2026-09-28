@@ -1873,6 +1873,7 @@ const ShipmentDelLinehaulPage = ({ type, actionDelType, onDelDialogClose }) => {
                                     sx={{ textTransform: 'none', backgroundColor: '#a22', borderColor: '#a22', '&:hover': { backgroundColor: '#a22', borderColor: '#a22' } }}
                                     onClick={() => {
                                         onDelDialogClose();
+                                        navigate(PATH_DASHBOARD?.shipmentBuilding?.addToQueue);
                                     }}
                                 >
                                     Add to Queue

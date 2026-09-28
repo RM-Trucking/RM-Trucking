@@ -27,6 +27,7 @@ import { PATH_DASHBOARD } from '../../routes/paths';
 import {
   setSelectedShipmentBuildObj,
 } from '../../redux/slices/shipmentbuilding';
+import AddToQueueSubmitDilog from './AddToQueueSubmitDilog';
 
 export default function AddToQueueTable() {
   const dispatch = useDispatch();
@@ -53,6 +54,16 @@ export default function AddToQueueTable() {
 
   // --- 3. Search State ---
   const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const handleSubmitAction = () => {
+    setIsModalOpen(true); // Triggers the modal on filter bar submit button click
+  };
+
+  const executeFinalSubmit = () => {
+    setIsModalOpen(false);
+    console.log("Processing final shipment submission payload...");
+    // Put your API request or state dispatch action here
+  };
 
   // --- Handlers ---
   const handleCheckboxChange = (event) => {
@@ -133,7 +144,10 @@ export default function AddToQueueTable() {
         <Button
           variant="contained"
           size="small"
-          onClick={() => console.log(`Queue item: ${params.row.id}`)}
+          onClick={() => {
+            console.log(`Queue item: ${params.row.id}`);
+
+          }}
           sx={{
             bgcolor: '#4caf50',
             color: '#fff',
@@ -143,7 +157,6 @@ export default function AddToQueueTable() {
             py: 0.2,
             borderRadius: '4px',
             boxShadow: 'none',
-            '&:hover': { bgcolor: '#388e3c', boxShadow: 'none' },
           }}
         >
           Add to Queue
@@ -186,108 +199,119 @@ export default function AddToQueueTable() {
       onSubmit={handleFilterSubmit}
       sx={{ p: 2, bgcolor: '#ffffff', width: '100%' }}
     >
-      {/* ROW 1: Navigation Back Button & Top Right Action Button */}
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          mb: 3
-        }}
-      >
-        {/* Back Button */}
+      {/* ROW 1: Back Navigation link */}
+      <Box sx={{ mb: 2 }}>
         <Button
-          onClick={handleBackNavigation}
           startIcon={<ChevronLeftIcon onClick={() => navigate(PATH_DASHBOARD?.shipmentBuilding?.root)} />}
           sx={{
             color: '#333',
             textTransform: 'none',
             fontWeight: 700,
-            fontSize: '0.95rem',
+            fontSize: '0.9rem',
             p: 0,
             minWidth: 'auto',
-          }}
-        >
-          Add to Queue
-        </Button>
-
-        {/* Top Right "Add to Queue" Action Button */}
-        <Button
-          onClick={handleAddToQueueAction}
-          variant="contained"
-          size="small"
-          sx={{
-            bgcolor: '#a61c1c',
-            '&:hover': { bgcolor: '#851414' },
-            textTransform: 'none',
-            px: 2,
-            fontWeight: 'bold',
-            borderRadius: '4px'
+            '&:hover': { bgcolor: 'transparent', color: '#000' }
           }}
         >
           Add to Queue
         </Button>
       </Box>
 
-      {/* ROW 2: Dropdown Form Inputs */}
+      {/* ROW 2: Dropdown Inputs (Left) & Total Weight + Submit Actions (Right) */}
       <Box
         sx={{
           display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'flex-end',
           flexWrap: 'wrap',
           gap: 2,
           mb: 2
         }}
       >
-        {/* Select Shipment Status */}
-        <FormControl variant="standard" size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="status-label">Select Shipment Status</InputLabel>
-          <Select
-            labelId="status-label"
-            value={shipmentStatus}
-            onChange={(e) => setShipmentStatus(e.target.value)}
-          >
-            <MenuItem value="Add to Queue">Add to Queue</MenuItem>
-            <MenuItem value="In Transit">In Transit</MenuItem>
-            <MenuItem value="Delivered">Delivered</MenuItem>
-          </Select>
-        </FormControl>
+        {/* Dropdowns Group */}
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+          {/* Select Shipment Status */}
+          <FormControl variant="standard" size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="status-label">Select Shipment Status</InputLabel>
+            <Select
+              labelId="status-label"
+              value={shipmentStatus}
+              onChange={(e) => setShipmentStatus(e.target.value)}
+            >
+              <MenuItem value="Add to Queue">Add to Queue</MenuItem>
+              <MenuItem value="In Transit">In Transit</MenuItem>
+              <MenuItem value="Delivered">Delivered</MenuItem>
 
-        {/* Pickup Agent */}
-        <FormControl variant="standard" size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="pickup-label">Pickup Agent</InputLabel>
-          <Select
-            labelId="pickup-label"
-            value={pickupAgent}
-            onChange={(e) => setPickupAgent(e.target.value)}
-          >
-            <MenuItem value="Estes">Estes</MenuItem>
-            <MenuItem value="FedEx">FedEx</MenuItem>
-          </Select>
-        </FormControl>
+            </Select>
+          </FormControl>
 
-        {/* Linehaul Carrier */}
-        <FormControl variant="standard" size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="linehaul-label">Linehaul Carrier</InputLabel>
-          <Select
-            labelId="linehaul-label"
-            value={linehaulCarrier}
-            onChange={(e) => setLinehaulCarrier(e.target.value)}
-          >
-            <MenuItem value="Cal Sierra">Cal Sierra</MenuItem>
-          </Select>
-        </FormControl>
+          {/* Pickup Agent */}
+          <FormControl variant="standard" size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="pickup-label">Pickup Agent</InputLabel>
+            <Select
+              labelId="pickup-label"
+              value={pickupAgent}
+              onChange={(e) => setPickupAgent(e.target.value)}
+            >
+              <MenuItem value="R&M">R&M</MenuItem>
+              <MenuItem value="Estes">Estes</MenuItem>
+              <MenuItem value="FedEx">FedEx</MenuItem>
+            </Select>
+          </FormControl>
 
-        {/* Delivery Agent */}
-        <FormControl variant="standard" size="small" sx={{ minWidth: 160 }}>
-          <InputLabel id="delivery-label">Delivery Agent</InputLabel>
-          <Select
-            labelId="delivery-label"
-            value={deliveryAgent}
-            onChange={(e) => setDeliveryAgent(e.target.value)}
+          {/* Linehaul Carrier */}
+          <FormControl variant="standard" size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="linehaul-label">Linehaul Carrier</InputLabel>
+            <Select
+              labelId="linehaul-label"
+              value={linehaulCarrier}
+              onChange={(e) => setLinehaulCarrier(e.target.value)}
+            >
+              <MenuItem value="Cal Sierra">Cal Sierra</MenuItem>
+            </Select>
+          </FormControl>
+
+          {/* Delivery Agent */}
+          <FormControl variant="standard" size="small" sx={{ minWidth: 150 }}>
+            <InputLabel id="delivery-label">Delivery Agent</InputLabel>
+            <Select
+              labelId="delivery-label"
+              value={deliveryAgent}
+              onChange={(e) => setDeliveryAgent(e.target.value)}
+            >
+              <MenuItem value="Cal Sierra">Cal Sierra</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+
+        {/* Right Side Info Area: Total Weight and Submit Button */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+          <Typography
+            variant="body1"
+            sx={{ fontWeight: 'bold', color: '#000', fontSize: '0.95rem' }}
           >
-            <MenuItem value="Cal Sierra">Cal Sierra</MenuItem>
-          </Select>
-        </FormControl>
+            Total Weight - 2000 lbs
+          </Typography>
+          <Button
+            onClick={() =>{
+              setIsModalOpen(true);
+            }}
+            variant="contained"
+            size="small"
+            sx={{
+              bgcolor: '#a61c1c',
+              '&:hover': { bgcolor: '#851414' },
+              textTransform: 'none',
+              px: 3,
+              py: 0.4,
+              fontWeight: 'bold',
+              borderRadius: '4px',
+              minWidth: '100px'
+            }}
+          >
+            Submit
+          </Button>
+        </Box>
       </Box>
 
       {/* ROW 3: Checkboxes, Filter Action, Search & Density Icon */}
@@ -314,7 +338,7 @@ export default function AddToQueueTable() {
                 />
               }
               label="Del Incl"
-              slotProps={{ typography: { fontSize: '0.875rem', fontWeight: 500 } }}
+              slotProps={{ typography: { fontSize: '0.85rem', fontWeight: 500 } }}
             />
             <FormControlLabel
               control={
@@ -327,7 +351,7 @@ export default function AddToQueueTable() {
                 />
               }
               label="R&M"
-              slotProps={{ typography: { fontSize: '0.875rem', fontWeight: 500 } }}
+              slotProps={{ typography: { fontSize: '0.85rem', fontWeight: 500 } }}
             />
             <FormControlLabel
               control={
@@ -340,7 +364,7 @@ export default function AddToQueueTable() {
                 />
               }
               label="Others"
-              slotProps={{ typography: { fontSize: '0.875rem', fontWeight: 500 } }}
+              slotProps={{ typography: { fontSize: '0.85rem', fontWeight: 500 } }}
             />
           </FormGroup>
 
@@ -354,7 +378,9 @@ export default function AddToQueueTable() {
               textTransform: 'none',
               px: 3,
               borderRadius: '4px',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
+              height: '26px',
+              fontSize: '0.8rem'
             }}
           >
             Filter
@@ -386,9 +412,11 @@ export default function AddToQueueTable() {
               },
             }}
           />
+          <IconButton size="small" sx={{ border: '1px solid #ddd', borderRadius: '4px', p: '5px' }}>
+            <FilterListIcon sx={{ color: '#333', fontSize: '1.25rem' }} />
+          </IconButton>
         </Box>
       </Box>
-
       {/* ROW 4: Data Grid Table */}
       <Box sx={{ height: 400, bgcolor: '#fff', mt: 2, }}>
         <DataGrid
@@ -497,6 +525,11 @@ export default function AddToQueueTable() {
         //                     }}
         />
       </Box>
+      <AddToQueueSubmitDilog
+        open={isModalOpen}
+        handleClose={() => setIsModalOpen(false)}
+        handleConfirm={executeFinalSubmit}
+      />
     </Box>
   );
 }

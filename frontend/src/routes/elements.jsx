@@ -47,6 +47,11 @@ export const ShipmentBuildingPage = Loadable(lazy (() => import('../pages/shipme
 export const ConsolidatedView = Loadable(lazy (() => import('../pages/shipment/ConsolidatedView')));
 export const DelCarrierEdit = Loadable(lazy (() => import('../pages/shipment/DelCarrierEdit')));
 export const AddToQueuePage = Loadable(lazy (() => import('../pages/shipment/AddToQueuePage')));
+export const AirportCodeMaintenance = Loadable(lazy (() => import('../pages/airportcode/AirportCodeMaintenance')));
+export const AirportCodeLayout = Loadable(lazy (() => import('../pages/airportcode/AirportCodeLayout')));
+export const AirlineMaintenance = Loadable(lazy (() => import('../pages/airline/AirlineMaintenance')));
+export const AirlineLayout = Loadable(lazy (() => import('../pages/airline/AirlineLayout')));
+
 
 // Error pages
 export const Page500 = Loadable(lazy(() => import('../pages/Page500')));

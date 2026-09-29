@@ -11,6 +11,8 @@ import carrierReducer from './slices/carrier';
 import fuelReducer from './slices/fuel';
 import shipmentReducer from './slices/shipment';
 import shipmentBuildingReducer from './slices/shipmentbuilding';
+import airportCodeReducer from './slices/airportcode';
+import airlineReducer from './slices/airline';
 // ----------------------------------------------------------------------
 
 const rootPersistConfig = {
@@ -32,6 +34,8 @@ const rootReducer = combineReducers({
   fueldata : fuelReducer,
   shipmentdata : shipmentReducer,
   shipmentbuildingdata : shipmentBuildingReducer,
+  airportcodedata : airportCodeReducer,
+  airlinedata : airlineReducer,
 });
 
 export { rootPersistConfig, rootReducer };

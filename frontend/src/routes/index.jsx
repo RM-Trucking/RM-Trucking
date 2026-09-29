@@ -43,6 +43,10 @@ import {
   ConsolidatedView,
   DelCarrierEdit,
   AddToQueuePage,
+  AirportCodeMaintenance,
+  AirportCodeLayout,
+  AirlineMaintenance,
+  AirlineLayout,
 } from './elements';
 
 
@@ -173,6 +177,20 @@ export default function Router() {
               element: <FuelSurchargeLayout />,
               children: [
                 { index: true, element: <FuelSurchargeMaintenancePage /> },
+              ]
+            },
+            {
+              path: 'airport-code-maintenance',
+              element: <AirportCodeLayout />,
+              children: [
+                { index: true, element: <AirportCodeMaintenance /> }
+              ]
+            },
+            {
+              path: 'airline-maintenance',
+              element: <AirlineLayout />,
+              children: [
+                { index: true, element: <AirlineMaintenance /> }
               ]
             },
           ],

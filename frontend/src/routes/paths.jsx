@@ -76,6 +76,8 @@ export const PATH_DASHBOARD = {
       zoneTableView: path(ROOTS_DASHBOARD, '/maintenance/zone-maintenance/zone-table-view'),
     },
     accesorialMaintenance: path(ROOTS_DASHBOARD, '/maintenance/accesorial-maintenance'),
+    airportCodeMaintenance: path(ROOTS_DASHBOARD, '/maintenance/airport-code-maintenance'),
+    airlineMaintenance: path(ROOTS_DASHBOARD, '/maintenance/airline-maintenance'),
   },
 };
 

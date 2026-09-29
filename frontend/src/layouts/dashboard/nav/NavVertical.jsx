@@ -80,14 +80,14 @@ export default function NavVertical({ }) {
           "title": "Fuel Surcharge",
           "path": "/app/maintenance/fuel-surcharge-maintenance"
         },
-        {
-          "title": "Airport Code Maintenance",
-          "path": "/app/maintenance/airport-code-maintenance"
-        },
-        {
-          "title": "Airline Maintenance",
-          "path": "/app/maintenance/airline-maintenance"
-        }
+        // {
+        //   "title": "Airport Code Maintenance",
+        //   "path": "/app/maintenance/airport-code-maintenance"
+        // },
+        // {
+        //   "title": "Airline Maintenance",
+        //   "path": "/app/maintenance/airline-maintenance"
+        // }
       ]
     }
   ];

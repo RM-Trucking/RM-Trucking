@@ -11,7 +11,22 @@ const initialState = {
     isLoading: false,
     error: null,
     airportSuccess: false,
-    airportData: [],
+    airportData: [
+        {
+            airportId: 1,
+            airportCode: "ATL",
+            cityCode: "ATL",
+            state: "GA",
+            zipCode: "30320"
+        },
+        {
+            airportId: 2,
+            airportCode: "LAX",
+            cityCode: "LAX",
+            state: "CA",
+            zipCode: "90001"
+        }
+    ],
     airportSearchStr: '',
     operationalMessage: '',
     selectedAirportRowDetails: {},

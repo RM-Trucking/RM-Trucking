@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from '../../redux/store';
 import ErrorFallback from '../shared/ErrorBoundary';
 import SharedHomePageHeader from '../shared/SharedHomepageHeader';
 import SharedSearchField from '../shared/SharedSearchField';
+import AirportTable from './AirportTable';
+import AirportDetails from './AirportDetails';
 // ----------------------------------------------------------------
 
 export default function AirportCodeHomePage() {
@@ -39,6 +41,7 @@ export default function AirportCodeHomePage() {
             >
                 <SharedHomePageHeader title="Airport Code Maintenance" buttonText='New Airport Code' onButtonClick={onClickOfAirportCode} />
                 <SharedSearchField page="airportcode" />
+                <AirportTable />
                 
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {
@@ -48,14 +51,14 @@ export default function AirportCodeHomePage() {
                     sx={{
                         '& .MuiDialog-paper': { // Target the paper class
                             width: '1543px',
-                            height: '230px',
+                            height: '270px',
                             maxHeight: 'none',
                             maxWidth: 'none',
                         }
                     }}
                 >
                     <DialogContent>
-                        {/* <AccessorialDetails type="Add" handleCloseConfirm={handleCloseConfirm} /> */}
+                        <AirportDetails type="Add" handleCloseConfirm={handleCloseConfirm} />
                     </DialogContent>
                 </Dialog>
             </ErrorBoundary>

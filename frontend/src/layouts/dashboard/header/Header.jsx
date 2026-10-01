@@ -23,7 +23,7 @@ export default function Header() {
     <>
       <Stack flexDirection={"row"} alignItems={"center"} justifyContent={"space-between"} sx={{width : "100%"}}>
         <Logo />
-        <SearchBar/>
+        {/* <SearchBar/> */}
         <UserAccount/>
       </Stack>
     </>

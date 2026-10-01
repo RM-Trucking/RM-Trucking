@@ -38,8 +38,8 @@ export default function UserAccount() {
     }
     return (
         <Stack flexDirection={"row"} alignItems={"center"}>
-            <Iconify icon="mdi:bell-notification" sx={{ mr: 2 }} />
-            <Stack flexDirection={"row"} alignItems={"center"} sx={{ mr: 1.2 }}>
+            {/* <Iconify icon="mdi:bell-notification" sx={{ mr: 2 }} /> */}
+            {/* <Stack flexDirection={"row"} alignItems={"center"} sx={{ mr: 1.2 }}>
                 <Iconify icon="carbon:user-avatar-filled" sx={{ mr: 1.2, cursor: "pointer" }} />
                 <Stack flexDirection={"column"}>
                     <Typography variant="subtitle2" noWrap sx={{ fontStyle: "Open Sans, sans-serif !important", fontWeight: "600", fontSize: "14px", lineHeight: "1" }}>
@@ -49,7 +49,7 @@ export default function UserAccount() {
                         {dashboardSearchStr?.role || "Program Analyst"}
                     </Typography>
                 </Stack>
-            </Stack>
+            </Stack> */}
             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ mr: 1.2, cursor: "pointer" }} onClick={handleUserMenu} />
 
             {/*  user menu */}

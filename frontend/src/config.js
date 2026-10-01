@@ -21,7 +21,8 @@ else if (stage === 'prod') {
 }
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
-export const PATH_AFTER_LOGIN = PATH_DASHBOARD.general.dashboard.root; // as '/dashboard'
+// export const PATH_AFTER_LOGIN = PATH_DASHBOARD.general.dashboard.root; // as '/dashboard'
+export const PATH_AFTER_LOGIN = '/app/maintenance/customer-maintenance'; // as '/dashboard'
 
 export const HOST_API_KEY = hostkeys?.hostApiKey || ''; // base axios url
 

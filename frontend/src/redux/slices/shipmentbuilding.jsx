@@ -31,7 +31,7 @@ const initialState = {
     ],
     selectedShipments: [],
     selectedDelRowObj: {},
-    selectedDelName: {},
+    selectedDelName: [],
     addToQueueData: [
         {
             id: 1,

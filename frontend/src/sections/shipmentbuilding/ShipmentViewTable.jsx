@@ -327,12 +327,12 @@ export default function ShipmentViewTable({ }) {
                             </IconButton>
                         </Tooltip>
 
-                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton>
+                        </IconButton> */}
 
                         {/* Checkbox with Del Label */}
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -361,7 +361,7 @@ export default function ShipmentViewTable({ }) {
                             sx={{
                                 ml: 1 // 👈 Kept your original margin-left positioning
                             }}
-                        />
+                        /> */}
 
                         <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
@@ -384,7 +384,7 @@ export default function ShipmentViewTable({ }) {
                         </FormControl>
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
-                        {isRowSelected && (
+                        {/* {isRowSelected && (
                             <Button
                                 variant="contained"
                                 size="small"
@@ -398,9 +398,9 @@ export default function ShipmentViewTable({ }) {
                             >
                                 Select Del Agent
                             </Button>
-                        )}
+                        )} */}
                         {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
-                        {isDelChecked && (
+                        {/* {isDelChecked && (
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Button
                                     variant="contained"
@@ -448,7 +448,7 @@ export default function ShipmentViewTable({ }) {
                                     Add to Queue
                                 </Button>
                             </Box>
-                        )}
+                        )} */}
 
                         {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
                         <MenuPopover

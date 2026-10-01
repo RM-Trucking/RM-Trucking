@@ -131,7 +131,7 @@ const SubmitDeliveryLinehaul = ({
                 <legend><Typography variant="subtitle1" sx={{ fontWeight: '600' }}>Linehaul pickup location details</Typography></legend>
                 <Box>
                     {/* linehaul details  */}
-                    {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
+                    <>
 
                         {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
                         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', mb: 3 }}>
@@ -171,7 +171,7 @@ const SubmitDeliveryLinehaul = ({
 
                         </Box>
                         <Box sx={{ display: 'flex', gap: 3, mb: 4, flexWrap: 'wrap' }}>
-                            {watchedPickupAgentTerminal && <Box>
+                             <Box>
                                 <Controller
                                     name="carrierInfo.lineHaul.toggleAddress"
                                     control={control}
@@ -203,7 +203,7 @@ const SubmitDeliveryLinehaul = ({
                                         </>
                                     )}
                                 />
-                            </Box>}
+                            </Box>
                             <Box sx={{ flex: '2 1 300px', display: 'flex', gap: 1 }}>
                                 <Controller
                                     name="carrierInfo.lineHaul.manualFromLocation"
@@ -251,7 +251,7 @@ const SubmitDeliveryLinehaul = ({
                                 </Box>
                             </Box>
                         </Paper>
-                    </>}
+                    </>
 
                     <Box sx={{ flex: '0 1 200px', mb: 3 }}>
                         <FormControlLabel

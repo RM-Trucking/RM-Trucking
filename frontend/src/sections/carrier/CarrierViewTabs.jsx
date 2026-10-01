@@ -29,10 +29,10 @@ export default function CarrierViewTabs({ selectedRowCarrierType }) {
             value: 'terminal',
             label: 'Terminal Details',
         },
-        {
-            value: 'accessorial',
-            label: 'Accessorial',
-        },
+        // {
+        //     value: 'accessorial',
+        //     label: 'Accessorial',
+        // },
     ];
     const filteredTabs = TABS.filter((tab) => {
         if (selectedRowCarrierType === 'Airport') {

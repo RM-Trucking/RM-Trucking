@@ -72,7 +72,7 @@ function NavItem({ item, depth = 0 }) {
       dispatch(setRateTableData([]));
       dispatch(setCarrierList([]));
       dispatch(setIsSelectRateClicked(false));
-      dispatch(setCurrentRateTab('transportation'));
+      dispatch(setCurrentRateTab('warehouse'));
       dispatch(setRateSearchObj({}));
     }
     if (!item.path.includes('/app/maintenance/carrier-maintenance')) {

@@ -42,10 +42,10 @@ export default function StationTabs({ }) {
             value: 'rate',
             label: 'Rate',
         },
-        {
-            value: 'accessorial',
-            label: 'Accessorial',
-        },
+        // {
+        //     value: 'accessorial',
+        //     label: 'Accessorial',
+        // },
     ];
     const {
         stationCurrentTab, selectedStationTabRowDetails, selectedCustomerStationDetails
@@ -70,7 +70,7 @@ export default function StationTabs({ }) {
         dispatch(setRateTableData([]));
         if (newValue === 'rate') {
             dispatch(setCurrentRateRoutedFrom('customer'));
-            dispatch(setCurrentRateTab('transportation'));
+            dispatch(setCurrentRateTab('warehouse'));
         }
     }
     const handleCloseConfirm = () => {
@@ -178,7 +178,7 @@ export default function StationTabs({ }) {
                                 sx={{ mr: 1, }}
                             >
                                 <MenuItem value="warehouse">Warehouse</MenuItem>
-                                <MenuItem value="transportation">Transportation</MenuItem>
+                                {/* <MenuItem value="transportation">Transportation</MenuItem> */}
                             </StyledTextField>
                             <Button
                                 variant="outlined"

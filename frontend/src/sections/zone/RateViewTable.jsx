@@ -233,7 +233,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
                                 dispatch(getCustomerListByRateID(params.row.rateId));
-                                dispatch(setCurrentRateTab('transportation'));
+                                dispatch(setCurrentRateTab('warehouse'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 dispatch(setCurrentRateRoutedFrom('customer'));

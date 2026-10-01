@@ -35,18 +35,18 @@ export default function TerminalViewTabs({ }) {
             value: 'personnel',
             label: 'Personnel',
         },
-        {
-            value: 'quality',
-            label: 'Quality',
-        },
-        {
-            value: 'accessorial',
-            label: 'Accessorial',
-        },
-        {
-            value: 'rate',
-            label: 'Rate',
-        },
+        // {
+        //     value: 'quality',
+        //     label: 'Quality',
+        // },
+        // {
+        //     value: 'accessorial',
+        //     label: 'Accessorial',
+        // },
+        // {
+        //     value: 'rate',
+        //     label: 'Rate',
+        // },
     ];
 
     const [openConfirmDialog, setOpenConfirmDialog] = useState(false);

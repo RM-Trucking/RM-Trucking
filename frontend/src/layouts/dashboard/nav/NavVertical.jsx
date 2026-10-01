@@ -24,16 +24,16 @@ NavVertical.propTypes = {
 export default function NavVertical({ }) {
   const { pathname } = useLocation();
   const navConfig = [
-    {
-      "title": "Dashboard",
-      "path": "/app/dashboard",
-      "icon": null
-    },
-    {
-      "title": "Shipment Building",
-      "path": "/app/shipment-building",
-      "icon": null
-    },
+    // {
+    //   "title": "Dashboard",
+    //   "path": "/app/dashboard",
+    //   "icon": null
+    // },
+    // {
+    //   "title": "Shipment Building",
+    //   "path": "/app/shipment-building",
+    //   "icon": null
+    // },
     {
 
       "title": "Maintenance",
@@ -57,29 +57,29 @@ export default function NavVertical({ }) {
         {
           "title": "Carrier Maintenance",
           "path": "/app/maintenance/carrier-maintenance",
-          "children": [
-            {
-              "title": "Rate Maintenance",
-              "path": "/app/maintenance/carrier-maintenance/rate-maintenance"
-            }
-          ],
+          // "children": [
+          //   {
+          //     "title": "Rate Maintenance",
+          //     "path": "/app/maintenance/carrier-maintenance/rate-maintenance"
+          //   }
+          // ],
         },
         // {
         //   "title": "Rate Maintenance",
         //   "path": "/app/maintenance/rate-maintenance"
         // },
-        {
-          "title": "Zone Maintenance",
-          "path": "/app/maintenance/zone-maintenance"
-        },
-        {
-          "title": "Accessorial Maintenance",
-          "path": "/app/maintenance/accesorial-maintenance"
-        },
-        {
-          "title": "Fuel Surcharge",
-          "path": "/app/maintenance/fuel-surcharge-maintenance"
-        },
+        // {
+        //   "title": "Zone Maintenance",
+        //   "path": "/app/maintenance/zone-maintenance"
+        // },
+        // {
+        //   "title": "Accessorial Maintenance",
+        //   "path": "/app/maintenance/accesorial-maintenance"
+        // },
+        // {
+        //   "title": "Fuel Surcharge",
+        //   "path": "/app/maintenance/fuel-surcharge-maintenance"
+        // },
         // {
         //   "title": "Airport Code Maintenance",
         //   "path": "/app/maintenance/airport-code-maintenance"

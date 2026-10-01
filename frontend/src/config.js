@@ -14,6 +14,9 @@ if (!stage) {
 if (stage === 'dev') {
   hostkeys.hostApiKey = import.meta.env.VITE_HOST_API_KEY_DEV;
 }
+else if (stage === 'prod') {
+  hostkeys.hostApiKey = import.meta.env.VITE_HOST_API_KEY_PROD;
+}
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL
 export const PATH_AFTER_LOGIN = PATH_DASHBOARD.general.dashboard.root; // as '/dashboard'

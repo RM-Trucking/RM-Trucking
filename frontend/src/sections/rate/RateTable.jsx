@@ -67,7 +67,6 @@ export default function RateTable() {
     }
     const rateTransportationColumns = [
         {
-            field: 'customerRateId',
             field: `${currentRateRoutedFrom === 'customer' ? 'customerRateId' : 'carrierRateId'}`,
             headerName: 'Rate ID',
             width: 150,

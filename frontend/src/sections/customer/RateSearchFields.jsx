@@ -229,16 +229,25 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             }
         }
         if ((type === 'Add' || type === 'Copy') && currentTab === 'warehouse') {
-            // 1. Validation: Check if at least one charge is filled and not just whitespace
-            const hasAtLeastOneCharge = rateFieldChargeDataWarehouse.some(item =>
-                item?.charge?.toString().trim() !== ""
-            );
-
-            if (!hasAtLeastOneCharge) {
-                // Replace with your preferred notification (toast, alert, etc.)
+            if (!rateFieldChargeDataWarehouse || rateFieldChargeDataWarehouse.length === 0) {
                 setSnackbarOpen(true);
                 setSnackbarSeverity("error");
-                setSnackbarMessage("Please enter at least one rate value.");
+                setSnackbarMessage("Please add rate values (Min Charge, Rate Per 100 LB, and Max Charge).");
+                return; // Stop the dispatch
+            }
+            // 1. Validation: Check if at least one charge is filled and not just whitespace
+            const allChargesValid = rateFieldChargeDataWarehouse.every(item => {
+                const stringValue = item?.charge?.toString().trim();
+                const numericValue = Number(stringValue);
+
+                // Fails if empty, if it's not a valid number, or if it is 0 (or negative)
+                return stringValue !== "" && !isNaN(numericValue) && numericValue > 0;
+            });
+
+            if (!allChargesValid) {
+                setSnackbarOpen(true);
+                setSnackbarSeverity("error");
+                setSnackbarMessage("All rate values (Min Charge, Rate Per 100 LB, and Max Charge) are mandatory and rates must be greater than 0.");
                 return; // Stop the dispatch
             }
 
@@ -254,15 +263,18 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Edit' && currentTab === 'warehouse') {
             // 1. Validation: Check if at least one charge is filled and not just whitespace
-            const hasAtLeastOneCharge = rateFieldChargeDataWarehouse.some(item =>
-                item?.charge?.toString().trim() !== ""
-            );
+            const allChargesValid = rateFieldChargeDataWarehouse.every(item => {
+                const stringValue = item?.charge?.toString().trim();
+                const numericValue = Number(stringValue);
 
-            if (!hasAtLeastOneCharge) {
-                // Replace with your preferred notification (toast, alert, etc.)
+                // Fails if empty, if it's not a valid number, or if it is 0 (or negative)
+                return stringValue !== "" && !isNaN(numericValue) && numericValue > 0;
+            });
+
+            if (!allChargesValid) {
                 setSnackbarOpen(true);
                 setSnackbarSeverity("error");
-                setSnackbarMessage("Please enter at least one rate value.");
+                setSnackbarMessage("All rate values (Min Charge, Rate Per 100 LB, and Max Charge) are mandatory and rates must be greater than 0.");
                 return; // Stop the dispatch
             }
             const obj = {

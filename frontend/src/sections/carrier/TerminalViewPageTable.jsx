@@ -669,7 +669,7 @@ export default function TerminalViewPageTable() {
     const handleCloseEdit = () => {
         setOpenEditDialog(false);
         setActionType("");
-        dispatch(setSelectedCarrierTabRowDetails({}));
+        // dispatch(setSelectedCarrierTabRowDetails({}));
     };
 
     return (

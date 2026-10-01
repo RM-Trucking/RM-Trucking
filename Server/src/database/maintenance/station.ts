@@ -11,8 +11,8 @@ export async function createStation(conn: Connection, station: Partial<Station>)
     FROM FINAL TABLE (
       INSERT INTO ${SCHEMA}."Station"
       ("customerId","entityId","stationName","rmAccountNumber","airportCode","phoneNumber","faxNumber",
-       "openTime","closeTime","hours","warehouse","warehouseDetail","activeStatus","createdAt","createdBy","noteThreadId","hasWarehouseService","warehouseEmails")
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y', (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?)
+       "openTime","closeTime","hours","warehouse","warehouseDetail","activeStatus","createdAt","createdBy","noteThreadId","hasWarehouseService","warehouseEmails","isNonBillable")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'Y', (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?)
     )
   `;
 
@@ -32,7 +32,8 @@ export async function createStation(conn: Connection, station: Partial<Station>)
     station.createdBy,
     station.noteThreadId,
     station.hasWarehouseService,
-    station.warehouseEmails
+    station.warehouseEmails,
+    station.isNonBillable
   ].map(v => v === undefined || v === null ? '' : v); // convert null/undefined to empty string
 
   const result = (await conn.query(insertQuery, params)) as any[];

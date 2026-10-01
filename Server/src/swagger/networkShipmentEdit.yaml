@@ -114,6 +114,7 @@ paths:
                       pickupInfoId: 60
                       carrierId: 146
                       terminalId: 148
+                      carrierBillNumber: "PU-999-001"
                       pickupRouting: "PICKUP_ONLY"
                       fromLocationType: "Shipper"
                       fromLocation: "Pickup Warehouse"
@@ -759,9 +760,12 @@ components:
             terminalId:
               type: integer
               example: 148
+            carrierBillNumber:
+              type: string
+              example: PU-999-001
             pickupRouting:
               type: string
-              example: PICKUP_ONLY
+              example: PICKUP_ONLY  
             fromLocationType:
               type: string
               example: Shipper

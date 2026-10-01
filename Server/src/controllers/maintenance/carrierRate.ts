@@ -2,49 +2,6 @@ import { Request, Response } from 'express';
 import { Connection } from 'odbc';
 import * as rateService from '../../services/maintenance/carrierRate';
 
-// -------------------- Warehouse Rate --------------------
-export async function createCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const rate = await rateService.createCarrierWarehouseRateService(conn, req.body);
-        res.status(201).json({ success: true, data: rate });
-    } catch (error) {
-        console.log(error);
-
-        res.status(400).json({ error: 'Failed to create warehouse rate', message: (error as Error).message });
-    }
-}
-
-export async function getCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const rate = await rateService.getCarrierWarehouseRateService(conn, Number(req.params.id));
-        if (!rate) {
-            res.status(404).json({ error: 'Warehouse rate not found' });
-            return;
-        }
-        res.json({ success: true, data: rate });
-    } catch (error) {
-        res.status(400).json({ error: 'Failed to fetch warehouse rate', message: (error as Error).message });
-    }
-}
-
-export async function updateCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const rate = await rateService.updateCarrierWarehouseRateService(conn, Number(req.params.id), req.body);
-        res.json({ success: true, data: rate });
-    } catch (error) {
-        res.status(400).json({ error: 'Failed to update warehouse rate', message: (error as Error).message });
-    }
-}
-
-export async function deleteCarrierWarehouseRate(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        await rateService.deleteCarrierWarehouseRateService(conn, Number(req.params.id));
-        res.json({ success: true, message: 'Warehouse rate deleted successfully' });
-    } catch (error) {
-        res.status(400).json({ error: 'Failed to delete warehouse rate', message: (error as Error).message });
-    }
-}
-
 // -------------------- Transport Rate --------------------
 export async function createCarrierTransportRate(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
@@ -140,7 +97,7 @@ export async function getTerminalRates(req: Request, res: Response, conn: Connec
         const maps = await rateService.getTerminalRatesService(
             conn,
             terminalId,
-            rateType as 'WAREHOUSE' | 'TRANSPORT' | undefined,
+            rateType as 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT' | undefined,
             {
                 originZoneId: originZoneId ? Number(originZoneId) : undefined,
                 originZipOrRange: originZipOrRange as string | undefined,
@@ -162,21 +119,6 @@ export async function deleteTerminalRateMap(req: Request, res: Response, conn: C
         res.json({ success: true, message: 'Terminal rate mapping deleted successfully' });
     } catch (error) {
         res.status(400).json({ error: 'Failed to delete terminal rate mapping', message: (error as Error).message });
-    }
-}
-
-export async function listCarrierWarehouseRates(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const { search, page = 1, pageSize = 10 } = req.query;
-        const result = await rateService.listCarrierWarehouseRatesService(
-            conn,
-            search as string,
-            Number(page),
-            Number(pageSize)
-        );
-        res.json({ success: true, ...result });
-    } catch (error) {
-        res.status(400).json({ error: 'Failed to fetch warehouse rates', message: (error as Error).message });
     }
 }
 
@@ -252,5 +194,95 @@ export async function listCarrierTransportRatesByZone(
         console.log(error);
 
         res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+// -------------------- Airport Rate --------------------
+export async function createCarrierAirportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const userId = req.user?.userId || 0;
+        const rate = await rateService.createCarrierAirportRateService(conn, req.body, userId);
+        res.status(201).json({ success: true, data: rate });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to create airport rate', message: (error as Error).message });
+    }
+}
+
+export async function getCarrierAirportRateQuote(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const result = await rateService.getCarrierAirportRateQuoteService(
+            conn,
+            req.query.originZip as string || '',
+            req.query.destinationZip as string || '',
+            Number(req.query.weight),
+            Number(req.query.terminalId)
+        );
+        res.json({ success: true, data: result });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to fetch airport rate quote', message: (error as Error).message });
+    }
+}
+
+export async function getCarrierAirportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const rate = await rateService.getCarrierAirportRateService(conn, Number(req.params.id));
+        if (!rate) {
+            res.status(404).json({ error: 'Airport rate not found' });
+            return;
+        }
+        res.json({ success: true, data: rate });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to fetch airport rate', message: (error as Error).message });
+    }
+}
+
+export async function updateCarrierAirportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const rate = await rateService.updateCarrierAirportRateService(conn, Number(req.params.id), req.body, req.user?.userId || 0);
+        res.json({ success: true, data: rate });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to update airport rate', message: (error as Error).message });
+    }
+}
+
+export async function deleteCarrierAirportRate(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        await rateService.deleteCarrierAirportRateService(conn, Number(req.params.id));
+        res.json({ success: true, message: 'Airport rate deleted successfully' });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to delete airport rate', message: (error as Error).message });
+    }
+}
+
+export async function listCarrierAirportRates(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const result = await rateService.listCarrierAirportRatesService(
+            conn,
+            {
+                originZoneId: req.query.originZoneId ? Number(req.query.originZoneId) : undefined,
+                originZipOrRange: req.query.originZipOrRange as string | undefined,
+                destinationZoneId: req.query.destinationZoneId ? Number(req.query.destinationZoneId) : undefined,
+                destinationZipOrRange: req.query.destinationZipOrRange as string | undefined
+            },
+            Number(req.query.page || 1),
+            Number(req.query.pageSize || 10)
+        );
+        res.json({ success: true, data: result.rates, pagination: { total: result.total, page: result.page, pageSize: result.pageSize } });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to fetch airport rates', message: (error as Error).message });
+    }
+}
+
+export async function listCarrierAirportRatesByZone(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const result = await rateService.listCarrierAirportRatesByZoneService(
+            conn,
+            Number(req.query.zoneId),
+            Number(req.query.page || 1),
+            Number(req.query.pageSize || 10)
+        );
+        res.json({ success: true, data: result.rates, pagination: { total: result.total, page: result.page, pageSize: result.pageSize } });
+    } catch (error) {
+        res.status(400).json({ error: 'Failed to fetch airport rates', message: (error as Error).message });
     }
 }

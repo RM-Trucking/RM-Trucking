@@ -1,0 +1,393 @@
+openapi: 3.0.0
+info:
+  title: Network Shipment Enhanced Edit API
+  version: 1.0.0
+  description: Swagger documentation for the isolated enhanced shipment edit flow. Existing shipment records are updated in place whenever possible.
+
+tags:
+  - name: Network Shipment Enhanced Edit
+    description: Complete shipment edit operations with in-place record updates and handling-unit image synchronization
+
+paths:
+  /api/network-shipment/{shipmentId}/enhanced:
+    patch:
+      tags: [Network Shipment Enhanced Edit]
+      summary: Update shipment records in place
+      description: >-
+        Same payload shape as the standard edit flow, with optional image changes nested under each handling unit.
+        Existing images are preserved automatically. Include only new images and images to delete; a retained image
+        does not need to be resubmitted.
+
+        For multipart/form-data, send payload as a JSON string without image bytes. Put an empty object at each new
+        image position in handlingUnits[].images[], then send its Base64 data URL as a separate text form-data field.
+        Field names use handlingUnit-{handlingUnitIndex}-{imageIndex}: handlingUnit-0-0 maps to
+        commodityDetails.handlingUnits[0].images[0], and handlingUnit-1-0 maps to
+        commodityDetails.handlingUnits[1].images[0]. Delete stored images by sending {imageId, delete: true} in payload.
+      operationId: editShipmentEnhanced
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: shipmentId
+          required: true
+          description: Shipment ID to update.
+          schema:
+            type: integer
+            minimum: 1
+            example: 1001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnhancedShipmentEditRequest"
+            examples:
+              enhancedEdit:
+                summary: Partial JSON update (no new image upload)
+                value:
+                  shipmentDetails:
+                    typeOfShipment: "AIR_IMPORT"
+                    serviceLevel: "Priority"
+                    status: "MANIFESTED"
+                    updatedBy: 42
+                  customerDetails:
+                    customerId: 11
+                    stationId: 18
+                    airportPickupService: "N"
+                    airportDeliveryService: "N"
+                    originAirportCode: "LAX"
+                    destinationAirportCode: "JFK"
+                    shipperDetails:
+                      entityId: 150
+                      shipperName: "Updated Shipper"
+                      addressLine1: "321 Updated St"
+                      addressLine2: "Suite 4"
+                      city: "Los Angeles"
+                      state: "CA"
+                      zipCode: "90002"
+                      contactPersonName: "Jane Updated"
+                      phoneNumber: "+1-555-0102"
+                    consigneeDetails:
+                      entityId: 160
+                      consigneeName: "Updated Consignee"
+                      addressLine1: "500 Updated Road"
+                      city: "New York"
+                      state: "NY"
+                      zipCode: "10001"
+                      contactPersonName: "John Updated"
+                      phoneNumber: "+1-555-0103"
+                  commodityDetails:
+                    handlingUnits:
+                      - handlingUnitId: 1147
+                        handlingUnitUOM: "PALLET"
+                        handlingUnits: 3
+                        unit: "EA"
+                        handlingWeight: 550
+                        handlingWeightUnit: "LB"
+                        images:
+                          - imageId: 902
+                            delete: true
+                  carrierDetails:
+                    pickupDetails:
+                      pickupRouting: "PICKUP_ONLY"
+                      airportTransfer: "N"
+                      carrierId: 146
+                      terminalId: 148
+                      carrierBillNumber: "PU-999-001"
+                      fromLocationType: "Shipper"
+                      fromLocation: "Updated Shipper Warehouse"
+                      fromLocationEntityId: 150
+                      editFromLocation: "N"
+                      pickupAgentTerminal: "N"
+                      pickupAccessorial: "N"
+                      pickupAlert: "N"
+                    linehaulDetails:
+                      linehaulPrimaryInfo:
+                        linehaulRouting: "LINE_HAUL_ONLY"
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "LH-999-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Updated Shipper Warehouse"
+                        toLocationType: "Carrier"
+                        toLocation: "Carrier Hub"
+                        etaDate: "2026-09-07"
+                        etaTime: "12:00:00"
+                        pieces: 10
+                        weight: 250
+                        editFromLocation: "N"
+                        editToLocation: "N"
+                    deliveryDetails:
+                      deliveryPrimaryInfo:
+                        carrierId: 146
+                        terminalId: 148
+                        carrierBillNumber: "DL-999-001"
+                        fromLocationType: "Carrier"
+                        fromLocation: "Carrier Hub"
+                        toLocationType: "Consignee"
+                        toLocation: "Updated Consignee"
+                        etaDate: "2026-09-08"
+                        etaTime: "10:00:00"
+                        pieces: 10
+                        weight: 250
+                        editFromLocation: "N"
+                        editToLocation: "N"
+          multipart/form-data:
+            schema:
+              type: object
+              description: >-
+                Field payload is a JSON string without image bytes. Add an empty object at each new image position in
+                handlingUnits[].images[]. Send each image separately as a Base64 text field or binary file using
+                handlingUnit-{handlingUnitIndex}-{imageIndex}. For example, handlingUnit-0-0 maps to
+                handlingUnits[0].images[0], and handlingUnit-1-0 maps to handlingUnits[1].images[0]. Existing images
+                are kept unless explicitly deleted by imageId with delete true.
+              required:
+                - payload
+              properties:
+                payload:
+                  type: string
+                  description: >-
+                    Complete JSON-encoded standard edit payload, with no image bytes. All normal edit fields are supported.
+                    Put an empty object in images for each new multipart upload and use imageId plus delete true to remove an image.
+                    Existing images do not need to be listed.
+                  example: |
+                    {
+                      "shipmentDetails": {
+                        "shipmentId": 101,
+                        "typeOfShipment": "AIR_IMPORT",
+                        "serviceLevel": "Priority",
+                        "shipmentDate": "2026-08-13",
+                        "shipmentTime": "09:30:00",
+                        "status": "MANIFESTED"
+                      },
+                      "customerDetails": {
+                        "customerInfoId": 25,
+                        "customerId": 11,
+                        "stationId": 18,
+                        "airportPickupService": "N",
+                        "airportDeliveryService": "N",
+                        "originAirportCode": "LAX",
+                        "destinationAirportCode": "JFK",
+                        "customerReferenceNumbers": [
+                          { "referenceNumberId": 80, "referenceType": "PO", "referenceNumber": "PO-1001" },
+                          { "referenceType": "BOL", "referenceNumber": "BOL-2002" },
+                          { "referenceNumberId": 88, "delete": true }
+                        ],
+                        "shipperDetails": {
+                          "shipperId": 200, "entityId": 150, "shipperName": "Updated Shipper",
+                          "addressLine1": "321 Updated St", "city": "Los Angeles", "state": "CA",
+                          "zipCode": "90002", "contactPersonName": "Jane Updated", "phoneNumber": "+1-555-0102"
+                        },
+                        "consigneeDetails": {
+                          "consigneeId": 201, "entityId": 160, "consigneeName": "Updated Consignee",
+                          "addressLine1": "654 Updated Ave", "city": "New York", "state": "NY",
+                          "zipCode": "10002", "contactPersonName": "John Updated", "phoneNumber": "+1-555-0103"
+                        }
+                      },
+                      "commodityDetails": {
+                        "commodityId": 31,
+                        "emergencyContactName": "Emergency Contact",
+                        "emergencyContactPhone": "+1-555-0000",
+                        "handlingUnits": [
+                          {
+                            "handlingUnitId": 42, "handlingUnitUOM": "PALLET", "handlingUnits": 3,
+                            "unit": "EA", "handlingLength": 120, "handlingWidth": 100, "handlingHeight": 80,
+                            "handlingWeight": 550, "handlingWeightUnit": "LB", "class": "CLASS_1",
+                            "palletDetails": [
+                              { "itemId": 52, "pieces": 12, "piecesUOM": "EA", "description": "Updated goods", "hazmat": "N" },
+                              {
+                                "pieces": 4, "piecesUOM": "EA", "description": "New item", "hazmat": "Y",
+                                "hazmatDetails": {
+                                  "unNumber": "UN1234", "properShippingName": "Sample Product",
+                                  "hazardClass": "3", "packingGroup": "II"
+                                }
+                              }
+                            ],
+                            "images": [{}, { "imageId": 902, "delete": true }]
+                          },
+                          { "handlingUnitId": 44, "delete": true }
+                        ]
+                      },
+                      "carrierDetails": {
+                        "pickupDetails": {
+                          "pickupInfoId": 60, "carrierId": 146, "terminalId": 148,
+                          "carrierBillNumber": "PU-999-001", "pickupRouting": "PICKUP_ONLY",
+                          "fromLocationType": "Shipper", "fromLocation": "Pickup Warehouse",
+                          "fromLocationEntityId": 150, "editFromLocation": "N",
+                          "editFromLocationDetails": {
+                            "addressId": 501, "addressLine1": "321 Updated St", "addressLine2": "Suite 4",
+                            "city": "Los Angeles", "state": "CA", "zipCode": "90002"
+                          },
+                          "pickupAgentTerminal": "N",
+                          "pickupAgentTerminalDetails": {
+                            "pickupAgentTerminalId": 63, "toLocationType": "Carrier",
+                            "toLocation": "Updated Terminal", "toLocationEntityId": 170, "editToLocation": "N",
+                            "editToLocationDetails": {
+                              "addressId": 502, "addressLine1": "500 Terminal Road", "addressLine2": "Dock 2",
+                              "city": "Chicago", "state": "IL", "zipCode": "60601"
+                            }
+                          },
+                          "pickupAccessorial": "N", "pickupAlert": "N"
+                        },
+                        "linehaulDetails": {
+                          "linehaulPrimaryInfo": {
+                            "linehaulInfoId": 61, "entityId": 1700, "carrierId": 146, "terminalId": 148,
+                            "carrierBillNumber": "LH-999-001", "linehaulRouting": "LINE_HAUL_ONLY",
+                            "fromLocationType": "Carrier", "fromLocation": "Carrier Hub", "fromLocationEntityId": 170,
+                            "editFromLocation": "N",
+                            "editFromLocationDetails": {
+                              "addressId": 503, "addressLine1": "500 Terminal Road", "addressLine2": "Dock 2",
+                              "city": "Chicago", "state": "IL", "zipCode": "60601"
+                            },
+                            "toLocationType": "Carrier", "toLocation": "Terminal Hub", "toLocationEntityId": 180,
+                            "editToLocation": "Y",
+                            "editToLocationDetails": {
+                              "addressLine1": "800 Hub Avenue", "city": "New York", "state": "NY", "zipCode": "10001"
+                            },
+                            "etaDate": "2026-08-14", "etaTime": "12:00:00", "pieces": 10, "weight": 250
+                          },
+                          "linehaulCommonInfo": {
+                            "linehaulCommonInfoId": 64, "linehaulNotes": "Updated handling instructions",
+                            "linehaulAccessorial": "N"
+                          }
+                        },
+                        "deliveryDetails": {
+                          "deliveryPrimaryInfo": {
+                            "deliveryInfoId": 62, "entityId": 1800, "carrierId": 146, "terminalId": 148,
+                            "carrierBillNumber": "DL-999-001", "fromLocationType": "Carrier",
+                            "fromLocation": "Delivery Hub", "fromLocationEntityId": 180, "editFromLocation": "N",
+                            "editFromLocationDetails": {
+                              "addressLine1": "800 Hub Avenue", "city": "New York", "state": "NY", "zipCode": "10001"
+                            },
+                            "toLocationType": "Consignee", "toLocation": "Consignee Warehouse",
+                            "toLocationEntityId": 160, "editToLocation": "N",
+                            "editToLocationDetails": {
+                              "addressLine1": "654 Updated Ave", "city": "New York", "state": "NY", "zipCode": "10002"
+                            },
+                            "etaDate": "2026-08-15", "etaTime": "10:30:00", "pieces": 10, "weight": 200
+                          },
+                          "deliveryCommonInfo": {
+                            "deliveryCommonInfoId": 65, "airportTransfer": "N",
+                            "deliveryAccessorial": "N", "deliveryAlert": "N"
+                          }
+                        }
+                      },
+                      "shipmentRateDetails": {
+                        "carrierRateDetails": {
+                          "pickupRateDetails": {
+                            "invoiceId": 80, "invoiceNumber": "PU-INV-2026-001", "pickupSubTotalRate": 500,
+                            "rateDetails": [
+                              { "rateId": 90, "rateType": "BASE_RATE", "rateValue": 0.55, "totalRate": 825 },
+                              { "rateType": "FUEL_SURCHARGE", "rateValue": 50, "totalRate": 50 }
+                            ]
+                          },
+                          "linehaulRateDetails": { "invoiceId": 81, "invoiceNumber": "LH-INV-2026-001", "linehaulSubTotalRate": 400 },
+                          "deliveryRateDetails": { "invoiceId": 82, "invoiceNumber": "DL-INV-2026-001", "deliverySubTotalRate": 300 },
+                          "totalCarrierRate": 1200
+                        },
+                        "customerRateDetails": {
+                          "customerRateId": 83, "totalCustomerRate": 1200,
+                          "rateDetails": [
+                            { "rateId": 91, "rateType": "CUSTOMER_BASE", "rateValue": 1, "totalRate": 1200 }
+                          ]
+                        }
+                      }
+                    }
+                handlingUnit-0-0:
+                  type: string
+                  description: Base64 data URL for commodityDetails.handlingUnits[0].images[0].
+                  example: data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...
+                handlingUnit-1-0:
+                  type: string
+                  description: Base64 data URL for commodityDetails.handlingUnits[1].images[0].
+                  example: data:image/jpeg;base64,/9j/4AAQSkZJRgABAQ...
+              additionalProperties:
+                type: string
+                description: >-
+                  Base64 data URL text for another indexed image field. Follow the pattern
+                  handlingUnit-{handlingUnitIndex}-{imageIndex}.
+      responses:
+        "200":
+          description: Shipment updated successfully using the enhanced edit flow.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EnhancedShipmentEditResponse"
+        "400":
+          description: Invalid shipment ID or update payload.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "401":
+          description: Authentication required.
+        "500":
+          description: Unexpected server error.
+
+components:
+  schemas:
+    EnhancedShipmentEditRequest:
+      allOf:
+        - $ref: "#/components/schemas/EditShipmentFlowRequest"
+        - type: object
+          properties:
+            commodityDetails:
+              allOf:
+                - $ref: "#/components/schemas/CommodityUpdate"
+                - type: object
+                  properties:
+                    handlingUnits:
+                      type: array
+                      items:
+                        allOf:
+                          - $ref: "#/components/schemas/HandlingUnitUpdate"
+                          - type: object
+                            properties:
+                              images:
+                                type: array
+                                description: >-
+                                  Add a new multipart image with an empty object at its array index; the corresponding
+                                  form-data part is handlingUnit-<handling-unit-index>-<image-index> and may contain
+                                  Base64 data URL text or a binary image file. Do not put image data in this JSON object.
+                                  Delete an existing image only by sending its imageId with delete true.
+                                  Existing images not mentioned here remain unchanged; omit this property or send an
+                                  empty array when making no image changes.
+                                items:
+                                  $ref: "#/components/schemas/EnhancedHandlingUnitImageInput"
+    EnhancedHandlingUnitImageInput:
+      type: object
+      properties:
+        imageId:
+          type: integer
+          description: ID of an existing image to delete. Pair with delete true; images that should remain do not need to be listed.
+          example: 902
+        delete:
+          type: boolean
+          description: Set true with imageId to delete that image. Without this flag, no existing image is removed.
+          example: true
+    EnhancedShipmentEditResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: Enhanced shipment updated successfully
+        data:
+          type: object
+          required:
+            - shipmentId
+          properties:
+            shipmentId:
+              type: integer
+              example: 1001
+    Error:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        message:
+          type: string
+          example: Invalid shipmentId

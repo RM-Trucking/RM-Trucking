@@ -261,6 +261,9 @@ components:
           items:
             type: string
             format: email
+        isNonBillable:
+          type: string
+          enum: [Y, N]
         addresses:
           type: array
           items:
@@ -293,6 +296,9 @@ components:
           items:
             type: string
             format: email
+        isNonBillable:
+          type: string
+          enum: [Y, N]
         addresses:
           type: array
           items:

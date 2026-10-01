@@ -306,6 +306,7 @@ export async function createNetworkShipmentPickupInfo(conn: Connection, pickupDe
         "airportTransfer",
         "carrierId",
         "terminalId",
+        "carrierBillNumber",
         "fromLocationType",
         "fromLocation",
         "fromLocationEntityId",
@@ -314,7 +315,7 @@ export async function createNetworkShipmentPickupInfo(conn: Connection, pickupDe
         "pickupAccessorial",
         "pickupAlert"
       )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   )`
 
   const result = await conn.query(query, [
@@ -324,6 +325,7 @@ export async function createNetworkShipmentPickupInfo(conn: Connection, pickupDe
     pickupDetails.airportTransfer,
     pickupDetails.carrierId,
     pickupDetails.terminalId,
+    pickupDetails.carrierBillNumber ?? null,
     pickupDetails.fromLocationType,
     pickupDetails.fromLocation,
     pickupDetails.fromLocationEntityId ?? null,
@@ -1225,7 +1227,7 @@ export async function checkConsigneeUniqueFields(
 
 export async function checkAirlineUniqueFields(
   conn: Connection,
-  airlineNumber: number,
+  airlineNumber: string,
   airlineCode: string,
   scenarioType: string
 ): Promise<string | null> {

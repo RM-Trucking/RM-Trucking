@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import { authenticateJWT } from '../../middleware/auth';
 import { db } from '../../config/db2';
 import * as shipmentController from '../../controllers/shipment';
+import { enhancedShipmentUpload } from '../../middleware/enhancedShipmentUpload';
 
 const router = Router();
 
@@ -23,6 +24,13 @@ router.post('/flow', authenticateJWT, async (req: Request, res: Response) => {
 router.get('/', authenticateJWT, async (req: Request, res: Response) => {
     const conn = await db();
     await shipmentController.getNetworkShipmentForms(req, res, conn);
+    if (conn) conn.close();
+});
+
+// Update shipment records in place without changing the legacy edit flow.
+router.patch('/:shipmentId/enhanced', authenticateJWT, enhancedShipmentUpload, async (req: Request, res: Response) => {
+    const conn = await db();
+    await shipmentController.editShipmentEnhanced(req, res, conn);
     if (conn) conn.close();
 });
 

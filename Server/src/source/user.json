@@ -1,0 +1,219 @@
+[
+  {
+    "userName": "System",
+    "loginUserName": "SYSTEM",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "System@123",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Armando Hernandez",
+    "loginUserName": "Armando.Hernandez",
+    "email": "armando.hernandez@rmtrucking.com",
+    "loginPassword": "Office01",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Julius Fisher",
+    "loginUserName": "Julius.Fisher",
+    "email": "julius.fisher@rmtrucking.com",
+    "loginPassword": "Office02",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Mordie Diaz",
+    "loginUserName": "Mordie.Diaz",
+    "email": "mordie.diaz@rmtrucking.com",
+    "loginPassword": "Office03",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Tyler Craig",
+    "loginUserName": "Tyler.Craig",
+    "email": "tyler.craig@rmtrucking.com",
+    "loginPassword": "Office04",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Dan Craig",
+    "loginUserName": "Dan.Craig",
+    "email": "dan.craig@rmtrucking.com",
+    "loginPassword": "Office05",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Drew Cano",
+    "loginUserName": "Drew.Cano",
+    "email": "drew.cano@rmtrucking.com",
+    "loginPassword": "Office06",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Jerry May",
+    "loginUserName": "Jerry.May",
+    "email": "jerry.may@rmtrucking.com",
+    "loginPassword": "Office07",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Tony Degani",
+    "loginUserName": "Tony.Degani",
+    "email": "tony.degani@rmtrucking.com",
+    "loginPassword": "Office08",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Jennifer Curtis",
+    "loginUserName": "Jennifer.Curtis",
+    "email": "jennifer.curtis@rmtrucking.com",
+    "loginPassword": "Office09",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Kevin Olson",
+    "loginUserName": "Kevin.Olson",
+    "email": "kevin.olson@rmtrucking.com",
+    "loginPassword": "Office10",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Matt Dixon",
+    "loginUserName": "Matt.Dixon",
+    "email": "matt.dixon@rmtrucking.com",
+    "loginPassword": "Office11",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Millie Wamil",
+    "loginUserName": "Millie.Wamil",
+    "email": "millie.wamil@rmtrucking.com",
+    "loginPassword": "Office12",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Kyle Olson",
+    "loginUserName": "Kyle.Olson",
+    "email": "kyle.olson@rmtrucking.com",
+    "loginPassword": "Office13",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Kyle Haidos",
+    "loginUserName": "Kyle.Haidos",
+    "email": "kyle.haidos@rmtrucking.com",
+    "loginPassword": "Office14",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Renee Coy",
+    "loginUserName": "Renee.Coy",
+    "email": "renee.coy@rmtrucking.com",
+    "loginPassword": "Office15",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Kristen Conte",
+    "loginUserName": "Kristen.Conte",
+    "email": "kristen.conte@rmtrucking.com",
+    "loginPassword": "Office16",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Tange Roldan",
+    "loginUserName": "Tange.Roldan",
+    "email": "tange.roldan@rmtrucking.com",
+    "loginPassword": "Office17",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Alec Wormington",
+    "loginUserName": "Alec.Wormington",
+    "email": "alec.wormington@rmtrucking.com",
+    "loginPassword": "Office18",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Mike Giglio",
+    "loginUserName": "Mike.Giglio",
+    "email": "mike.giglio@rmtrucking.com",
+    "loginPassword": "Office19",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Mike Geuder",
+    "loginUserName": "Mike.Geuder",
+    "email": "michael.geuder@rmtrucking.com",
+    "loginPassword": "Office20",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Jamie Perez",
+    "loginUserName": "Jamie.Perez",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH01",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Jorge Del Rosario",
+    "loginUserName": "Jorge.Rosario",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH02",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "William Doherty",
+    "loginUserName": "William.Doherty",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH03",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Marcus Freeman",
+    "loginUserName": "Marcus.Freeman",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH04",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Miguel Rodriguez",
+    "loginUserName": "Miguel.Rodriguez",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH05",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Carlos Lopez",
+    "loginUserName": "Carlos.Lopez",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH06",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Giovanni Mendoza",
+    "loginUserName": "Giovanni.Mendoza",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH07",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Horacio Salgado",
+    "loginUserName": "Horacio.Salgado",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH08",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Eberaro Villalobos",
+    "loginUserName": "Eberaro.Villalobos",
+    "email": "srinsofttest@rmtrucking.com",
+    "loginPassword": "WH09",
+    "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "German Flores",
+    "loginUserName": "German.Flores",
+    "email": "german.flores@rmtrucking.com",
+    "loginPassword": "WH10",
+    "userType": "EMPLOYEE"
+  }
+]

@@ -22,6 +22,7 @@ export interface Station {
     updatedAt: Date | null;
     updatedBy: number;
     noteThreadId?: number | null;
+    isNonBillable: 'Y' | 'N';
 }
 
 export interface CreateStationRequest {
@@ -38,6 +39,7 @@ export interface CreateStationRequest {
     warehouseDetail?: string;
     hasWarehouseService: 'Y' | 'N';
     warehouseEmails?: string[] | null;
+    isNonBillable: 'Y' | 'N';
     addresses?: AddressRequest[];
     note?: { messageText: string };
 }
@@ -55,6 +57,7 @@ export interface UpdateStationRequest {
     warehouseDetail?: string;
     hasWarehouseService?: 'Y' | 'N';
     warehouseEmails?: string[] | null;
+    isNonBillable?: 'Y' | 'N';
     addresses?: AddressUpdateRequest[];
 }
 

@@ -1,5 +1,6 @@
 import { Connection } from "odbc";
 import * as shipmentDB from "../../database/shipment/getShipment";
+import * as enhancedShipmentDB from "../../database/shipment/editShipmentEnhanced";
 
 export interface ShipmentPaginationParams {
     page: number;
@@ -80,8 +81,13 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
             toLocation: pickupAgentTerminalInfo?.toLocation,
             toLocationEntityId: pickupAgentTerminalInfo?.toLocationEntityId,
             editToLocation: pickupAgentTerminalInfo?.editToLocation ?? "N",
-            editToLocationDetails: pickupAgentTerminalInfo?.toLocationEntityId
-                ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupAgentTerminalInfo.toLocationEntityId, "PICKUP", "TO")
+            editToLocationDetails: pickupAgentTerminalInfo
+                ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+                    conn,
+                    pickupAgentTerminalInfo.toLocationEntityId ?? pickupInfo?.entityId,
+                    "PICKUP",
+                    "TO"
+                )
                 : undefined,
         }
         : undefined;
@@ -96,6 +102,7 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         carrierName: pickupInfo.carrierName,
         terminalId: pickupInfo.terminalId,
         terminalName: pickupInfo.terminalName,
+        carrierBillNumber: pickupInfo.carrierBillNumber,
         fromLocationType: pickupInfo.fromLocationType,
         fromLocation: pickupInfo.fromLocation,
         fromLocationEntityId: pickupInfo.fromLocationEntityId,
@@ -103,9 +110,12 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         pickupAgentTerminal: pickupInfo.pickupAgentTerminal,
         pickupAccessorial: pickupInfo.pickupAccessorial,
         pickupAlert: pickupInfo.pickupAlert,
-        editFromLocationDetails: pickupInfo.fromLocationEntityId
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, pickupInfo.fromLocationEntityId ?? pickupInfo.entityId, "PICKUP", "FROM")
-            : undefined,
+        editFromLocationDetails: await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+            conn,
+            pickupInfo.fromLocationEntityId ?? pickupInfo.entityId,
+            "PICKUP",
+            "FROM"
+        ),
         pickupAgentTerminalDetails: pickupAgentTerminalDetailsResponse,
         pickupAccessorialDetails: pickupAccessorials.length > 0 ? {
             accessorials: pickupAccessorials.map((row: any) => ({
@@ -150,12 +160,18 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         etaTime: linehaulInfo.etaTime,
         pieces: linehaulInfo.pieces,
         weight: linehaulInfo.weight,
-        editFromLocationDetails: linehaulInfo.fromLocationEntityId
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.fromLocationEntityId ?? linehaulInfo.entityId, "LINE_HAUL", "FROM")
-            : undefined,
-        editToLocationDetails: linehaulInfo.toLocationEntityId
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, linehaulInfo.toLocationEntityId ?? linehaulInfo.entityId, "LINE_HAUL", "TO")
-            : undefined,
+        editFromLocationDetails: await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+            conn,
+            linehaulInfo.fromLocationEntityId ?? linehaulInfo.entityId,
+            "LINE_HAUL",
+            "FROM"
+        ),
+        editToLocationDetails: await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+            conn,
+            linehaulInfo.toLocationEntityId ?? linehaulInfo.entityId,
+            "LINE_HAUL",
+            "TO"
+        ),
     } : undefined;
 
     const linehaulCommonInfoResponse = linehaulCommonInfo ? {
@@ -196,12 +212,18 @@ async function getShipmentCarrierDetails(conn: Connection, shipmentId: number) {
         etaTime: deliveryInfo.etaTime,
         pieces: deliveryInfo.pieces,
         weight: deliveryInfo.weight,
-        editFromLocationDetails: deliveryInfo.fromLocationEntityId
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.fromLocationEntityId ?? deliveryInfo.entityId, "DELIVERY", "FROM")
-            : undefined,
-        editToLocationDetails: deliveryInfo.toLocationEntityId
-            ? await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(conn, deliveryInfo.toLocationEntityId ?? deliveryInfo.entityId, "DELIVERY", "TO")
-            : undefined,
+        editFromLocationDetails: await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+            conn,
+            deliveryInfo.fromLocationEntityId ?? deliveryInfo.entityId,
+            "DELIVERY",
+            "FROM"
+        ),
+        editToLocationDetails: await shipmentDB.getAddressByShipmentIdLocationTypeAddressType(
+            conn,
+            deliveryInfo.toLocationEntityId ?? deliveryInfo.entityId,
+            "DELIVERY",
+            "TO"
+        ),
     } : undefined;
 
     const deliveryCommonInfoResponse = deliveryCommonInfo ? {
@@ -417,8 +439,18 @@ async function getShipmentCustomerResponse(conn: Connection, shipmentId: number)
 }
 
 async function getShipmentCommodityResponse(conn: Connection, shipmentId: number) {
-    const commodityInfo = await getShipmentCommodityDetails(conn, shipmentId);
-    const handlingUnits = await shipmentDB.getHandlingUnitsByShipmentId(conn, shipmentId);
+    const [commodityInfo, handlingUnits, shipmentImages] = await Promise.all([
+        getShipmentCommodityDetails(conn, shipmentId),
+        shipmentDB.getHandlingUnitsByShipmentId(conn, shipmentId),
+        enhancedShipmentDB.getHandlingUnitImagesByShipmentId(conn, shipmentId),
+    ]);
+    const imagesByHandlingUnitId = new Map<number, typeof shipmentImages>();
+    for (const image of shipmentImages) {
+        const handlingUnitId = Number(image.handlingUnitId);
+        const images = imagesByHandlingUnitId.get(handlingUnitId) ?? [];
+        images.push(image);
+        imagesByHandlingUnitId.set(handlingUnitId, images);
+    }
 
     const handlingUnitsResponse = await Promise.all(
         handlingUnits.map(async (hu: any) => {
@@ -454,6 +486,7 @@ async function getShipmentCommodityResponse(conn: Connection, shipmentId: number
                 handlingWeightUnit: hu.handlingWeightUnit,
                 class: hu.class,
                 palletDetails,
+                images: imagesByHandlingUnitId.get(Number(hu.handlingUnitId)) ?? [],
             };
         })
     );
@@ -486,6 +519,7 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
             shipmentTime: shipment.shipmentTime,
             orderReceivedPickupPending: (shipment as any).orderReceivedPickupPending,
             status: (shipment as any).status,
+            shipmentProNumber: shipment.shipmentProNumber,
         },
         customerDetails,
         commodityDetails,

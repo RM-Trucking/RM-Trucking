@@ -17,6 +17,20 @@ export async function createDepartmentService(
     req: CreateDepartmentRequest,
     userId: number
 ): Promise<DepartmentResponse | any> {
+    const departmentName = req.departmentName?.trim().toUpperCase();
+    if (!departmentName) {
+        throw new Error('Department name is required and cannot be empty');
+    }
+
+    const existingDepartment = await departmentDB.getDepartmentByStationAndName(
+        conn,
+        req.stationId,
+        departmentName
+    );
+    if (existingDepartment) {
+        throw new Error(`Department name "${departmentName}" already exists for this station`);
+    }
+
     await conn.beginTransaction();
     try {
         // ✅ Validate unique email
@@ -27,7 +41,7 @@ export async function createDepartmentService(
         //     }
         // }
 
-        const entityId = await entityDB.createEntity(conn, 'DEPARTMENT', req.departmentName);
+        const entityId = await entityDB.createEntity(conn, 'DEPARTMENT', departmentName);
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
 
         if (req.note && req.note.messageText?.trim()) {
@@ -36,6 +50,7 @@ export async function createDepartmentService(
 
         const departmentId = await departmentDB.createDepartment(conn, {
             ...req,
+            departmentName,
             noteThreadId,
             entityId,
             createdBy: userId,
@@ -123,7 +138,28 @@ export async function updateDepartmentService(
     const existing = await departmentDB.getDepartmentById(conn, departmentId);
     if (!existing) throw new Error('Department not found');
 
-    await departmentDB.updateDepartment(conn, departmentId, { ...updates, updatedBy: userId });
+    const departmentName = updates.departmentName?.trim().toUpperCase();
+    if (updates.departmentName !== undefined && !departmentName) {
+        throw new Error('Department name is required and cannot be empty');
+    }
+
+    if (departmentName) {
+        const existingDepartment = await departmentDB.getDepartmentByStationAndName(
+            conn,
+            existing.stationId,
+            departmentName,
+            departmentId
+        );
+        if (existingDepartment) {
+            throw new Error(`Department name "${departmentName}" already exists for this station`);
+        }
+    }
+
+    await departmentDB.updateDepartment(conn, departmentId, {
+        ...updates,
+        ...(departmentName ? { departmentName } : {}),
+        updatedBy: userId
+    });
 
     const updated = await departmentDB.getDepartmentById(conn, departmentId);
     if (!updated) throw new Error('Failed to update department');

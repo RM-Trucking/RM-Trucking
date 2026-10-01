@@ -10,7 +10,7 @@ export type ShipmentDetails = {
 
 export type AirlineDetails = {
     airlineId?: number;
-    airlineNumber: number;
+    airlineNumber: string;
     airlineCode: string;
     airportCode: string;
     airlineName: string;
@@ -158,6 +158,7 @@ export type PickupDetails = {
     airportTransfer: 'Y' | 'N';
     carrierId: number;
     terminalId: number;
+    carrierBillNumber?: string;
     fromLocationType: 'Shipper' | 'Carrier';
     fromLocation: string;
     fromLocationEntityId?: number;

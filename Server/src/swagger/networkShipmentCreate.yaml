@@ -101,6 +101,7 @@ paths:
                       airportTransfer: "N"
                       carrierId: 146
                       terminalId: 148
+                      carrierBillNumber: "PU-001-001"
                       editFromLocation: "N"
                       pickupAgentTerminal: "N"
                       pickupAlert: "Y"

@@ -15,14 +15,17 @@ export async function createUser(
     loginUserName: string,
     email: string,
     passwordHash: string,
-    roleId: number,
+    roleId: number | null,
     userType: 'EMPLOYEE' | 'CUSTOMER',
     createdBy: number | null = null,
     customerId: number | null = null
 ): Promise<number> {
     const query = `
-        INSERT INTO ${SCHEMA}."User" ("userName", "loginUserName", "email", "passwordHash", "createdAt", "activeStatus", "roleId", "userType", "customerId")
-        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'Y', ?, ?, ?)
+        SELECT "userId"
+        FROM FINAL TABLE (
+            INSERT INTO ${SCHEMA}."User" ("userName", "loginUserName", "email", "passwordHash", "createdAt", "activeStatus", "roleId", "userType", "customerId")
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'Y', ?, ?, ?)
+        )
     `;
 
     const params: any[] = [
@@ -35,12 +38,8 @@ export async function createUser(
         customerId || null
     ];
 
-    await conn.query(query, params);
-
-    // Get the inserted user ID
-    const resultQuery = `SELECT "userId" FROM ${SCHEMA}."User" WHERE "loginUserName" = ? ORDER BY "userId" DESC FETCH FIRST 1 ROWS ONLY`;
-    const result = (await conn.query(resultQuery, [loginUserName])) as any[];
-    return result[0]?.user_id || 0;
+    const result = (await conn.query(query, params)) as any[];
+    return result[0]?.userId || 0;
 }
 
 /**

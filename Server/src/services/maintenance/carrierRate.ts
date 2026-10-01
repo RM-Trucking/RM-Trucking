@@ -7,9 +7,6 @@ import * as entityDB from '../../database/maintenance/entity';
 import * as noteDB from '../../database/maintenance/note';
 
 import {
-    CreateCarrierWarehouseRateRequest,
-    UpdateCarrierWarehouseRateRequest,
-    CarrierWarehouseRateResponse,
     CreateCarrierTransportRateRequest,
     UpdateCarrierTransportRateRequest,
     CarrierTransportRateResponse,
@@ -143,70 +140,47 @@ function buildZoneCandidates(zoneZips: ZoneZipLike[]): ZipCandidate[] {
     });
 }
 
-async function validateTransportRateZipUniqueness(
+function zipPairConflicts(
+    originCandidates: ZipCandidate[],
+    destinationCandidates: ZipCandidate[],
+    existingOriginZips: ZoneZipLike[],
+    existingDestinationZips: ZoneZipLike[]
+): boolean {
+    return originCandidates.some(candidate => candidateMatchesZone(candidate, existingOriginZips))
+        && destinationCandidates.some(candidate => candidateMatchesZone(candidate, existingDestinationZips));
+}
+
+async function validateRateAgainstTerminal(
     conn: Connection,
-    originZoneId: number,
-    destinationZoneId: number,
-    req: CreateCarrierTransportRateRequest,
-    excludeRateId?: number
+    terminalId: number,
+    rateId: number,
+    rateType: 'TRANSPORT' | 'AIRPORT',
+    excludeRateId?: number,
+    originZoneId?: number,
+    destinationZoneId?: number
 ): Promise<void> {
-    const originZoneZips = await zoneDB.getZoneZips(conn, originZoneId);
-    const destinationZoneZips = await zoneDB.getZoneZips(conn, destinationZoneId);
+    const getRate = rateType === 'TRANSPORT'
+        ? carrierRateDB.getCarrierTransportRateById
+        : carrierRateDB.getCarrierAirportRateById;
+    const candidateRate = await getRate(conn, rateId);
+    if (!candidateRate) throw new Error(`${rateType.toLowerCase()} rate ${rateId} not found`);
 
-    const explicitOriginCandidates = parseZipCandidates(req.originZipOrRange);
-    const explicitDestinationCandidates = parseZipCandidates(req.destinationZipOrRange);
+    const candidateOriginZips = await zoneDB.getZoneZips(conn, originZoneId ?? candidateRate.originZoneId);
+    const candidateDestinationZips = await zoneDB.getZoneZips(conn, destinationZoneId ?? candidateRate.destinationZoneId);
+    const candidateOriginCandidates = buildZoneCandidates(candidateOriginZips);
+    const candidateDestinationCandidates = buildZoneCandidates(candidateDestinationZips);
+    if (!candidateOriginCandidates.length || !candidateDestinationCandidates.length) return;
 
-    const originCandidates = explicitOriginCandidates.length > 0
-        ? explicitOriginCandidates
-        : buildZoneCandidates(originZoneZips);
+    const existingMappings = await carrierRateDB.getTerminalRates(conn, terminalId, rateType);
+    for (const mapping of existingMappings) {
+        if (mapping.rateId === excludeRateId || mapping.rateId === rateId) continue;
 
-    const destinationCandidates = explicitDestinationCandidates.length > 0
-        ? explicitDestinationCandidates
-        : buildZoneCandidates(destinationZoneZips);
-
-    if (!originCandidates.length || !destinationCandidates.length) {
-        return;
-    }
-
-
-    const existingRates = await carrierRateDB.listCarrierTransportRates(conn, {}, 1, 10000);
-    // DEBUG: log brief existing carrier rates info to help trace false positives
-    try {
-        console.debug('[carrierRate] validateTransportRateZipUniqueness - existingRates count:', existingRates?.data?.length || 0);
-        console.debug('[carrierRate] existingRates sample:', (existingRates?.data || []).map((r: any) => ({ rateId: r.rateId, carrierRateId: r.carrierRateId, originZoneId: r.originZoneId, destinationZoneId: r.destinationZoneId })).slice(0, 20));
-    } catch (e) {
-        // ignore logging errors
-    }
-
-    for (const existingRate of existingRates.data) {
-        // Defensive: ensure this is a carrier rate record (not a customer record accidentally returned)
-        if (existingRate == null || existingRate.carrierRateId === undefined) {
-            continue;
-        }
-        if (excludeRateId !== undefined && existingRate.rateId === excludeRateId) {
-            continue;
-        }
+        const existingRate = await getRate(conn, mapping.rateId);
+        if (!existingRate) continue;
         const existingOriginZips = await zoneDB.getZoneZips(conn, existingRate.originZoneId);
         const existingDestinationZips = await zoneDB.getZoneZips(conn, existingRate.destinationZoneId);
-
-        for (const originCandidate of originCandidates) {
-            if (!candidateMatchesZone(originCandidate, existingOriginZips)) {
-                continue;
-            }
-
-            for (const destinationCandidate of destinationCandidates) {
-                if (candidateMatchesZone(destinationCandidate, existingDestinationZips)) {
-                    try {
-                        console.debug('[carrierRate] duplicate detected - existingRate:', { rateId: existingRate.rateId, carrierRateId: existingRate.carrierRateId, originZoneId: existingRate.originZoneId, destinationZoneId: existingRate.destinationZoneId });
-                        console.debug('[carrierRate] originCandidate:', originCandidate, 'destinationCandidate:', destinationCandidate);
-                        console.debug('[carrierRate] existingOriginZips sample:', existingOriginZips.slice(0, 5));
-                        console.debug('[carrierRate] existingDestinationZips sample:', existingDestinationZips.slice(0, 5));
-                    } catch (e) {
-                        // ignore
-                    }
-                    throw new Error('A transport rate already exists for the provided origin/destination zip range.');
-                }
-            }
+        if (zipPairConflicts(candidateOriginCandidates, candidateDestinationCandidates, existingOriginZips, existingDestinationZips)) {
+            throw new Error('Rate assignment already exists for this ZIP-to-ZIP combination. Please use a different ZIP range.');
         }
     }
 }
@@ -363,43 +337,6 @@ export async function getCarrierTransportRateQuoteService(
     };
 }
 
-// -------------------- Warehouse Rate --------------------
-export async function createCarrierWarehouseRateService(
-    conn: Connection,
-    req: CreateCarrierWarehouseRateRequest
-): Promise<CarrierWarehouseRateResponse> {
-    const rateId = await carrierRateDB.createCarrierWarehouseRate(conn, req);
-    const rate = await carrierRateDB.getCarrierWarehouseRateById(conn, rateId);
-    if (!rate) throw new Error('Failed to create warehouse rate');
-    return rate;
-}
-
-export async function getCarrierWarehouseRateService(
-    conn: Connection,
-    rateId: number
-): Promise<CarrierWarehouseRateResponse | null> {
-    return await carrierRateDB.getCarrierWarehouseRateById(conn, rateId);
-}
-
-export async function updateCarrierWarehouseRateService(
-    conn: Connection,
-    rateId: number,
-    req: UpdateCarrierWarehouseRateRequest
-): Promise<CarrierWarehouseRateResponse> {
-    await carrierRateDB.updateCarrierWarehouseRate(conn, rateId, req);
-    const rate = await carrierRateDB.getCarrierWarehouseRateById(conn, rateId);
-    if (!rate) throw new Error('Failed to update warehouse rate');
-    return rate;
-}
-
-export async function deleteCarrierWarehouseRateService(
-    conn: Connection,
-    rateId: number
-): Promise<void> {
-    await carrierRateDB.deleteCarrierWarehouseRate(conn, rateId);
-}
-
-
 // -------------------- Transport Rate --------------------
 export async function createCarrierTransportRateService(
     conn: Connection,
@@ -408,8 +345,6 @@ export async function createCarrierTransportRateService(
 ): Promise<CarrierTransportRateResponse> {
     await conn.beginTransaction();
     try {
-        await validateTransportRateZipUniqueness(conn, req.originZoneId, req.destinationZoneId, req);
-
         // 1) Create the transport rate (without entity/noteThread yet)
         const rateId = await carrierRateDB.createCarrierTransportRate(
             conn,
@@ -579,8 +514,19 @@ export async function updateCarrierTransportRateService(
         const originChanged = req.originZoneId !== undefined && req.originZoneId !== existingRate.originZoneId;
         const destinationChanged = req.destinationZoneId !== undefined && req.destinationZoneId !== existingRate.destinationZoneId;
 
+        const terminals = await carrierRateDB.getTerminalsByRateId(conn, rateId, 'TRANSPORT');
         if (originChanged || destinationChanged) {
-            await validateTransportRateZipUniqueness(conn, newOriginZoneId, newDestinationZoneId, req);
+            for (const terminal of terminals) {
+                await validateRateAgainstTerminal(
+                    conn,
+                    terminal.terminalId,
+                    rateId,
+                    'TRANSPORT',
+                    rateId,
+                    newOriginZoneId,
+                    newDestinationZoneId
+                );
+            }
         }
 
         // Update base record if needed
@@ -663,6 +609,139 @@ export async function deleteCarrierTransportRateService(
     await carrierRateDB.deleteCarrierTransportRate(conn, rateId);
 }
 
+// -------------------- Airport Rate --------------------
+async function enrichCarrierAirportRate(conn: Connection, rate: any): Promise<CarrierTransportRateResponse> {
+    const details = await carrierRateDB.getCarrierAirportRateDetails(conn, rate.rateId);
+    const originZone = await zoneDB.getZoneById(conn, rate.originZoneId);
+    const originZips = originZone ? await zoneDB.getZoneZips(conn, originZone.zoneId) : [];
+    const destinationZone = await zoneDB.getZoneById(conn, rate.destinationZoneId);
+    const destinationZips = destinationZone ? await zoneDB.getZoneZips(conn, destinationZone.zoneId) : [];
+    const createdByName = await userDB.getUserName(conn, rate.createdBy);
+    const updatedByName = rate.updatedBy ? await userDB.getUserName(conn, rate.updatedBy) : undefined;
+    const carrierCount = await carrierDB.countCarriersByRateId(conn, rate.rateId);
+    const notes = rate.noteThreadId ? await noteDB.getMessagesByThread(conn, rate.noteThreadId) : [];
+
+    return {
+        rateId: rate.rateId,
+        carrierRateId: rate.carrierRateId,
+        originZone: originZone ? { zoneId: originZone.zoneId, zoneName: originZone.zoneName, zipCodes: originZips.filter(z => z.zipCode).map(z => z.zipCode!), ranges: originZips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`) } : null,
+        destinationZone: destinationZone ? { zoneId: destinationZone.zoneId, zoneName: destinationZone.zoneName, zipCodes: destinationZips.filter(z => z.zipCode).map(z => z.zipCode!), ranges: destinationZips.filter(z => z.rangeStart && z.rangeEnd).map(z => `${z.rangeStart}-${z.rangeEnd}`) } : null,
+        details,
+        activeStatus: rate.activeStatus,
+        expiryDate: rate.expiryDate,
+        createdAt: rate.createdAt ? toUtcDate(rate.createdAt) : null,
+        createdByName,
+        updatedAt: rate.updatedAt ? toUtcDate(rate.updatedAt) : null,
+        updatedByName,
+        carrierCount,
+        entityId: rate.entityId,
+        noteThreadId: rate.noteThreadId,
+        notes
+    };
+}
+
+export async function createCarrierAirportRateService(conn: Connection, req: CreateCarrierTransportRateRequest, userId: number): Promise<CarrierTransportRateResponse> {
+    await conn.beginTransaction();
+    try {
+        const rateId = await carrierRateDB.createCarrierAirportRate(conn, req.originZoneId, req.destinationZoneId, userId);
+        const rate = await carrierRateDB.getCarrierAirportRateById(conn, rateId);
+        if (!rate) throw new Error('Failed to create carrier airport rate');
+        const entityId = await entityDB.createEntity(conn, 'CARRIER_AIRPORT_RATE', rate.carrierRateId.toString());
+        const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
+        await carrierRateDB.updateCarrierAirportRateEntityAndNoteThread(conn, rate.carrierRateId, entityId, noteThreadId);
+        if (req.note?.messageText?.trim()) await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
+        for (const detail of req.details || []) {
+            await carrierRateDB.createCarrierAirportRateDetail(conn, rateId, detail.rateField, detail.chargeValue, detail.perUnitFlag);
+        }
+        const result = await enrichCarrierAirportRate(conn, (await carrierRateDB.getCarrierAirportRateById(conn, rateId))!);
+        await conn.commit();
+        return result;
+    } catch (error) {
+        await conn.rollback();
+        throw error;
+    }
+}
+
+export async function getCarrierAirportRateService(conn: Connection, rateId: number): Promise<CarrierTransportRateResponse | null> {
+    const rate = await carrierRateDB.getCarrierAirportRateById(conn, rateId);
+    return rate ? enrichCarrierAirportRate(conn, rate) : null;
+}
+
+export async function updateCarrierAirportRateService(conn: Connection, rateId: number, req: UpdateCarrierTransportRateRequest, userId: number): Promise<CarrierTransportRateResponse> {
+    await conn.beginTransaction();
+    try {
+        const existingRate = await carrierRateDB.getCarrierAirportRateById(conn, rateId);
+        if (!existingRate) throw new Error('Airport rate not found');
+        const originZoneId = req.originZoneId ?? existingRate.originZoneId;
+        const destinationZoneId = req.destinationZoneId ?? existingRate.destinationZoneId;
+        const terminals = await carrierRateDB.getTerminalsByRateId(conn, rateId, 'AIRPORT');
+        if (req.originZoneId !== undefined || req.destinationZoneId !== undefined) {
+            for (const terminal of terminals) {
+                await validateRateAgainstTerminal(
+                    conn,
+                    terminal.terminalId,
+                    rateId,
+                    'AIRPORT',
+                    rateId,
+                    originZoneId,
+                    destinationZoneId
+                );
+            }
+            await carrierRateDB.updateCarrierAirportRate(conn, rateId, req.originZoneId, req.destinationZoneId, userId);
+        }
+        if (req.note?.messageText?.trim()) {
+            if (!req.noteThreadId) throw new Error('Note thread not found for mapping');
+            await noteDB.createNoteMessage(conn, req.noteThreadId, req.note.messageText.trim(), userId);
+        }
+        if (req.details && req.details.length > 0) {
+            await carrierRateDB.deleteCarrierAirportRateDetails(conn, rateId);
+            for (const detail of req.details) await carrierRateDB.createCarrierAirportRateDetail(conn, rateId, detail.rateField, detail.chargeValue, detail.perUnitFlag);
+        }
+        const result = await enrichCarrierAirportRate(conn, (await carrierRateDB.getCarrierAirportRateById(conn, rateId))!);
+        await conn.commit();
+        return result;
+    } catch (error) {
+        await conn.rollback();
+        throw error;
+    }
+}
+
+export async function deleteCarrierAirportRateService(conn: Connection, rateId: number): Promise<void> {
+    await carrierRateDB.deleteCarrierAirportRate(conn, rateId);
+}
+
+export async function listCarrierAirportRatesService(conn: Connection, search: CarrierTransportRateSearch = {}, page: number = 1, pageSize: number = 10) {
+    const { data, total } = await carrierRateDB.listCarrierAirportRates(conn, search, page, pageSize);
+    return { rates: await Promise.all(data.map(rate => enrichCarrierAirportRate(conn, rate)),), total, page, pageSize };
+}
+
+export async function listCarrierAirportRatesByZoneService(conn: Connection, zoneId: number, page: number = 1, pageSize: number = 10) {
+    const { data, total } = await carrierRateDB.listCarrierAirportRatesByZone(conn, zoneId, pageSize, (page - 1) * pageSize);
+    return { rates: await Promise.all(data.map(rate => enrichCarrierAirportRate(conn, rate))), total, page, pageSize };
+}
+
+export async function getCarrierAirportRateQuoteService(conn: Connection, originZip: string, destinationZip: string, weight: number, terminalId: number): Promise<TransportRateQuoteResult> {
+    if (!originZip.trim() || !destinationZip.trim()) throw new Error('Origin zip and destination zip are required');
+    if (!Number.isFinite(weight) || weight <= 0) throw new Error('Weight must be a positive number');
+    if (!terminalId || Number.isNaN(terminalId)) throw new Error('terminalId is required');
+    const mappings = await carrierRateDB.getTerminalRates(conn, terminalId, 'AIRPORT');
+    const originZones = await zoneDB.findZonesByZip(conn, originZip.trim());
+    const destinationZones = await zoneDB.findZonesByZip(conn, destinationZip.trim());
+    const matching = await Promise.all(mappings.map(async mapping => {
+        const rate = await carrierRateDB.getCarrierAirportRateById(conn, mapping.rateId);
+        return rate && originZones.some(zone => zone.zoneId === rate.originZoneId) && destinationZones.some(zone => zone.zoneId === rate.destinationZoneId) ? { rate, rateId: mapping.rateId } : null;
+    }));
+    const filtered = matching.filter((item): item is { rate: any; rateId: number } => !!item);
+    if (filtered.length !== 1) throw new Error(filtered.length ? 'More than one airport rate exists for the provided origin/destination pair' : 'No airport rate found for the provided origin/destination pair and terminal mapping');
+    const rate = filtered[0].rate;
+    const details = await carrierRateDB.getCarrierAirportRateDetails(conn, rate.rateId);
+    const minRate = getBoundaryDetail(details, 'MIN');
+    const maxRate = getBoundaryDetail(details, 'MAX');
+    const quote = calculateTransportRateQuote(details, weight);
+    const calculatedRate = Math.min(maxRate ?? Number.POSITIVE_INFINITY, Math.max(minRate ?? Number.NEGATIVE_INFINITY, quote.calculatedRate));
+    return { rateId: rate.rateId, carrierRateId: rate.carrierRateId, originZone: originZones[0] ? { zoneId: originZones[0].zoneId, zoneName: originZones[0].zoneName } : null, destinationZone: destinationZones[0] ? { zoneId: destinationZones[0].zoneId, zoneName: destinationZones[0].zoneName } : null, calculatedRate: Number(calculatedRate.toFixed(2)), minRate, maxRate, matchedRateField: quote.matchedRateField, usedNearestRateField: quote.usedNearestRateField, details };
+}
+
 
 // -------------------- Terminal Rate Map --------------------
 export async function assignRateToTerminalService(
@@ -672,9 +751,24 @@ export async function assignRateToTerminalService(
 ): Promise<TerminalRateMapResponse[]> {
     await conn.beginTransaction();
     try {
+        if (!req.length) throw new Error('At least one rate assignment is required');
         const terminalRateIds: number[] = [];
 
         for (const r of req) {
+            const existingMaps = await carrierRateDB.getTerminalRates(conn, r.terminalId);
+            const alreadyMapped = existingMaps.find(
+                mapping => mapping.rateId === r.rateId && mapping.rateType === r.rateType
+            );
+
+            if (alreadyMapped) {
+                terminalRateIds.push(alreadyMapped.terminalRateId);
+                continue;
+            }
+
+            if (r.rateType === 'TRANSPORT' || r.rateType === 'AIRPORT') {
+                await validateRateAgainstTerminal(conn, r.terminalId, r.rateId, r.rateType);
+            }
+
             const terminalRateId = await carrierRateDB.assignRateToTerminal(
                 conn,
                 r.terminalId,
@@ -707,7 +801,7 @@ export async function assignRateToTerminalService(
 export async function getTerminalRatesService(
     conn: Connection,
     terminalId: number,
-    rateType?: 'WAREHOUSE' | 'TRANSPORT',
+    rateType?: 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT',
     search?: CarrierTransportRateSearch
 ): Promise<any[]> {
 
@@ -730,7 +824,7 @@ export async function getTerminalRatesService(
                         warehouse: r.warehouse
                     }
                 };
-            } else {
+            } else if (r.rateType === 'TRANSPORT') {
                 // Fetch full transport rate info
                 const rate = await carrierRateDB.getCarrierTransportRateById(conn, r.rateId);
                 const details = await carrierRateDB.getCarrierTransportRateDetails(conn, r.rateId);
@@ -786,6 +880,18 @@ export async function getTerminalRatesService(
                         notes
                     }
                 };
+            } else {
+                const rate = await carrierRateDB.getCarrierAirportRateById(conn, r.rateId);
+                if (!rate) return null;
+                return {
+                    terminalRateId: r.terminalRateId,
+                    terminalId: r.terminalId,
+                    rateId: r.rateId,
+                    rateType: r.rateType,
+                    assignedBy: r.userName,
+                    assignedAt: r.assignedAt ? toUtcDate(r.assignedAt) : null,
+                    airportRate: await enrichCarrierAirportRate(conn, rate)
+                };
             }
         })
     );
@@ -799,21 +905,6 @@ export async function deleteTerminalRateMapService(
     await carrierRateDB.deleteTerminalRateMap(conn, terminalRateId);
 }
 
-
-export async function listCarrierWarehouseRatesService(
-    conn: Connection,
-    search?: string,
-    page: number = 1,
-    pageSize: number = 10
-) {
-    const { data, total } = await carrierRateDB.listCarrierWarehouseRates(conn, search, page, pageSize);
-    return {
-        rates: data,
-        total,
-        page,
-        pageSize
-    };
-}
 
 export async function listCarrierTransportRatesService(
     conn: Connection,

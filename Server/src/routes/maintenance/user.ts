@@ -5,7 +5,7 @@ import * as userController from '../../controllers/maintenance/user';
 
 const router = Router();
 
-router.post('/', authenticateJWT, async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
     const conn = await db();
     await userController.createUser(req, res, conn);
     if (conn) conn.close();

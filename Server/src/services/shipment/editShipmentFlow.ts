@@ -342,13 +342,14 @@ export async function editLinehaulInfoRecord(
     if (!shipmentId) throw new Error("Shipment ID is required");
 
     const primary = linehaulDetails.linehaulPrimaryInfo;
+    const accessorials = linehaulDetails.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials ?? [];
     const existingEntityId = await shipmentDB.getExistingLinehaulEntityId(conn, shipmentId);
-    const entityId = primary?.entityId ?? existingEntityId ?? (
-        primary
+    const accessorialEntityId = (accessorials as any[]).find((accessorial) => accessorial?.entityId)?.entityId;
+    const entityId = primary?.entityId ?? existingEntityId ?? accessorialEntityId ?? (
+        primary || accessorials.length > 0
             ? await createRelatedEntityRecord(conn, "LINEHAUL", `Linehaul for shipment ${shipmentId}`)
             : undefined
     );
-    const accessorials = linehaulDetails.linehaulCommonInfo?.linehaulAccessorialDetails?.accessorials ?? [];
     if (!entityId && (primary || accessorials.length > 0)) {
         throw new Error("Linehaul entityId is required. Provide it or ensure the shipment has an existing linehaul record.");
     }
@@ -400,13 +401,14 @@ export async function editDeliveryInfoRecord(
     if (!shipmentId) throw new Error("Shipment ID is required");
 
     const primary = deliveryDetails.deliveryPrimaryInfo;
+    const accessorials = deliveryDetails.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials ?? [];
     const existingEntityId = await shipmentDB.getExistingDeliveryEntityId(conn, shipmentId);
-    const entityId = primary?.entityId ?? existingEntityId ?? (
-        primary
+    const accessorialEntityId = (accessorials as any[]).find((accessorial) => accessorial?.entityId)?.entityId;
+    const entityId = primary?.entityId ?? existingEntityId ?? accessorialEntityId ?? (
+        primary || accessorials.length > 0
             ? await createRelatedEntityRecord(conn, "DELIVERY", `Delivery for shipment ${shipmentId}`)
             : undefined
     );
-    const accessorials = deliveryDetails.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials ?? [];
     if (!entityId && (primary || accessorials.length > 0)) {
         throw new Error("Delivery entityId is required. Provide it or ensure the shipment has an existing delivery record.");
     }

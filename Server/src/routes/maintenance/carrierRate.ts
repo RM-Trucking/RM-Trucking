@@ -6,39 +6,6 @@ import { db } from '../../config/db2';
 
 const router = express.Router();
 
-// -------------------- Warehouse Rate --------------------
-router.post('/warehouse-rate', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.createCarrierWarehouseRate(req, res, conn);
-    conn.close();
-});
-
-router.get('/warehouse-rate/:id', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.getCarrierWarehouseRate(req, res, conn);
-    conn.close();
-});
-
-router.put('/warehouse-rate/:id', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.updateCarrierWarehouseRate(req, res, conn);
-    conn.close();
-});
-
-router.delete('/warehouse-rate/:id', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.deleteCarrierWarehouseRate(req, res, conn);
-    conn.close();
-});
-
-// List warehouse rates with search + pagination
-router.get('/warehouse-rate', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await rateController.listCarrierWarehouseRates(req, res, conn);
-    conn.close();
-});
-
-
 // -------------------- Transport Rate --------------------
 router.post('/transport-rate', authenticateJWT, async (req, res) => {
     const conn = await db();
@@ -80,6 +47,49 @@ router.delete('/transport-rate/:id', authenticateJWT, async (req, res) => {
 router.get('/transport-rate', authenticateJWT, async (req, res) => {
     const conn = await db();
     await rateController.listCarrierTransportRates(req, res, conn);
+    conn.close();
+});
+
+// -------------------- Airport Rate --------------------
+router.post('/airport-rate', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.createCarrierAirportRate(req, res, conn);
+    conn.close();
+});
+
+router.get('/airport-rate/quote', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.getCarrierAirportRateQuote(req, res, conn);
+    conn.close();
+});
+
+router.get('/airport-rate/by-zone', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.listCarrierAirportRatesByZone(req, res, conn);
+    conn.close();
+});
+
+router.get('/airport-rate/:id', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.getCarrierAirportRate(req, res, conn);
+    conn.close();
+});
+
+router.put('/airport-rate/:id', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.updateCarrierAirportRate(req, res, conn);
+    conn.close();
+});
+
+router.delete('/airport-rate/:id', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.deleteCarrierAirportRate(req, res, conn);
+    conn.close();
+});
+
+router.get('/airport-rate', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    await rateController.listCarrierAirportRates(req, res, conn);
     conn.close();
 });
 

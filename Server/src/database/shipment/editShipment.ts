@@ -579,6 +579,7 @@ export async function replacePickupInfo(
         airportTransfer: pickupDetails.airportTransfer,
         carrierId: pickupDetails.carrierId,
         terminalId: pickupDetails.terminalId,
+        carrierBillNumber: pickupDetails.carrierBillNumber ?? null,
         fromLocationType: pickupDetails.fromLocationType,
         fromLocation: pickupDetails.fromLocation,
         fromLocationEntityId: pickupDetails.fromLocationEntityId,
@@ -810,7 +811,7 @@ export async function replaceRateDetails(
     const validateRateEntries = (rateList: Array<Record<string, any>> = [], label: string) => {
         for (const rate of rateList) {
             if (!rate || typeof rate !== "object") {
-                throw new Error(`${label} rate entry is invalid`);
+                throw new Error(`$Rate entry is invalid`);
             }
 
             const hasAnyValue = Object.values(rate).some((value) => value !== undefined && value !== null && value !== "");
@@ -819,13 +820,13 @@ export async function replaceRateDetails(
             }
 
             if (!rate.rateType) {
-                throw new Error(`${label} rate type is required`);
+                throw new Error(`Rate type is required`);
             }
             if (rate.rateValue === undefined || rate.rateValue === null || rate.rateValue === 0 || rate.rateValue === "") {
-                throw new Error(`${label} rate value is required`);
+                throw new Error(`Rate value is required`);
             }
             if (rate.totalRate === undefined || rate.totalRate === null || rate.totalRate === "") {
-                throw new Error(`${label} total rate is required`);
+                throw new Error(`Total rate is required`);
             }
         }
     };

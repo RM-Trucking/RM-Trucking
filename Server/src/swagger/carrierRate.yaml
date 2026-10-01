@@ -2,107 +2,17 @@ openapi: 3.0.0
 info:
   title: Rate Module API
   version: 1.0.0
-  description: CRUD APIs for Warehouse and Transport rates, plus Terminal Rate mapping.
+  description: CRUD APIs for Transport rates, plus Terminal Rate mapping.
 
 tags:
-  - name: Carrier Warehouse Rate
-    description: Operations related to carrier warehouse rates
   - name: Carrier Transport Rate
     description: Operations related to carrier transport rates
+  - name: Carrier Airport Rate
+    description: Operations related to carrier airport rates
   - name: Terminal Rate Map
     description: Operations related to mapping rates to terminals
 
 paths:
-  /api/maintenance/carrier-rate/warehouse-rate:
-    post:
-      summary: Create a warehouse rate
-      tags: [Carrier Warehouse Rate]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateWarehouseRateRequest"
-      responses:
-        "201":
-          description: Warehouse rate created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WarehouseRateResponse"
-    get:
-      summary: List warehouse rates with search and pagination
-      tags: [Carrier Warehouse Rate]
-      parameters:
-        - in: query
-          name: search
-          schema: { type: string }
-          description: Search by department or warehouse
-        - in: query
-          name: page
-          schema: { type: integer, default: 1 }
-        - in: query
-          name: pageSize
-          schema: { type: integer, default: 10 }
-      responses:
-        "200":
-          description: List of warehouse rates
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WarehouseRateListResponse"
-
-  /api/maintenance/carrier-rate/warehouse-rate/{id}:
-    get:
-      summary: Get warehouse rate by ID
-      tags: [Carrier Warehouse Rate]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Warehouse rate found
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WarehouseRateResponse"
-        "404":
-          description: Not found
-    put:
-      summary: Update warehouse rate
-      tags: [Carrier Warehouse Rate]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UpdateWarehouseRateRequest"
-      responses:
-        "200":
-          description: Updated warehouse rate
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/WarehouseRateResponse"
-    delete:
-      summary: Delete warehouse rate
-      tags: [Carrier Warehouse Rate]
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: { type: integer }
-      responses:
-        "200":
-          description: Deleted successfully
-
   /api/maintenance/carrier-rate/transport-rate:
     post:
       summary: Create a transport rate
@@ -299,6 +209,123 @@ paths:
         "200":
           description: Deleted successfully
 
+  /api/maintenance/carrier-rate/airport-rate:
+    post:
+      summary: Create an airport rate
+      tags: [Carrier Airport Rate]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransportRateRequest"
+      responses:
+        "201":
+          description: Airport rate created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+    get:
+      summary: List airport rates with search and pagination
+      tags: [Carrier Airport Rate]
+      parameters:
+        - { in: query, name: originZoneId, schema: { type: integer } }
+        - { in: query, name: originZipOrRange, schema: { type: string } }
+        - { in: query, name: destinationZoneId, schema: { type: integer } }
+        - { in: query, name: destinationZipOrRange, schema: { type: string } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: List of airport rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateListResponse"
+
+  /api/maintenance/carrier-rate/airport-rate/quote:
+    get:
+      summary: Get an airport rate quote
+      tags: [Carrier Airport Rate]
+      parameters:
+        - {
+            in: query,
+            name: originZip,
+            required: true,
+            schema: { type: string },
+          }
+        - {
+            in: query,
+            name: destinationZip,
+            required: true,
+            schema: { type: string },
+          }
+        - { in: query, name: weight, required: true, schema: { type: number } }
+        - {
+            in: query,
+            name: terminalId,
+            required: true,
+            schema: { type: integer },
+          }
+      responses:
+        "200":
+          description: Airport rate quote
+
+  /api/maintenance/carrier-rate/airport-rate/by-zone:
+    get:
+      summary: List airport rates by zone
+      tags: [Carrier Airport Rate]
+      parameters:
+        - { in: query, name: zoneId, required: true, schema: { type: integer } }
+        - { in: query, name: page, schema: { type: integer, default: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 10 } }
+      responses:
+        "200":
+          description: List of airport rates for the given zone
+
+  /api/maintenance/carrier-rate/airport-rate/{id}:
+    get:
+      summary: Get airport rate by ID
+      tags: [Carrier Airport Rate]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Airport rate found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+        "404":
+          description: Not found
+    put:
+      summary: Update airport rate
+      tags: [Carrier Airport Rate]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransportRateRequest"
+      responses:
+        "200":
+          description: Updated airport rate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransportRateResponse"
+    delete:
+      summary: Delete airport rate
+      tags: [Carrier Airport Rate]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: integer } }
+      responses:
+        "200":
+          description: Deleted successfully
+
   /api/maintenance/carrier-rate/terminal-rate-map:
     post:
       summary: Assign one or more rates to a terminal
@@ -341,7 +368,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [WAREHOUSE, TRANSPORT]
+            enum: [WAREHOUSE, TRANSPORT, AIRPORT]
           description: Filter rates by type. If omitted, returns all rates.
         - in: query
           name: originZoneId
@@ -393,43 +420,6 @@ paths:
 
 components:
   schemas:
-    CreateWarehouseRateRequest:
-      type: object
-      properties:
-        minRate: { type: number, format: decimal }
-        ratePerPound: { type: number, format: decimal }
-        maxRate: { type: number, format: decimal, nullable: true }
-        department: { type: string, nullable: true }
-        warehouse: { type: string, nullable: true }
-      required: [minRate, ratePerPound]
-
-    UpdateWarehouseRateRequest:
-      type: object
-      properties:
-        minRate: { type: number, format: decimal }
-        ratePerPound: { type: number, format: decimal }
-        maxRate: { type: number, format: decimal, nullable: true }
-        department: { type: string, nullable: true }
-        warehouse: { type: string, nullable: true }
-
-    WarehouseRateResponse:
-      allOf:
-        - $ref: "#/components/schemas/CreateWarehouseRateRequest"
-        - type: object
-          properties:
-            rateId: { type: integer }
-
-    WarehouseRateListResponse:
-      type: object
-      properties:
-        rates:
-          type: array
-          items:
-            $ref: "#/components/schemas/WarehouseRateResponse"
-        total: { type: integer }
-        page: { type: integer }
-        pageSize: { type: integer }
-
     CreateTransportRateRequest:
       type: object
       properties:
@@ -500,7 +490,7 @@ components:
           type: integer
         rateType:
           type: string
-          enum: [WAREHOUSE, TRANSPORT]
+          enum: [WAREHOUSE, TRANSPORT, AIRPORT]
       required: [terminalId, rateId, rateType]
 
     TerminalRateMapResponse:

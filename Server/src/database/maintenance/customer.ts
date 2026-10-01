@@ -108,6 +108,24 @@ export async function getCustomerByRmAccountNumber(
     return result.length > 0 ? (result[0] as Customer) : null;
 }
 
+export async function checkCustomerUniqueFields(
+    conn: Connection,
+    { customerName }: { customerName?: string },
+    customerId?: number
+): Promise<string | null> {
+    if (!customerName) return null;
+
+    const query = `
+        SELECT 'customerName' AS "conflictField"
+        FROM ${SCHEMA}."Customer"
+        WHERE UPPER("customerName") = UPPER(?)
+          AND "customerId" <> ?
+        FETCH FIRST 1 ROW ONLY
+    `;
+    const result = await conn.query(query, [customerName, customerId ?? -1]) as { conflictField: string }[];
+    return result.length ? result[0].conflictField : null;
+}
+
 /**
  * Get all customers with optional search + pagination
  */

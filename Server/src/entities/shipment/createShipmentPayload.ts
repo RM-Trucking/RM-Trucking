@@ -169,6 +169,7 @@ export interface CreatePickupDetails {
     airportTransfer?: 'Y' | 'N';
     carrierId?: number;
     terminalId?: number;
+    carrierBillNumber?: string;
     fromLocationType?: 'Shipper' | 'Carrier';
     fromLocation?: string;
     fromLocationEntityId?: number;

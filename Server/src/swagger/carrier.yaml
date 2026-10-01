@@ -212,6 +212,7 @@ components:
         isParcelCarrier: { type: string, enum: [Y, N] }
         isLTLCarrier: { type: string, enum: [Y, N] }
         isAirportCarrier: { type: string, enum: [Y, N] }
+        scacCode: { type: string }
         addresses:
           type: array
           items:
@@ -241,6 +242,7 @@ components:
         isParcelCarrier: { type: string, enum: [Y, N] }
         isLTLCarrier: { type: string, enum: [Y, N] }
         isAirportCarrier: { type: string, enum: [Y, N] }
+        scacCode: { type: string }
         addresses:
           type: array
           items:
@@ -275,6 +277,7 @@ components:
         isParcelCarrier: { type: string, enum: [Y, N] }
         isLTLCarrier: { type: string, enum: [Y, N] }
         isAirportCarrier: { type: string, enum: [Y, N] }
+        scacCode: { type: string }
         addresses:
           type: array
           items:

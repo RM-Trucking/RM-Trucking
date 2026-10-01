@@ -162,7 +162,7 @@ export async function createAirlineRecord(
 
     const airlineConflict = await shipmentDB.checkAirlineUniqueFields(
         conn,
-        airlineDetails.airlineNumber,
+        String(airlineDetails.airlineNumber),
         airlineDetails.airlineCode,
         airlineDetails.scenarioType
     );

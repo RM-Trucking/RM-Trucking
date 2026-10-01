@@ -16,17 +16,30 @@ export async function createNewCarrier(
     createCarrierReq: CreateCarrierRequest,
     adminId: number
 ): Promise<{ carrier: CarrierResponse }> {
+    const normalizedCarrierName = createCarrierReq.carrierName?.trim().toUpperCase();
     const {
         carrierName, carrierType, carrierStatus,
         tsaCertified, ustDotNo, mcnNo, insuranceExpiry,
         tariffRenewalDate, salesRepName, salesRepPhone, salesRepEmail, corporateBillingSame, corporatePhoneNumber, isParcelCarrier, isLTLCarrier, isAirportCarrier,
-        addresses, note
+        addresses, note,
+        scacCode
     } = createCarrierReq;
 
     await conn.beginTransaction();
     try {
+        if (!normalizedCarrierName) {
+            throw new Error("Carrier name is required and cannot be empty.");
+        }
+
+        const conflict = await carrierDB.checkCarrierUniqueFields(conn, {
+            carrierName: normalizedCarrierName
+        });
+        if (conflict) {
+            throw new Error(`Carrier name "${normalizedCarrierName}" already exists. Carrier names must be unique.`);
+        }
+
         // 1) Create Entity
-        const entityId = await entityDB.createEntity(conn, "CARRIER", carrierName);
+        const entityId = await entityDB.createEntity(conn, "CARRIER", normalizedCarrierName);
 
         // 2) Create Note Thread
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, adminId);
@@ -37,7 +50,7 @@ export async function createNewCarrier(
 
         // 3) Insert Carrier
         const carrierId = await carrierDB.createCarrier(conn, {
-            carrierName,
+            carrierName: normalizedCarrierName,
             carrierType,
             carrierStatus,
             tsaCertified,
@@ -58,7 +71,8 @@ export async function createNewCarrier(
             corporatePhoneNumber,
             isParcelCarrier,
             isLTLCarrier,
-            isAirportCarrier
+            isAirportCarrier,
+            scacCode
         });
 
         // 4) Insert addresses
@@ -121,8 +135,25 @@ export async function updateCarrierService(
         const carrier = await carrierDB.getCarrierById(conn, updateReq.carrierId);
         if (!carrier) throw new Error("Carrier not found");
 
+        const normalizedCarrierName = updateReq.carrierName?.trim().toUpperCase();
+        if (updateReq.carrierName !== undefined && !normalizedCarrierName) {
+            throw new Error("Carrier name is required and cannot be empty.");
+        }
+
+        if (normalizedCarrierName) {
+            const conflict = await carrierDB.checkCarrierUniqueFields(
+                conn,
+                { carrierName: normalizedCarrierName },
+                updateReq.carrierId
+            );
+            if (conflict) {
+                throw new Error(`Carrier name "${normalizedCarrierName}" already exists. Carrier names must be unique.`);
+            }
+        }
+
         await carrierDB.updateCarrier(conn, updateReq.carrierId, {
             ...updateReq,
+            ...(normalizedCarrierName ? { carrierName: normalizedCarrierName } : {}),
             insuranceExpiry: updateReq.insuranceExpiry ? new Date(updateReq.insuranceExpiry) : undefined,
             tariffRenewalDate: updateReq.tariffRenewalDate ? new Date(updateReq.tariffRenewalDate) : undefined,
             updatedBy: adminId

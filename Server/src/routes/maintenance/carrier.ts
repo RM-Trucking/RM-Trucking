@@ -54,5 +54,4 @@ router.get('/by-rate/:rateId', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
-
 export default router;

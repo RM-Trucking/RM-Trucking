@@ -54,7 +54,7 @@ export async function createUser(req: Request, res: Response, conn: Connection):
         console.log(createReq);
 
 
-        if (!createReq.userName || !createReq.loginUserName || !createReq.email || !createReq.roleId) {
+        if (!createReq.userName || !createReq.loginUserName || !createReq.email) {
             res.status(400).json({ error: 'Missing required fields' });
             return;
         }

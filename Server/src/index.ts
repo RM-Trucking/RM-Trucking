@@ -76,9 +76,6 @@ if (!serverConfig.database.connectionString) {
 
 // Initialize Express app
 const app: Express = express();
-app.set('json replacer', (_key: string, value: unknown) =>
-    typeof value === 'bigint' ? Number(value) : value
-);
 const PORT: number = serverConfig.port;
 const NODE_ENV: string = serverConfig.env;
 
@@ -205,6 +202,7 @@ app.get('/api', (req: Request, res: Response) => {
 // Register all routes via common route handler
 // This automatically mounts all module routes (auth, maintenance, warehouse-form, etc.)
 app.use('/api', routes);
+app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
 
 // SERVE REACT/FRONTEND STATIC BUILD

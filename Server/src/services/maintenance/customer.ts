@@ -21,7 +21,17 @@ export async function createNewCustomer(
     createCustomerReq: CreateCustomerRequest,
     adminId: number
 ): Promise<{ customer: CustomerResponse }> {
-    const { customerName, rmAccountNumber, phoneNumber, website, corporateBillingSame, addresses, note } = createCustomerReq;
+    const customerName = createCustomerReq.customerName?.trim().toUpperCase();
+    const { rmAccountNumber, phoneNumber, website, corporateBillingSame, addresses, note } = createCustomerReq;
+
+    if (!customerName) {
+        throw new Error('Customer name is required and cannot be empty.');
+    }
+
+    const customerNameConflict = await customerDB.checkCustomerUniqueFields(conn, { customerName });
+    if (customerNameConflict) {
+        throw new Error(`Customer name "${customerName}" already exists. Customer names must be unique.`);
+    }
 
     // Uniqueness check before starting transaction
     const existingCustomer = await customerDB.getCustomerByRmAccountNumber(conn, rmAccountNumber);
@@ -222,9 +232,25 @@ export async function updateCustomer(
     const customer = await customerDB.getCustomerById(conn, customerId);
     if (!customer) throw new Error('Customer not found');
 
+    const normalizedCustomerName = updateReq.customerName?.trim().toUpperCase();
+    if (updateReq.customerName !== undefined && !normalizedCustomerName) {
+        throw new Error('Customer name is required and cannot be empty.');
+    }
+
+    if (normalizedCustomerName) {
+        const customerNameConflict = await customerDB.checkCustomerUniqueFields(
+            conn,
+            { customerName: normalizedCustomerName },
+            customerId
+        );
+        if (customerNameConflict) {
+            throw new Error(`Customer name "${normalizedCustomerName}" already exists. Customer names must be unique.`);
+        }
+    }
+
     // 1. Update scalar fields
     await customerDB.updateCustomer(conn, customerId, {
-        customerName: updateReq.customerName,
+        customerName: normalizedCustomerName,
         rmAccountNumber: updateReq.rmAccountNumber,
         phoneNumber: updateReq.phoneNumber,
         website: updateReq.website,

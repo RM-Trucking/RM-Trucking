@@ -1,40 +1,6 @@
 import { NoteMessageRequest, NoteMessageResponse } from "./Note";
 import { ZoneInfo } from "./Zone";
 
-// -------------------- Warehouse Rate --------------------
-export interface CarrierRateWarehouse {
-    rateId: number;
-    carrierRateId: number;
-    minRate: number;
-    ratePerPound: number;
-    maxRate?: number | null;
-    department?: string | null;
-    warehouse?: string | null;
-}
-
-// Request object for creating a warehouse rate
-export interface CreateCarrierWarehouseRateRequest {
-    minRate: number;
-    ratePerPound: number;
-    maxRate?: number | null;
-    department?: string | null;
-    warehouse?: string | null;
-}
-
-// Request object for updating a warehouse rate
-export interface UpdateCarrierWarehouseRateRequest {
-    minRate?: number;
-    ratePerPound?: number;
-    maxRate?: number | null;
-    department?: string | null;
-    warehouse?: string | null;
-}
-
-// Response object
-export interface CarrierWarehouseRateResponse extends CarrierRateWarehouse { }
-// --------------------------------------------------------
-
-
 // -------------------- Transport Rate --------------------
 export interface CarrierRate {
     rateId: number;
@@ -113,7 +79,7 @@ export interface TerminalRateMap {
     terminalRateId: number;
     terminalId: number;
     rateId: number;
-    rateType: 'WAREHOUSE' | 'TRANSPORT';
+    rateType: 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT';
     assignedBy: number;
     assignedAt: Date;
 }
@@ -122,7 +88,7 @@ export interface TerminalRateMap {
 export interface AssignRateToTerminalRequest {
     terminalId: number;
     rateId: number;
-    rateType: 'WAREHOUSE' | 'TRANSPORT';
+    rateType: 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT';
 }
 
 // Response object

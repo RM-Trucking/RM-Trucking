@@ -11,6 +11,10 @@
     "start": "node dist/index.js",
     "dev": "nodemon --exec ts-node src/index.ts",
     "watch": "nodemon --exec ts-node --transpile-only src/index.ts",
+    "import:carriers": "ts-node src/utils/dumpCarrierData.ts",
+    "import:customers": "ts-node src/utils/dumpCustomerData.ts",
+    "import:users": "ts-node src/utils/dumpUserData.ts",
+    "import:airlines": "ts-node src/utils/dumpAirlineData.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
@@ -20,6 +24,7 @@
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "multer": "^2.1.1",
     "odbc": "^2.4.9",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1"
@@ -28,6 +33,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.5",
+    "@types/multer": "^2.2.0",
     "@types/node": "^20.10.6",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",

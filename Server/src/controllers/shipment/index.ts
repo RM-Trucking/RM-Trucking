@@ -1,6 +1,10 @@
 import { Request, Response } from "express";
 import { Connection } from "odbc";
 import * as shipmentService from "../../services/shipment";
+import {
+    materializeEnhancedShipmentBase64Fields,
+    parseEnhancedShipmentPayload,
+} from "../../middleware/enhancedShipmentUpload";
 
 // export async function createNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
 //     try {
@@ -104,6 +108,37 @@ export async function editShipmentFlow(req: Request, res: Response, conn: Connec
             success: true,
             message: "Shipment flow updated successfully",
             data: result
+        });
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({ success: false, message: error.message });
+    }
+}
+
+export async function editShipmentEnhanced(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const shipmentId = Number(req.params.shipmentId);
+        if (Number.isNaN(shipmentId) || shipmentId <= 0) {
+            res.status(400).json({ success: false, message: "Invalid shipmentId" });
+            return;
+        }
+
+        const userId = (req as any).user?.userId || 1;
+        const payload = parseEnhancedShipmentPayload(req.body);
+        const files = ((req as any).files ?? []) as Array<{ fieldname: string; filename: string }>;
+        await materializeEnhancedShipmentBase64Fields(req.body, payload, files);
+        const result = await shipmentService.editShipmentEnhanced(
+            conn,
+            shipmentId,
+            payload,
+            userId,
+            files
+        );
+
+        res.status(200).json({
+            success: true,
+            message: "Enhanced shipment updated successfully",
+            data: result,
         });
     } catch (error: any) {
         console.log(error);

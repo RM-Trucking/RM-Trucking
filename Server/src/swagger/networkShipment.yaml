@@ -1945,6 +1945,10 @@
 #           type: integer
 #           example: 148
 #           description: "Terminal identifier for pickup"
+#         carrierBillNumber:
+#           type: string
+#           example: "PU-001-001"
+#           description: "Carrier bill number for pickup"
 #         fromLocation:
 #           type: string
 #           example: "Shipper Warehouse"

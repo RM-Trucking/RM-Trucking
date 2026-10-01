@@ -12,8 +12,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
       ("carrierName","carrierType","carrierStatus","tsaCertified","ustDotNo","mcnNo",
        "insuranceExpiry","tariffRenewalDate","totalShipments","rmOnTimePercent","lateShipments",
        "salesRepName","salesRepPhone","salesRepEmail",
-       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame", "corporatePhoneNumber", "isParcelCarrier", "isLTLCarrier", "isAirportCarrier")
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?, ?, ?, ?)
+       "createdAt","createdBy","entityId","noteThreadId", "corporateBillingSame", "corporatePhoneNumber", "isParcelCarrier", "isLTLCarrier", "isAirportCarrier","scacCode")
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, ?, ?, ?, ?, ?, ?, ?, ?)
     )
   `;
 
@@ -39,7 +39,8 @@ export async function createCarrier(conn: Connection, carrier: Partial<Carrier>)
         carrier.corporatePhoneNumber,
         carrier.isParcelCarrier ?? 'N',
         carrier.isLTLCarrier ?? 'N',
-        carrier.isAirportCarrier ?? 'N'
+        carrier.isAirportCarrier ?? 'N',
+        carrier.scacCode
     ].map(v => v === undefined ? '' : v);
 
     const result = await conn.query(insertQuery, params as any[]) as any[];
@@ -144,6 +145,7 @@ export async function updateCarrier(conn: Connection, carrierId: number, updates
     if (updates.isParcelCarrier !== undefined) { fields.push(`"isParcelCarrier" = ?`); params.push(updates.isParcelCarrier); }
     if (updates.isLTLCarrier !== undefined) { fields.push(`"isLTLCarrier" = ?`); params.push(updates.isLTLCarrier); }
     if (updates.isAirportCarrier !== undefined) { fields.push(`"isAirportCarrier" = ?`); params.push(updates.isAirportCarrier); }
+    if (updates.scacCode !== undefined) { fields.push(`"scacCode" = ?`); params.push(updates.scacCode); }
     if (!fields.length) return;
 
     fields.push(`"updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)`);
@@ -198,7 +200,7 @@ export async function checkCarrierUniqueFields(
     const params: (string | number)[] = [];
 
     if (carrierName) {
-        queries.push(`SELECT 'carrierName' AS "conflictField" FROM "${SCHEMA}"."Carrier" WHERE "carrierName" = ? AND "carrierId" <> ?`);
+        queries.push(`SELECT 'carrierName' AS "conflictField" FROM "${SCHEMA}"."Carrier" WHERE UPPER("carrierName") = UPPER(?) AND "carrierId" <> ?`);
         params.push(carrierName, terminalId ?? -1);
     }
 

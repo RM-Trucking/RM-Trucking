@@ -41,13 +41,16 @@ export async function createNewUser(
         createUserReq.loginUserName,
         createUserReq.email,
         passwordHash,
-        createUserReq.roleId || 1,
+        createUserReq.roleId ?? null,
         createUserReq.userType,
         adminId,
         createUserReq.customerId || null
     );
 
     const user = await userDB.getUserById(conn, userId);
+
+    console.log(user);
+
     if (!user) {
         throw new Error('Failed to create user');
     }

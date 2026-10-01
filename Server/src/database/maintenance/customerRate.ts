@@ -291,6 +291,18 @@ export async function getStationRates(
     return result;
 }
 
+export async function getStationsByRateId(
+    conn: Connection,
+    rateId: number,
+    rateType: 'WAREHOUSE' | 'TRANSPORT'
+): Promise<{ stationId: number }[]> {
+    const result = await conn.query(
+        `SELECT DISTINCT "stationId" FROM ${SCHEMA}."Station_Rate_Map" WHERE "rateId" = ? AND "rateType" = ?`,
+        [rateId, rateType]
+    ) as any[];
+    return result as { stationId: number }[];
+}
+
 
 
 

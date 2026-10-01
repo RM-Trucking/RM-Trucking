@@ -36,6 +36,25 @@ export async function checkDepartmentEmailExists(conn: Connection, email: string
   return result.length > 0;
 }
 
+export async function getDepartmentByStationAndName(
+  conn: Connection,
+  stationId: number,
+  departmentName: string,
+  excludeDepartmentId?: number
+): Promise<Department | null> {
+  const query = `
+    SELECT *
+    FROM ${SCHEMA}."Department"
+    WHERE "stationId" = ?
+      AND UPPER("departmentName") = UPPER(?)
+      AND "activeStatus" = 'Y'
+      AND "departmentId" <> ?
+    FETCH FIRST 1 ROW ONLY
+  `;
+  const result = await conn.query(query, [stationId, departmentName, excludeDepartmentId ?? -1]) as any[];
+  return result.length ? (result[0] as Department) : null;
+}
+
 
 /**
  * Get department by ID

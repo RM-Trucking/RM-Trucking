@@ -143,6 +143,16 @@ function buildZoneCandidates(zoneZips: ZoneZipLike[]): ZipCandidate[] {
     });
 }
 
+function zipPairConflicts(
+    originCandidates: ZipCandidate[],
+    destinationCandidates: ZipCandidate[],
+    existingOriginZips: ZoneZipLike[],
+    existingDestinationZips: ZoneZipLike[]
+): boolean {
+    return originCandidates.some(candidate => candidateMatchesZone(candidate, existingOriginZips))
+        && destinationCandidates.some(candidate => candidateMatchesZone(candidate, existingDestinationZips));
+}
+
 async function validateTransportRateZipUniqueness(
     conn: Connection,
     originZoneId: number,
@@ -198,14 +208,45 @@ async function validateTransportRateZipUniqueness(
                     try {
                         console.debug('[customerRate] duplicate detected - existingRate:', { rateId: existingRate.rateId, customerRateId: existingRate.customerRateId, originZoneId: existingRate.originZoneId, destinationZoneId: existingRate.destinationZoneId });
                         console.debug('[customerRate] originCandidate:', originCandidate, 'destinationCandidate:', destinationCandidate);
-                        console.debug('[customerRate] existingOriginZips sample:', existingOriginZips.slice(0,5));
-                        console.debug('[customerRate] existingDestinationZips sample:', existingDestinationZips.slice(0,5));
+                        console.debug('[customerRate] existingOriginZips sample:', existingOriginZips.slice(0, 5));
+                        console.debug('[customerRate] existingDestinationZips sample:', existingDestinationZips.slice(0, 5));
                     } catch (e) {
                         // ignore
                     }
                     throw new Error('A transport rate already exists for the provided origin/destination zip range.');
                 }
             }
+        }
+    }
+}
+
+async function validateCustomerRateAgainstStation(
+    conn: Connection,
+    stationId: number,
+    rateId: number,
+    excludeRateId?: number,
+    originZoneId?: number,
+    destinationZoneId?: number
+): Promise<void> {
+    const candidateRate = await customerRateDB.getCustomerTransportRateById(conn, rateId);
+    if (!candidateRate) throw new Error(`Transport rate ${rateId} not found`);
+
+    const candidateOriginZips = await zoneDB.getZoneZips(conn, originZoneId ?? candidateRate.originZoneId);
+    const candidateDestinationZips = await zoneDB.getZoneZips(conn, destinationZoneId ?? candidateRate.destinationZoneId);
+    const candidateOriginCandidates = buildZoneCandidates(candidateOriginZips);
+    const candidateDestinationCandidates = buildZoneCandidates(candidateDestinationZips);
+    if (!candidateOriginCandidates.length || !candidateDestinationCandidates.length) return;
+
+    const existingMappings = await customerRateDB.getStationRates(conn, stationId, 'TRANSPORT');
+    for (const mapping of existingMappings) {
+        if (mapping.rateId === excludeRateId || mapping.rateId === rateId) continue;
+
+        const existingRate = await customerRateDB.getCustomerTransportRateById(conn, mapping.rateId);
+        if (!existingRate) continue;
+        const existingOriginZips = await zoneDB.getZoneZips(conn, existingRate.originZoneId);
+        const existingDestinationZips = await zoneDB.getZoneZips(conn, existingRate.destinationZoneId);
+        if (zipPairConflicts(candidateOriginCandidates, candidateDestinationCandidates, existingOriginZips, existingDestinationZips)) {
+            throw new Error('Rate assignment already exists for this ZIP-to-ZIP combination. Please use a different ZIP range.');
         }
     }
 }
@@ -407,8 +448,6 @@ export async function createCustomerTransportRateService(
 ): Promise<CustomerTransportRateResponse> {
     await conn.beginTransaction();
     try {
-        await validateTransportRateZipUniqueness(conn, req.originZoneId, req.destinationZoneId, req);
-
         // 1) Create the transport rate (without entity/noteThread yet)
         const rateId = await customerRateDB.createCustomerTransportRate(
             conn,
@@ -581,8 +620,18 @@ export async function updateCustomerTransportRateService(
         const originChanged = req.originZoneId !== undefined && req.originZoneId !== existingRate.originZoneId;
         const destinationChanged = req.destinationZoneId !== undefined && req.destinationZoneId !== existingRate.destinationZoneId;
 
+        const stations = await customerRateDB.getStationsByRateId(conn, rateId, 'TRANSPORT');
         if (originChanged || destinationChanged) {
-            await validateTransportRateZipUniqueness(conn, newOriginZoneId, newDestinationZoneId, req);
+            for (const station of stations) {
+                await validateCustomerRateAgainstStation(
+                    conn,
+                    station.stationId,
+                    rateId,
+                    rateId,
+                    newOriginZoneId,
+                    newDestinationZoneId
+                );
+            }
         }
         // Update base record if needed
         if (req.originZoneId || req.destinationZoneId) {
@@ -674,6 +723,7 @@ export async function assignRateToStationService(
     await conn.beginTransaction();
 
     try {
+        if (!req.length) throw new Error('At least one rate assignment is required');
         // âœ… ðŸš¨ Rule 1: Only ONE WAREHOUSE in request
         const warehouseCount = req.filter(r => r.rateType === 'WAREHOUSE').length;
 
@@ -701,6 +751,10 @@ export async function assignRateToStationService(
 
         for (const r of req) {
 
+            if (r.rateType === 'TRANSPORT') {
+                await validateCustomerRateAgainstStation(conn, r.stationId, r.rateId);
+            }
+
             // âœ… Existing duplicate check
             const alreadyMapped = existingMaps.find(
                 m => m.rateId === r.rateId && m.rateType === r.rateType
@@ -717,6 +771,7 @@ export async function assignRateToStationService(
                     assignedBy
                 );
                 stationRateIds.push(stationRateId);
+                existingMaps.push({ stationId: r.stationId, rateId: r.rateId, rateType: r.rateType });
             }
         }
 

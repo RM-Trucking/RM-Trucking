@@ -20,7 +20,6 @@ export async function createStation(
 ): Promise<{ station: StationResponse }> {
     const {
         customerId,
-        stationName,
         rmAccountNumber,
         airportCode,
         phoneNumber,
@@ -32,23 +31,26 @@ export async function createStation(
         warehouseDetail,
         hasWarehouseService,
         warehouseEmails,
+        isNonBillable,
         addresses,
         note
     } = createStationReq;
+    const stationName = createStationReq.stationName?.trim().toUpperCase();
 
 
     // Uniqueness checks
-    const trimmedStationName = stationName?.trim();
+    if (!stationName) {
+        throw new Error('Station name is required and cannot be empty');
+    }
+
     const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(conn, rmAccountNumber);
     if (existingStationByRmAccount) {
         throw new Error('RM account number already exists');
     }
 
-    if (trimmedStationName) {
-        const existingStationByName = await stationDB.getStationByCustomerAndName(conn, customerId, trimmedStationName);
-        if (existingStationByName) {
-            throw new Error('Station name already exists for this customer');
-        }
+    const existingStationByName = await stationDB.getStationByCustomerAndName(conn, customerId, stationName);
+    if (existingStationByName) {
+        throw new Error(`Station name "${stationName}" already exists for this customer`);
     }
 
     await conn.beginTransaction();
@@ -79,6 +81,7 @@ export async function createStation(
             warehouseDetail,
             hasWarehouseService,
             warehouseEmails: warehouseEmails ? JSON.stringify(warehouseEmails) : null,
+            isNonBillable: isNonBillable,
             createdBy: adminId,
             noteThreadId,
             activeStatus: 'Y'
@@ -215,7 +218,7 @@ export async function updateStationService(
 
     // 1. Update only Station fields (exclude addresses)
     const {
-        stationName,
+        stationName: requestedStationName,
         rmAccountNumber,
         airportCode,
         phoneNumber,
@@ -226,20 +229,23 @@ export async function updateStationService(
         warehouse,
         warehouseDetail,
         hasWarehouseService,
-        warehouseEmails
+        warehouseEmails,
+        isNonBillable
     } = updates;
+    const stationName = requestedStationName?.trim().toUpperCase();
 
-    if (stationName && stationName.trim()) {
-        const trimmedStationName = stationName.trim();
+    if (stationName) {
         const existingStationByName = await stationDB.getStationByCustomerAndName(
             conn,
             existing.customerId,
-            trimmedStationName,
+            stationName,
             stationId
         );
         if (existingStationByName) {
-            throw new Error('Station name already exists for this customer');
+            throw new Error(`Station name "${stationName}" already exists for this customer`);
         }
+    } else if (requestedStationName !== undefined) {
+        throw new Error('Station name is required and cannot be empty');
     }
 
     if (rmAccountNumber && rmAccountNumber.trim()) {
@@ -265,6 +271,7 @@ export async function updateStationService(
         warehouse,
         warehouseDetail,
         hasWarehouseService,
+        isNonBillable: isNonBillable,
         warehouseEmails: warehouseEmails ? JSON.stringify(warehouseEmails) : null,
         updatedBy: userId
     });

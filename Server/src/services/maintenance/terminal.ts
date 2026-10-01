@@ -13,7 +13,6 @@ export async function createTerminal(
 ): Promise<{ terminal: TerminalResponse }> {
     const {
         carrierId,
-        terminalName,
         rmAccountNumber,
         airportCode,
         email,
@@ -25,6 +24,16 @@ export async function createTerminal(
         addresses,
         note
     } = createTerminalReq;
+    const terminalName = createTerminalReq.terminalName?.trim().toUpperCase();
+
+    if (!terminalName) {
+        throw new Error('Terminal name is required and cannot be empty');
+    }
+
+    const existingTerminalByName = await terminalDB.getTerminalByCarrierAndName(conn, carrierId, terminalName);
+    if (existingTerminalByName) {
+        throw new Error(`Terminal name "${terminalName}" already exists for this carrier`);
+    }
 
     // 1) Uniqueness check for all fields
     const conflict = await terminalDB.checkTerminalUniqueFields(conn, {
@@ -184,7 +193,7 @@ export async function updateTerminalService(
 
     try {
         const {
-            terminalName,
+            terminalName: requestedTerminalName,
             rmAccountNumber,
             airportCode,
             email,
@@ -194,6 +203,23 @@ export async function updateTerminalService(
             closeTime,
             hours
         } = updates;
+        const terminalName = requestedTerminalName?.trim().toUpperCase();
+
+        if (requestedTerminalName !== undefined && !terminalName) {
+            throw new Error('Terminal name is required and cannot be empty');
+        }
+
+        if (terminalName) {
+            const existingTerminalByName = await terminalDB.getTerminalByCarrierAndName(
+                conn,
+                existing.carrierId,
+                terminalName,
+                terminalId
+            );
+            if (existingTerminalByName) {
+                throw new Error(`Terminal name "${terminalName}" already exists for this carrier`);
+            }
+        }
 
         // Check uniqueness before update
         const conflict = await terminalDB.checkTerminalUniqueFields(conn, {

@@ -80,7 +80,7 @@ export async function createNetworkShipment(
         shipmentTime: normalizeDateTimeValue(shipmentDetails.shipmentTime),
         status: shipmentDetails.status,
         createdBy: userId,
-        createdAt: { raw: "(CURRENT_TIMESTAMP - CURRENT TIMEZONE)" },
+        createdAt: { raw: "(CURRENT_TIMESTAMP - CURRENT TIMEZONE)" }
     };
 
     return insertWithReturning<NetworkShipment>(conn, '"Network_Shipment"', payload);
@@ -306,6 +306,7 @@ export async function createNetworkShipmentPickupInfo(
         airportTransfer: pickupDetails.airportTransfer,
         carrierId: pickupDetails.carrierId,
         terminalId: pickupDetails.terminalId,
+        carrierBillNumber: pickupDetails.carrierBillNumber ?? null,
         fromLocationType: pickupDetails.fromLocationType,
         fromLocation: pickupDetails.fromLocation,
         fromLocationEntityId: pickupDetails.fromLocationEntityId ?? null,
@@ -613,7 +614,7 @@ export async function checkConsigneeUniqueFields(
 
 export async function checkAirlineUniqueFields(
     conn: Connection,
-    airlineNumber: number,
+    airlineNumber: string,
     airlineCode: string,
     scenarioType: string
 ): Promise<string | null> {

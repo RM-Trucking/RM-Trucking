@@ -28,6 +28,7 @@ export interface Carrier {
     isParcelCarrier?: 'Y' | 'N';
     isLTLCarrier?: 'Y' | 'N';
     isAirportCarrier?: 'Y' | 'N';
+    scacCode?: string;
 }
 
 export interface CreateCarrierRequest {
@@ -49,6 +50,7 @@ export interface CreateCarrierRequest {
     isParcelCarrier?: 'Y' | 'N';
     isLTLCarrier?: 'Y' | 'N';
     isAirportCarrier?: 'Y' | 'N';
+    scacCode?: string;
 }
 
 export interface UpdateCarrierRequest {
@@ -72,6 +74,7 @@ export interface UpdateCarrierRequest {
     isParcelCarrier?: 'Y' | 'N';
     isLTLCarrier?: 'Y' | 'N';
     isAirportCarrier?: 'Y' | 'N';
+    scacCode?: string;
     addresses?: AddressUpdateRequest[];
 }
 

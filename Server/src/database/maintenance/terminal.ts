@@ -96,6 +96,25 @@ export async function getTerminalByRmAccountNumber(conn: Connection, rmAccountNu
     return result.length ? result[0] : null;
 }
 
+export async function getTerminalByCarrierAndName(
+    conn: Connection,
+    carrierId: number,
+    terminalName: string,
+    excludeTerminalId?: number
+): Promise<Terminal | null> {
+    const query = `
+        SELECT *
+        FROM ${SCHEMA}."Terminal"
+        WHERE "carrierId" = ?
+          AND UPPER("terminalName") = UPPER(?)
+          AND "activeStatus" = 'Y'
+          AND "terminalId" <> ?
+        FETCH FIRST 1 ROW ONLY
+    `;
+    const result = await conn.query(query, [carrierId, terminalName, excludeTerminalId ?? -1]) as any[];
+    return result.length ? (result[0] as Terminal) : null;
+}
+
 export async function updateTerminal(
     conn: Connection,
     terminalId: number,

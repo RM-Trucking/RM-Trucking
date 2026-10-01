@@ -13,9 +13,11 @@ if (!stage) {
 }
 if (stage === 'dev') {
   hostkeys.hostApiKey = import.meta.env.VITE_HOST_API_KEY_DEV;
+  console.info(`onfig`, hostkeys.hostApiKey);
 }
 else if (stage === 'prod') {
   hostkeys.hostApiKey = import.meta.env.VITE_HOST_API_KEY_PROD;
+  console.info(`onfig`, hostkeys.hostApiKey);
 }
 
 // ROOT PATH AFTER LOGIN SUCCESSFUL

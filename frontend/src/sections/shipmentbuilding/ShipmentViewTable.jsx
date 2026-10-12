@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import React from 'react';
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
@@ -7,6 +8,7 @@ import {
     MenuItem, FormControlLabel, Checkbox, FormControl, InputLabel, Select
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
+import { useGridApiRef } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
 import { useDispatch, useSelector } from '../../redux/store';
 import CustomNoRowsOverlay from '../shared/CustomNoRowsOverlay';
@@ -33,9 +35,10 @@ ShipmentViewTable.PropTypes = {
 
 };
 
-export default function ShipmentViewTable({ }) {
+export default function ShipmentViewTable({ watchedConsolidateFlag, control, setValue, getValues }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const apiRef = useGridApiRef();
     const isLoading = useSelector((state) => state?.shipmentbuildingdata?.isLoading);
     const shipmentViewData = useSelector((state) => state?.shipmentbuildingdata?.shipmentViewData);
     const pagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
@@ -45,6 +48,7 @@ export default function ShipmentViewTable({ }) {
     const error = useSelector((state) => state?.shipmentbuildingdata?.error);
     const carrierList = useSelector((state) => state?.shipmentbuildingdata?.carrierList);
     const selectedDelName = useSelector((state) => state?.shipmentbuildingdata?.selectedDelName);
+    const selectedShipments = useSelector((state) => state?.shipmentbuildingdata?.selectedShipments);
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -61,6 +65,7 @@ export default function ShipmentViewTable({ }) {
     const [selectedRowIds, setSelectedRowIds] = useState([]);
     const [delSubmitModalOpen, setDelSubmitModalOpen] = useState(false);
     const [actionType, setActionType] = useState('');
+    const [gridSelectionModel, setGridSelectionModel] = React.useState([]);
 
 
     const handleUserMenu = (event) => {
@@ -109,6 +114,66 @@ export default function ShipmentViewTable({ }) {
 
     const shipmentColumns = [
         {
+            field: 'customSelection',
+            headerName: '',
+            width: 50,
+            sortable: false,
+            filterable: false,
+            disableColumnMenu: true,
+            // Optional: Re-use your existing selection styling classes
+            cellClassName: 'MuiDataGrid-cellCheckbox',
+            headerClassName: 'MuiDataGrid-columnHeaderCheckbox',
+            renderCell: (params) => {
+                // 1. Determine if this specific row is selected based on your array [1160, 1161]
+                const isChecked = Array.isArray(selectedShipments) &&
+                    selectedShipments.map(id => Number(id)).includes(Number(params.id));
+
+                const isSelectable = !delCheckedRowIds.map(id => Number(id)).includes(Number(params.id));
+
+                return (
+                    <input
+                        type="checkbox"
+                        checked={isChecked}
+                        disabled={!isSelectable || !watchedConsolidateFlag}
+                        style={{
+                            transform: 'scale(1.2)',
+                            cursor: isSelectable && watchedConsolidateFlag ? 'pointer' : 'not-allowed',
+                            accentColor: 'rgba(0, 25, 76, 1)', // Matches your existing branding color
+                            marginLeft : '20px'
+                        }}
+                        onChange={(e) => {
+                            const checked = e.target.checked;
+                            const targetId = Number(params.id);
+
+                            let updatedShipments = Array.isArray(selectedShipments)
+                                ? [...selectedShipments].map(id => Number(id))
+                                : [];
+
+                            if (checked) {
+                                if (!updatedShipments.includes(targetId)) {
+                                    updatedShipments.push(targetId);
+                                }
+                            } else {
+                                updatedShipments = updatedShipments.filter(id => id !== targetId);
+                            }
+
+                            // 2. Safely sync your primitive numerical IDs back to states
+                            setSelectedRowIds(updatedShipments);
+                            dispatch(setSelectedShipments(updatedShipments));
+
+                            // 3. Clear from deletion tracking if checked
+                            if (checked) {
+                                setDelCheckedRowIds((prev) => {
+                                    const currentDelIds = Array.isArray(prev) ? prev : [];
+                                    return currentDelIds.map(id => Number(id)).filter(id => id !== targetId);
+                                });
+                            }
+                        }}
+                    />
+                );
+            },
+        },
+        {
             field: "shipmentPRONo",
             headerName: "Shipment PRO",
             minWidth: 200,
@@ -132,54 +197,54 @@ export default function ShipmentViewTable({ }) {
                 return element;
             },
         },
-        // {
-        //      field: "isShipperAirline",
-        //     headerName: "Shipper airline",
-        //     minWidth: 200,
-        //     flex: 1,
-        //     filterable: false,
-        //     sortable: false,
-        //     renderCell: (params) => {
-        //         const element = (
-        //             <Typography
-        //                 variant='normal'
-        //                 sx={{
-        //                     p: 2,
-        //                     color: '#AA2222',            // Applies the dark red/amber tone
-        //                     textDecoration: 'underline'  // Underlines the text
-        //                 }}
-        //             >
-        //                 {params?.row?.isShipperAirline ? 'Yes' : 'No'}
-        //             </Typography>
+        {
+            field: "isShipperAirline",
+            headerName: "Shipper airline",
+            minWidth: 200,
+            flex: 1,
+            filterable: false,
+            sortable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                        variant='normal'
+                        sx={{
+                            p: 2,
+                            color: '#AA2222',            // Applies the dark red/amber tone
+                            textDecoration: 'underline'  // Underlines the text
+                        }}
+                    >
+                        {params?.row?.isShipperAirline ? 'Yes' : 'No'}
+                    </Typography>
 
-        //         );
-        //         return element;
-        //     },
-        // },
-        // {
-        //      field: "isConsigneeAirline",
-        //     headerName: "Consignee airline",
-        //     minWidth: 200,
-        //     flex: 1,
-        //     filterable: false,
-        //     sortable: false,
-        //     renderCell: (params) => {
-        //         const element = (
-        //             <Typography
-        //                 variant='normal'
-        //                 sx={{
-        //                     p: 2,
-        //                     color: '#AA2222',            // Applies the dark red/amber tone
-        //                     textDecoration: 'underline'  // Underlines the text
-        //                 }}
-        //             >
-        //                 {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
-        //             </Typography>
+                );
+                return element;
+            },
+        },
+        {
+            field: "isConsigneeAirline",
+            headerName: "Consignee airline",
+            minWidth: 200,
+            flex: 1,
+            filterable: false,
+            sortable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                        variant='normal'
+                        sx={{
+                            p: 2,
+                            color: '#AA2222',            // Applies the dark red/amber tone
+                            textDecoration: 'underline'  // Underlines the text
+                        }}
+                    >
+                        {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
+                    </Typography>
 
-        //         );
-        //         return element;
-        //     },
-        // },
+                );
+                return element;
+            },
+        },
         {
             field: "customerName",
             headerName: "Customer Name",
@@ -327,12 +392,12 @@ export default function ShipmentViewTable({ }) {
                             </IconButton>
                         </Tooltip>
 
-                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton> */}
+                        </IconButton>
 
                         {/* Checkbox with Del Label */}
-                        {/* <FormControlLabel
+                        <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -361,7 +426,7 @@ export default function ShipmentViewTable({ }) {
                             sx={{
                                 ml: 1 // 👈 Kept your original margin-left positioning
                             }}
-                        /> */}
+                        />
 
                         <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
@@ -384,7 +449,7 @@ export default function ShipmentViewTable({ }) {
                         </FormControl>
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
-                        {/* {isRowSelected && (
+                        {isRowSelected && (
                             <Button
                                 variant="contained"
                                 size="small"
@@ -398,9 +463,9 @@ export default function ShipmentViewTable({ }) {
                             >
                                 Select Del Agent
                             </Button>
-                        )} */}
+                        )}
                         {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
-                        {/* {isDelChecked && (
+                        {isDelChecked && (
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Button
                                     variant="contained"
@@ -448,7 +513,7 @@ export default function ShipmentViewTable({ }) {
                                     Add to Queue
                                 </Button>
                             </Box>
-                        )} */}
+                        )}
 
                         {/* Pro Tip: Consider lifting this Popover out of renderCell to the main component level */}
                         <MenuPopover
@@ -473,7 +538,7 @@ export default function ShipmentViewTable({ }) {
     // get call for notes
     useEffect(() => {
         dispatch(setTableBeingViewed('shipment view'));
-        dispatch(setSelectedShipmentBuildObj({}));
+        // dispatch(setSelectedShipmentBuildObj({}));
         dispatch(getShipmentBuildData({
             pageNo: paginationModel.page,
             pageSize: paginationModel.pageSize,
@@ -538,13 +603,19 @@ export default function ShipmentViewTable({ }) {
             setSnackbarOpen(true);
         }
     }, [error])
+    useEffect(() => {
+        if (selectedShipments?.length > 0) {
+            setValue('consolidateFlag', true);
+        }
+    }, [selectedShipments])
+
 
     return (
         <>
 
             <Box sx={{ height: 600, width: "100%", flex: 1, mt: 2 }}>
                 <DataGrid
-                    checkboxSelection
+                    // checkboxSelection={watchedConsolidateFlag}
                     isRowSelectable={(params) => !delCheckedRowIds.includes(params.id)}
                     onRowSelectionModelChange={(newSelectionModel) => {
                         let extractedIdsArray = [];

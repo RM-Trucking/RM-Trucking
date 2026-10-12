@@ -265,9 +265,10 @@ export default function BillOfLadingAuto({ data }) {
                                                             </div>
                                                             <div style={{ textAlign: 'center' }}>
                                                                 <span style={{ fontSize: '7.5pt' }}><b>Pro number:</b></span>
-                                                                <div style={{ fontSize: '11pt', fontWeight: 'bold', letterSpacing: '0.5px' }}>{proNumber}</div>
+                                                                {/* <div style={{ fontSize: '11pt', fontWeight: 'bold', letterSpacing: '0.5px' }}>{proNumber}</div> */}
+                                                                <div style={{ fontSize: '11pt', fontWeight: 'bold', letterSpacing: '0.5px' }}>{linehaulCarrier?.carrierBillNumber}</div>
                                                                 <div style={{ marginTop: '2px', display: 'flex', justifyContent: 'center' }}>
-                                                                    <BarcodeImage value={proNumber} />
+                                                                    <BarcodeImage value={linehaulCarrier?.carrierBillNumber} />
                                                                 </div>
                                                                 <div style={{ fontSize: '6pt', transform: 'scale(0.9)' }}>DAFG BOL</div>
                                                                 {/* Figma Specific Sub-Table: Skids, Drums, Long, Loose */}

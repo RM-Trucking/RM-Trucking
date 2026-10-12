@@ -12,7 +12,7 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import WarningAmberRoundedIcon from '@mui/icons-material/WarningAmberRounded';
 
-export default function AddressAlert({ open, onClose }) {
+export default function AddressAlert({ open, onClose, showAddressAirportFlag }) {
   return (
     <Dialog
       open={open}
@@ -81,7 +81,8 @@ export default function AddressAlert({ open, onClose }) {
               lineHeight: 1.5
             }}
           >
-            Cannot consolidate shipments with different ship-from addresses
+            Cannot consolidate shipments with different
+            {showAddressAirportFlag ? ' airport codes' : ' ship-from addresses'}.
           </Typography>
         </Box>
       </DialogContent>

@@ -65,7 +65,6 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
     const [selectedRowIds, setSelectedRowIds] = useState([]);
     const [delSubmitModalOpen, setDelSubmitModalOpen] = useState(false);
     const [actionType, setActionType] = useState('');
-    const [gridSelectionModel, setGridSelectionModel] = React.useState([]);
 
 
     const handleUserMenu = (event) => {
@@ -139,7 +138,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             transform: 'scale(1.2)',
                             cursor: isSelectable && watchedConsolidateFlag ? 'pointer' : 'not-allowed',
                             accentColor: 'rgba(0, 25, 76, 1)', // Matches your existing branding color
-                            marginLeft : '20px'
+                            marginLeft: '20px'
                         }}
                         onChange={(e) => {
                             const checked = e.target.checked;
@@ -609,6 +608,27 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
         }
     }, [selectedShipments])
 
+    const pendingFetchTimeoutRef = React.useRef(null);
+
+    const debouncedGetShipmentBuildData = React.useCallback((params) => {
+        // 1. Cancel the previous pending API call if the user clicked another page quickly
+        if (pendingFetchTimeoutRef.current) {
+            clearTimeout(pendingFetchTimeoutRef.current);
+        }
+
+        // 2. Set a small delay (e.g., 250ms). Only the last click will fire.
+        pendingFetchTimeoutRef.current = setTimeout(() => {
+            dispatch(getShipmentBuildData(params));
+        }, 250); // 250ms is ideal for rapid page changing
+    }, [dispatch]);
+
+    // Clean up the timeout if the component unmounts
+    React.useEffect(() => {
+        return () => {
+            if (pendingFetchTimeoutRef.current) clearTimeout(pendingFetchTimeoutRef.current);
+        };
+    }, []);
+
 
     return (
         <>
@@ -653,17 +673,24 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                     onPaginationModelChange={(newModel) => {
                         if (!newModel) return;
                         setPaginationModel(newModel);
-                        dispatch(getShipmentBuildData({
+
+                        // Use the debounced wrapper here
+                        debouncedGetShipmentBuildData({
                             pageNo: newModel.page + 1,
                             pageSize: newModel.pageSize,
                             searchStr: shipmentBuildSearchStr,
-                        }));
+                        });
                     }}
                     onPageChange={(newPage) => {
                         dispatch(getShipmentBuildData({ pageNo: newPage + 1, pageSize: pagination?.pageSize || 10, searchStr: shipmentBuildSearchStr, }));
                     }}
                     onPageSizeChange={(newPageSize) => {
-                        dispatch(getShipmentBuildData({ pageNo: 1, pageSize: newPageSize, searchStr: shipmentBuildSearchStr, }));
+                        // Use the debounced wrapper here
+                        debouncedGetShipmentBuildData({
+                            pageNo: 1,
+                            pageSize: newPageSize,
+                            searchStr: shipmentBuildSearchStr,
+                        });
                     }}
                     pageSizeOptions={[5, 10, 50, 100]}
                     rowCount={isNaN(parseInt(pagination?.totalRecords, 10)) ? 0 : parseInt(pagination.totalRecords, 10)}

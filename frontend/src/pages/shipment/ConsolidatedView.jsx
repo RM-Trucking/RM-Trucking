@@ -4,7 +4,7 @@ import ConsolidatedHomePage from "../../sections/shipmentbuilding/ConsolidateHom
 export default function ConsolidatedView() {
   return (
     <>
-      <ConsolidatedHomePage />
+      <ConsolidatedHomePage type = 'Edit' />
     </>
   );
 }

@@ -22,7 +22,8 @@ import {
     putCustomerTransportationRate, putCarrierTransportationRate,
     postCarrierTransportationRate, setOriginZoneListByZipCode,
     setDestinationZoneListByZipCode, setCustomerList, setCarrierList,
-    getCustomerListByRateID, getCarrierListByRateID
+    getCustomerListByRateID, getCarrierListByRateID,
+    getCarrierAirportRateDashboardData, postCarrierAirportRate, putCarrierAirportRate, deleteCarrierAirportRate
 
 } from '../../redux/slices/rate';
 import {
@@ -110,7 +111,22 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
             // setValue('airportCheck',selectedCurrentRateRow?.airportCheck);
         }
+        if (type === 'Edit' && selectedCurrentRateRow && currentTab === 'airport') {
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || '');
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
+            setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
+            setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
+            // setValue('airportCheck',selectedCurrentRateRow?.airportCheck);
+        }
         if (type === 'View' && selectedCurrentRateRow && currentTab === 'transportation') {
+            setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || "");
+            setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
+            setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
+            setValue('destinationZipCode', selectedCurrentRateRow?.destinationZone?.zipCodes?.join(',').concat(",", selectedCurrentRateRow?.destinationZone?.ranges?.join(',')) || '');
+            setValue('notes', selectedCurrentRateRow?.notes?.[0]?.messageText || '');
+        }
+        if (type === 'View' && selectedCurrentRateRow && currentTab === 'airport') {
             setValue('origin', selectedCurrentRateRow?.originZone?.zoneId || "");
             setValue('destination', selectedCurrentRateRow?.destinationZone?.zoneId || '');
             setValue('originZipCode', selectedCurrentRateRow?.originZone?.zipCodes.join(',').concat(",", selectedCurrentRateRow?.originZone?.ranges?.join(',')) || '');
@@ -215,6 +231,47 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }));
             } else {
                 dispatch(getCarrierTransportationRateDashboardData({
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
+        }
+        if (type === 'Search' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
+            const { origin, originZipCode, destination, destinationZipCode } = data;
+            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
+                value => value && value.trim() !== ''
+            );
+            if (!hasAtLeastOneField) {
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                return; // Stop the form submission
+            }
+            if (pathname.includes('/carrier-maintenance/terminal-view')) {
+                dispatch(getTerminalRateSearchData({
+                    terminalId: selectedCarrierTabRowDetails?.terminalId || localStorage.getItem('terminalId'),
+                    rateType: 'TRANSPORT',
+                    originZoneId: data.originZipCode ? data.origin : '',
+                    originZipOrRange: data.originZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean),
+                    destinationZoneId: data.destinationZipCode ? data.destination : '',
+                    destinationZipOrRange: data.destinationZipCode
+                        ?.split(',')            // Split by comma
+                        ?.map(s => s.trim())    // Remove any extra whitespace
+                        ?.filter(Boolean), pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            } else {
+                dispatch(getCarrierAirportRateDashboardData({
                     originZoneId: data.originZipCode ? data.origin : '',
                     originZipOrRange: data.originZipCode
                         ?.split(',')            // Split by comma
@@ -351,6 +408,39 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             };
             dispatch(postCarrierTransportationRate(obj));
         }
+        if (type === 'Add' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarSeverity("error");
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
+
+
+            // 3. Construct the object and dispatch
+            // add key for airport check
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": details,
+                "note": {
+                    "messageText": data.notes
+                }
+            };
+            dispatch(postCarrierAirportRate(obj));
+        }
         if (type === 'Edit' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             // 1. Process the details first to see what's actually valid
             const details = rateFieldChargeData
@@ -411,6 +501,37 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 // "noteThreadId": selectedCurrentRateRow.noteThreadId,
             }
             dispatch(putCarrierTransportationRate(selectedCurrentRateRow?.rateId, obj))
+        }
+        if (type === 'Edit' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
+            // 1. Process the details first to see what's actually valid
+            const details = rateFieldChargeData
+                .filter(item => item.rateField?.toString().trim() && item.charge?.toString().trim())
+                .map(item => {
+                    const isMinOrMax = ["Min Charge", "Max Charge"].includes(item.rateField);
+                    return {
+                        rateField: item.rateField.toString(),
+                        chargeValue: Number(item.charge),
+                        perUnitFlag: isMinOrMax ? "N" : "Y"
+                    };
+                });
+            // 2. Validation Check: Ensure at least one valid row exists
+            if (details.length === 0) {
+                setSnackbarOpen(true);
+                setSnackbarSeverity("error");
+                setSnackbarMessage("Please add at least one valid Rate Field and Charge.");
+                return;
+            }
+            // add key for airport check
+            const obj = {
+                "originZoneId": data.origin,
+                "destinationZoneId": data.destination,
+                "details": details,
+                // "note": {
+                //     "messageText": data.notes
+                // },
+                // "noteThreadId": selectedCurrentRateRow.noteThreadId,
+            }
+            dispatch(putCarrierAirportRate(selectedCurrentRateRow?.rateId, obj))
         }
     };
     const handleCLear = () => {
@@ -475,6 +596,31 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 }));
             }
         }
+        if (type === 'Search' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
+            const origin = getValues('origin');
+            const originZipCode = getValues('originZipCode');
+            const destination = getValues('destination');
+            const destinationZipCode = getValues('destinationZipCode');
+            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
+                value => value && value.trim() !== ''
+            );
+            if (!hasAtLeastOneField) {
+                setSnackbarSeverity("error");
+                setSnackbarOpen(true);
+                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                return; // Stop the form submission
+            }
+            if (pathname.includes('/carrier-maintenance/terminal-view')) {
+                dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'TRANSPORT'));
+            } else {
+                dispatch(getCarrierAirportRateDashboardData({
+                    originZoneId: '',
+                    originZipOrRange: '',
+                    destinationZoneId: '',
+                    destinationZipOrRange: '', pageNo: pagination.page, pageSize: pagination.pageSize
+                }));
+            }
+        }
         // reset form fields    
         setValue('origin', '');
         setValue('originZipCode', '');
@@ -524,11 +670,17 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 </Stack>
                 <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
             </>}
+            {type === 'View' && currentTab === 'airport' && <>
+                <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
+                    <Typography sx={{ fontSize: '18px', fontWeight: 600, wordBreak: 'break-all', whiteSpace: 'normal', lineHeight: 'normal' }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate ID - {(selectedCurrentRateRow?.rateId && type === 'View') ? selectedCurrentRateRow?.rateId : ''}</Typography>
+                </Stack>
+                <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
+            </>}
             {/* form  */}
             <Box component="form" sx={{ pt: 2, pb: 2 }}>
                 <Stack spacing={4} sx={{ p: padding }}>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={'flex-end'} justifyContent={type === 'Search' ? 'flex-end' : '"flex-start"'}>
-                        {currentTab === 'transportation' &&
+                        {(currentTab === 'transportation' || currentTab === 'airport') &&
                             <Controller
                                 name="originZipCode"
                                 control={control}
@@ -617,10 +769,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     />
                                 )}
                             />
-
-
                         }
-                        {currentTab === 'transportation' &&
+                        {(currentTab === 'transportation' || currentTab === 'airport') &&
                             <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>
                                 <Controller
                                     name="origin"
@@ -702,7 +852,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                             </Stack>
                         }
 
-                        {currentTab === 'transportation' &&
+                        {(currentTab === 'transportation' || currentTab === 'airport') &&
                             <Controller
                                 name="destinationZipCode"
                                 control={control}
@@ -787,10 +937,8 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                                     />
                                 )}
                             />
-
-
                         }
-                        {currentTab === 'transportation' &&
+                        {(currentTab === 'transportation' || currentTab === 'airport') &&
                             <Stack flexDirection={'row'} alignItems={'center'} sx={{ width: '100%' }}>
                                 <Controller
                                     name="destination"
@@ -1054,7 +1202,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                     {((type === 'Add' || type === 'Edit' || type === 'Copy') && currentTab === 'warehouse') && <Box sx={{ mt: '16px !important' }}>
                         <RateFieldAndChargeTableWarehouse type={type} />
                     </Box>}
-                    {((type === 'Add' || type === 'Edit' || type === 'View') && currentTab === 'transportation') && <Box>
+                    {((type === 'Add' || type === 'Edit' || type === 'View') && (currentTab === 'transportation' || currentTab === 'airport')) && <Box>
                         <Stack flexDirection={'row'} alignItems={'flex-start'} >
                             <RateFieldAndChargeTable type={type} />
                             <Stack flexDirection={'column'} sx={{ width: '50%', ml: 2 }} alignItems={'flex-end'}>

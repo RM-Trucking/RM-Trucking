@@ -174,8 +174,21 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.operationalMessage = "Rate deleted successfully";
         },
+        deleteCustomerAirportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate deleted successfully";
+        },
         // carrier transportation success slices
         getCarrierTransportationRateDashboardDataSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.rateTableData = action.payload.data;
+            state.pagination.page = action.payload.pagination.page;
+            state.pagination.pageSize = action.payload.pagination.pageSize;
+            state.pagination.totalRecords = action.payload.pagination.total;
+        },
+        getCarrierAirportRateDashboardDataSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
             state.rateTableData = action.payload.data;
@@ -191,7 +204,25 @@ const slice = createSlice({
             state.rateTableData.unshift(action.payload.data);
             state.pagination.totalRecords = action.payload.total + 1 || state.pagination.totalRecords + 1;
         },
+        postCarrierAirportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate added successfully";
+            // update table data by adding new record at the start
+            state.rateTableData.unshift(action.payload.data);
+            state.pagination.totalRecords = action.payload.total + 1 || state.pagination.totalRecords + 1;
+        },
         putCarrierTransportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate updated successfully";
+            // update table data by updating record
+            const index = state.rateTableData.findIndex((row) => row.rateId === action.payload?.data?.rateId);
+            if (index === 0 || index > 0) {
+                state.rateTableData.splice(index, 1, action.payload.data);
+            }
+        },
+        putCarrierAirportRateSuccess(state, action) {
             state.isLoading = false;
             state.rateSuccess = true;
             state.operationalMessage = "Rate updated successfully";
@@ -352,7 +383,6 @@ export function getCustomerTransportationRateDashboardData({
         }
     };
 }
-
 export function postCustomerTransportationRate(obj) {
     return async () => {
         dispatch(slice.actions.startLoading());
@@ -541,6 +571,67 @@ export function postTerminalRate(arr) {
             dispatch(slice.actions.postTerminalRateDataSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error))
+        }
+    };
+}
+
+// airport rate get 
+export function getCarrierAirportRateDashboardData({ originZoneId, originZipOrRange, destinationZoneId, destinationZipOrRange, pageNo, pageSize }) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            // Use URLSearchParams to build a clean string without spaces
+            const params = new URLSearchParams();
+
+            if (originZoneId) params.append("originZoneId", originZoneId);
+            if (originZipOrRange && originZipOrRange?.length > 0) params.append("originZipOrRange", originZipOrRange);
+            if (destinationZoneId) params.append("destinationZoneId", destinationZoneId);
+            if (destinationZipOrRange && destinationZipOrRange?.length > 0) params.append("destinationZipOrRange", destinationZipOrRange);
+
+            params.append("page", pageNo || 1);
+            params.append("pageSize", pageSize || 10);
+
+            const url = `maintenance/carrier-rate/airport-rate?${params.toString()}`;
+            const response = await axios.get(url);
+
+            dispatch(slice.actions.getCarrierAirportRateDashboardDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function postCarrierAirportRate(obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.post(`maintenance/carrier-rate/airport-rate`, obj);
+            dispatch(slice.actions.postCarrierAirportRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function putCarrierAirportRate(id, obj) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.put(`maintenance/carrier-rate/airport-rate/${id}`, obj);
+            dispatch(slice.actions.putCarrierAirportRateSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
+export function deleteCarrierAirportRate(id) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.delete(`maintenance/carrier-rate/airport-rate/${id}`);
+            dispatch(slice.actions.deleteCarrierAirportRateSuccess({
+                id, message: response.data
+            }));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
         }
     };
 }

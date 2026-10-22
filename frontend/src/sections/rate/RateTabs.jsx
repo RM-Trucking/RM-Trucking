@@ -33,12 +33,20 @@ export default function RateTabs({ }) {
             value: 'warehouse',
             label: 'Warehouse',
         },
+        {
+            value: 'airport',
+            label: 'Airport',
+        }
     ];
     const filteredTabs = TABS.filter((tab) => {
-        if (currentRateRoutedFrom === 'carrier') {
-            return tab.value === 'transportation'; // Only show Transportation
-        }
-        return true; // Show both for 'Warehouse' or others
+        // If it's the airport tab, strictly require 'carrier'.
+        if (tab.value === 'airport') return currentRateRoutedFrom === 'carrier';
+
+        // If it's the warehouse tab, hide it when 'carrier' is selected.
+        if (tab.value === 'warehouse') return currentRateRoutedFrom !== 'carrier';
+
+        // Always keep transportation
+        return true;
     });
 
 

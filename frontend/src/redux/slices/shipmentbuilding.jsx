@@ -30,6 +30,7 @@ const initialState = {
         }
     ],
     selectedShipments: [],
+    selectedShipmentObjects: [],
     selectedDelRowObj: {},
     selectedDelName: [],
     addToQueueData: [
@@ -157,6 +158,9 @@ const slice = createSlice({
         setSelectedShipments(state, action) {
             state.selectedShipments = action.payload;
         },
+        setSelectedShipmentObjects(state,action){
+            state.selectedShipmentObjects = action.payload;
+        },
         setSelectedDelRowObj(state, action) {
             state.selectedDelRowObj = action.payload;
         },
@@ -173,6 +177,7 @@ export const {
     setOperationalMessage,
     setSelectedShipmentBuildObj,
     setSelectedShipments,
+    setSelectedShipmentObjects,
     setSelectedDelRowObj,
     setSelectedDelName,
 } = slice.actions;

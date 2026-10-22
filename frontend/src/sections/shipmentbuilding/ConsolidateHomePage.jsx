@@ -55,11 +55,20 @@ import ActiveStep2 from './ActiveStep2';
 import ConsolidatePickup from './ConsolidatePickup';
 import ConsolidateLinehaul from './ConsolidateLinehaul';
 import ConsolidateDelivery from './ConsolidateDelivery';
+import ConsolidatedDeliveryDetailsList from './ConsolidatedDeliveryDetailsList';
 import ActiveStep4 from './ActiveStep4';
 import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
 import { handleEditNext, onFormEditSubmit } from './handleEditNext';
-import { updateControls, updateShipperDropdown, updateShipperAilineDropdown, updateConsigneeDropdown, updateConsigneeAirlineDropdown, updateCustomerStationDropdown, updateCarrierTerminalDropdown } from './UpdateControls';
+import {
+  updateControlsForConsolidate,
+  updateShipperDropdownForConsolidate,
+  updateShipperAilineDropdownForConsolidate,
+  updateConsigneeDropdownForConsolidate,
+  updateConsigneeAirlineDropdownForConsolidate,
+  updateCustomerStationDropdownForConsolidate,
+  updateCarrierTerminalDropdownForConsolidate,
+} from './UpdateControlsForConsolidate';
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -96,459 +105,7 @@ const getFreightClass = (length, width, height, lbs) => {
   if (density >= 1) return '300';
   return '400'; // Less than 1 lb/cu ft
 }
-const shipments = [
-  {
-    "shipmentId": 1161,
-    "shipmentDetails": {
-      "typeOfShipment": "AIR_IMPORT",
-      "serviceLevel": "Dedicated Truck",
-      "shipmentDate": "2026-10-05",
-      "shipmentTime": null,
-      "orderReceivedPickupPending": "N",
-      "status": "ORDER_RECEIVED_PICKUP_SETUP",
-      "shipmentProNumber": "S0000001161"
-    },
-    "customerDetails": {
-      "customerInfoId": 998,
-      "shipmentId": 1161,
-      "customerId": 104,
-      "stationId": 153,
-      "originAirportCode": "",
-      "destinationAirportCode": "",
-      "airportPickupService": "N",
-      "airportDeliveryService": "N",
-      "customerName": "check cust 23",
-      "shipperDetails": {
-        "shipperId": 130,
-        "shipperName": "shipper 434",
-        "addressLine1": "Demo Address Line 1",
-        "addressLine2": "Line 2",
-        "city": "Demo city",
-        "state": "Demo state",
-        "zipCode": "12345",
-        "contactPersonName": "d",
-        "phoneNumber": "(222) 222-2222",
-        "entityId": 5435
-      },
-      "consigneeDetails": {
-        "consigneeId": 158,
-        "consigneeName": "consignee 157",
-        "addressLine1": "line 1",
-        "addressLine2": "",
-        "city": "city",
-        "state": "state",
-        "zipCode": "65756",
-        "contactPersonName": "nm",
-        "phoneNumber": "(659) 876-7868",
-        "entityId": 5440
-      }
-    },
-    "commodityDetails": {
-      "commodityId": 876,
-      "emergencyContactName": "",
-      "emergencyContactPhone": "",
-      "handlingUnits": [
-        {
-          "handlingUnitId": 1373,
-          "shipmentId": 1161,
-          "handlingUnitUOM": "Crate",
-          "handlingUnits": "1",
-          "unit": "in",
-          "handlingLength": 0,
-          "handlingWidth": 0,
-          "handlingHeight": 0,
-          "handlingWeight": 2,
-          "handlingWeightUnit": "LB",
-          "class": "",
-          "palletDetails": [
-            {
-              "itemId": 1515,
-              "handlingUnitId": 1373,
-              "pieces": 1,
-              "piecesUOM": "Skid",
-              "description": "desc",
-              "hazmat": "N"
-            }
-          ],
-          "images": []
-        }
-      ]
-    },
-    "carrierDetails": {
-      "pickupDetails": {
-        "pickupInfoId": 1039,
-        "shipmentId": 1161,
-        "entityId": 5435,
-        "pickupRouting": "PICKUP_LINE_HAUL",
-        "airportTransfer": "N",
-        "carrierId": 184,
-        "carrierName": "Averitt Express",
-        "terminalId": 527,
-        "terminalName": "RIC",
-        "carrierBillNumber": "567567",
-        "fromLocationType": "Shipper",
-        "fromLocation": "shipper 434",
-        "fromLocationEntityId": 5435,
-        "editFromLocation": "N",
-        "pickupAgentTerminal": "N",
-        "pickupAccessorial": "N",
-        "pickupAlert": "N",
-        "editFromLocationDetails": {
-          "addressLine1": "Demo Address Line 1",
-          "addressLine2": "Line 2",
-          "city": "Demo city",
-          "state": "Demo state",
-          "zipCode": "12345"
-        },
-        "pickupAgentTerminalDetails": {
-          "pickupAgentTerminalId": 783,
-          "shipmentId": 1161,
-          "toLocationType": "Carrier",
-          "toLocation": "Averitt Express",
-          "toLocationEntityId": 3408,
-          "editToLocation": "N",
-          "editToLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          }
-        },
-        "pickupAlertDetails": {
-          "pickupAlertId": 578,
-          "shipmentId": 1161,
-          "inboundNotes": null,
-          "emailInfo": {
-            "primaryEmail": "",
-            "additionalEmails": []
-          }
-        }
-      },
-      "linehaulDetails": {
-        "linehaulPrimaryInfo": {
-          "linehaulInfoId": 430,
-          "shipmentId": 1161,
-          "entityId": 6365,
-          "linehaulRouting": "LINE_HAUL_ONLY",
-          "carrierId": 184,
-          "terminalId": 214,
-          "carrierBillNumber": "57567",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "Carrier",
-          "fromLocationEntityId": 3408,
-          "editToLocation": "N",
-          "toLocationType": "Carrier",
-          "toLocation": "526-184",
-          "toLocationEntityId": 4840,
-          "etaDate": "2026-10-05",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "1005 Enterprise Cir",
-            "addressLine2": "",
-            "city": "Chesapeake",
-            "state": "VA",
-            "zipCode": "23321"
-          }
-        },
-        "linehaulCommonInfo": {
-          "linehaulCommonInfoId": 602,
-          "shipmentId": 1161,
-          "linehaulAccessorial": "N",
-          "linehaulNotes": ""
-        }
-      },
-      "deliveryDetails": {
-        "deliveryPrimaryInfo": {
-          "deliveryInfoId": 389,
-          "shipmentId": 1161,
-          "entityId": 6366,
-          "carrierId": 184,
-          "terminalId": 214,
-          "carrierBillNumber": "5657567",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "Carrier",
-          "fromLocationEntityId": 3408,
-          "editToLocation": "N",
-          "toLocationType": "Consignee",
-          "toLocation": "consignee 157",
-          "toLocationEntityId": 5440,
-          "etaDate": "2026-10-05",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "line 1",
-            "addressLine2": "",
-            "city": "city",
-            "state": "state",
-            "zipCode": "65756"
-          }
-        },
-        "deliveryCommonInfo": {
-          "deliveryCommonInfoId": 564,
-          "shipmentId": 1161,
-          "deliveryAccessorial": "N",
-          "airportTransfer": "Y",
-          "deliveryAlert": "N",
-          "deliveryAlertDetails": {
-            "deliveryAlertId": 461,
-            "shipmentId": 1161,
-            "linehaulNotes": null,
-            "deliveryNotes": null,
-            "emailInfo": {
-              "primaryEmail": null,
-              "additionalEmails": []
-            }
-          }
-        }
-      }
-    }
-  },
-  {
-    "shipmentId": 1109,
-    "shipmentDetails": {
-      "typeOfShipment": "AIR_EXPORT",
-      "serviceLevel": "Dedicated Truck",
-      "shipmentDate": "2026-09-17",
-      "shipmentTime": null,
-      "orderReceivedPickupPending": "N",
-      "status": "ORDER_RECEIVED_PICKUP_SETUP",
-      "shipmentProNumber": "S0000001109"
-    },
-    "customerDetails": {
-      "customerInfoId": 952,
-      "shipmentId": 1109,
-      "customerId": 122,
-      "stationId": 176,
-      "originAirportCode": "LKML",
-      "destinationAirportCode": "LMNL",
-      "airportPickupService": "Y",
-      "airportDeliveryService": "Y",
-      "customerName": "Rajadurai S",
-      "pickupAirlineDetails": {
-        "airlineId": 184,
-        "airlineNumber": 31,
-        "airlineCode": "GL",
-        "airportCode": "LKML",
-        "airlineName": "Test 1",
-        "addressLine1": "Test address 1",
-        "addressLine2": "",
-        "city": "Test city",
-        "state": "Test State",
-        "zipCode": "87976",
-        "contactPersonName": "Shiva",
-        "phoneNumber": "(897) 866-7632",
-        "entityId": 6123,
-        "scenarioType": "EXPORT"
-      },
-      "deliveryAirlineDetails": {
-        "airlineId": 185,
-        "airlineNumber": 32,
-        "airlineCode": "GU",
-        "airportCode": "LMNL",
-        "airlineName": "Test 2",
-        "addressLine1": "Test address 1",
-        "addressLine2": "",
-        "city": "Test city",
-        "state": "Test state",
-        "zipCode": "78767",
-        "contactPersonName": "Prakash",
-        "phoneNumber": "(987) 877-6588",
-        "entityId": 6124,
-        "scenarioType": "EXPORT"
-      }
-    },
-    "commodityDetails": {
-      "commodityId": 831,
-      "emergencyContactName": "",
-      "emergencyContactPhone": "",
-      "handlingUnits": [
-        {
-          "handlingUnitId": 1145,
-          "shipmentId": 1109,
-          "handlingUnitUOM": "Drum",
-          "handlingUnits": "4",
-          "unit": "in",
-          "handlingLength": 8,
-          "handlingWidth": 6,
-          "handlingHeight": 10,
-          "handlingWeight": 45,
-          "handlingWeightUnit": "LB",
-          "class": "Class 55",
-          "palletDetails": [
-            {
-              "itemId": 1263,
-              "handlingUnitId": 1145,
-              "pieces": 2,
-              "piecesUOM": "Drum",
-              "description": "Testing",
-              "hazmat": "N"
-            }
-          ],
-          "images": []
-        }
-      ]
-    },
-    "carrierDetails": {
-      "pickupDetails": {
-        "pickupInfoId": 832,
-        "shipmentId": 1109,
-        "entityId": 6125,
-        "pickupRouting": "PICKUP_ONLY",
-        "airportTransfer": "N",
-        "carrierId": 263,
-        "carrierName": "estest1",
-        "terminalId": 521,
-        "terminalName": "Terminal 001",
-        "carrierBillNumber": "87676987",
-        "fromLocationType": "Shipper",
-        "fromLocation": "Test 1",
-        "fromLocationEntityId": null,
-        "editFromLocation": "N",
-        "pickupAgentTerminal": "Y",
-        "pickupAccessorial": "N",
-        "pickupAlert": "N",
-        "editFromLocationDetails": {
-          "addressLine1": "Test address 1",
-          "addressLine2": "",
-          "city": "Test city",
-          "state": "Test State",
-          "zipCode": "87976"
-        },
-        "pickupAgentTerminalDetails": {
-          "pickupAgentTerminalId": 576,
-          "shipmentId": 1109,
-          "toLocationType": "Carrier",
-          "toLocation": "estest1",
-          "toLocationEntityId": 4557,
-          "editToLocation": "N",
-          "editToLocationDetails": {
-            "addressLine1": "Add line 1",
-            "addressLine2": "Add line 2",
-            "city": "city1",
-            "state": "ST",
-            "zipCode": "12309"
-          }
-        }
-      },
-      "linehaulDetails": {
-        "linehaulPrimaryInfo": {
-          "linehaulInfoId": 304,
-          "shipmentId": 1109,
-          "entityId": 6126,
-          "linehaulRouting": "LINE_HAUL_ONLY",
-          "carrierId": 263,
-          "terminalId": 522,
-          "carrierBillNumber": "879776",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "",
-          "fromLocationEntityId": 4587,
-          "editToLocation": "N",
-          "toLocationType": "Carrier",
-          "toLocation": "236-243",
-          "toLocationEntityId": 3442,
-          "etaDate": "2026-09-17",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "Test 2",
-            "addressLine2": "Test 2",
-            "city": "Test 2",
-            "state": "Test 2",
-            "zipCode": "77678"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "house of groom, lender group",
-            "addressLine2": "",
-            "city": "NewYork",
-            "state": "Arizona",
-            "zipCode": "60008"
-          }
-        },
-        "linehaulCommonInfo": {
-          "linehaulCommonInfoId": 435,
-          "shipmentId": 1109,
-          "linehaulAccessorial": "N",
-          "linehaulNotes": ""
-        }
-      },
-      "deliveryDetails": {
-        "deliveryPrimaryInfo": {
-          "deliveryInfoId": 317,
-          "shipmentId": 1109,
-          "entityId": 6128,
-          "carrierId": 243,
-          "terminalId": 236,
-          "carrierBillNumber": "768676",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "",
-          "fromLocationEntityId": 3442,
-          "editToLocation": "N",
-          "toLocationType": "Consignee",
-          "toLocation": "Test 2",
-          "toLocationEntityId": null,
-          "etaDate": "2026-09-17",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "house of groom, lender group",
-            "addressLine2": "",
-            "city": "NewYork",
-            "state": "Arizona",
-            "zipCode": "60008"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "Test address 1",
-            "addressLine2": "",
-            "city": "Test city",
-            "state": "Test state",
-            "zipCode": "78767"
-          }
-        },
-        "deliveryCommonInfo": {
-          "deliveryCommonInfoId": 423,
-          "shipmentId": 1109,
-          "deliveryAccessorial": "N",
-          "airportTransfer": "N",
-          "deliveryAlert": "Y",
-          "deliveryAlertDetails": {
-            "deliveryAlertId": 339,
-            "shipmentId": 1109,
-            "linehaulNotes": "Please setup for pickup today ____ and drop to Forward Air",
-            "deliveryNotes": "Setup for pickup today ____ ",
-            "emailInfo": {
-              "primaryEmail": "gowthami@srinsofttech.com",
-              "additionalEmails": []
-            }
-          }
-        }
-      }
-    }
-  },
-];
+
 const ConsolidateHomePage = ({ type }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -573,6 +130,7 @@ const ConsolidateHomePage = ({ type }) => {
   const zipToZipCustomerRate = useSelector((state) => state?.shipmentdata?.zipToZipCustomerRate);
   const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
   const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+  const selectedShipmentObjects = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentObjects);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -632,6 +190,10 @@ const ConsolidateHomePage = ({ type }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
+  const [parsedRows, setParsedRows] = useState(false);
+  const [totalConsolWeight, setTotalConsolWeight] = useState(0);
+  const [totalConsolPieces, setTotalConsolPieces] = useState(0);
+  const [totalConsolHazmatCount, setTotalConsolHazmatCount] = useState(0);
 
   const {
     control,
@@ -831,7 +393,55 @@ const ConsolidateHomePage = ({ type }) => {
           additionalEmail: '',
           additionalEmailsArray: [],
           airportTransfer: false,
-        }
+        },
+        deliveryDetailsList: [
+          {
+            shipmentId: '1161',
+            shipmentProNumber: '1161',
+            carrier: '',
+            disableDeliveryFromCarrier: false,
+            billNumber: "AVF-567567",
+            fromLocation: '',
+            manualFromLocation: false,
+            manualFromLocationDetails: {
+              line1: 'line 1',
+              line2: '',
+              city: '',
+              state: '',
+              zip: '',
+            },
+            toLocationType: 'Consignee',
+            toLocation: '',
+            manualToLocation: false,
+            manualToLocationDetails: {
+              line1: '',
+              line2: '',
+              city: '',
+              state: '',
+              zip: '',
+            },
+            // agent: '',
+            etaDate: dayjs().format('YYYY-MM-DD'),
+            etaTime: null,
+            pcs: '',
+            weight: '',
+            deliveryAddAcc: false,
+            deliveryAlert: false,
+            deliveryAccessorials: [],
+            lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
+              'Setup for pickup today ____ ',
+              'Drop to Forward Air',],
+            lineHaulNotes: '',
+            deliveryNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
+              'Setup for pickup today ____ ',
+              'Drop to Forward Air',],
+            deliveryNotes: '',
+            primaryEmail: '',
+            additionalEmail: '',
+            additionalEmailsArray: [],
+            airportTransfer: false,
+          }
+        ]
       },
       // step 4 - Carrier Rates
       carrierRates: {
@@ -890,6 +500,10 @@ const ConsolidateHomePage = ({ type }) => {
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
+  const { fields: selectedDeliveryDetailsList } = useFieldArray({
+    control,
+    name: "carrierInfo.deliveryDetailsList"
+  });
   const customerApprovalRateHistory = useWatch({
     control,
     name: 'customerRate.approvalRateHistory',
@@ -2216,14 +1830,14 @@ const ConsolidateHomePage = ({ type }) => {
   }, [watchedDeliveryAddAcc,]);
 
   useEffect(() => {
-    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+    if ((type === 'View' || type === 'Edit') && selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0) {
+      updateControlsForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
     }
   }, [type])
   useEffect(() => {
     if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateShipperDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
@@ -2240,14 +1854,14 @@ const ConsolidateHomePage = ({ type }) => {
       setValue('shipperPhone', '');
     }
     if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateShipperAilineDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, shipperAirlineDropdown])
   useEffect(() => {
     if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateConsigneeDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
@@ -2264,55 +1878,66 @@ const ConsolidateHomePage = ({ type }) => {
       setValue('consigneePhone', '');
     }
     if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateConsigneeAirlineDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, consigneeAirlineDropdown])
   useEffect(() => {
     if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCustomerStationDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateCustomerStationDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, customerStationDropdown])
   useEffect(() => {
     if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCarrierTerminalDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+      updateCarrierTerminalDropdownForConsolidate(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
         shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
         getValues);
     }
   }, [type, carrierTerminalDropdown])
-  const parsedRows = shipments.map((item, index) => {
-    const firstHU = item.commodityDetails?.handlingUnits?.[0];
-    const firstPallet = firstHU?.palletDetails?.[0];
 
-    const originCity = item?.customerDetails?.airportPickupService === 'Y' ? item?.customerDetails?.pickupAirlineDetails?.city : item?.customerDetails?.shipperDetails?.city;
-    const originState = item?.customerDetails?.airportPickupService === 'Y' ? item?.customerDetails?.pickupAirlineDetails?.state : item?.customerDetails?.shipperDetails?.state;
+  useEffect(() => {
+    if (selectedShipmentObjects && selectedShipmentObjects.length > 0) {
+      const parsedRows = selectedShipmentObjects?.map((item, index) => {
+        const shipmentItem = item?.rowDetails;
+        const firstHU = shipmentItem?.commodityDetails?.handlingUnits?.[0];
+        const firstPallet = firstHU?.palletDetails?.[0];
 
-    const destinationCity = item?.customerDetails?.airportDeliveryService === 'Y' ? item?.customerDetails?.deliveryAirlineDetails?.city : item?.customerDetails?.consigneeDetails?.city;
-    const destinationState = item?.customerDetails?.airportDeliveryService === 'Y' ? item?.customerDetails?.deliveryAirlineDetails?.state : item?.customerDetails?.consigneeDetails?.state;
+        const originCity = shipmentItem?.customerDetails?.airportPickupService === 'Y' ? shipmentItem?.customerDetails?.pickupAirlineDetails?.city : shipmentItem?.customerDetails?.shipperDetails?.city;
+        const originState = shipmentItem?.customerDetails?.airportPickupService === 'Y' ? shipmentItem?.customerDetails?.pickupAirlineDetails?.state : shipmentItem?.customerDetails?.shipperDetails?.state;
 
-    return {
-      sNo: String(index + 1).padStart(2, '0'),
-      shipmentId: item.shipmentId,
-      proNum: item.shipmentDetails?.shipmentProNumber,
-      customer: item.customerDetails?.customerName || 'N/A',
-      origin: `${originCity}, ${originState}`,
-      destination: `${destinationCity}, ${destinationState}`,
-      serviceLevel: item.shipmentDetails?.serviceLevel || 'N/A',
-      pickupAgent: item.carrierDetails?.pickupDetails?.carrierName || 'N/A',
-      status: item.shipmentDetails?.status,
-      weight: Number(firstHU?.handlingWeight || 0),
-      hazmat: firstPallet?.hazmat === 'Y' ? '03' : '-',
-      pieces: Number(firstPallet?.pieces || 0)
-    };
-  });
+        const destinationCity = shipmentItem?.customerDetails?.airportDeliveryService === 'Y' ? shipmentItem?.customerDetails?.deliveryAirlineDetails?.city : shipmentItem?.customerDetails?.consigneeDetails?.city;
+        const destinationState = shipmentItem?.customerDetails?.airportDeliveryService === 'Y' ? shipmentItem?.customerDetails?.deliveryAirlineDetails?.state : shipmentItem?.customerDetails?.consigneeDetails?.state;
 
-  // Calculate runtime aggregates for the summary row metrics dynamically
-  const totalConsolWeight = parsedRows.reduce((sum, r) => sum + r.weight, 0);
-  const totalConsolPieces = parsedRows.reduce((sum, r) => sum + r.pieces, 0);
-  const totalConsolHazmatCount = parsedRows.filter(r => r.hazmat !== '-').length;
+        return {
+          sNo: String(index + 1).padStart(2, '0'),
+          shipmentId: shipmentItem.shipmentId,
+          proNum: shipmentItem.shipmentDetails?.shipmentProNumber,
+          customer: shipmentItem.customerDetails?.customerName || 'N/A',
+          origin: `${originCity}, ${originState}`,
+          destination: `${destinationCity}, ${destinationState}`,
+          serviceLevel: shipmentItem.shipmentDetails?.serviceLevel || 'N/A',
+          pickupAgent: shipmentItem.carrierDetails?.pickupDetails?.carrierName || 'N/A',
+          status: shipmentItem.shipmentDetails?.status,
+          weight: Number(firstHU?.handlingWeight || 0),
+          hazmat: firstPallet?.hazmat === 'Y' ? '03' : '-',
+          pieces: Number(firstPallet?.pieces || 0)
+        };
+      });
+      setParsedRows(parsedRows);
+      // Calculate runtime aggregates for the summary row metrics dynamically
+      const totalConsolWeight = parsedRows.reduce((sum, r) => sum + r.weight, 0);
+      const totalConsolPieces = parsedRows.reduce((sum, r) => sum + r.pieces, 0);
+      const totalConsolHazmatCount = parsedRows.filter(r => r.hazmat !== '-').length;
+      setTotalConsolWeight(totalConsolWeight);
+      setTotalConsolPieces(totalConsolPieces);
+      setTotalConsolHazmatCount(totalConsolHazmatCount);
+    }
+  }, [selectedShipmentObjects])
+
+
 
 
   return (
@@ -2379,7 +2004,7 @@ const ConsolidateHomePage = ({ type }) => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {parsedRows.map((row) => (
+                    {parsedRows && parsedRows.length > 0 && parsedRows?.map((row) => (
                       <TableRow key={row.sNo} hover>
                         <TableCell>{row.sNo}</TableCell>
                         <TableCell sx={{ color: '#a22', textDecoration: 'underline', fontWeight: 600, cursor: 'pointer' }}>
@@ -2430,7 +2055,7 @@ const ConsolidateHomePage = ({ type }) => {
                   </TableBody>
                 </Table>
               </TableContainer>
-              <Button onClick={() => navigate(PATH_DASHBOARD?.shipmentBuilding?.root)} variant="contained" size="small" sx={{ bgcolor: '#a22', '&:hover': { bgcolor: '#811' }, textTransform: 'none', px: 2, py: 0.75, mb:2 }}>
+              <Button onClick={() => navigate(PATH_DASHBOARD?.shipmentBuilding?.root)} variant="contained" size="small" sx={{ bgcolor: '#a22', '&:hover': { bgcolor: '#811' }, textTransform: 'none', px: 2, py: 0.75, mb: 2 }}>
                 Add Shipment
               </Button>
               <ConsolidatePickup
@@ -2625,6 +2250,80 @@ const ConsolidateHomePage = ({ type }) => {
                 watchedDestinationAirport={watchedDestinationAirport}
                 watchedLinehaulAddAcc={watchedLinehaulAddAcc}
               />
+              <Box>
+                {selectedDeliveryDetailsList.map((shipment, index) => {
+                  return (
+                    <ConsolidatedDeliveryDetailsList
+                      key={shipment.shipmentId} // Mandatory visual anchor loop key
+                      shipment={shipment}
+                      shipmentIndex={index}
+                      type={type}
+                      dispatch={dispatch}
+                      navigate={navigate}
+                      location={location}
+                      control={control}
+                      errors={errors}
+                      selectedRouting={selectedRouting}
+                      carrierTerminalDropdown={carrierTerminalDropdown}
+                      isLoading={isLoading}
+                      setValue={setValue}
+                      watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                      isSelectingCarrierDeliveryRef={isSelectingCarrierDeliveryRef}
+                      setSelectCarrierDeliverySearchValue={setSelectCarrierDeliverySearchValue}
+                      selectCarrierDeliverySearchValue={selectCarrierDeliverySearchValue}
+                      watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                      watchedLinehaulToLocation={watchedLinehaulToLocation}
+                      watchedDeliveryFromLocationFlag={watchedDeliveryFromLocationFlag}
+                      watchedDeliveryToLocationType={watchedDeliveryToLocationType}
+                      isSelectingToCarrierDeliveryRef={isSelectingToCarrierDeliveryRef}
+                      setCarrierDeliverySearchValue={setCarrierDeliverySearchValue}
+                      carrierDeliverySearchValue={carrierDeliverySearchValue}
+                      watchedConsigneeName={watchedConsigneeName}
+                      watchedDeliveryAddAcc={watchedDeliveryAddAcc}
+                      deliveryAccFields={deliveryAccFields}
+                      setActiveAccType={setActiveAccType}
+                      notesRefArray={notesRefArray}
+                      notesRefArrayIndex={notesRefArrayIndex}
+                      notesRefArrayObj={notesRefArrayObj}
+                      setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
+                      setEditAccIndex={setEditAccIndex}
+                      setActionType={setActionType}
+                      setAddDeliveryAccModal={setAddDeliveryAccModal}
+                      removeDeliveryAcc={removeDeliveryAcc}
+                      deliveryAccModal={deliveryAccModal}
+                      setDeliveryAccModal={setDeliveryAccModal}
+                      replaceDeliveryAcc={replaceDeliveryAcc}
+                      addDeliveryAccModal={addDeliveryAccModal}
+                      actionType={actionType}
+                      DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
+                      setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
+                      onSaveOfEdit={onSaveOfEdit}
+                      appendDeliveryAccFields={appendDeliveryAccFields}
+                      watchedDeliveryAlert={watchedDeliveryAlert}
+                      deliveryLineHaulNotesArr={deliveryLineHaulNotesArr}
+                      deliveryNotesArr={deliveryNotesArr}
+                      watchedDeliveryAdditionalMails={watchedDeliveryAdditionalMails}
+                      renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                      watchedDeliveryToLocationFlag={watchedDeliveryToLocationFlag}
+                      editAccIndex={editAccIndex}
+                      watchedCarrierInfo={watchedCarrierInfo}
+                      isPickupPending={isPickupPending}
+                      watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                      getValues={getValues}
+                      watchedAirportPickupService={watchedAirportPickupService}
+                      watchedAirportDeliveryService={watchedAirportDeliveryService}
+                      isHazmatSelected={isHazmatSelected}
+                      watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                      watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                      watchedToLocation={watchedToLocation}
+                      watchedDeliveryToLocation={watchedDeliveryToLocation}
+                      watchedOriginAirport={watchedOriginAirport}
+                      watchedDestinationAirport={watchedDestinationAirport}
+                      watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                    />
+                  );
+                })}
+              </Box>
             </Paper>
           </Box>
           <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>

@@ -49,6 +49,459 @@ const commonBtnStyle = {
     fontSize: '0.8rem',
 
 };
+const shipments = [
+  {
+    "shipmentId": 1161,
+    "shipmentDetails": {
+      "typeOfShipment": "AIR_IMPORT",
+      "serviceLevel": "Dedicated Truck",
+      "shipmentDate": "2026-10-05",
+      "shipmentTime": null,
+      "orderReceivedPickupPending": "N",
+      "status": "ORDER_RECEIVED_PICKUP_SETUP",
+      "shipmentProNumber": "S0000001161"
+    },
+    "customerDetails": {
+      "customerInfoId": 998,
+      "shipmentId": 1161,
+      "customerId": 104,
+      "stationId": 153,
+      "originAirportCode": "",
+      "destinationAirportCode": "",
+      "airportPickupService": "N",
+      "airportDeliveryService": "N",
+      "customerName": "check cust 23",
+      "shipperDetails": {
+        "shipperId": 130,
+        "shipperName": "shipper 434",
+        "addressLine1": "Demo Address Line 1",
+        "addressLine2": "Line 2",
+        "city": "Demo city",
+        "state": "Demo state",
+        "zipCode": "12345",
+        "contactPersonName": "d",
+        "phoneNumber": "(222) 222-2222",
+        "entityId": 5435
+      },
+      "consigneeDetails": {
+        "consigneeId": 158,
+        "consigneeName": "consignee 157",
+        "addressLine1": "line 1",
+        "addressLine2": "",
+        "city": "city",
+        "state": "state",
+        "zipCode": "65756",
+        "contactPersonName": "nm",
+        "phoneNumber": "(659) 876-7868",
+        "entityId": 5440
+      }
+    },
+    "commodityDetails": {
+      "commodityId": 876,
+      "emergencyContactName": "",
+      "emergencyContactPhone": "",
+      "handlingUnits": [
+        {
+          "handlingUnitId": 1373,
+          "shipmentId": 1161,
+          "handlingUnitUOM": "Crate",
+          "handlingUnits": "1",
+          "unit": "in",
+          "handlingLength": 0,
+          "handlingWidth": 0,
+          "handlingHeight": 0,
+          "handlingWeight": 2,
+          "handlingWeightUnit": "LB",
+          "class": "",
+          "palletDetails": [
+            {
+              "itemId": 1515,
+              "handlingUnitId": 1373,
+              "pieces": 1,
+              "piecesUOM": "Skid",
+              "description": "desc",
+              "hazmat": "N"
+            }
+          ],
+          "images": []
+        }
+      ]
+    },
+    "carrierDetails": {
+      "pickupDetails": {
+        "pickupInfoId": 1039,
+        "shipmentId": 1161,
+        "entityId": 5435,
+        "pickupRouting": "PICKUP_LINE_HAUL",
+        "airportTransfer": "N",
+        "carrierId": 184,
+        "carrierName": "Averitt Express",
+        "terminalId": 527,
+        "terminalName": "RIC",
+        "carrierBillNumber": "567567",
+        "fromLocationType": "Shipper",
+        "fromLocation": "shipper 434",
+        "fromLocationEntityId": 5435,
+        "editFromLocation": "N",
+        "pickupAgentTerminal": "N",
+        "pickupAccessorial": "N",
+        "pickupAlert": "N",
+        "editFromLocationDetails": {
+          "addressLine1": "Demo Address Line 1",
+          "addressLine2": "Line 2",
+          "city": "Demo city",
+          "state": "Demo state",
+          "zipCode": "12345"
+        },
+        "pickupAgentTerminalDetails": {
+          "pickupAgentTerminalId": 783,
+          "shipmentId": 1161,
+          "toLocationType": "Carrier",
+          "toLocation": "Averitt Express",
+          "toLocationEntityId": 3408,
+          "editToLocation": "N",
+          "editToLocationDetails": {
+            "addressLine1": "1 Averitt Express Dr",
+            "addressLine2": "",
+            "city": "Nashville",
+            "state": "TN",
+            "zipCode": "37211"
+          }
+        },
+        "pickupAlertDetails": {
+          "pickupAlertId": 578,
+          "shipmentId": 1161,
+          "inboundNotes": null,
+          "emailInfo": {
+            "primaryEmail": "",
+            "additionalEmails": []
+          }
+        }
+      },
+      "linehaulDetails": {
+        "linehaulPrimaryInfo": {
+          "linehaulInfoId": 430,
+          "shipmentId": 1161,
+          "entityId": 6365,
+          "linehaulRouting": "LINE_HAUL_ONLY",
+          "carrierId": 184,
+          "terminalId": 214,
+          "carrierBillNumber": "57567",
+          "editFromLocation": "N",
+          "fromLocationType": "Carrier",
+          "fromLocation": "Carrier",
+          "fromLocationEntityId": 3408,
+          "editToLocation": "N",
+          "toLocationType": "Carrier",
+          "toLocation": "526-184",
+          "toLocationEntityId": 4840,
+          "etaDate": "2026-10-05",
+          "etaTime": null,
+          "pieces": null,
+          "weight": null,
+          "editFromLocationDetails": {
+            "addressLine1": "1 Averitt Express Dr",
+            "addressLine2": "",
+            "city": "Nashville",
+            "state": "TN",
+            "zipCode": "37211"
+          },
+          "editToLocationDetails": {
+            "addressLine1": "1005 Enterprise Cir",
+            "addressLine2": "",
+            "city": "Chesapeake",
+            "state": "VA",
+            "zipCode": "23321"
+          }
+        },
+        "linehaulCommonInfo": {
+          "linehaulCommonInfoId": 602,
+          "shipmentId": 1161,
+          "linehaulAccessorial": "N",
+          "linehaulNotes": ""
+        }
+      },
+      "deliveryDetails": {
+        "deliveryPrimaryInfo": {
+          "deliveryInfoId": 389,
+          "shipmentId": 1161,
+          "entityId": 6366,
+          "carrierId": 184,
+          "terminalId": 214,
+          "carrierBillNumber": "5657567",
+          "editFromLocation": "N",
+          "fromLocationType": "Carrier",
+          "fromLocation": "Carrier",
+          "fromLocationEntityId": 3408,
+          "editToLocation": "N",
+          "toLocationType": "Consignee",
+          "toLocation": "consignee 157",
+          "toLocationEntityId": 5440,
+          "etaDate": "2026-10-05",
+          "etaTime": null,
+          "pieces": null,
+          "weight": null,
+          "editFromLocationDetails": {
+            "addressLine1": "1 Averitt Express Dr",
+            "addressLine2": "",
+            "city": "Nashville",
+            "state": "TN",
+            "zipCode": "37211"
+          },
+          "editToLocationDetails": {
+            "addressLine1": "line 1",
+            "addressLine2": "",
+            "city": "city",
+            "state": "state",
+            "zipCode": "65756"
+          }
+        },
+        "deliveryCommonInfo": {
+          "deliveryCommonInfoId": 564,
+          "shipmentId": 1161,
+          "deliveryAccessorial": "N",
+          "airportTransfer": "Y",
+          "deliveryAlert": "N",
+          "deliveryAlertDetails": {
+            "deliveryAlertId": 461,
+            "shipmentId": 1161,
+            "linehaulNotes": null,
+            "deliveryNotes": null,
+            "emailInfo": {
+              "primaryEmail": null,
+              "additionalEmails": []
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "shipmentId": 1109,
+    "shipmentDetails": {
+      "typeOfShipment": "AIR_EXPORT",
+      "serviceLevel": "Dedicated Truck",
+      "shipmentDate": "2026-09-17",
+      "shipmentTime": null,
+      "orderReceivedPickupPending": "N",
+      "status": "ORDER_RECEIVED_PICKUP_SETUP",
+      "shipmentProNumber": "S0000001109"
+    },
+    "customerDetails": {
+      "customerInfoId": 952,
+      "shipmentId": 1109,
+      "customerId": 122,
+      "stationId": 176,
+      "originAirportCode": "LKML",
+      "destinationAirportCode": "LMNL",
+      "airportPickupService": "Y",
+      "airportDeliveryService": "Y",
+      "customerName": "Rajadurai S",
+      "pickupAirlineDetails": {
+        "airlineId": 184,
+        "airlineNumber": 31,
+        "airlineCode": "GL",
+        "airportCode": "LKML",
+        "airlineName": "Test 1",
+        "addressLine1": "Test address 1",
+        "addressLine2": "",
+        "city": "Test city",
+        "state": "Test State",
+        "zipCode": "87976",
+        "contactPersonName": "Shiva",
+        "phoneNumber": "(897) 866-7632",
+        "entityId": 6123,
+        "scenarioType": "EXPORT"
+      },
+      "deliveryAirlineDetails": {
+        "airlineId": 185,
+        "airlineNumber": 32,
+        "airlineCode": "GU",
+        "airportCode": "LMNL",
+        "airlineName": "Test 2",
+        "addressLine1": "Test address 1",
+        "addressLine2": "",
+        "city": "Test city",
+        "state": "Test state",
+        "zipCode": "78767",
+        "contactPersonName": "Prakash",
+        "phoneNumber": "(987) 877-6588",
+        "entityId": 6124,
+        "scenarioType": "EXPORT"
+      }
+    },
+    "commodityDetails": {
+      "commodityId": 831,
+      "emergencyContactName": "",
+      "emergencyContactPhone": "",
+      "handlingUnits": [
+        {
+          "handlingUnitId": 1145,
+          "shipmentId": 1109,
+          "handlingUnitUOM": "Drum",
+          "handlingUnits": "4",
+          "unit": "in",
+          "handlingLength": 8,
+          "handlingWidth": 6,
+          "handlingHeight": 10,
+          "handlingWeight": 45,
+          "handlingWeightUnit": "LB",
+          "class": "Class 55",
+          "palletDetails": [
+            {
+              "itemId": 1263,
+              "handlingUnitId": 1145,
+              "pieces": 2,
+              "piecesUOM": "Drum",
+              "description": "Testing",
+              "hazmat": "N"
+            }
+          ],
+          "images": []
+        }
+      ]
+    },
+    "carrierDetails": {
+      "pickupDetails": {
+        "pickupInfoId": 832,
+        "shipmentId": 1109,
+        "entityId": 6125,
+        "pickupRouting": "PICKUP_ONLY",
+        "airportTransfer": "N",
+        "carrierId": 263,
+        "carrierName": "estest1",
+        "terminalId": 521,
+        "terminalName": "Terminal 001",
+        "carrierBillNumber": "87676987",
+        "fromLocationType": "Shipper",
+        "fromLocation": "Test 1",
+        "fromLocationEntityId": null,
+        "editFromLocation": "N",
+        "pickupAgentTerminal": "Y",
+        "pickupAccessorial": "N",
+        "pickupAlert": "N",
+        "editFromLocationDetails": {
+          "addressLine1": "Test address 1",
+          "addressLine2": "",
+          "city": "Test city",
+          "state": "Test State",
+          "zipCode": "87976"
+        },
+        "pickupAgentTerminalDetails": {
+          "pickupAgentTerminalId": 576,
+          "shipmentId": 1109,
+          "toLocationType": "Carrier",
+          "toLocation": "estest1",
+          "toLocationEntityId": 4557,
+          "editToLocation": "N",
+          "editToLocationDetails": {
+            "addressLine1": "Add line 1",
+            "addressLine2": "Add line 2",
+            "city": "city1",
+            "state": "ST",
+            "zipCode": "12309"
+          }
+        }
+      },
+      "linehaulDetails": {
+        "linehaulPrimaryInfo": {
+          "linehaulInfoId": 304,
+          "shipmentId": 1109,
+          "entityId": 6126,
+          "linehaulRouting": "LINE_HAUL_ONLY",
+          "carrierId": 263,
+          "terminalId": 522,
+          "carrierBillNumber": "879776",
+          "editFromLocation": "N",
+          "fromLocationType": "Carrier",
+          "fromLocation": "",
+          "fromLocationEntityId": 4587,
+          "editToLocation": "N",
+          "toLocationType": "Carrier",
+          "toLocation": "236-243",
+          "toLocationEntityId": 3442,
+          "etaDate": "2026-09-17",
+          "etaTime": null,
+          "pieces": null,
+          "weight": null,
+          "editFromLocationDetails": {
+            "addressLine1": "Test 2",
+            "addressLine2": "Test 2",
+            "city": "Test 2",
+            "state": "Test 2",
+            "zipCode": "77678"
+          },
+          "editToLocationDetails": {
+            "addressLine1": "house of groom, lender group",
+            "addressLine2": "",
+            "city": "NewYork",
+            "state": "Arizona",
+            "zipCode": "60008"
+          }
+        },
+        "linehaulCommonInfo": {
+          "linehaulCommonInfoId": 435,
+          "shipmentId": 1109,
+          "linehaulAccessorial": "N",
+          "linehaulNotes": ""
+        }
+      },
+      "deliveryDetails": {
+        "deliveryPrimaryInfo": {
+          "deliveryInfoId": 317,
+          "shipmentId": 1109,
+          "entityId": 6128,
+          "carrierId": 243,
+          "terminalId": 236,
+          "carrierBillNumber": "768676",
+          "editFromLocation": "N",
+          "fromLocationType": "Carrier",
+          "fromLocation": "",
+          "fromLocationEntityId": 3442,
+          "editToLocation": "N",
+          "toLocationType": "Consignee",
+          "toLocation": "Test 2",
+          "toLocationEntityId": null,
+          "etaDate": "2026-09-17",
+          "etaTime": null,
+          "pieces": null,
+          "weight": null,
+          "editFromLocationDetails": {
+            "addressLine1": "house of groom, lender group",
+            "addressLine2": "",
+            "city": "NewYork",
+            "state": "Arizona",
+            "zipCode": "60008"
+          },
+          "editToLocationDetails": {
+            "addressLine1": "Test address 1",
+            "addressLine2": "",
+            "city": "Test city",
+            "state": "Test state",
+            "zipCode": "78767"
+          }
+        },
+        "deliveryCommonInfo": {
+          "deliveryCommonInfoId": 423,
+          "shipmentId": 1109,
+          "deliveryAccessorial": "N",
+          "airportTransfer": "N",
+          "deliveryAlert": "Y",
+          "deliveryAlertDetails": {
+            "deliveryAlertId": 339,
+            "shipmentId": 1109,
+            "linehaulNotes": "Please setup for pickup today ____ and drop to Forward Air",
+            "deliveryNotes": "Setup for pickup today ____ ",
+            "emailInfo": {
+              "primaryEmail": "gowthami@srinsofttech.com",
+              "additionalEmails": []
+            }
+          }
+        }
+      }
+    }
+  },
+];
 export default function HomePage() {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -421,313 +874,7 @@ export default function HomePage() {
             >
                 {/* The components within this boundary are protected */}
                 <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
-                <Stack
-                    direction={{ xs: 'column', md: 'row' }} // Stacks vertically on mobile, horizontally on desktop
-                    spacing={1}                            // Safely manages gaps between fields
-                    sx={{
-                        width: '100%',
-                        boxSizing: 'border-box',
-                    }}
-                >
-                    {/* Field 1: Shipment Status */}
-                    <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
-                        <Controller
-                            name="shipmentStatus"
-                            control={control}
-                            render={({ field }) => (
-                                <StyledTextField {...field} select fullWidth label="Select Shipment Status" variant="standard" error={!!errors.shipmentStatus} /* ... Rest of your SelectProps */>
-                                    {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
-                                </StyledTextField>
-                            )}
-                        />
-                    </Box>
-
-                    {/* Field 2: Customer Reference */}
-                    <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
-                        <Controller
-                            name="customerReference"
-                            control={control}
-                            render={({ field }) => (
-                                <TextField {...field} fullWidth label="Customer Reference #" variant="standard" error={!!errors.customerReference} />
-                            )}
-                        />
-                    </Box>
-
-                    {/* Field 3: Carrier Autocomplete */}
-                    <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
-                        <Controller
-                            name="carrier"
-                            control={control}
-                            render={({ field: { onChange, value, ref, ...fieldProps } }) => (
-                                <Autocomplete
-                                    {...fieldProps}
-                                    fullWidth
-                                    options={carrierTerminalDropdown || []}
-
-                                    // Generates explicit, unique keys for each option item
-                                    renderOption={(props, option, state) => {
-                                        const uniqueKey = `carrier-terminal-${option.terminalId}-${option.carrierId}-${state.index}`;
-                                        return (
-                                            <li {...props} key={uniqueKey}>
-                                                {option.carrierName && option.terminalName
-                                                    ? `${option.carrierName} | ${option.terminalName}`
-                                                    : ""}
-                                            </li>
-                                        );
-                                    }}
-
-                                    // Ensures accurate component highlighting matching values
-                                    isOptionEqualToValue={(option, val) => {
-                                        const optionKey = `${option?.terminalId}-${option?.carrierId}`;
-                                        const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
-                                        return optionKey === valueKey;
-                                    }}
-
-                                    filterOptions={(options, state) => {
-                                        const inputValue = state.inputValue.trim().toLowerCase();
-                                        if (!inputValue) return options;
-
-                                        return options.filter((option) => {
-                                            const carrierName = (option.carrierName || '').toLowerCase();
-                                            const terminalName = (option.terminalName || '').toLowerCase();
-                                            const carrierId = String(option.carrierId || '');
-                                            const terminalId = String(option.terminalId || '');
-                                            const stateName = (option.address?.state || '').toLowerCase();
-                                            const mainEmail = (option.terminalEmail || '').toLowerCase();
-                                            const personnelEmails = (option.emails || []).map(e => (e.email || '').toLowerCase());
-
-                                            return (
-                                                carrierName.includes(inputValue) ||
-                                                terminalName.includes(inputValue) ||
-                                                carrierId.includes(inputValue) ||
-                                                terminalId.includes(inputValue) ||
-                                                stateName.includes(inputValue) ||
-                                                mainEmail.includes(inputValue) ||
-                                                personnelEmails.some(email => email.includes(inputValue))
-                                            );
-                                        });
-                                    }}
-
-                                    getOptionLabel={(option) => {
-                                        if (option && option.carrierName && option.terminalName) {
-                                            return `${option.carrierName} | ${option.terminalName}`;
-                                        }
-                                        return "";
-                                    }}
-
-                                    value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                                    onChange={(event, newValue) => {
-                                        isSelectingCarrierRef.current = true;
-                                        const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                        onChange(formValue);
-                                    }}
-
-                                    onInputChange={(event, newInputValue, reason) => {
-                                        if (reason !== "reset") {
-                                            setSelectCarrierSearchValue(newInputValue);
-                                        }
-                                    }}
-
-                                    loading={isLoading}
-                                    loadingText="Searching carriers..."
-
-                                    // Added your conditional empty results messaging
-                                    noOptionsText={selectCarrierSearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                                    renderInput={(params) => (
-                                        <TextField
-                                            {...params}
-                                            inputRef={ref} // Keeps React Hook Form validation focus operational
-                                            variant="standard"
-                                            label="Select Carrier"
-                                            error={!!errors.carrier}
-                                            // Added space layout preservation helper text rule
-                                            helperText={errors.carrier ? errors.carrier.message : ' '}
-                                            sx={{
-                                                '& .MuiInputBase-input:disabled': {
-                                                    color: '#000',
-                                                    WebkitTextFillColor: '#000'
-                                                }
-                                            }}
-                                            InputProps={{
-                                                ...params.InputProps,
-                                                endAdornment: (
-                                                    <>
-                                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                        {params.InputProps.endAdornment}
-                                                    </>
-                                                ),
-                                            }}
-                                        />
-                                    )}
-                                />
-                            )}
-                        />
-                    </Box>
-
-
-                </Stack>
-                {/* Actions Section Container */}
-                <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent={'space-between'}
-                    sx={{
-                        gap: 1 // Cleaner approach for responsive button gaps
-                    }}
-                >
-                    <Stack direction={'row'} spacing={1} alignItems={'center'}>
-                        <Stack direction="column" spacing={2} alignItems="flex-start" justifyContent={'flex-start'}>
-                            {/* Checkbox: R&M */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Controller
-                                            name="rmChecked"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Checkbox
-                                                    {...field}
-                                                    checked={field.value}
-                                                    size="small"
-                                                    sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                                                />
-                                            )}
-                                        />
-                                    }
-                                    label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
-                                        sx={{                 // 👈 Maintained your custom font weight
-                                            cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
-                                        }} variant="body2">R&M</Typography>}
-                                />
-                            </Box>
-                            {/* Checkbox: Others */}
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Controller
-                                            name="othersChecked"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Checkbox
-                                                    {...field}
-                                                    checked={field.value}
-                                                    size="small"
-                                                    sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                                                />
-                                            )}
-                                        />
-                                    }
-                                    label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
-                                        sx={{                 // 👈 Maintained your custom font weight
-                                            cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
-                                        }} variant="body2">Others</Typography>}
-                                />
-                            </Box>
-                        </Stack>
-                        <Stack direction="column" spacing={2} alignItems="flex-start" justifyContent={'flex-start'} sx={{ ml: 1 }}>
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'max-content' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Controller
-                                            name="carrierRateReq"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Checkbox
-                                                    {...field}
-                                                    checked={field.value}
-                                                    size="small"
-                                                    sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                                                />
-                                            )}
-                                        />
-                                    }
-                                    label={
-                                        <Typography
-                                            onClick={(e) => e.preventDefault()}
-                                            variant="body2"
-                                            sx={{
-                                                cursor: 'default',
-                                                whiteSpace: 'nowrap' // 👈 Forces the text to stay in a straight line
-                                            }}
-                                        >
-                                            Carrier Rate Req
-                                        </Typography>
-                                    }
-                                />
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'max-content' }}>
-                                <FormControlLabel
-                                    control={
-                                        <Controller
-                                            name="customerRateReq"
-                                            control={control}
-                                            render={({ field }) => (
-                                                <Checkbox
-                                                    {...field}
-                                                    checked={field.value}
-                                                    size="small"
-                                                    sx={{ color: '#001a41', '&.Mui-checked': { color: '#001a41' } }}
-                                                />
-                                            )}
-                                        />
-                                    }
-                                    label={
-                                        <Typography
-                                            onClick={(e) => e.preventDefault()}
-                                            variant="body2"
-                                            sx={{
-                                                cursor: 'default',
-                                                whiteSpace: 'nowrap' // 👈 Forces the text to stay in a straight line
-                                            }}
-                                        >
-                                            Customer Rate Req
-                                        </Typography>
-                                    }
-                                />
-                            </Box>
-                        </Stack>
-                    </Stack>
-                    <Stack direction={'column'} spacing={1} alignItems={'flex-start'}>
-                        <Stack direction={'row'} alignItems={'center'} sx={{
-                            gap: 1 // Cleaner approach for responsive button gaps
-                        }}>
-                            <Button
-                                variant="contained"
-                                onClick={() => {
-                                    setIsDialogOpen(true);
-                                }}
-                                sx={{
-                                    ...commonBtnStyle,
-                                    bgcolor: '#a22',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 'max-content',
-                                    flex: { xs: '1 1 auto', sm: '0 0 auto' }, // Lets buttons comfortably stretch on mobile but stay compact on desktop
-                                    '&:hover': { bgcolor: '#811' }
-                                }}
-                            >
-                                Consolidate Filter
-                            </Button>
-                            <Button
-                                variant="contained"
-                                onClick={handleConsolidate}
-                                sx={{
-                                    ...commonBtnStyle,
-                                    bgcolor: '#a22',
-                                    whiteSpace: 'nowrap',
-                                    minWidth: 'max-content',
-                                    flex: { xs: '1 1 auto', sm: '0 0 auto' },
-                                    '&:hover': { bgcolor: '#811' }
-                                }}
-                            >
-                                Consolidate Build
-                            </Button>
-                        </Stack>
-                        <SharedSearchField page="shipmentbuilding" />
-                    </Stack>
-                </Stack>
-
+                
                 <ShipmentViewTable watchedConsolidateFlag={watchedConsolidateFlag} control={control}
                     setValue={setValue} getValues={getValues} />
                 <WeightAlert

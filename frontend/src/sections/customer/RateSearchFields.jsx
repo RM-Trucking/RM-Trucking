@@ -258,7 +258,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
                 dispatch(getTerminalRateSearchData({
                     terminalId: selectedCarrierTabRowDetails?.terminalId || localStorage.getItem('terminalId'),
-                    rateType: 'TRANSPORT',
+                    rateType: 'AIRPORT',
                     originZoneId: data.originZipCode ? data.origin : '',
                     originZipOrRange: data.originZipCode
                         ?.split(',')            // Split by comma

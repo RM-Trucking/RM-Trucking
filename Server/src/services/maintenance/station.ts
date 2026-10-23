@@ -36,6 +36,7 @@ export async function createStation(
         note
     } = createStationReq;
     const stationName = createStationReq.stationName?.trim().toUpperCase();
+    const normalizedRmAccountNumber = rmAccountNumber?.trim() ?? '';
 
 
     // Uniqueness checks
@@ -43,9 +44,11 @@ export async function createStation(
         throw new Error('Station name is required and cannot be empty');
     }
 
-    const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(conn, rmAccountNumber);
-    if (existingStationByRmAccount) {
-        throw new Error('RM account number already exists');
+    if (normalizedRmAccountNumber) {
+        const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(conn, normalizedRmAccountNumber);
+        if (existingStationByRmAccount) {
+            throw new Error('RM account number already exists');
+        }
     }
 
     const existingStationByName = await stationDB.getStationByCustomerAndName(conn, customerId, stationName);
@@ -70,7 +73,7 @@ export async function createStation(
             customerId,
             entityId,
             stationName,
-            rmAccountNumber,
+            rmAccountNumber: normalizedRmAccountNumber,
             airportCode,
             phoneNumber,
             faxNumber,
@@ -233,6 +236,7 @@ export async function updateStationService(
         isNonBillable
     } = updates;
     const stationName = requestedStationName?.trim().toUpperCase();
+    const normalizedRmAccountNumber = rmAccountNumber?.trim();
 
     if (stationName) {
         const existingStationByName = await stationDB.getStationByCustomerAndName(
@@ -248,10 +252,10 @@ export async function updateStationService(
         throw new Error('Station name is required and cannot be empty');
     }
 
-    if (rmAccountNumber && rmAccountNumber.trim()) {
+    if (normalizedRmAccountNumber) {
         const existingStationByRmAccount = await stationDB.getStationByRmAccountNumber(
             conn,
-            rmAccountNumber,
+            normalizedRmAccountNumber,
             stationId
         );
         if (existingStationByRmAccount) {
@@ -261,7 +265,7 @@ export async function updateStationService(
 
     await stationDB.updateStation(conn, stationId, {
         stationName,
-        rmAccountNumber,
+        rmAccountNumber: normalizedRmAccountNumber,
         airportCode,
         phoneNumber,
         faxNumber,

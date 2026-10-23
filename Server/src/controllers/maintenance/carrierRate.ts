@@ -204,6 +204,7 @@ export async function createCarrierAirportRate(req: Request, res: Response, conn
         const rate = await rateService.createCarrierAirportRateService(conn, req.body, userId);
         res.status(201).json({ success: true, data: rate });
     } catch (error) {
+        console.error(error);
         res.status(400).json({ error: 'Failed to create airport rate', message: (error as Error).message });
     }
 }

@@ -151,7 +151,7 @@ export async function softDeleteStation(conn: Connection, stationId: number): Pr
 }
 
 /**
- * Check if RM account number already exists (unique constraint helper)
+ * Find an active station with the same RM account number, excluding an optional station ID.
  */
 export async function getStationByRmAccountNumber(
   conn: Connection,
@@ -160,7 +160,7 @@ export async function getStationByRmAccountNumber(
 ): Promise<Station | null> {
   const query = `
     SELECT * FROM ${SCHEMA}."Station"
-    WHERE "rmAccountNumber" = ?
+    WHERE TRIM("rmAccountNumber") = ?
       AND "activeStatus" = 'Y'
       AND "stationId" <> ?
     FETCH FIRST 1 ROWS ONLY
@@ -214,12 +214,13 @@ export async function getStationByCustomerAndName(
     SELECT *
     FROM ${SCHEMA}."Station"
     WHERE "customerId" = ?
-      AND LOWER("stationName") = LOWER(?)
+      AND UPPER(TRIM("stationName")) = ?
       AND "activeStatus" = 'Y'
       AND "stationId" <> ?
     FETCH FIRST 1 ROWS ONLY
   `;
 
-  const result = (await conn.query(query, [customerId, stationName, excludeStationId ?? -1])) as any[];
+  const normalizedStationName = stationName.trim().toUpperCase();
+  const result = (await conn.query(query, [customerId, normalizedStationName, excludeStationId ?? -1])) as any[];
   return result.length > 0 ? (result[0] as Station) : null;
 }

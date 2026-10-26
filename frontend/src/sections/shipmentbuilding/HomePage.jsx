@@ -25,7 +25,7 @@ import SharedSearchField from '../shared/SharedSearchField';
 import ShipmentViewTable from './ShipmentViewTable';
 
 import {
-    setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj
+    setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj, setLineHaulSameDelDiff
 } from '../../redux/slices/shipmentbuilding';
 import WeightAlert from './WeightAlert';
 import AddressAlert from './AddressAlert';
@@ -50,457 +50,457 @@ const commonBtnStyle = {
 
 };
 const shipments = [
-  {
-    "shipmentId": 1161,
-    "shipmentDetails": {
-      "typeOfShipment": "AIR_IMPORT",
-      "serviceLevel": "Dedicated Truck",
-      "shipmentDate": "2026-10-05",
-      "shipmentTime": null,
-      "orderReceivedPickupPending": "N",
-      "status": "ORDER_RECEIVED_PICKUP_SETUP",
-      "shipmentProNumber": "S0000001161"
-    },
-    "customerDetails": {
-      "customerInfoId": 998,
-      "shipmentId": 1161,
-      "customerId": 104,
-      "stationId": 153,
-      "originAirportCode": "",
-      "destinationAirportCode": "",
-      "airportPickupService": "N",
-      "airportDeliveryService": "N",
-      "customerName": "check cust 23",
-      "shipperDetails": {
-        "shipperId": 130,
-        "shipperName": "shipper 434",
-        "addressLine1": "Demo Address Line 1",
-        "addressLine2": "Line 2",
-        "city": "Demo city",
-        "state": "Demo state",
-        "zipCode": "12345",
-        "contactPersonName": "d",
-        "phoneNumber": "(222) 222-2222",
-        "entityId": 5435
-      },
-      "consigneeDetails": {
-        "consigneeId": 158,
-        "consigneeName": "consignee 157",
-        "addressLine1": "line 1",
-        "addressLine2": "",
-        "city": "city",
-        "state": "state",
-        "zipCode": "65756",
-        "contactPersonName": "nm",
-        "phoneNumber": "(659) 876-7868",
-        "entityId": 5440
-      }
-    },
-    "commodityDetails": {
-      "commodityId": 876,
-      "emergencyContactName": "",
-      "emergencyContactPhone": "",
-      "handlingUnits": [
-        {
-          "handlingUnitId": 1373,
-          "shipmentId": 1161,
-          "handlingUnitUOM": "Crate",
-          "handlingUnits": "1",
-          "unit": "in",
-          "handlingLength": 0,
-          "handlingWidth": 0,
-          "handlingHeight": 0,
-          "handlingWeight": 2,
-          "handlingWeightUnit": "LB",
-          "class": "",
-          "palletDetails": [
-            {
-              "itemId": 1515,
-              "handlingUnitId": 1373,
-              "pieces": 1,
-              "piecesUOM": "Skid",
-              "description": "desc",
-              "hazmat": "N"
-            }
-          ],
-          "images": []
-        }
-      ]
-    },
-    "carrierDetails": {
-      "pickupDetails": {
-        "pickupInfoId": 1039,
+    {
         "shipmentId": 1161,
-        "entityId": 5435,
-        "pickupRouting": "PICKUP_LINE_HAUL",
-        "airportTransfer": "N",
-        "carrierId": 184,
-        "carrierName": "Averitt Express",
-        "terminalId": 527,
-        "terminalName": "RIC",
-        "carrierBillNumber": "567567",
-        "fromLocationType": "Shipper",
-        "fromLocation": "shipper 434",
-        "fromLocationEntityId": 5435,
-        "editFromLocation": "N",
-        "pickupAgentTerminal": "N",
-        "pickupAccessorial": "N",
-        "pickupAlert": "N",
-        "editFromLocationDetails": {
-          "addressLine1": "Demo Address Line 1",
-          "addressLine2": "Line 2",
-          "city": "Demo city",
-          "state": "Demo state",
-          "zipCode": "12345"
+        "shipmentDetails": {
+            "typeOfShipment": "AIR_IMPORT",
+            "serviceLevel": "Dedicated Truck",
+            "shipmentDate": "2026-10-05",
+            "shipmentTime": null,
+            "orderReceivedPickupPending": "N",
+            "status": "ORDER_RECEIVED_PICKUP_SETUP",
+            "shipmentProNumber": "S0000001161"
         },
-        "pickupAgentTerminalDetails": {
-          "pickupAgentTerminalId": 783,
-          "shipmentId": 1161,
-          "toLocationType": "Carrier",
-          "toLocation": "Averitt Express",
-          "toLocationEntityId": 3408,
-          "editToLocation": "N",
-          "editToLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          }
-        },
-        "pickupAlertDetails": {
-          "pickupAlertId": 578,
-          "shipmentId": 1161,
-          "inboundNotes": null,
-          "emailInfo": {
-            "primaryEmail": "",
-            "additionalEmails": []
-          }
-        }
-      },
-      "linehaulDetails": {
-        "linehaulPrimaryInfo": {
-          "linehaulInfoId": 430,
-          "shipmentId": 1161,
-          "entityId": 6365,
-          "linehaulRouting": "LINE_HAUL_ONLY",
-          "carrierId": 184,
-          "terminalId": 214,
-          "carrierBillNumber": "57567",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "Carrier",
-          "fromLocationEntityId": 3408,
-          "editToLocation": "N",
-          "toLocationType": "Carrier",
-          "toLocation": "526-184",
-          "toLocationEntityId": 4840,
-          "etaDate": "2026-10-05",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "1005 Enterprise Cir",
-            "addressLine2": "",
-            "city": "Chesapeake",
-            "state": "VA",
-            "zipCode": "23321"
-          }
-        },
-        "linehaulCommonInfo": {
-          "linehaulCommonInfoId": 602,
-          "shipmentId": 1161,
-          "linehaulAccessorial": "N",
-          "linehaulNotes": ""
-        }
-      },
-      "deliveryDetails": {
-        "deliveryPrimaryInfo": {
-          "deliveryInfoId": 389,
-          "shipmentId": 1161,
-          "entityId": 6366,
-          "carrierId": 184,
-          "terminalId": 214,
-          "carrierBillNumber": "5657567",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "Carrier",
-          "fromLocationEntityId": 3408,
-          "editToLocation": "N",
-          "toLocationType": "Consignee",
-          "toLocation": "consignee 157",
-          "toLocationEntityId": 5440,
-          "etaDate": "2026-10-05",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "1 Averitt Express Dr",
-            "addressLine2": "",
-            "city": "Nashville",
-            "state": "TN",
-            "zipCode": "37211"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "line 1",
-            "addressLine2": "",
-            "city": "city",
-            "state": "state",
-            "zipCode": "65756"
-          }
-        },
-        "deliveryCommonInfo": {
-          "deliveryCommonInfoId": 564,
-          "shipmentId": 1161,
-          "deliveryAccessorial": "N",
-          "airportTransfer": "Y",
-          "deliveryAlert": "N",
-          "deliveryAlertDetails": {
-            "deliveryAlertId": 461,
+        "customerDetails": {
+            "customerInfoId": 998,
             "shipmentId": 1161,
-            "linehaulNotes": null,
-            "deliveryNotes": null,
-            "emailInfo": {
-              "primaryEmail": null,
-              "additionalEmails": []
+            "customerId": 104,
+            "stationId": 153,
+            "originAirportCode": "",
+            "destinationAirportCode": "",
+            "airportPickupService": "N",
+            "airportDeliveryService": "N",
+            "customerName": "check cust 23",
+            "shipperDetails": {
+                "shipperId": 130,
+                "shipperName": "shipper 434",
+                "addressLine1": "Demo Address Line 1",
+                "addressLine2": "Line 2",
+                "city": "Demo city",
+                "state": "Demo state",
+                "zipCode": "12345",
+                "contactPersonName": "d",
+                "phoneNumber": "(222) 222-2222",
+                "entityId": 5435
+            },
+            "consigneeDetails": {
+                "consigneeId": 158,
+                "consigneeName": "consignee 157",
+                "addressLine1": "line 1",
+                "addressLine2": "",
+                "city": "city",
+                "state": "state",
+                "zipCode": "65756",
+                "contactPersonName": "nm",
+                "phoneNumber": "(659) 876-7868",
+                "entityId": 5440
             }
-          }
-        }
-      }
-    }
-  },
-  {
-    "shipmentId": 1109,
-    "shipmentDetails": {
-      "typeOfShipment": "AIR_EXPORT",
-      "serviceLevel": "Dedicated Truck",
-      "shipmentDate": "2026-09-17",
-      "shipmentTime": null,
-      "orderReceivedPickupPending": "N",
-      "status": "ORDER_RECEIVED_PICKUP_SETUP",
-      "shipmentProNumber": "S0000001109"
-    },
-    "customerDetails": {
-      "customerInfoId": 952,
-      "shipmentId": 1109,
-      "customerId": 122,
-      "stationId": 176,
-      "originAirportCode": "LKML",
-      "destinationAirportCode": "LMNL",
-      "airportPickupService": "Y",
-      "airportDeliveryService": "Y",
-      "customerName": "Rajadurai S",
-      "pickupAirlineDetails": {
-        "airlineId": 184,
-        "airlineNumber": 31,
-        "airlineCode": "GL",
-        "airportCode": "LKML",
-        "airlineName": "Test 1",
-        "addressLine1": "Test address 1",
-        "addressLine2": "",
-        "city": "Test city",
-        "state": "Test State",
-        "zipCode": "87976",
-        "contactPersonName": "Shiva",
-        "phoneNumber": "(897) 866-7632",
-        "entityId": 6123,
-        "scenarioType": "EXPORT"
-      },
-      "deliveryAirlineDetails": {
-        "airlineId": 185,
-        "airlineNumber": 32,
-        "airlineCode": "GU",
-        "airportCode": "LMNL",
-        "airlineName": "Test 2",
-        "addressLine1": "Test address 1",
-        "addressLine2": "",
-        "city": "Test city",
-        "state": "Test state",
-        "zipCode": "78767",
-        "contactPersonName": "Prakash",
-        "phoneNumber": "(987) 877-6588",
-        "entityId": 6124,
-        "scenarioType": "EXPORT"
-      }
-    },
-    "commodityDetails": {
-      "commodityId": 831,
-      "emergencyContactName": "",
-      "emergencyContactPhone": "",
-      "handlingUnits": [
-        {
-          "handlingUnitId": 1145,
-          "shipmentId": 1109,
-          "handlingUnitUOM": "Drum",
-          "handlingUnits": "4",
-          "unit": "in",
-          "handlingLength": 8,
-          "handlingWidth": 6,
-          "handlingHeight": 10,
-          "handlingWeight": 45,
-          "handlingWeightUnit": "LB",
-          "class": "Class 55",
-          "palletDetails": [
-            {
-              "itemId": 1263,
-              "handlingUnitId": 1145,
-              "pieces": 2,
-              "piecesUOM": "Drum",
-              "description": "Testing",
-              "hazmat": "N"
+        },
+        "commodityDetails": {
+            "commodityId": 876,
+            "emergencyContactName": "",
+            "emergencyContactPhone": "",
+            "handlingUnits": [
+                {
+                    "handlingUnitId": 1373,
+                    "shipmentId": 1161,
+                    "handlingUnitUOM": "Crate",
+                    "handlingUnits": "1",
+                    "unit": "in",
+                    "handlingLength": 0,
+                    "handlingWidth": 0,
+                    "handlingHeight": 0,
+                    "handlingWeight": 2,
+                    "handlingWeightUnit": "LB",
+                    "class": "",
+                    "palletDetails": [
+                        {
+                            "itemId": 1515,
+                            "handlingUnitId": 1373,
+                            "pieces": 1,
+                            "piecesUOM": "Skid",
+                            "description": "desc",
+                            "hazmat": "N"
+                        }
+                    ],
+                    "images": []
+                }
+            ]
+        },
+        "carrierDetails": {
+            "pickupDetails": {
+                "pickupInfoId": 1039,
+                "shipmentId": 1161,
+                "entityId": 5435,
+                "pickupRouting": "PICKUP_LINE_HAUL",
+                "airportTransfer": "N",
+                "carrierId": 184,
+                "carrierName": "Averitt Express",
+                "terminalId": 527,
+                "terminalName": "RIC",
+                "carrierBillNumber": "567567",
+                "fromLocationType": "Shipper",
+                "fromLocation": "shipper 434",
+                "fromLocationEntityId": 5435,
+                "editFromLocation": "N",
+                "pickupAgentTerminal": "N",
+                "pickupAccessorial": "N",
+                "pickupAlert": "N",
+                "editFromLocationDetails": {
+                    "addressLine1": "Demo Address Line 1",
+                    "addressLine2": "Line 2",
+                    "city": "Demo city",
+                    "state": "Demo state",
+                    "zipCode": "12345"
+                },
+                "pickupAgentTerminalDetails": {
+                    "pickupAgentTerminalId": 783,
+                    "shipmentId": 1161,
+                    "toLocationType": "Carrier",
+                    "toLocation": "Averitt Express",
+                    "toLocationEntityId": 3408,
+                    "editToLocation": "N",
+                    "editToLocationDetails": {
+                        "addressLine1": "1 Averitt Express Dr",
+                        "addressLine2": "",
+                        "city": "Nashville",
+                        "state": "TN",
+                        "zipCode": "37211"
+                    }
+                },
+                "pickupAlertDetails": {
+                    "pickupAlertId": 578,
+                    "shipmentId": 1161,
+                    "inboundNotes": null,
+                    "emailInfo": {
+                        "primaryEmail": "",
+                        "additionalEmails": []
+                    }
+                }
+            },
+            "linehaulDetails": {
+                "linehaulPrimaryInfo": {
+                    "linehaulInfoId": 430,
+                    "shipmentId": 1161,
+                    "entityId": 6365,
+                    "linehaulRouting": "LINE_HAUL_ONLY",
+                    "carrierId": 184,
+                    "terminalId": 214,
+                    "carrierBillNumber": "57567",
+                    "editFromLocation": "N",
+                    "fromLocationType": "Carrier",
+                    "fromLocation": "Carrier",
+                    "fromLocationEntityId": 3408,
+                    "editToLocation": "N",
+                    "toLocationType": "Carrier",
+                    "toLocation": "526-184",
+                    "toLocationEntityId": 4840,
+                    "etaDate": "2026-10-05",
+                    "etaTime": null,
+                    "pieces": null,
+                    "weight": null,
+                    "editFromLocationDetails": {
+                        "addressLine1": "1 Averitt Express Dr",
+                        "addressLine2": "",
+                        "city": "Nashville",
+                        "state": "TN",
+                        "zipCode": "37211"
+                    },
+                    "editToLocationDetails": {
+                        "addressLine1": "1005 Enterprise Cir",
+                        "addressLine2": "",
+                        "city": "Chesapeake",
+                        "state": "VA",
+                        "zipCode": "23321"
+                    }
+                },
+                "linehaulCommonInfo": {
+                    "linehaulCommonInfoId": 602,
+                    "shipmentId": 1161,
+                    "linehaulAccessorial": "N",
+                    "linehaulNotes": ""
+                }
+            },
+            "deliveryDetails": {
+                "deliveryPrimaryInfo": {
+                    "deliveryInfoId": 389,
+                    "shipmentId": 1161,
+                    "entityId": 6366,
+                    "carrierId": 184,
+                    "terminalId": 214,
+                    "carrierBillNumber": "5657567",
+                    "editFromLocation": "N",
+                    "fromLocationType": "Carrier",
+                    "fromLocation": "Carrier",
+                    "fromLocationEntityId": 3408,
+                    "editToLocation": "N",
+                    "toLocationType": "Consignee",
+                    "toLocation": "consignee 157",
+                    "toLocationEntityId": 5440,
+                    "etaDate": "2026-10-05",
+                    "etaTime": null,
+                    "pieces": null,
+                    "weight": null,
+                    "editFromLocationDetails": {
+                        "addressLine1": "1 Averitt Express Dr",
+                        "addressLine2": "",
+                        "city": "Nashville",
+                        "state": "TN",
+                        "zipCode": "37211"
+                    },
+                    "editToLocationDetails": {
+                        "addressLine1": "line 1",
+                        "addressLine2": "",
+                        "city": "city",
+                        "state": "state",
+                        "zipCode": "65756"
+                    }
+                },
+                "deliveryCommonInfo": {
+                    "deliveryCommonInfoId": 564,
+                    "shipmentId": 1161,
+                    "deliveryAccessorial": "N",
+                    "airportTransfer": "Y",
+                    "deliveryAlert": "N",
+                    "deliveryAlertDetails": {
+                        "deliveryAlertId": 461,
+                        "shipmentId": 1161,
+                        "linehaulNotes": null,
+                        "deliveryNotes": null,
+                        "emailInfo": {
+                            "primaryEmail": null,
+                            "additionalEmails": []
+                        }
+                    }
+                }
             }
-          ],
-          "images": []
         }
-      ]
     },
-    "carrierDetails": {
-      "pickupDetails": {
-        "pickupInfoId": 832,
+    {
         "shipmentId": 1109,
-        "entityId": 6125,
-        "pickupRouting": "PICKUP_ONLY",
-        "airportTransfer": "N",
-        "carrierId": 263,
-        "carrierName": "estest1",
-        "terminalId": 521,
-        "terminalName": "Terminal 001",
-        "carrierBillNumber": "87676987",
-        "fromLocationType": "Shipper",
-        "fromLocation": "Test 1",
-        "fromLocationEntityId": null,
-        "editFromLocation": "N",
-        "pickupAgentTerminal": "Y",
-        "pickupAccessorial": "N",
-        "pickupAlert": "N",
-        "editFromLocationDetails": {
-          "addressLine1": "Test address 1",
-          "addressLine2": "",
-          "city": "Test city",
-          "state": "Test State",
-          "zipCode": "87976"
+        "shipmentDetails": {
+            "typeOfShipment": "AIR_EXPORT",
+            "serviceLevel": "Dedicated Truck",
+            "shipmentDate": "2026-09-17",
+            "shipmentTime": null,
+            "orderReceivedPickupPending": "N",
+            "status": "ORDER_RECEIVED_PICKUP_SETUP",
+            "shipmentProNumber": "S0000001109"
         },
-        "pickupAgentTerminalDetails": {
-          "pickupAgentTerminalId": 576,
-          "shipmentId": 1109,
-          "toLocationType": "Carrier",
-          "toLocation": "estest1",
-          "toLocationEntityId": 4557,
-          "editToLocation": "N",
-          "editToLocationDetails": {
-            "addressLine1": "Add line 1",
-            "addressLine2": "Add line 2",
-            "city": "city1",
-            "state": "ST",
-            "zipCode": "12309"
-          }
-        }
-      },
-      "linehaulDetails": {
-        "linehaulPrimaryInfo": {
-          "linehaulInfoId": 304,
-          "shipmentId": 1109,
-          "entityId": 6126,
-          "linehaulRouting": "LINE_HAUL_ONLY",
-          "carrierId": 263,
-          "terminalId": 522,
-          "carrierBillNumber": "879776",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "",
-          "fromLocationEntityId": 4587,
-          "editToLocation": "N",
-          "toLocationType": "Carrier",
-          "toLocation": "236-243",
-          "toLocationEntityId": 3442,
-          "etaDate": "2026-09-17",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "Test 2",
-            "addressLine2": "Test 2",
-            "city": "Test 2",
-            "state": "Test 2",
-            "zipCode": "77678"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "house of groom, lender group",
-            "addressLine2": "",
-            "city": "NewYork",
-            "state": "Arizona",
-            "zipCode": "60008"
-          }
-        },
-        "linehaulCommonInfo": {
-          "linehaulCommonInfoId": 435,
-          "shipmentId": 1109,
-          "linehaulAccessorial": "N",
-          "linehaulNotes": ""
-        }
-      },
-      "deliveryDetails": {
-        "deliveryPrimaryInfo": {
-          "deliveryInfoId": 317,
-          "shipmentId": 1109,
-          "entityId": 6128,
-          "carrierId": 243,
-          "terminalId": 236,
-          "carrierBillNumber": "768676",
-          "editFromLocation": "N",
-          "fromLocationType": "Carrier",
-          "fromLocation": "",
-          "fromLocationEntityId": 3442,
-          "editToLocation": "N",
-          "toLocationType": "Consignee",
-          "toLocation": "Test 2",
-          "toLocationEntityId": null,
-          "etaDate": "2026-09-17",
-          "etaTime": null,
-          "pieces": null,
-          "weight": null,
-          "editFromLocationDetails": {
-            "addressLine1": "house of groom, lender group",
-            "addressLine2": "",
-            "city": "NewYork",
-            "state": "Arizona",
-            "zipCode": "60008"
-          },
-          "editToLocationDetails": {
-            "addressLine1": "Test address 1",
-            "addressLine2": "",
-            "city": "Test city",
-            "state": "Test state",
-            "zipCode": "78767"
-          }
-        },
-        "deliveryCommonInfo": {
-          "deliveryCommonInfoId": 423,
-          "shipmentId": 1109,
-          "deliveryAccessorial": "N",
-          "airportTransfer": "N",
-          "deliveryAlert": "Y",
-          "deliveryAlertDetails": {
-            "deliveryAlertId": 339,
+        "customerDetails": {
+            "customerInfoId": 952,
             "shipmentId": 1109,
-            "linehaulNotes": "Please setup for pickup today ____ and drop to Forward Air",
-            "deliveryNotes": "Setup for pickup today ____ ",
-            "emailInfo": {
-              "primaryEmail": "gowthami@srinsofttech.com",
-              "additionalEmails": []
+            "customerId": 122,
+            "stationId": 176,
+            "originAirportCode": "LKML",
+            "destinationAirportCode": "LMNL",
+            "airportPickupService": "Y",
+            "airportDeliveryService": "Y",
+            "customerName": "Rajadurai S",
+            "pickupAirlineDetails": {
+                "airlineId": 184,
+                "airlineNumber": 31,
+                "airlineCode": "GL",
+                "airportCode": "LKML",
+                "airlineName": "Test 1",
+                "addressLine1": "Test address 1",
+                "addressLine2": "",
+                "city": "Test city",
+                "state": "Test State",
+                "zipCode": "87976",
+                "contactPersonName": "Shiva",
+                "phoneNumber": "(897) 866-7632",
+                "entityId": 6123,
+                "scenarioType": "EXPORT"
+            },
+            "deliveryAirlineDetails": {
+                "airlineId": 185,
+                "airlineNumber": 32,
+                "airlineCode": "GU",
+                "airportCode": "LMNL",
+                "airlineName": "Test 2",
+                "addressLine1": "Test address 1",
+                "addressLine2": "",
+                "city": "Test city",
+                "state": "Test state",
+                "zipCode": "78767",
+                "contactPersonName": "Prakash",
+                "phoneNumber": "(987) 877-6588",
+                "entityId": 6124,
+                "scenarioType": "EXPORT"
             }
-          }
+        },
+        "commodityDetails": {
+            "commodityId": 831,
+            "emergencyContactName": "",
+            "emergencyContactPhone": "",
+            "handlingUnits": [
+                {
+                    "handlingUnitId": 1145,
+                    "shipmentId": 1109,
+                    "handlingUnitUOM": "Drum",
+                    "handlingUnits": "4",
+                    "unit": "in",
+                    "handlingLength": 8,
+                    "handlingWidth": 6,
+                    "handlingHeight": 10,
+                    "handlingWeight": 45,
+                    "handlingWeightUnit": "LB",
+                    "class": "Class 55",
+                    "palletDetails": [
+                        {
+                            "itemId": 1263,
+                            "handlingUnitId": 1145,
+                            "pieces": 2,
+                            "piecesUOM": "Drum",
+                            "description": "Testing",
+                            "hazmat": "N"
+                        }
+                    ],
+                    "images": []
+                }
+            ]
+        },
+        "carrierDetails": {
+            "pickupDetails": {
+                "pickupInfoId": 832,
+                "shipmentId": 1109,
+                "entityId": 6125,
+                "pickupRouting": "PICKUP_ONLY",
+                "airportTransfer": "N",
+                "carrierId": 263,
+                "carrierName": "estest1",
+                "terminalId": 521,
+                "terminalName": "Terminal 001",
+                "carrierBillNumber": "87676987",
+                "fromLocationType": "Shipper",
+                "fromLocation": "Test 1",
+                "fromLocationEntityId": null,
+                "editFromLocation": "N",
+                "pickupAgentTerminal": "Y",
+                "pickupAccessorial": "N",
+                "pickupAlert": "N",
+                "editFromLocationDetails": {
+                    "addressLine1": "Test address 1",
+                    "addressLine2": "",
+                    "city": "Test city",
+                    "state": "Test State",
+                    "zipCode": "87976"
+                },
+                "pickupAgentTerminalDetails": {
+                    "pickupAgentTerminalId": 576,
+                    "shipmentId": 1109,
+                    "toLocationType": "Carrier",
+                    "toLocation": "estest1",
+                    "toLocationEntityId": 4557,
+                    "editToLocation": "N",
+                    "editToLocationDetails": {
+                        "addressLine1": "Add line 1",
+                        "addressLine2": "Add line 2",
+                        "city": "city1",
+                        "state": "ST",
+                        "zipCode": "12309"
+                    }
+                }
+            },
+            "linehaulDetails": {
+                "linehaulPrimaryInfo": {
+                    "linehaulInfoId": 304,
+                    "shipmentId": 1109,
+                    "entityId": 6126,
+                    "linehaulRouting": "LINE_HAUL_ONLY",
+                    "carrierId": 263,
+                    "terminalId": 522,
+                    "carrierBillNumber": "879776",
+                    "editFromLocation": "N",
+                    "fromLocationType": "Carrier",
+                    "fromLocation": "",
+                    "fromLocationEntityId": 4587,
+                    "editToLocation": "N",
+                    "toLocationType": "Carrier",
+                    "toLocation": "236-243",
+                    "toLocationEntityId": 3442,
+                    "etaDate": "2026-09-17",
+                    "etaTime": null,
+                    "pieces": null,
+                    "weight": null,
+                    "editFromLocationDetails": {
+                        "addressLine1": "Test 2",
+                        "addressLine2": "Test 2",
+                        "city": "Test 2",
+                        "state": "Test 2",
+                        "zipCode": "77678"
+                    },
+                    "editToLocationDetails": {
+                        "addressLine1": "house of groom, lender group",
+                        "addressLine2": "",
+                        "city": "NewYork",
+                        "state": "Arizona",
+                        "zipCode": "60008"
+                    }
+                },
+                "linehaulCommonInfo": {
+                    "linehaulCommonInfoId": 435,
+                    "shipmentId": 1109,
+                    "linehaulAccessorial": "N",
+                    "linehaulNotes": ""
+                }
+            },
+            "deliveryDetails": {
+                "deliveryPrimaryInfo": {
+                    "deliveryInfoId": 317,
+                    "shipmentId": 1109,
+                    "entityId": 6128,
+                    "carrierId": 243,
+                    "terminalId": 236,
+                    "carrierBillNumber": "768676",
+                    "editFromLocation": "N",
+                    "fromLocationType": "Carrier",
+                    "fromLocation": "",
+                    "fromLocationEntityId": 3442,
+                    "editToLocation": "N",
+                    "toLocationType": "Consignee",
+                    "toLocation": "Test 2",
+                    "toLocationEntityId": null,
+                    "etaDate": "2026-09-17",
+                    "etaTime": null,
+                    "pieces": null,
+                    "weight": null,
+                    "editFromLocationDetails": {
+                        "addressLine1": "house of groom, lender group",
+                        "addressLine2": "",
+                        "city": "NewYork",
+                        "state": "Arizona",
+                        "zipCode": "60008"
+                    },
+                    "editToLocationDetails": {
+                        "addressLine1": "Test address 1",
+                        "addressLine2": "",
+                        "city": "Test city",
+                        "state": "Test state",
+                        "zipCode": "78767"
+                    }
+                },
+                "deliveryCommonInfo": {
+                    "deliveryCommonInfoId": 423,
+                    "shipmentId": 1109,
+                    "deliveryAccessorial": "N",
+                    "airportTransfer": "N",
+                    "deliveryAlert": "Y",
+                    "deliveryAlertDetails": {
+                        "deliveryAlertId": 339,
+                        "shipmentId": 1109,
+                        "linehaulNotes": "Please setup for pickup today ____ and drop to Forward Air",
+                        "deliveryNotes": "Setup for pickup today ____ ",
+                        "emailInfo": {
+                            "primaryEmail": "gowthami@srinsofttech.com",
+                            "additionalEmails": []
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
-  },
+    },
 ];
 export default function HomePage() {
     const dispatch = useDispatch();
@@ -774,24 +774,45 @@ export default function HomePage() {
                                 setShowAddressAirportFlag(false);
                             }
                         }
-                        // not needed
-                        // else {
-                        //     // Case B: No airport codes exist -> Fallback to carrierId and terminalId check
-                        //     const firstCarrierId = matchingShipments[0]?.carrierDetails?.pickupDetails?.carrierId;
-                        //     const firstTerminalId = matchingShipments[0]?.carrierDetails?.pickupDetails?.terminalId;
 
-                        //     const hasCarrierTerminalMismatch = matchingShipments.some((shipment) => {
-                        //         const currentCarrierId = shipment?.carrierDetails?.pickupDetails?.carrierId;
-                        //         const currentTerminalId = shipment?.carrierDetails?.pickupDetails?.terminalId;
-                        //         return currentCarrierId !== firstCarrierId || currentTerminalId !== firstTerminalId;
-                        //     });
+                        // additional check for delivery addressess - whether all delivery address are same or not
+                        // Helper function to extract and format the required data safely
+                        const getComparisonString = (shipment) => {
+                            const info = shipment?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo;
 
-                        //     if (hasCarrierTerminalMismatch) {
-                        //         setShowAddressAlert(true);
-                        //         consolidateValid = false;
-                        //         return; // Exit early if carrier or terminal IDs do not align
-                        //     }
-                        // }
+                            if (!info) return null;
+
+                            // Create a normalized object with just the fields you want to compare
+                            const targetData = {
+                                carrierId: info.carrierId,
+                                terminalId: info.terminalId,
+                                location: {
+                                    addressLine1: info.editFromLocationDetails?.addressLine1,
+                                    addressLine2: info.editFromLocationDetails?.addressLine2,
+                                    city: info.editFromLocationDetails?.city,
+                                    state: info.editFromLocationDetails?.state,
+                                    zipCode: info.editFromLocationDetails?.zipCode,
+                                }
+                            };
+
+                            // Convert to a string so we can easily compare deep nested objects
+                            return JSON.stringify(targetData);
+                        };
+
+                        // Get the comparison string of the very first shipment to use as a baseline
+                        const baselineString = getComparisonString(matchingShipments[0]);
+
+                        // Check if every single shipment matches the baseline string
+                        const allMatch = matchingShipments.every(shipment => {
+                            return getComparisonString(shipment) === baselineString;
+                        });
+
+                        // Log the result based on the comparison
+                        if (allMatch) {
+                            dispatch(setLineHaulSameDelDiff(false));
+                        } else {
+                            dispatch(setLineHaulSameDelDiff(true));
+                        }
 
                         // Reset alert state if routing and airport/carrier structures are completely aligned
                         setShowAddressAlert(false);
@@ -875,6 +896,7 @@ export default function HomePage() {
                 {/* The components within this boundary are protected */}
                 <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
                 
+
                 <ShipmentViewTable watchedConsolidateFlag={watchedConsolidateFlag} control={control}
                     setValue={setValue} getValues={getValues} />
                 <WeightAlert

@@ -4,13 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import {
     Box, Divider, Tabs, Tab,
     Button, Dialog,
-    DialogContent, Stack
+    DialogContent, Stack, MenuItem
 } from '@mui/material';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useDispatch, useSelector } from '../../redux/store';
-import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData,  } from '../../redux/slices/carrier';
-import { setOperationalMessage, setStationTabTableData  } from '../../redux/slices/customer';
-import { setOperationalMessage as setOpertionalMessageOfRate,  } from '../../redux/slices/rate';
+import { setCurrentTerminalTab, setSelectedTeminalTabRowDetails, setTerminalViewTabData, } from '../../redux/slices/carrier';
+import { setOperationalMessage, setStationTabTableData } from '../../redux/slices/customer';
+import { setOperationalMessage as setOpertionalMessageOfRate, } from '../../redux/slices/rate';
 import { setCurrentRateRoutedFrom, setIsSelectRateClicked, setCurrentRateTab, setRateTableData } from '../../redux/slices/rate';
 import ErrorFallback from '../shared/ErrorBoundary';
 import StationAccessorial from '../customer/StationAccessorial';
@@ -19,6 +19,7 @@ import RateSearchFields from '../customer/RateSearchFields';
 import { PATH_DASHBOARD } from '../../routes/paths';
 import AddRate from '../rate/AddRate';
 import TerminalPersonnelDetails from './TerminalPersonnelDetails';
+import StyledTextField from '../shared/StyledTextField';
 // ----------------------------------------------------------------------
 
 
@@ -28,6 +29,7 @@ TerminalViewTabs.propTypes = {
 
 export default function TerminalViewTabs({ }) {
     const { currentTerminalTab, selectedTerminalTabRowDetails } = useSelector(({ carrierdata }) => carrierdata);
+    const { currentRateTab } = useSelector(({ ratedata }) => ratedata);
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const TABS = [
@@ -61,7 +63,7 @@ export default function TerminalViewTabs({ }) {
     const OnTabChange = (newValue) => {
         dispatch(setRateTableData([]));
         dispatch(setTerminalViewTabData([]));
-         dispatch(setStationTabTableData([]));
+        dispatch(setStationTabTableData([]));
         dispatch(setCurrentRateRoutedFrom('carrier'));
         dispatch(setSelectedTeminalTabRowDetails({}));
         console.log('new tab value', newValue);
@@ -149,11 +151,24 @@ export default function TerminalViewTabs({ }) {
                     </Button>}
                     {currentTerminalTab.toLowerCase() === 'rate' &&
                         <Stack direction="row" spacing={1} alignItems={'center'}>
+                            <StyledTextField
+                                select
+                                label="Rate"
+                                variant="standard"
+                                onChange={(e) => {
+                                    dispatch(setCurrentRateTab(e.target.value));
+                                }}
+                                value={currentRateTab}
+                                sx={{ mr: 1, width: '200px' }}
+                            >
+                                <MenuItem value="airport">Airport</MenuItem>
+                                <MenuItem value="transportation">Transportation</MenuItem>
+                            </StyledTextField>
                             <Button
                                 variant="outlined"
                                 onClick={() => {
                                     dispatch(setOpertionalMessageOfRate(''));
-                                    dispatch(setCurrentRateTab('transportation'));
+                                    // dispatch(setCurrentRateTab('transportation'));
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
                                     setOpenConfirmDialog(true);
                                 }}
@@ -177,7 +192,7 @@ export default function TerminalViewTabs({ }) {
                             <Button
                                 variant="outlined"
                                 onClick={() => {
-                                    dispatch(setCurrentRateTab('transportation'));
+                                    // dispatch(setCurrentRateTab('transportation'));
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
                                     dispatch(setIsSelectRateClicked(true));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateMaintenanceView);

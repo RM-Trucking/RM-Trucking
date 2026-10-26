@@ -237,6 +237,11 @@ const slice = createSlice({
             state.rateSuccess = true;
             state.operationalMessage = "Rate deleted successfully";
         },
+        deleteCarrierAirportRateSuccess(state, action) {
+            state.isLoading = false;
+            state.rateSuccess = true;
+            state.operationalMessage = "Rate deleted successfully";
+        },
         // post of select rates from customer
         postStationRateDataSuccess(state, action) {
             state.isLoading = false;

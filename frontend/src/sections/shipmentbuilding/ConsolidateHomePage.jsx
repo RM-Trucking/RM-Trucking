@@ -131,6 +131,7 @@ const ConsolidateHomePage = ({ type }) => {
   const operationalMessage = useSelector((state) => state?.shipmentdata?.operationalMessage);
   const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
   const selectedShipmentObjects = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentObjects);
+  const lineHaulSameDelDiff = useSelector((state) => state?.shipmentbuildingdata?.lineHaulSameDelDiff);
   const [customerSearchValue, setCustomerSearchValue] = useState('');
 
   const [carrierPickupSearchValue, setCarrierPickupSearchValue] = useState('');
@@ -2251,7 +2252,7 @@ const ConsolidateHomePage = ({ type }) => {
                 watchedLinehaulAddAcc={watchedLinehaulAddAcc}
               />
               <Box>
-                {selectedDeliveryDetailsList.map((shipment, index) => {
+                {lineHaulSameDelDiff && selectedDeliveryDetailsList.map((shipment, index) => {
                   return (
                     <ConsolidatedDeliveryDetailsList
                       key={shipment.shipmentId} // Mandatory visual anchor loop key

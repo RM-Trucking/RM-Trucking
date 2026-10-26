@@ -99,6 +99,7 @@ const initialState = {
     addToQueueError: null,
     addToQueueLoading: false,
     addToQueuePagination: { page: 1, pageSize: 10, totalRecords: 0 },
+    lineHaulSameDelDiff: false,
 };
 
 const slice = createSlice({
@@ -166,7 +167,10 @@ const slice = createSlice({
         },
         setSelectedDelName(state, action) {
             state.selectedDelName = action.payload;
-        }
+        },
+        setLineHaulSameDelDiff(state, action) {
+            state.lineHaulSameDelDiff = action.payload;
+        },
     },
 });
 
@@ -180,6 +184,7 @@ export const {
     setSelectedShipmentObjects,
     setSelectedDelRowObj,
     setSelectedDelName,
+    setLineHaulSameDelDiff,
 } = slice.actions;
 export default slice.reducer;
 

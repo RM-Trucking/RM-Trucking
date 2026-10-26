@@ -362,7 +362,7 @@ export default function RateTable() {
                                         const obj = {
                                             "terminalId": localStorage.getItem('terminalId'),
                                             "rateId": params.row.rateId,
-                                            "rateType": "TRANSPORT"
+                                            "rateType": currentRateTab === 'transportation' ? "TRANSPORT" : "AIRPORT"
                                         };
                                         return [...prev, obj];
                                     });

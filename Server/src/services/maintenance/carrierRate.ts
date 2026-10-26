@@ -644,19 +644,27 @@ export async function createCarrierAirportRateService(conn: Connection, req: Cre
     await conn.beginTransaction();
     try {
         const rateId = await carrierRateDB.createCarrierAirportRate(conn, req.originZoneId, req.destinationZoneId, userId);
+        console.log(`Created carrier airport rate with rateId: ${rateId}`);
         const rate = await carrierRateDB.getCarrierAirportRateById(conn, rateId);
         if (!rate) throw new Error('Failed to create carrier airport rate');
         const entityId = await entityDB.createEntity(conn, 'CARRIER_AIRPORT_RATE', rate.carrierRateId.toString());
+        console.log(`Created entity with entityId: ${entityId} for carrierRateId: ${rate.carrierRateId}`);
         const noteThreadId = await noteDB.createNoteThread(conn, entityId, userId);
-        await carrierRateDB.updateCarrierAirportRateEntityAndNoteThread(conn, rate.carrierRateId, entityId, noteThreadId);
+        console.log(`Created note thread with noteThreadId: ${noteThreadId}`);
+        const updatedRate = await carrierRateDB.updateCarrierAirportRateEntityAndNoteThread(conn, rate.carrierRateId, entityId, noteThreadId);
+        console.log(`Updated carrier airport rate with rateId: ${rate.carrierRateId}`);
         if (req.note?.messageText?.trim()) await noteDB.createNoteMessage(conn, noteThreadId, req.note.messageText.trim(), userId);
+        console.log(`Created initial note message for noteThreadId: ${noteThreadId}`);
         for (const detail of req.details || []) {
+            console.log(`Creating detail for rateId: ${rateId}, rateField: ${detail.rateField}, chargeValue: ${detail.chargeValue}, perUnitFlag: ${detail.perUnitFlag}`);
             await carrierRateDB.createCarrierAirportRateDetail(conn, rateId, detail.rateField, detail.chargeValue, detail.perUnitFlag);
         }
         const result = await enrichCarrierAirportRate(conn, (await carrierRateDB.getCarrierAirportRateById(conn, rateId))!);
+        console.log(`Returning enriched carrier airport rate with rateId: ${rateId}`);
         await conn.commit();
         return result;
     } catch (error) {
+        console.error(error);
         await conn.rollback();
         throw error;
     }

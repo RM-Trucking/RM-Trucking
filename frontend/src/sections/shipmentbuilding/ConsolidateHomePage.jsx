@@ -455,16 +455,16 @@ const ConsolidateHomePage = ({ type }) => {
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
-  const { 
-  fields: selectedDeliveryDetailsList, 
-  append: appendSelectedDeliveryDetailsList, 
-  replace: replaceSelectedDeliveryDetailsList,
-  update: updateSelectedDeliveryDetailsList,
-  remove: removeSelectedDeliveryDetailsList
-} = useFieldArray({
-  control,
-  name: "carrierInfo.deliveryDetailsList"
-});
+  const {
+    fields: selectedDeliveryDetailsList,
+    append: appendSelectedDeliveryDetailsList,
+    replace: replaceSelectedDeliveryDetailsList,
+    update: updateSelectedDeliveryDetailsList,
+    remove: removeSelectedDeliveryDetailsList
+  } = useFieldArray({
+    control,
+    name: "carrierInfo.deliveryDetailsList"
+  });
   const customerApprovalRateHistory = useWatch({
     control,
     name: 'customerRate.approvalRateHistory',
@@ -1116,15 +1116,15 @@ const ConsolidateHomePage = ({ type }) => {
       navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
     }
     else {
-    const fetchDropdownData = async () => {
-      await Promise.all([
-        dispatch(getCustomerStationDropdown()),
-        dispatch(getCarrierTerminalDropdown()),
-        dispatch(getShipperDropdown()),
-        dispatch(getConsigneeDropdown())
-      ]);
-    };
-    fetchDropdownData();
+      const fetchDropdownData = async () => {
+        await Promise.all([
+          dispatch(getCustomerStationDropdown()),
+          dispatch(getCarrierTerminalDropdown()),
+          dispatch(getShipperDropdown()),
+          dispatch(getConsigneeDropdown())
+        ]);
+      };
+      fetchDropdownData();
     }
   }, [])
   useEffect(() => {
@@ -1876,17 +1876,21 @@ const ConsolidateHomePage = ({ type }) => {
     let masterAccessorialsForEntityId = [];
 
     try {
+      console.log("Searching Terminal for:", { DFrmCarrierId, DFrmTerminalId }, "Dropdown State Length:", carrierTerminalDropdown?.length);
+
       const selectedDeliveryFromTerminal = carrierTerminalDropdown?.find(
         (item) => item?.carrierId === DFrmCarrierId && item?.terminalId === DFrmTerminalId
       ) || null;
+      console.log("Matched Terminal Object:", selectedDeliveryFromTerminal);
 
       if (selectedDeliveryFromTerminal?.terminalEntityId) {
         const response = await axios.get(
           `maintenance/entity-accessorial/${selectedDeliveryFromTerminal.terminalEntityId}?checkCarrierType=true`
         );
+        console.log("response on consolidated home page on getDeliveryAccessorials ", response?.data?.data);
 
         if (response?.data && Array.isArray(response?.data?.data)) {
-          masterAccessorialsForEntityId = response.data.data;
+          masterAccessorialsForEntityId = response?.data?.data;
         }
       }
     } catch (error) {
@@ -1959,7 +1963,10 @@ const ConsolidateHomePage = ({ type }) => {
   };
 
   useEffect(() => {
-    if (selectedShipmentObjects && selectedShipmentObjects.length > 0) {
+    if (selectedShipmentObjects &&
+      selectedShipmentObjects.length > 0 &&
+      carrierTerminalDropdown &&
+      carrierTerminalDropdown.length > 0) {
       const parsedRows = selectedShipmentObjects?.map((item, index) => {
         const shipmentItem = item?.rowDetails;
         const firstHU = shipmentItem?.commodityDetails?.handlingUnits?.[0];
@@ -2017,7 +2024,7 @@ const ConsolidateHomePage = ({ type }) => {
         handleAddShipments(selectedShipmentObjects);
       }
     }
-  }, [selectedShipmentObjects])
+  }, [selectedShipmentObjects, carrierTerminalDropdown, lineHaulSameDelDiff])
 
   return (
     <ErrorBoundary
@@ -2399,10 +2406,10 @@ const ConsolidateHomePage = ({ type }) => {
                       watchedOriginAirport={watchedOriginAirport}
                       watchedDestinationAirport={watchedDestinationAirport}
                       watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-                      selectedDeliveryDetailsList = {selectedDeliveryDetailsList}
-                      updateSelectedDeliveryDetailsList = {updateSelectedDeliveryDetailsList}
-                      appendSelectedDeliveryDetailsList = {appendSelectedDeliveryDetailsList}
-                      removeSelectedDeliveryDetailsList = {removeSelectedDeliveryDetailsList}
+                      selectedDeliveryDetailsList={selectedDeliveryDetailsList}
+                      updateSelectedDeliveryDetailsList={updateSelectedDeliveryDetailsList}
+                      appendSelectedDeliveryDetailsList={appendSelectedDeliveryDetailsList}
+                      removeSelectedDeliveryDetailsList={removeSelectedDeliveryDetailsList}
                     />
                   );
                 })}

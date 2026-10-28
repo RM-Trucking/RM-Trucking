@@ -54,7 +54,6 @@ import ReferenceDialog from './ReferenceDialog';
 import { getObjectForBOL } from './getObjForBOL';
 
 const ConsolidatedDeliveryDetailsList = ({
-    key,
     shipment,
     shipmentIndex,
     type,
@@ -171,6 +170,7 @@ const ConsolidatedDeliveryDetailsList = ({
         // 2. Create the updated shipment object, replacing only deliveryAccessorials
         const updatedShipment = {
             ...targetShipment,
+            deliveryAddAcc: true,
             deliveryAccessorials: selectedData // Assigning your new array here
         };
 
@@ -1030,11 +1030,9 @@ const ConsolidatedDeliveryDetailsList = ({
                         <AccordionDetails sx={{ px: 0, pt: 2 }}>
                             {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
                                 <Button
-                                    variant="contained"
-                                    size="small"
+                                    variant="contained" size="small"
                                     onClick={(e) => {
                                         const fullId = e.currentTarget.id; // "add-delivery-acc-list-button-3"
-
                                         // Strip away the text prefix to isolate the index
                                         const indexStr = fullId.replace("add-delivery-acc-list-button-", "");
                                         const sIndex = parseInt(indexStr, 10);
@@ -1043,11 +1041,8 @@ const ConsolidatedDeliveryDetailsList = ({
                                     }}
                                     sx={{ bgcolor: '#a22', textTransform: 'none' }}
                                     id={`add-delivery-acc-list-button-${shipmentIndex}`}
-                                >
-                                    Add Accessorial
-                                </Button>
+                                > Add Accessorial </Button>
                             </Box>}
-
                             <TableContainer component={Paper} variant="outlined" sx={{ bgcolor: '#f9f9f9' }}>
                                 <Table size="small">
                                     <TableHead sx={{ bgcolor: '#eee' }}>
@@ -1078,51 +1073,34 @@ const ConsolidatedDeliveryDetailsList = ({
                                                 </TableCell>
                                                 {type !== 'View' && <TableCell align="right">
                                                     <Stack direction="row" spacing={1} justifyContent="flex-end">
-                                                        {/* <IconButton size="small" onClick={() => {
-                                      setActionType('View');
-                                      setAddAccModal(true);
-                                    }}><Iconify icon="carbon:view-filled" /></IconButton> */}
-                                                        <IconButton size="small" onClick={() => {
+                                                        <IconButton id={`edit-delivery-acc-list-button-${shipmentIndex}`} size="small" onClick={(e) => {
+                                                            // 1. Strip away the text prefix to isolate the shipment card index
+                                                            const fullId = e.currentTarget.id;
+                                                            const indexStr = fullId.split('-').pop(); // Extracts "5"
+                                                            const sIndex = parseInt(indexStr, 10);
+                                                            dispatch(setShipmentToChangeIndex(sIndex));
+
                                                             setActiveAccType('Delivery');
                                                             setEditAccIndex(index);
                                                             setActionType('Edit');
                                                             setAddDeliveryAccModal(true);
-
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
-                                                        {/* <IconButton onClick={() => {
-                                                            const selectedObj = watchedCarrierInfo?.deliveryDetailsList?.[shipmentToChangeIndex]?.deliveryAccessorials[index];
-                                                            const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;;
-                                                            // If there is no valid ID, stop the function early
-                                                            if (!targetId) return;
-                                                            const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex]?.map((item) => {
-                                                                if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
-                                                                    return {
-                                                                        ...item,
-                                                                        selected: false // Explicitly uncheck this item
-                                                                    };
-                                                                }
-                                                                return item; // Leave all other items exactly as they are
-                                                            });
-                                                            // 4. Update the master accessorials state
-                                                            setDELIVERY_MASTER_Accessorials_For_Lists((prevList) =>
-                                                                prevList.map((shipmentList, index) =>
-                                                                    index === shipmentToChangeIndex ? updatedMasterList : shipmentList
-                                                                )
-                                                            );
-                                                            removeSelectedDeliveryDetailsList(shipmentToChangeIndex, index);
-                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton> */}
                                                         <IconButton
-                                                            onClick={() => {
+                                                            id={`delete-delivery-acc-button-shipment-${shipmentIndex}`}
+                                                            onClick={(e) => {
+                                                                const fullId = e.currentTarget.id;
+                                                                const indexStr = fullId.split('-').pop();
+                                                                const sIndex = parseInt(indexStr, 10);
+                                                                dispatch(setShipmentToChangeIndex(sIndex)); // Update the state with the correct shipment index
+
                                                                 // 1. Target the specific accessorial object to find its ID
-                                                                const currentShipment = watchedCarrierInfo?.deliveryDetailsList?.[shipmentToChangeIndex];
+                                                                const currentShipment = watchedCarrierInfo?.deliveryDetailsList?.[sIndex];
                                                                 const selectedObj = currentShipment?.deliveryAccessorials?.[index];
                                                                 const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;
-
                                                                 // If there is no valid ID, stop the function early
                                                                 if (!targetId) return;
-
                                                                 // 2. Uncheck the item in the master checklist state
-                                                                const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex]?.map((item) => {
+                                                                const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[sIndex]?.map((item) => {
                                                                     if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
                                                                         return {
                                                                             ...item,
@@ -1131,32 +1109,28 @@ const ConsolidatedDeliveryDetailsList = ({
                                                                     }
                                                                     return item;
                                                                 });
-
                                                                 setDELIVERY_MASTER_Accessorials_For_Lists((prevList) =>
                                                                     prevList.map((shipmentList, idx) =>
-                                                                        idx === shipmentToChangeIndex ? updatedMasterList : shipmentList
+                                                                        idx === sIndex ? updatedMasterList : shipmentList
                                                                     )
                                                                 );
-
                                                                 // 3. Remove the item specifically from the nested deliveryAccessorials array
                                                                 if (currentShipment && currentShipment.deliveryAccessorials) {
                                                                     const updatedAccessorials = currentShipment.deliveryAccessorials.filter((_, idx) => idx !== index);
-
                                                                     // 4. Reconstruct the shipment object with the updated nested array
                                                                     const updatedShipment = {
                                                                         ...currentShipment,
+                                                                        deliveryAddAcc: true,
                                                                         deliveryAccessorials: updatedAccessorials
                                                                     };
-
                                                                     // 5. Update only this specific shipment slot in React Hook Form
-                                                                    updateSelectedDeliveryDetailsList(shipmentToChangeIndex, updatedShipment);
+                                                                    updateSelectedDeliveryDetailsList(sIndex, updatedShipment);
                                                                 }
                                                             }}
                                                             size="small"
                                                         >
                                                             <Iconify icon="material-symbols:delete-rounded" />
                                                         </IconButton>
-
                                                     </Stack>
                                                 </TableCell>}
                                             </TableRow>

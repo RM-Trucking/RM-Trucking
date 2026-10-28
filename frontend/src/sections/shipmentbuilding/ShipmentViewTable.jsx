@@ -197,54 +197,54 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                 return element;
             },
         },
-        // {
-        //     field: "isShipperAirline",
-        //     headerName: "Shipper airline",
-        //     minWidth: 200,
-        //     flex: 1,
-        //     filterable: false,
-        //     sortable: false,
-        //     renderCell: (params) => {
-        //         const element = (
-        //             <Typography
-        //                 variant='normal'
-        //                 sx={{
-        //                     p: 2,
-        //                     color: '#AA2222',            // Applies the dark red/amber tone
-        //                     textDecoration: 'underline'  // Underlines the text
-        //                 }}
-        //             >
-        //                 {params?.row?.isShipperAirline ? 'Yes' : 'No'}
-        //             </Typography>
+        {
+            field: "isShipperAirline",
+            headerName: "Shipper airline",
+            minWidth: 200,
+            flex: 1,
+            filterable: false,
+            sortable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                        variant='normal'
+                        sx={{
+                            p: 2,
+                            color: '#AA2222',            // Applies the dark red/amber tone
+                            textDecoration: 'underline'  // Underlines the text
+                        }}
+                    >
+                        {params?.row?.isShipperAirline ? 'Yes' : 'No'}
+                    </Typography>
 
-        //         );
-        //         return element;
-        //     },
-        // },
-        // {
-        //     field: "isConsigneeAirline",
-        //     headerName: "Consignee airline",
-        //     minWidth: 200,
-        //     flex: 1,
-        //     filterable: false,
-        //     sortable: false,
-        //     renderCell: (params) => {
-        //         const element = (
-        //             <Typography
-        //                 variant='normal'
-        //                 sx={{
-        //                     p: 2,
-        //                     color: '#AA2222',            // Applies the dark red/amber tone
-        //                     textDecoration: 'underline'  // Underlines the text
-        //                 }}
-        //             >
-        //                 {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
-        //             </Typography>
+                );
+                return element;
+            },
+        },
+        {
+            field: "isConsigneeAirline",
+            headerName: "Consignee airline",
+            minWidth: 200,
+            flex: 1,
+            filterable: false,
+            sortable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Typography
+                        variant='normal'
+                        sx={{
+                            p: 2,
+                            color: '#AA2222',            // Applies the dark red/amber tone
+                            textDecoration: 'underline'  // Underlines the text
+                        }}
+                    >
+                        {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
+                    </Typography>
 
-        //         );
-        //         return element;
-        //     },
-        // },
+                );
+                return element;
+            },
+        },
         {
             field: "customerName",
             headerName: "Customer Name",
@@ -361,7 +361,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
         {
             field: "actions",
             headerName: "Actions",
-            width: 150,
+            width: 600,
             sortable: false,
             filterable: false,
             renderCell: (params) => {
@@ -392,12 +392,12 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             </IconButton>
                         </Tooltip>
 
-                        {/* <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
                         </IconButton>
 
                         {/* Checkbox with Del Label */}
-                        {/* <FormControlLabel
+                        <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -449,7 +449,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                         </FormControl>
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
-                        {/* {isRowSelected && (
+                        {isRowSelected && (
                             <Button
                                 variant="contained"
                                 size="small"
@@ -465,7 +465,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             </Button>
                         )}
                         {/* CONDITION 2: "Del" checkbox is active/clicked for this specific row */}
-                        {/* {isDelChecked && (
+                        {isDelChecked && (
                             <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                                 <Button
                                     variant="contained"

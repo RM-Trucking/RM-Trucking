@@ -44,13 +44,17 @@ import {
 
 
 } from '../../redux/slices/shipment';
-import PickupAccessorialDialog from './PickupAccessorialDialog';
-import AddAccessorialDialog from './AddAccessorialDialog';
+import {
+    setShipmentToChangeIndex,
+} from '../../redux/slices/shipmentbuilding';
+import PickupAccDilogForConsolidate from './PickupAccDilogForConsolidate';
+import AddAccDilogForConsolidate from './AddAccDilogForConsolidate';
 import BillOfLadingAuto from './BillOfLadingAuto';
 import ReferenceDialog from './ReferenceDialog';
 import { getObjectForBOL } from './getObjForBOL';
 
 const ConsolidatedDeliveryDetailsList = ({
+    key,
     shipment,
     shipmentIndex,
     type,
@@ -91,8 +95,8 @@ const ConsolidatedDeliveryDetailsList = ({
     replaceDeliveryAcc,
     addDeliveryAccModal,
     actionType,
-    DELIVERY_MASTER_ACCESSORIALS,
-    setDELIVERY_MASTER_Accessorials,
+    DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS,
+    setDELIVERY_MASTER_Accessorials_For_Lists,
     onSaveOfEdit,
     appendDeliveryAccFields,
     watchedDeliveryAlert,
@@ -115,10 +119,15 @@ const ConsolidatedDeliveryDetailsList = ({
     watchedOriginAirport,
     watchedDestinationAirport,
     watchedLinehaulAddAcc,
+    selectedDeliveryDetailsList,
+    updateSelectedDeliveryDetailsList,
+    appendSelectedDeliveryDetailsList,
+    removeSelectedDeliveryDetailsList,
 }) => {
     const contentRef = useRef(null);
     const [subModal, setSubModal] = useState({ type: 'delivery', open: false });
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+    const shipmentToChangeIndex = useSelector((state) => state?.shipmentbuildingdata?.shipmentToChangeIndex);
     const handlePrint = useReactToPrint({
         contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
     })
@@ -127,6 +136,190 @@ const ConsolidatedDeliveryDetailsList = ({
         console.error("Error caught:", info);
         console.log(error);
     };
+    // relocated functions for pickupaccdilogforconsolidate to this component to avoid prop drilling and maintain state consistency
+    const handlePickupDFCToggle = (index) => {
+        setDELIVERY_MASTER_Accessorials_For_Lists((prevMasterList) =>
+            prevMasterList.map((innerList, sIndex) => {
+                // 1. Locate the correct shipment array using shipmentIndex
+                if (sIndex !== shipmentToChangeIndex) {
+                    return innerList; // Leave all other shipments untouched
+                }
+
+                // 2. Clone the inner array and map over its accessorials
+                return innerList.map((item, itemIndex) => {
+                    if (itemIndex === index) {
+                        return {
+                            ...item,
+                            selected: !item.selected // Toggle the checkbox state cleanly
+                        };
+                    }
+                    return item;
+                });
+            })
+        );
+    };
+    const handlePickupDFCSave = () => {
+        const selectedData = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex]?.filter(item => item.selected);
+
+        const targetShipment = selectedDeliveryDetailsList[shipmentToChangeIndex];
+
+        if (!targetShipment) {
+            console.error(`No shipment object found at index: ${shipmentToChangeIndex}`);
+            return;
+        }
+
+        // 2. Create the updated shipment object, replacing only deliveryAccessorials
+        const updatedShipment = {
+            ...targetShipment,
+            deliveryAccessorials: selectedData // Assigning your new array here
+        };
+
+        // 3. Inform React Hook Form to cleanly update that specific index slot
+        updateSelectedDeliveryDetailsList(shipmentToChangeIndex, updatedShipment);
+        setDeliveryAccModal(false);
+        setAddDeliveryAccModal(false);
+        setActionType('');
+    };
+    const handlePickupDFCCancelAllSelections = () => {
+        setDELIVERY_MASTER_Accessorials_For_Lists((prevMasterList) =>
+            prevMasterList.map((innerList, sIndex) => {
+                // 1. Locate the correct shipment array using shipmentIndex
+                if (sIndex !== shipmentToChangeIndex) {
+                    return innerList; // Leave all other shipments completely untouched
+                }
+
+                // 2. Map over the target inner list to update selection states based on AccFields
+                return innerList.map((item) => {
+                    // Check if AccFields exists and contains an object with a matching entityAccessorialId
+                    const isMatched = selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials && selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials?.some(
+                        (field) => field.entityAccessorialId === item.entityAccessorialId
+                    );
+
+                    return {
+                        ...item,
+                        selected: isMatched ? true : false, // sets true if matched, false otherwise
+                    };
+                });
+            })
+        );
+
+        // 3. Close the interface
+        setDeliveryAccModal(false);
+        setAddDeliveryAccModal(false);
+        setActionType('');
+    };
+
+    // relocated functions for addaccdilogforconsolidate to this component to avoid prop drilling and maintain state consistency
+    const handleSubmitAddAcc = (data, reset) => {
+
+        if (actionType === 'Add') {
+            const [accessorialId, accessorialName] = data?.accessorial?.split('-') || [];
+
+            // 1. SAFE WRAPPER: Force the extracted item to be an array even if the state structure is flat
+            const rawAccessorials = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex];
+            const currentShipmentAccessorials = Array.isArray(rawAccessorials)
+                ? rawAccessorials
+                : (rawAccessorials ? [rawAccessorials] : []); // Fallback: wrap object or use empty array
+
+            // 2. Perform the duplicate check (this will no longer crash)
+            const isDuplicate = currentShipmentAccessorials.some(
+                (item) =>
+                    String(item.accessorialId) === String(accessorialId) &&
+                    String(item.chargeType).trim().toLowerCase() === String(data.chargesType).trim().toLowerCase()
+            );
+
+            if (isDuplicate) {
+                setDuplicateFlag(true);
+            } else {
+                // 3. SAFE STATE UPDATE: Clean up structural mismatches during state writing
+                setDELIVERY_MASTER_Accessorials_For_Lists((prevMasterList) => {
+                    // Ensure the parent state is iterable
+                    const baseList = Array.isArray(prevMasterList) ? prevMasterList : [];
+
+                    return baseList.map((innerItem, sIndex) => {
+                        if (sIndex !== shipmentToChangeIndex) {
+                            return innerItem;
+                        }
+
+                        // Turn the targeted slot into an array if it was accidentally saved as an object
+                        const targetedInnerList = Array.isArray(innerItem)
+                            ? innerItem
+                            : (innerItem ? [innerItem] : []);
+
+                        // Append the new custom accessorial item
+                        return [
+                            ...targetedInnerList,
+                            {
+                                accessorialId: accessorialId,
+                                accessorialName: accessorialName,
+                                chargeType: data.chargesType,
+                                chargeValue: data.charges,
+                                notes: [{
+                                    noteMessageId: Date.now(),
+                                    messageText: data.notes,
+                                }]
+                            }
+                        ];
+                    });
+                });
+
+                reset({ accessorial: null, chargesType: '', charges: '', notes: '' });
+                setAddDeliveryAccModal(false);
+                setActionType('');
+                setEditAccIndex(null);
+            }
+        }
+
+        else if (actionType === 'Edit') {
+            let editableObj = selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials[editAccIndex];
+            const selectedData = {
+                accessorialId: editableObj.accessorialId,
+                entityId: editableObj.entityId,
+                accessorialName: editableObj.accessorialName,
+                chargeType: data.chargesType,
+                chargeValue: data.charges,
+            };
+            // 1. Fetch the exact shipment row from the form array field list
+            const targetShipment = selectedDeliveryDetailsList[shipmentToChangeIndex];
+
+            if (targetShipment) {
+                // 2. Safe-extract current accessorial array layers
+                const currentAccessorials = Array.isArray(targetShipment.deliveryAccessorials)
+                    ? targetShipment.deliveryAccessorials
+                    : [];
+
+                // 3. Immutably update the target accessorial item using editAccIndex
+                const updatedAccessorials = currentAccessorials.map((item, index) => {
+                    if (index !== editAccIndex) return item; // Leave other items untouched
+
+                    return {
+                        ...item, // Preserve tracking fields like isManual, selected, or React keys
+                        accessorialName: selectedData.accessorialName,
+                        chargeType: selectedData.chargeType,
+                        chargeValue: selectedData.chargeValue,
+                        notes: selectedData.notes,
+                        entityId: selectedData?.entityId,
+                        accessorialId: selectedData?.accessorialId || selectedData?.id
+                    };
+                });
+
+                // 4. package the new top-level shipment object layout 
+                const updatedShipment = {
+                    ...targetShipment,
+                    deliveryAccessorials: updatedAccessorials
+                };
+
+                // 5. Tell React Hook Form to cleanly override the targeted index slot
+                updateSelectedDeliveryDetailsList(shipmentToChangeIndex, updatedShipment);
+            }
+
+            // 6. Close out control panel modal flags
+            setAddDeliveryAccModal(false);
+            setActionType('');
+            setEditAccIndex(null);
+        }
+    }
+
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -140,7 +333,7 @@ const ConsolidatedDeliveryDetailsList = ({
             {/* delivery details section  */}
             <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
-                    <Typography variant="subtitle1" fontWeight="bold">Delivery Details {shipment?.shipmentProNumber ?? `- ${shipment?.shipmentProNumber}`}</Typography>
+                    <Typography variant="subtitle1" fontWeight="bold">Delivery Details - {shipment?.shipmentProNumber ?? `- ${shipment?.shipmentProNumber}`}</Typography>
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
@@ -300,7 +493,7 @@ const ConsolidatedDeliveryDetailsList = ({
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 255 }} />} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 255 }} />} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
                                     <Controller
@@ -313,7 +506,7 @@ const ConsolidatedDeliveryDetailsList = ({
                                                 label="Address Line 2"
                                                 variant="standard"
                                                 InputLabelProps={{ shrink: true }}
-                                                disabled={!watchedDeliveryFromLocationFlag}
+                                                disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)}
                                                 inputProps={{ maxLength: 255 }}
                                             />
                                         )}
@@ -321,13 +514,13 @@ const ConsolidatedDeliveryDetailsList = ({
 
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 100 }} />} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!watchedDeliveryFromLocationFlag} inputProps={{ maxLength: 100 }} />} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.zip`, !watchedDeliveryFromLocationFlag)}
+                                    {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.zip`, !getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`))}
                                 </Box>
                             </Box>
                         </Paper>
@@ -508,19 +701,19 @@ const ConsolidatedDeliveryDetailsList = ({
                             </Typography>
                             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 255 }} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocation`)} inputProps={{ maxLength: 255 }} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.line2`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 255 }} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.line2`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 2" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocation`)} inputProps={{ maxLength: 255 }} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 100 }} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocation`)} inputProps={{ maxLength: 100 }} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!watchedDeliveryToLocationFlag} inputProps={{ maxLength: 100 }} />
+                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} />} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocation`)} inputProps={{ maxLength: 100 }} />
                                 </Box>
                                 <Box sx={{ flex: '1 1 18%' }}>
-                                    {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.zip`, !watchedDeliveryToLocationFlag)}
+                                    {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocationDetails.zip`, !getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualToLocation`))}
                                 </Box>
                             </Box>
                         </Paper>
@@ -827,7 +1020,7 @@ const ConsolidatedDeliveryDetailsList = ({
 
 
                     {/* ACCESSORIALS: Flexbox for header */}
-                    {watchedDeliveryAddAcc && <Accordion sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
+                    {getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.deliveryAddAcc`) && <Accordion expanded={true} onChange={() => { }} sx={{ mt: 3, boxShadow: 'none', '&:before': { display: 'none' } }}>
                         <AccordionSummary
                             expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />}
                             sx={{ borderBottom: '1px solid #ccc', px: 0 }}
@@ -839,8 +1032,17 @@ const ConsolidatedDeliveryDetailsList = ({
                                 <Button
                                     variant="contained"
                                     size="small"
-                                    onClick={() => setDeliveryAccModal(true)} // Opens the Dialog
+                                    onClick={(e) => {
+                                        const fullId = e.currentTarget.id; // "add-delivery-acc-list-button-3"
+
+                                        // Strip away the text prefix to isolate the index
+                                        const indexStr = fullId.replace("add-delivery-acc-list-button-", "");
+                                        const sIndex = parseInt(indexStr, 10);
+                                        dispatch(setShipmentToChangeIndex(sIndex)); // Update the state with the correct shipment index
+                                        setDeliveryAccModal(true);// Opens the Dialog
+                                    }}
                                     sx={{ bgcolor: '#a22', textTransform: 'none' }}
+                                    id={`add-delivery-acc-list-button-${shipmentIndex}`}
                                 >
                                     Add Accessorial
                                 </Button>
@@ -858,7 +1060,7 @@ const ConsolidatedDeliveryDetailsList = ({
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                        {deliveryAccFields.map((field, index) => (
+                                        {selectedDeliveryDetailsList[shipmentIndex]?.deliveryAccessorials?.map((field, index) => (
                                             <TableRow key={field.id}>
                                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.accessorialName}</TableCell>
                                                 <TableCell sx={{ fontSize: '0.8rem' }}>{field.chargeType}</TableCell>
@@ -887,12 +1089,12 @@ const ConsolidatedDeliveryDetailsList = ({
                                                             setAddDeliveryAccModal(true);
 
                                                         }}><Iconify icon="tabler:edit" /></IconButton>
-                                                        <IconButton onClick={() => {
-                                                            const selectedObj = watchedCarrierInfo?.deliveryDetails?.deliveryAccessorials[index];
+                                                        {/* <IconButton onClick={() => {
+                                                            const selectedObj = watchedCarrierInfo?.deliveryDetailsList?.[shipmentToChangeIndex]?.deliveryAccessorials[index];
                                                             const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;;
                                                             // If there is no valid ID, stop the function early
                                                             if (!targetId) return;
-                                                            const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS.map((item) => {
+                                                            const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex]?.map((item) => {
                                                                 if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
                                                                     return {
                                                                         ...item,
@@ -902,9 +1104,59 @@ const ConsolidatedDeliveryDetailsList = ({
                                                                 return item; // Leave all other items exactly as they are
                                                             });
                                                             // 4. Update the master accessorials state
-                                                            setDELIVERY_MASTER_Accessorials(updatedMasterList);
-                                                            removeDeliveryAcc(index);
-                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton>
+                                                            setDELIVERY_MASTER_Accessorials_For_Lists((prevList) =>
+                                                                prevList.map((shipmentList, index) =>
+                                                                    index === shipmentToChangeIndex ? updatedMasterList : shipmentList
+                                                                )
+                                                            );
+                                                            removeSelectedDeliveryDetailsList(shipmentToChangeIndex, index);
+                                                        }} size="small"><Iconify icon="material-symbols:delete-rounded" /></IconButton> */}
+                                                        <IconButton
+                                                            onClick={() => {
+                                                                // 1. Target the specific accessorial object to find its ID
+                                                                const currentShipment = watchedCarrierInfo?.deliveryDetailsList?.[shipmentToChangeIndex];
+                                                                const selectedObj = currentShipment?.deliveryAccessorials?.[index];
+                                                                const targetId = selectedObj?.entityAccessorialId || selectedObj?.accessorialId;
+
+                                                                // If there is no valid ID, stop the function early
+                                                                if (!targetId) return;
+
+                                                                // 2. Uncheck the item in the master checklist state
+                                                                const updatedMasterList = DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex]?.map((item) => {
+                                                                    if (item.entityAccessorialId === targetId || item?.accessorialId === targetId) {
+                                                                        return {
+                                                                            ...item,
+                                                                            selected: false
+                                                                        };
+                                                                    }
+                                                                    return item;
+                                                                });
+
+                                                                setDELIVERY_MASTER_Accessorials_For_Lists((prevList) =>
+                                                                    prevList.map((shipmentList, idx) =>
+                                                                        idx === shipmentToChangeIndex ? updatedMasterList : shipmentList
+                                                                    )
+                                                                );
+
+                                                                // 3. Remove the item specifically from the nested deliveryAccessorials array
+                                                                if (currentShipment && currentShipment.deliveryAccessorials) {
+                                                                    const updatedAccessorials = currentShipment.deliveryAccessorials.filter((_, idx) => idx !== index);
+
+                                                                    // 4. Reconstruct the shipment object with the updated nested array
+                                                                    const updatedShipment = {
+                                                                        ...currentShipment,
+                                                                        deliveryAccessorials: updatedAccessorials
+                                                                    };
+
+                                                                    // 5. Update only this specific shipment slot in React Hook Form
+                                                                    updateSelectedDeliveryDetailsList(shipmentToChangeIndex, updatedShipment);
+                                                                }
+                                                            }}
+                                                            size="small"
+                                                        >
+                                                            <Iconify icon="material-symbols:delete-rounded" />
+                                                        </IconButton>
+
                                                     </Stack>
                                                 </TableCell>}
                                             </TableRow>
@@ -915,39 +1167,35 @@ const ConsolidatedDeliveryDetailsList = ({
                         </AccordionDetails>
                     </Accordion>}
 
-                    <PickupAccessorialDialog
+                    <PickupAccDilogForConsolidate
                         open={deliveryAccModal}
-                        onClose={() => {
-                            setDeliveryAccModal(false);
-                            setAddDeliveryAccModal(false);
-                            setActionType('');
-                        }}
-                        onSave={(selectedData) => replaceDeliveryAcc(selectedData)}
                         setActionType={setActionType}
                         setAddAccModal={setAddDeliveryAccModal}
                         addAccModal={addDeliveryAccModal}
                         actionType={actionType}
-                        MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
-                        setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
-                        AccFields={deliveryAccFields}
+                        MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex] || []}
+                        setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials_For_Lists}
+                        AccFields={selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials || []}
+                        shipmentIndex={shipmentToChangeIndex}
+                        handlePickupDFCToggle={handlePickupDFCToggle}
+                        handlePickupDFCSave={handlePickupDFCSave}
+                        handlePickupDFCCancelAllSelections={handlePickupDFCCancelAllSelections}
                     />
-                    <AddAccessorialDialog
+                    <AddAccDilogForConsolidate
                         open={addDeliveryAccModal}
-                        onClose={() => {
-                            setAddDeliveryAccModal(false);
-                            setActionType('');
-                            setEditAccIndex(null);
-                        }}
-                        onSave={onSaveOfEdit}
+                        // onSave={onSaveOfEdit}
                         setActionType={setActionType}
                         setAddAccModal={setAddDeliveryAccModal}
                         addAccModal={addDeliveryAccModal}
                         actionType={actionType}
-                        accFields={deliveryAccFields}
-                        editableObj={deliveryAccFields[editAccIndex]}
-                        appendAccFields={appendDeliveryAccFields}
-                        MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
-                        setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
+                        accFields={selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials || []}
+                        editableObj={selectedDeliveryDetailsList[shipmentToChangeIndex]?.deliveryAccessorials[editAccIndex]}
+                        appendAccFields={appendSelectedDeliveryDetailsList}
+                        MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS?.[shipmentToChangeIndex] || []}
+                        setMASTER_Accessorials={setDELIVERY_MASTER_Accessorials_For_Lists}
+                        shipmentIndex={shipmentToChangeIndex}
+                        shipmentProNumber={shipment?.shipmentProNumber}
+                        handleSubmitAddAcc={handleSubmitAddAcc}
                     />
 
                     <Box sx={{ flex: '0 1 200px', mb: 3, mt: 3 }}>
@@ -964,7 +1212,7 @@ const ConsolidatedDeliveryDetailsList = ({
                             label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Delivery Alert </Typography>}
                         />
                     </Box>
-                    {watchedDeliveryAlert && <>
+                    {getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.deliveryAlert`) && <>
                         {/* LINE-HAUL NOTES: Flexbox for chip gallery */}
                         <Box sx={{ border: '1px solid #ccc', borderRadius: 2, p: 2, pt: 3, position: 'relative', mb: 3 }}>
                             <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>

@@ -76,7 +76,7 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import {
   setSelectedShipmentBuildObj,
 } from '../../redux/slices/shipmentbuilding';
-
+import axios from '../../utils/axios';
 // --------------------------------------------------------------
 
 // --- CONSTANTS & LISTS --- 
@@ -183,6 +183,7 @@ const ConsolidateHomePage = ({ type }) => {
   const [PICKUP_MASTER_ACCESSORIALS, setPICKUP_MASTER_Accessorials] = useState([]);
   const [LINEHAUL_MASTER_ACCESSORIALS, setLINEHAUL_MASTER_Accessorials] = useState([]);
   const [DELIVERY_MASTER_ACCESSORIALS, setDELIVERY_MASTER_Accessorials] = useState([]);
+  const [DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS, setDELIVERY_MASTER_Accessorials_For_Lists] = useState([]);
   const [CUSTOMER_MASTER_ACCESSORIALS, setCUSTOMER_MASTER_ACCESSORIALS] = useState([]);
 
   // for select carrier selection
@@ -395,54 +396,7 @@ const ConsolidateHomePage = ({ type }) => {
           additionalEmailsArray: [],
           airportTransfer: false,
         },
-        deliveryDetailsList: [
-          {
-            shipmentId: '1161',
-            shipmentProNumber: '1161',
-            carrier: '',
-            disableDeliveryFromCarrier: false,
-            billNumber: "AVF-567567",
-            fromLocation: '',
-            manualFromLocation: false,
-            manualFromLocationDetails: {
-              line1: 'line 1',
-              line2: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-            toLocationType: 'Consignee',
-            toLocation: '',
-            manualToLocation: false,
-            manualToLocationDetails: {
-              line1: '',
-              line2: '',
-              city: '',
-              state: '',
-              zip: '',
-            },
-            // agent: '',
-            etaDate: dayjs().format('YYYY-MM-DD'),
-            etaTime: null,
-            pcs: '',
-            weight: '',
-            deliveryAddAcc: false,
-            deliveryAlert: false,
-            deliveryAccessorials: [],
-            lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
-              'Setup for pickup today ____ ',
-              'Drop to Forward Air',],
-            lineHaulNotes: '',
-            deliveryNotesArr: ['Please setup for pickup today ____ and drop to Forward Air',
-              'Setup for pickup today ____ ',
-              'Drop to Forward Air',],
-            deliveryNotes: '',
-            primaryEmail: '',
-            additionalEmail: '',
-            additionalEmailsArray: [],
-            airportTransfer: false,
-          }
-        ]
+        deliveryDetailsList: []
       },
       // step 4 - Carrier Rates
       carrierRates: {
@@ -501,10 +455,16 @@ const ConsolidateHomePage = ({ type }) => {
   const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
-  const { fields: selectedDeliveryDetailsList } = useFieldArray({
-    control,
-    name: "carrierInfo.deliveryDetailsList"
-  });
+  const { 
+  fields: selectedDeliveryDetailsList, 
+  append: appendSelectedDeliveryDetailsList, 
+  replace: replaceSelectedDeliveryDetailsList,
+  update: updateSelectedDeliveryDetailsList,
+  remove: removeSelectedDeliveryDetailsList
+} = useFieldArray({
+  control,
+  name: "carrierInfo.deliveryDetailsList"
+});
   const customerApprovalRateHistory = useWatch({
     control,
     name: 'customerRate.approvalRateHistory',
@@ -1152,10 +1112,10 @@ const ConsolidateHomePage = ({ type }) => {
   }, [watchedHU]);
 
   useEffect(() => {
-    // if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj === undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length === 0)) {
-    //   navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
-    // }
-    // else {
+    if ((type === 'View' || type === 'Edit') && (selectedShipmentObjects === undefined || selectedShipmentObjects && selectedShipmentObjects?.length === 0)) {
+      navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+    }
+    else {
     const fetchDropdownData = async () => {
       await Promise.all([
         dispatch(getCustomerStationDropdown()),
@@ -1165,7 +1125,7 @@ const ConsolidateHomePage = ({ type }) => {
       ]);
     };
     fetchDropdownData();
-    // }
+    }
   }, [])
   useEffect(() => {
     // calculate freight class for each HU when length, width, height, weight, weight unit are all filled
@@ -1899,6 +1859,105 @@ const ConsolidateHomePage = ({ type }) => {
     }
   }, [type, carrierTerminalDropdown])
 
+  const getDeliveryToLocationValue = (toLocationEntityId) => {
+    const selectedDeliveryToTerminal = carrierTerminalDropdown?.find(
+      (item) => item?.terminalEntityId === toLocationEntityId
+    ) || null;
+    return `${selectedDeliveryToTerminal?.terminalId}-${selectedDeliveryToTerminal?.carrierId}` || '';
+  }
+  const getDeliveryAccessorials = async (accessorials, DFrmCarrierId, DFrmTerminalId) => {
+    // 1. Map over the initial form field data array right away
+    const updatedAccessorials = accessorials.map((item) => ({
+      ...item,
+      isManual: false,
+      selected: true
+    }));
+
+    let masterAccessorialsForEntityId = [];
+
+    try {
+      const selectedDeliveryFromTerminal = carrierTerminalDropdown?.find(
+        (item) => item?.carrierId === DFrmCarrierId && item?.terminalId === DFrmTerminalId
+      ) || null;
+
+      if (selectedDeliveryFromTerminal?.terminalEntityId) {
+        const response = await axios.get(
+          `maintenance/entity-accessorial/${selectedDeliveryFromTerminal.terminalEntityId}?checkCarrierType=true`
+        );
+
+        if (response?.data && Array.isArray(response?.data?.data)) {
+          masterAccessorialsForEntityId = response.data.data;
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch accessorials, falling back to empty:", error);
+    }
+
+    // Return both arrays so the caller can process them separately
+    return {
+      formAccessorials: updatedAccessorials,
+      masterAccessorials: masterAccessorialsForEntityId
+    };
+  };
+
+  const createDefaultDeliveryDetail = async (shipmentData = {}, index) => {
+    // Await the API and get both arrays back
+    const { formAccessorials, masterAccessorials } = await getDeliveryAccessorials(
+      shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAccessorialDetails?.accessorials || [],
+      shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.carrierId,
+      shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.terminalId
+    );
+
+    // Construct the form array object
+    const formFieldObject = {
+      shipmentId: shipmentData?.shipmentId || '',
+      shipmentProNumber: shipmentData?.shipmentDetails?.shipmentProNumber || '',
+      carrier: `${shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.terminalId}-${shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.carrierId}`,
+      disableDeliveryFromCarrier: false,
+      billNumber: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.carrierBillNumber || '',
+      fromLocation: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.fromLocationType || '',
+      manualFromLocation: false,
+      manualFromLocationDetails: {
+        line1: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine1 || '',
+        line2: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.addressLine2 || '',
+        city: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.city || '',
+        state: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.state || '',
+        zip: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.zipCode || '',
+      },
+      toLocationType: 'Consignee',
+      toLocation: getDeliveryToLocationValue(shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId),
+      manualToLocation: false,
+      manualToLocationDetails: {
+        line1: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine1 || '',
+        line2: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine2 || '',
+        city: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.city || '',
+        state: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.state || '',
+        zip: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.zipCode || '',
+      },
+      etaDate: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.etaDate,
+      etaTime: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.etaTime || null,
+      pcs: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.pieces || '',
+      weight: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.weight || '',
+      deliveryAddAcc: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAccessorial === 'Y',
+      deliveryAlert: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlert === 'Y',
+      deliveryAccessorials: formAccessorials, // Assigned the form-specific array here
+      lineHaulNotesArr: ['Please setup for pickup today ____ and drop to Forward Air', 'Setup for pickup today ____ ', 'Drop to Forward Air'],
+      lineHaulNotes: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.linehaulNotes,
+      deliveryNotesArr: ['Please setup for pickup today ____ and drop to Forward Air', 'Setup for pickup today ____ ', 'Drop to Forward Air'],
+      deliveryNotes: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.deliveryNotes || '',
+      primaryEmail: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.primaryEmail || '',
+      additionalEmail: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.deliveryAlertDetails?.emailInfo?.additionalEmails || '',
+      additionalEmailsArray: [],
+      airportTransfer: shipmentData?.carrierDetails?.deliveryDetails?.deliveryCommonInfo?.airportTransfer,
+    };
+
+    // Return both the form object and the raw master data to the loop wrapper
+    return {
+      formFieldObject,
+      masterAccessorials
+    };
+  };
+
   useEffect(() => {
     if (selectedShipmentObjects && selectedShipmentObjects.length > 0) {
       const parsedRows = selectedShipmentObjects?.map((item, index) => {
@@ -1935,11 +1994,30 @@ const ConsolidateHomePage = ({ type }) => {
       setTotalConsolWeight(totalConsolWeight);
       setTotalConsolPieces(totalConsolPieces);
       setTotalConsolHazmatCount(totalConsolHazmatCount);
+
+      // check for the lineHaulSameDelDiff and add to the list
+      if (lineHaulSameDelDiff) {
+
+        const handleAddShipments = async (shipments) => {
+          const promises = shipments.map((shipment, index) =>
+            createDefaultDeliveryDetail(shipment?.rowDetails, index)
+          );
+
+          const resolvedResults = await Promise.all(promises);
+
+          const formItemsToAppend = resolvedResults.map(res => res.formFieldObject);
+          const masterMatrixToSet = resolvedResults.map(res => res.masterAccessorials);
+
+          setDELIVERY_MASTER_Accessorials_For_Lists(masterMatrixToSet);
+
+          // Use REPLACE instead of APPEND to fix the duplicate count issue
+          replaceSelectedDeliveryDetailsList(formItemsToAppend);
+        };
+
+        handleAddShipments(selectedShipmentObjects);
+      }
     }
   }, [selectedShipmentObjects])
-
-
-
 
   return (
     <ErrorBoundary
@@ -2187,7 +2265,7 @@ const ConsolidateHomePage = ({ type }) => {
                 watchedOriginAirport={watchedOriginAirport}
                 watchedDestinationAirport={watchedDestinationAirport}
               />
-              <ConsolidateDelivery type={type}
+              {!lineHaulSameDelDiff && <ConsolidateDelivery type={type}
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
@@ -2250,7 +2328,7 @@ const ConsolidateHomePage = ({ type }) => {
                 watchedOriginAirport={watchedOriginAirport}
                 watchedDestinationAirport={watchedDestinationAirport}
                 watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-              />
+              />}
               <Box>
                 {lineHaulSameDelDiff && selectedDeliveryDetailsList.map((shipment, index) => {
                   return (
@@ -2296,8 +2374,8 @@ const ConsolidateHomePage = ({ type }) => {
                       replaceDeliveryAcc={replaceDeliveryAcc}
                       addDeliveryAccModal={addDeliveryAccModal}
                       actionType={actionType}
-                      DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
-                      setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
+                      DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS={DELIVERY_MASTER_ACCESSORIALS_FOR_LISTS}
+                      setDELIVERY_MASTER_Accessorials_For_Lists={setDELIVERY_MASTER_Accessorials_For_Lists}
                       onSaveOfEdit={onSaveOfEdit}
                       appendDeliveryAccFields={appendDeliveryAccFields}
                       watchedDeliveryAlert={watchedDeliveryAlert}
@@ -2321,6 +2399,10 @@ const ConsolidateHomePage = ({ type }) => {
                       watchedOriginAirport={watchedOriginAirport}
                       watchedDestinationAirport={watchedDestinationAirport}
                       watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                      selectedDeliveryDetailsList = {selectedDeliveryDetailsList}
+                      updateSelectedDeliveryDetailsList = {updateSelectedDeliveryDetailsList}
+                      appendSelectedDeliveryDetailsList = {appendSelectedDeliveryDetailsList}
+                      removeSelectedDeliveryDetailsList = {removeSelectedDeliveryDetailsList}
                     />
                   );
                 })}

@@ -558,7 +558,7 @@ export default function TerminalViewPageTable() {
                                 dispatch(getOriginZoneByZipCode(params?.row?.transportRate?.originZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.transportRate?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.transportRate?.destinationZone?.ranges?.join(',')) || ''));
 
-                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                dispatch(getCarrierListByRateID(params.row.rateId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
 
                             }} >
@@ -750,7 +750,7 @@ export default function TerminalViewPageTable() {
                                 dispatch(getOriginZoneByZipCode(params?.row?.airportRate?.originZone?.zipCodes.join(',').concat(",", params?.row?.airportRate?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.airportRate?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.airportRate?.destinationZone?.ranges?.join(',')) || ''));
 
-                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                dispatch(getCarrierListByRateID(params.row.rateId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
                                 navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
 
                             }} >

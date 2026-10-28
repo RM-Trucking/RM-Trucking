@@ -7,8 +7,8 @@ import { useDispatch, useSelector } from '../../redux/store';
 import Iconify from '../../components/iconify';
 import ZoneDetails from './ZoneDetails';
 import RateViewTable from './RateViewTable';
-import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData, setError } from '../../redux/slices/zone';
-import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom } from '../../redux/slices/rate';
+import { setSelectedZoneRowDetails, getZoneData, setOperationalMessage, deleteZone, getZoneCustomerRate, getZoneCarrierRate, setZoneRateData, setError, getZoneCarrierAirportRate } from '../../redux/slices/zone';
+import { setSelectedCurrentRateRow, setCurrentRateRoutedFrom, setCurrentRateTab } from '../../redux/slices/rate';
 import NotesTable from '../customer/NotesTable';
 
 
@@ -107,8 +107,8 @@ export default function ZoneTable() {
             }
         },
         {
-            field: 'carrierRateCount',
-            headerName: 'Carrier Rate #',
+            field: 'carrierTransportRateCount',
+            headerName: 'Carrier Transport Rate #',
             width: 200,
             cellClassName: 'padded-column',
             sortable: false,
@@ -117,19 +117,52 @@ export default function ZoneTable() {
                 const element = (
                     <>
                         {
-                            params?.row?.carrierRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                            params?.row?.carrierTransportRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
                                 onClick={() => {
                                     dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    dispatch(setCurrentRateTab('transportation'));
                                     dispatch(getZoneCarrierRate(1, 10, params?.row?.zoneId));
                                     dispatch(setSelectedZoneRowDetails(params?.row));
                                 }}
                             >
                                 <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
                                 <Typography variant="normal" sx={{ height: '25px' }}>
-                                    {params.row.carrierRateCount}
+                                    {params.row.carrierTransportRateCount}
                                 </Typography>
                             </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
-                                {params.row.carrierRateCount}
+                                {params.row.carrierTransportRateCount}
+                            </Typography>
+                        }
+                    </>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'carrierAirportRateCount',
+            headerName: 'Carrier Airport Rate #',
+            width: 200,
+            cellClassName: 'padded-column',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <>
+                        {
+                            params?.row?.carrierAirportRateCount > 0 ? <Stack direction="row" spacing={1} sx={{ mb: 0.5, flexWrap: 'wrap', bgcolor: 'rgba(224, 242, 255, 1)', width: "50px", pl: 0.5, height: '25px', pt: 0.5 }} alignItems={'flex-start'}
+                                onClick={() => {
+                                    dispatch(setCurrentRateRoutedFrom('carrier'));
+                                    dispatch(setCurrentRateTab('airport'));
+                                    dispatch(getZoneCarrierAirportRate(1, 10, params?.row?.zoneId));
+                                    dispatch(setSelectedZoneRowDetails(params?.row));
+                                }}
+                            >
+                                <Iconify icon="ep:list" sx={{ color: 'black', cursor: 'pointer', }} />
+                                <Typography variant="normal" sx={{ height: '25px' }}>
+                                    {params.row.carrierAirportRateCount}
+                                </Typography>
+                            </Stack> : <Typography variant="normal" sx={{ height: '25px', }}>
+                                {params.row.carrierAirportRateCount}
                             </Typography>
                         }
                     </>

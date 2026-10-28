@@ -642,7 +642,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (currentRateRoutedFrom === 'carrier' && selectedCurrentRateRow?.carrierCount > 0) {
             setOpenCustomersList(true);
             dispatch(setCarrierList([]));
-            dispatch(getCarrierListByRateID(selectedCurrentRateRow?.rateId));
+            dispatch(getCarrierListByRateID(selectedCurrentRateRow?.rateId, currentTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
         }
     }
     const handleCloseOfCustomersList = () => {

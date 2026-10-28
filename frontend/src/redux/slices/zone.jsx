@@ -232,3 +232,14 @@ export function getZoneCarrierRate(pageNo, pageSize, zoneId) {
     }
   };
 }
+export function getZoneCarrierAirportRate(pageNo, pageSize, zoneId) {
+  return async () => {
+    dispatch(slice.actions.startLoading());
+    try {
+      const response = await axios.get(`maintenance/carrier-rate/airport-rate/by-zone?zoneId=${zoneId}&page=${pageNo}&pageSize=${pageSize}`);
+      dispatch(slice.actions.getZoneCarrierRateSuccess(response.data));
+    } catch (error) {
+      dispatch(slice.actions.hasError(error));
+    }
+  };
+}

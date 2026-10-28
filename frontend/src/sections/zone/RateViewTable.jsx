@@ -34,6 +34,7 @@ export default function RateViewTable({ handleCloseRate, }) {
     const navigate = useNavigate();
     const rateData = useSelector((state) => state?.zonedata?.zoneRateData);
     const currentRateRoutedFrom = useSelector((state) => state?.ratedata?.currentRateRoutedFrom);
+    const currentRateTab = useSelector((state) => state?.ratedata?.currentRateTab);
     const selectedZoneRowDetails = useSelector((state) => state?.zonedata?.selectedZoneRowDetails);
     const dispatch = useDispatch();
     const logError = (error, info) => {
@@ -439,8 +440,215 @@ export default function RateViewTable({ handleCloseRate, }) {
                             <IconButton onClick={() => {
                                 dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
                                 dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
-                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                dispatch(getCarrierListByRateID(params.row.rateId, 'TRANSPORT'));
                                 dispatch(setCurrentRateTab('transportation'));
+                                dispatch(setSelectedCurrentRateRow(params.row));
+                                localStorage.setItem('rateId', params?.row?.rateId);
+                                dispatch(setCurrentRateRoutedFrom('carrier'));
+                                navigate(PATH_DASHBOARD?.maintenance?.rateMaintenance?.rateView);
+                            }}>
+                                <Iconify icon="carbon:view-filled" sx={{ color: '#000', pointerEvents: 'none' }} />
+                            </IconButton>
+                        </Tooltip>
+                    </Box>
+                );
+                return element;
+            },
+        }
+    ];
+    const rateAirportCarrierColumns = [
+        {
+            field: 'carrierRateId',
+            headerName: 'Rate ID',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {params?.row?.carrierRateId}
+                </Box>
+            )
+        },
+        {
+            field: 'originZone',
+            headerName: 'Origin',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.originZone?.zoneName}
+                </Typography>
+            )
+        },
+        {
+            field: 'originZipCode',
+            headerName: 'Origin Zip Code',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.originZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.originZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'destinationZone',
+            headerName: 'Destination',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => (
+                <Typography variant="normal">
+                    {params?.row?.destinationZone?.zoneName}
+                </Typography>
+            )
+        },
+        {
+            field: 'destinationZipCode',
+            headerName: 'Destination Zip Code',
+            width: 170,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', pt: 1 }} alignItems={'center'} >
+                        {params.row.destinationZone?.ranges?.map((range, index) => (
+                            <Chip key={index} label={range} size="small" sx={{ bgcolor: 'rgba(224, 242, 255, 1)', mt: '2px !important', mb: '2px !important' }} />
+                        ))}
+                        <Typography variant="normal">
+                            {params.row.destinationZone?.zipCodes?.join(", ")}
+                        </Typography>
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'carrierCount',
+            headerName: 'Carriers #',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                // have to add customer list 
+                const element = (<>
+                    {(params?.row?.carrierCount && params?.row?.carrierCount > 0)
+                        ?
+                        <Stack sx={{ fontWeight: 'bold', bgcolor: 'rgba(224, 242, 255, 1)', p: 1, cursor: 'pointer' }} flexDirection={'row'} alignItems={'center'}>
+                            <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
+                            <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                        </Stack>
+                        :
+                        <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
+                    }
+                </>);
+                return element;
+            }
+        },
+        {
+            field: 'activeStatus',
+            headerName: 'Status',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flex: 1,
+                        }}
+                    >
+                        <Chip label={params?.row?.activeStatus === 'Y' ? 'Active' : 'Inactive'} sx={{ backgroundColor: (params?.row?.activeStatus?.toLowerCase() === 'N') ? 'rgba(143, 143, 143, 1)' : 'rgba(92, 172, 105, 1)', }} />
+                    </Box>
+                );
+                return element;
+            },
+        },
+        {
+            field: "rates",
+            headerName: "Rates",
+            minWidth: 200,
+            minHeight: 200,
+            flex: 1,
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Stack flexDirection={'column'} sx={{ mt: 0.5, mb: 0.5, }}>
+                        {params.row.details?.map((detail, index) => (
+                            <Stack key={index} flexDirection={'row'} spacing={1} alignItems="flex-end">
+                                <Typography variant="normal" sx={{ width: "70px" }}>{detail?.rateField}:</Typography>
+                                <Typography variant="normal" sx={{ width: "auto" }}>{detail?.chargeValue}</Typography>
+                            </Stack>
+                        ))}
+
+
+                    </Stack>
+                );
+                return element;
+            }
+        },
+        {
+            field: 'expiryDate',
+            headerName: 'Expiry Date',
+            width: 150,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const formatted = new Date(params?.row?.expiryDate).toLocaleDateString('en-US', {
+                    month: '2-digit',
+                    day: '2-digit',
+                    year: 'numeric'
+                }).replace(/\//g, '-');
+                <Box sx={{ fontWeight: 'bold' }}>
+                    {formatted}
+                </Box>
+            }
+        },
+        {
+            field: 'actions',
+            headerName: 'Actions',
+            width: 100,
+            align: 'center',
+            cellClassName: 'center-status-cell',
+            sortable: false,
+            filterable: false,
+            renderCell: (params) => {
+                const element = (
+                    <Box>
+                        <Tooltip title={'View'} arrow sx={{ mr: 2 }}>
+                            <IconButton onClick={() => {
+                                dispatch(getOriginZoneByZipCode(params?.row?.originZone?.zipCodes.join(',').concat(",", params?.row?.originZone?.ranges?.join(',')) || ''));
+                                dispatch(getDestinationZoneByZipCode(params?.row?.destinationZone?.zipCodes.join(',').concat(",", params?.row?.destinationZone?.ranges?.join(',')) || ''));
+                                dispatch(getCarrierListByRateID(params.row.rateId, 'AIRPORT'));
+                                dispatch(setCurrentRateTab('airport'));
                                 dispatch(setSelectedCurrentRateRow(params.row));
                                 localStorage.setItem('rateId', params?.row?.rateId);
                                 dispatch(setCurrentRateRoutedFrom('carrier'));
@@ -488,7 +696,7 @@ export default function RateViewTable({ handleCloseRate, }) {
             >
                 <>
                     <Stack flexDirection="row" alignItems={'center'} justifyContent="space-between" sx={{ mb: 1 }}>
-                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} Rate Details</Typography>
+                        <Typography sx={{ fontSize: '18px', fontWeight: 600 }}>{currentRateRoutedFrom?.charAt(0).toUpperCase() + currentRateRoutedFrom?.slice(1)} {currentRateTab === 'transportation' ? 'Transportation' : 'Airport'} Rate Details</Typography>
                         <Iconify icon="carbon:close" sx={{ color: '#000', cursor: 'pointer' }} onClick={handleCloseRate} />
                     </Stack>
                     <Divider sx={{ borderColor: 'rgba(143, 143, 143, 1)' }} />
@@ -517,7 +725,7 @@ export default function RateViewTable({ handleCloseRate, }) {
                         }}
 
                         rows={rateData}
-                        columns={(currentRateRoutedFrom === 'customer') ? rateTransportationCustomerColumns : rateTransportationCarrierColumns}
+                        columns={(currentRateRoutedFrom === 'customer') ? rateTransportationCustomerColumns : currentRateTab === 'transportation' ? rateTransportationCarrierColumns : rateAirportCarrierColumns}
                         loading={isLoading}
                         getRowId={(row) => row?.rateId}
                         pagination

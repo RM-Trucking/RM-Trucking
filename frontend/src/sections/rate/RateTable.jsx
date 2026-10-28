@@ -180,7 +180,7 @@ export default function RateTable() {
                                 setOpenCustomersList(true);
                                 dispatch(setCarrierList([]));
                                 dispatch(setSelectedCurrentRateRow(params.row));
-                                dispatch(getCarrierListByRateID(params.row.rateId));
+                                dispatch(getCarrierListByRateID(params.row.rateId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
                             }}>
                                 <Iconify icon="lsicon:user-crowd-filled" sx={{ color: '#000', mr: 1 }} />
                                 <Typography variant='normal'>{params?.row?.carrierCount}</Typography>
@@ -302,7 +302,7 @@ export default function RateTable() {
                                     dispatch(getCustomerListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
                                 } else if (currentRateRoutedFrom === 'carrier') {
-                                    dispatch(getCarrierListByRateID(params.row.rateId));
+                                    dispatch(getCarrierListByRateID(params.row.rateId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
                                 }
                             }}>

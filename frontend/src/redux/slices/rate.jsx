@@ -544,11 +544,11 @@ export function getCustomerListByRateID(id) {
         }
     };
 }
-export function getCarrierListByRateID(id) {
+export function getCarrierListByRateID(id, rateType) {
     return async () => {
         dispatch(slice.actions.startLoading());
         try {
-            const response = await axios.get(`/maintenance/carrier/by-rate/${id}`);
+            const response = await axios.get(`/maintenance/carrier/by-rate/${id}?rateType=${rateType}`);
             dispatch(slice.actions.getCarrierListByRateIDSuccess(response.data));
         } catch (error) {
             dispatch(slice.actions.hasError(error))

@@ -439,7 +439,7 @@ export default function StationTabsTable({ currentTab, setActionType }) {
                                     dispatch(getCustomerListByRateID(params.row.rateId));
                                     navigate(PATH_DASHBOARD?.maintenance?.customerMaintenance?.rateView);
                                 } else if (currentRateRoutedFrom === 'carrier') {
-                                    dispatch(getCarrierListByRateID(params.row.rateId));
+                                    dispatch(getCarrierListByRateID(params.row.rateId, currentRateTab === 'transportation' ? 'TRANSPORT' : 'AIRPORT'));
                                     navigate(PATH_DASHBOARD?.maintenance?.carrierMaintenance?.rateView);
                                 }
                             }} >

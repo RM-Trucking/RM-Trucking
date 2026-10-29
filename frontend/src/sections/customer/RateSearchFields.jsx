@@ -553,7 +553,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             const destination = getValues('destination');
             const destinationZipCode = getValues('destinationZipCode');
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");
@@ -578,7 +578,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             const destination = getValues('destination');
             const destinationZipCode = getValues('destinationZipCode');
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");
@@ -603,7 +603,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             const destination = getValues('destination');
             const destinationZipCode = getValues('destinationZipCode');
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");

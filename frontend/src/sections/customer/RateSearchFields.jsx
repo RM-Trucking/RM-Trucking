@@ -164,8 +164,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
             const { origin, originZipCode, destination, destinationZipCode } = data;
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
+
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");
                 setSnackbarOpen(true);
@@ -206,7 +207,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
             const { origin, originZipCode, destination, destinationZipCode } = data;
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");
@@ -247,7 +248,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
             const { origin, originZipCode, destination, destinationZipCode } = data;
             const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value && value.trim() !== ''
+                value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
                 setSnackbarSeverity("error");

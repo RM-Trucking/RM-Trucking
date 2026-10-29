@@ -541,9 +541,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             if (warehouse) {
                 dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
             } else {
-                setSnackbarSeverity("error");
-                setSnackbarOpen(true);
-                setSnackbarMessage("Please provide warehouse.");
+                // setSnackbarSeverity("error");
+                // setSnackbarOpen(true);
+                // setSnackbarMessage("Please provide warehouse.");
                 return; // Stop the form submission
             }
         }
@@ -556,9 +556,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
-                setSnackbarSeverity("error");
-                setSnackbarOpen(true);
-                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                // setSnackbarSeverity("error");
+                // setSnackbarOpen(true);
+                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
                 return; // Stop the form submission
             }
             if (pathname.includes('/customer-maintenance/station-view')) {
@@ -581,9 +581,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
-                setSnackbarSeverity("error");
-                setSnackbarOpen(true);
-                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                // setSnackbarSeverity("error");
+                // setSnackbarOpen(true);
+                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
                 return; // Stop the form submission
             }
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
@@ -606,9 +606,9 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
                 value => value !== null && value !== undefined && String(value).trim() !== ''
             );
             if (!hasAtLeastOneField) {
-                setSnackbarSeverity("error");
-                setSnackbarOpen(true);
-                setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
+                // setSnackbarSeverity("error");
+                // setSnackbarOpen(true);
+                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
                 return; // Stop the form submission
             }
             if (pathname.includes('/carrier-maintenance/terminal-view')) {

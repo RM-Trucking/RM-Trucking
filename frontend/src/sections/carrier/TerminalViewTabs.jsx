@@ -224,7 +224,7 @@ export default function TerminalViewTabs({ }) {
                             e.stopPropagation(); // Prevents the event from reaching the Dialog/Parent Form
                         }
                     }}>
-                    <RateSearchFields padding={1} type={'Search'} currentTab={'transportation'} />
+                    <RateSearchFields padding={1} type={'Search'} currentTab={currentRateTab} />
                 </Box>}
                 <Dialog open={openConfirmDialog} onClose={handleCloseConfirm} onKeyDown={(event) => {
                     if (event.key === 'Escape') {

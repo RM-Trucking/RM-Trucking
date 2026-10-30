@@ -49,6 +49,7 @@ import AddAccessorialDialog from './AddAccessorialDialog';
 import BillOfLadingAuto from './BillOfLadingAuto';
 import ReferenceDialog from './ReferenceDialog';
 import { getObjectForBOL } from './getObjForBOL';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const ConsolidateDelivery = ({
     type,
@@ -113,6 +114,10 @@ const ConsolidateDelivery = ({
     watchedOriginAirport,
     watchedDestinationAirport,
     watchedLinehaulAddAcc,
+    parsedRows,
+    totalConsolWeight,
+    totalConsolHazmatCount,
+    totalConsolPieces,
 }) => {
     const contentRef = useRef(null);
     const [subModal, setSubModal] = useState({ type: 'delivery', open: false });
@@ -134,7 +139,6 @@ const ConsolidateDelivery = ({
                 console.log("Error boundary reset triggered");
             }}
         >
-
             {/* delivery details section  */}
             <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
@@ -142,52 +146,60 @@ const ConsolidateDelivery = ({
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
-                    {type === 'Edit' && (
-                        // Streamlined routing assessment block
-                        (selectedRouting === 'pickup_only' && ['linehaul_only',].includes(watchedLinehaulSelectRouting)) ||
-                        ['pickup_linehaul'].includes(selectedRouting)
-                    ) && (
-                            <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ mb: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => setSubModal({ type: 'delivery', open: true })}
-                                    sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
-                                >
-                                    Ref No
-                                </Button>
 
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={handlePrint}
-                                    sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                                >
-                                    Print Bill
-                                </Button>
+                    {/* table  */}
+                    <TableContainer component={Box} sx={{ width: '100%', overflowX: 'auto', mb: 3 }}>
+                        <Table sx={{ minWidth: 1000 }} size="small">
+                            <TableHead sx={{ bgcolor: '#f9f9f9' }}>
+                                <TableRow>
+                                    <TableCell sx={{ fontWeight: 600 }}>SNo</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Shipment PRO</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Customer</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Destination</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Weight (lbs)</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Hazmat</TableCell>
+                                    <TableCell sx={{ fontWeight: 600 }}>Piece</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {parsedRows && parsedRows.length > 0 && parsedRows?.map((row) => (
+                                    <TableRow key={row.sNo} hover>
+                                        <TableCell>{row.sNo}</TableCell>
+                                        <TableCell sx={{ color: '#a22', textDecoration: 'underline', fontWeight: 600, cursor: 'pointer' }}>
+                                            {row.proNum}
+                                        </TableCell>
+                                        <TableCell>{row.customer}</TableCell>
 
-                                {/* Hidden print container wrapper frame */}
-                                <div style={{ display: 'none' }}>
-                                    <div ref={contentRef} className="bol-print-wrapper">
-                                        <BillOfLadingAuto data={getObjectForBOL(getValues, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
-                                            selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
-                                            watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
-                                            carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
-                                            watchedLinehaulAddAcc, subModal, selectedShipmentBuildObj)} />
-                                    </div>
-                                </div>
+                                        <TableCell>{row.destination}</TableCell>
 
-                                {/* Modal target element wrapper */}
-                                <ReferenceDialog
-                                    open={subModal.open}
-                                    fromSection={subModal.type}
-                                    onClose={() => setSubModal({ type: 'delivery', open: false })}
-                                    control={control}
-                                    setValue={setValue}
-                                    getValues={getValues}
-                                />
-                            </Box>
-                        )}
+                                        <TableCell>{row.weight}</TableCell>
+                                        <TableCell>
+                                            <Stack direction="row" alignItems="center" spacing={0.5}>
+                                                <span>{row.hazmat}</span>
+                                                {row.hazmat !== '-' && (
+                                                    <Box sx={{ display: 'inline-flex', bgcolor: '#f0ad4e', borderRadius: '50%', p: 0.2 }}>
+                                                        <WarningAmberIcon sx={{ fontSize: 12, color: '#000' }} />
+                                                    </Box>
+                                                )}
+                                            </Stack>
+                                        </TableCell>
+                                        <TableCell>{row.pieces}</TableCell>
+
+                                    </TableRow>
+                                ))}
+
+                                {/* TOTAL SUMMARY AGGREGATE PANEL BLOCK FOOTER */}
+                                <TableRow sx={{ bgcolor: '#fff', '& td': { fontWeight: '700 !important', color: '#000' } }}>
+                                    <TableCell colSpan={4} />
+                                    <TableCell>{totalConsolWeight}</TableCell>
+                                    <TableCell>{`0${totalConsolHazmatCount}`}</TableCell>
+                                    <TableCell>{totalConsolPieces}</TableCell>
+                                    <TableCell />
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+
                     {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
                         <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
                             <Box sx={{ flex: '1 1 200px' }}>
@@ -1006,6 +1018,50 @@ const ConsolidateDelivery = ({
                             }} />} />}
                             label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Delivery Alert </Typography>}
                         />
+                        <Button
+                            variant="contained"
+                            startIcon={<Iconify icon="material-symbols:print-rounded" sx={{ width: 18, height: 18 }} />}
+                            sx={{
+                                // 1. Structural Dimensions from your specifications
+                                width: '101.42px',
+                                height: '28px',
+                                minWidth: '90px',
+                                borderRadius: '6px',
+
+                                // 2. Padding and Spacing configurations
+                                pt: '10px',
+                                pr: '16px',
+                                pb: '10px',
+                                pl: '16px',
+                                gap: '10px',
+
+                                // 3. Visual Styling matching the layout image
+                                bgcolor: '#A22',
+                                color: '#ffffff',
+                                textTransform: 'none',
+                                boxShadow: 'none',
+                                fontWeight: 'normal',
+                                fontSize: '14px',
+                                lineHeight: 1,
+
+                                // Custom styling fixes to prevent padding from expanding the strict 28px height
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                whiteSpace: 'nowrap',
+                                '& .MuiButton-startIcon': {
+                                    margin: 0, // Let the layout gap handle inner layout distribution cleanly
+                                },
+
+                                // Hover fallback styles
+                                '&:hover': {
+                                    bgcolor: '#811',
+                                    boxShadow: 'none',
+                                },
+                            }}
+                        >
+                            Print
+                        </Button>
                     </Box>
                     {watchedDeliveryAlert && <>
                         {/* LINE-HAUL NOTES: Flexbox for chip gallery */}

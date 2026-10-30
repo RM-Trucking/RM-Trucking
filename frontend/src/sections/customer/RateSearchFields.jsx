@@ -540,27 +540,10 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         if (type === 'Search' && currentTab === 'warehouse') {
             if (warehouse) {
                 dispatch(getWarehouseRateDashboardData({ pageNo: 1, pageSize: 10, searchStr: "" }));
-            } else {
-                // setSnackbarSeverity("error");
-                // setSnackbarOpen(true);
-                // setSnackbarMessage("Please provide warehouse.");
-                return; // Stop the form submission
             }
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'customer') {
-            const origin = getValues('origin');
-            const originZipCode = getValues('originZipCode');
-            const destination = getValues('destination');
-            const destinationZipCode = getValues('destinationZipCode');
-            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value !== null && value !== undefined && String(value).trim() !== ''
-            );
-            if (!hasAtLeastOneField) {
-                // setSnackbarSeverity("error");
-                // setSnackbarOpen(true);
-                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
-                return; // Stop the form submission
-            }
+
             if (pathname.includes('/customer-maintenance/station-view')) {
                 dispatch(getStationRateData(selectedCustomerStationDetails?.stationId || localStorage.getItem('stationId'), currentRateTab === 'transportation' ? 'TRANSPORT' : 'WAREHOUSE'));
             } else {
@@ -573,19 +556,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             }
         }
         if (type === 'Search' && currentTab === 'transportation' && currentRateRoutedFrom === 'carrier') {
-            const origin = getValues('origin');
-            const originZipCode = getValues('originZipCode');
-            const destination = getValues('destination');
-            const destinationZipCode = getValues('destinationZipCode');
-            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value !== null && value !== undefined && String(value).trim() !== ''
-            );
-            if (!hasAtLeastOneField) {
-                // setSnackbarSeverity("error");
-                // setSnackbarOpen(true);
-                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
-                return; // Stop the form submission
-            }
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
                 dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'TRANSPORT'));
             } else {
@@ -598,19 +568,6 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
             }
         }
         if (type === 'Search' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
-            const origin = getValues('origin');
-            const originZipCode = getValues('originZipCode');
-            const destination = getValues('destination');
-            const destinationZipCode = getValues('destinationZipCode');
-            const hasAtLeastOneField = [origin, originZipCode, destination, destinationZipCode].some(
-                value => value !== null && value !== undefined && String(value).trim() !== ''
-            );
-            if (!hasAtLeastOneField) {
-                // setSnackbarSeverity("error");
-                // setSnackbarOpen(true);
-                // setSnackbarMessage("Please provide at least one of the following: Origin, Origin Zip Code, Destination, or Destination Zip Code.");
-                return; // Stop the form submission
-            }
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
                 dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'TRANSPORT'));
             } else {

@@ -1185,6 +1185,50 @@ const ConsolidatedDeliveryDetailsList = ({
                             }} />} />}
                             label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Delivery Alert </Typography>}
                         />
+                        <Button
+                            variant="contained"
+                            startIcon={<Iconify icon="material-symbols:print-rounded" sx={{ width: 18, height: 18 }} />}
+                            sx={{
+                                // 1. Structural Dimensions from your specifications
+                                width: '101.42px',
+                                height: '28px',
+                                minWidth: '90px',
+                                borderRadius: '6px',
+
+                                // 2. Padding and Spacing configurations
+                                pt: '10px',
+                                pr: '16px',
+                                pb: '10px',
+                                pl: '16px',
+                                gap: '10px',
+
+                                // 3. Visual Styling matching the layout image
+                                bgcolor: '#A22',
+                                color: '#ffffff',
+                                textTransform: 'none',
+                                boxShadow: 'none',
+                                fontWeight: 'normal',
+                                fontSize: '14px',
+                                lineHeight: 1,
+
+                                // Custom styling fixes to prevent padding from expanding the strict 28px height
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                whiteSpace: 'nowrap',
+                                '& .MuiButton-startIcon': {
+                                    margin: 0, // Let the layout gap handle inner layout distribution cleanly
+                                },
+
+                                // Hover fallback styles
+                                '&:hover': {
+                                    bgcolor: '#811',
+                                    boxShadow: 'none',
+                                },
+                            }}
+                        >
+                            Print
+                        </Button>
                     </Box>
                     {getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.deliveryAlert`) && <>
                         {/* LINE-HAUL NOTES: Flexbox for chip gallery */}

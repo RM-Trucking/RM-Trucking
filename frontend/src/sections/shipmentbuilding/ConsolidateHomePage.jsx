@@ -2335,6 +2335,10 @@ const ConsolidateHomePage = ({ type }) => {
                 watchedOriginAirport={watchedOriginAirport}
                 watchedDestinationAirport={watchedDestinationAirport}
                 watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                parsedRows={parsedRows}
+                totalConsolWeight={totalConsolWeight}
+                totalConsolHazmatCount={totalConsolHazmatCount}
+                totalConsolPieces={totalConsolPieces}
               />}
               <Box>
                 {lineHaulSameDelDiff && selectedDeliveryDetailsList.map((shipment, index) => {

@@ -145,53 +145,6 @@ const ConsolidatePickup = ({
         >
 
             <Paper variant="outlined" sx={{ p: 3, borderRadius: 2 }}>
-              
-                {type === 'Edit' && (
-                    // Streamlined routing assessment block
-                    (selectedRouting === 'pickup_only' && ['linehaul_only', 'linehaul_delivery'].includes(watchedLinehaulSelectRouting)) ||
-                    ['pickup_linehaul', 'pickup_linehaul_delivery'].includes(selectedRouting)
-                ) && (
-                        <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ mb: 2 }}>
-                            <Button
-                                variant="contained"
-                                size="small"
-                                onClick={() => setSubModal({ type: 'pickup', open: true })}
-                                sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
-                            >
-                                Ref No
-                            </Button>
-
-                            <Button
-                                variant="contained"
-                                size="small"
-                                onClick={handlePrint}
-                                sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                            >
-                                Print Bill
-                            </Button>
-
-                            {/* Hidden print container wrapper frame */}
-                            <div style={{ display: 'none' }}>
-                                <div ref={contentRef} className="bol-print-wrapper">
-                                    <BillOfLadingAuto data={getObjectForBOL(getValues, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
-                                        selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
-                                        watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
-                                        carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
-                                        watchedLinehaulAddAcc, subModal, selectedShipmentBuildObj)} />
-                                </div>
-                            </div>
-
-                            {/* Modal target element wrapper */}
-                            <ReferenceDialog
-                                open={subModal.open}
-                                fromSection={subModal.type}
-                                onClose={() => setSubModal({ type: 'pickup', open: false })}
-                                control={control}
-                                setValue={setValue}
-                                getValues={getValues}
-                            />
-                        </Box>
-                    )}
 
                 {isPickupPending === false && <>
 
@@ -404,7 +357,7 @@ const ConsolidatePickup = ({
                                             label="Carrier's Bill Number"
                                             required
                                             variant="standard"
-                                            InputLabelProps={{ shrink: true }} 
+                                            InputLabelProps={{ shrink: true }}
                                             // Natively restricts entry to 50 characters max
                                             inputProps={{ maxLength: 50 }}
                                             disabled={type === 'View'}
@@ -857,6 +810,50 @@ const ConsolidatePickup = ({
                                     }} />} />}
                                     label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Pickup Alert</Typography>}
                                 />
+                                <Button
+                                    variant="contained"
+                                    startIcon={<Iconify icon="material-symbols:print-rounded" sx={{ width: 18, height: 18 }} />}
+                                    sx={{
+                                        // 1. Structural Dimensions from your specifications
+                                        width: '101.42px',
+                                        height: '28px',
+                                        minWidth: '90px',
+                                        borderRadius: '6px',
+
+                                        // 2. Padding and Spacing configurations
+                                        pt: '10px',
+                                        pr: '16px',
+                                        pb: '10px',
+                                        pl: '16px',
+                                        gap: '10px',
+
+                                        // 3. Visual Styling matching the layout image
+                                        bgcolor: '#A22',
+                                        color: '#ffffff',
+                                        textTransform: 'none',
+                                        boxShadow: 'none',
+                                        fontWeight: 'normal',
+                                        fontSize: '14px',
+                                        lineHeight: 1,
+
+                                        // Custom styling fixes to prevent padding from expanding the strict 28px height
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        whiteSpace: 'nowrap',
+                                        '& .MuiButton-startIcon': {
+                                            margin: 0, // Let the layout gap handle inner layout distribution cleanly
+                                        },
+
+                                        // Hover fallback styles
+                                        '&:hover': {
+                                            bgcolor: '#811',
+                                            boxShadow: 'none',
+                                        },
+                                    }}
+                                >
+                                    Print
+                                </Button>
                             </Box>
                         </Box>
 

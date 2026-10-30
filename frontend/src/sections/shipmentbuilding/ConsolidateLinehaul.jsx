@@ -189,53 +189,7 @@ const ConsolidateLinehaul = ({
                 </AccordionSummary>
 
                 <AccordionDetails sx={{ pt: 2 }}>
-                    {type === 'Edit' && (
-                        // Streamlined routing assessment block
-                        (selectedRouting === 'pickup_only' && ['linehaul_only', 'linehaul_delivery'].includes(watchedLinehaulSelectRouting)) &&
-                        !['pickup_linehaul', 'pickup_linehaul_delivery'].includes(selectedRouting)
-                    ) && (
-                            <Box display="flex" alignItems="center" justifyContent="flex-end" sx={{ mb: 2 }}>
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={() => setSubModal({ type: 'linehaul', open: true })}
-                                    sx={{ bgcolor: '#a22', textTransform: 'none', mr: 2 }}
-                                >
-                                    Ref No
-                                </Button>
-
-                                <Button
-                                    variant="contained"
-                                    size="small"
-                                    onClick={handlePrint}
-                                    sx={{ bgcolor: '#a22', textTransform: 'none' }}
-                                >
-                                    Print Bill
-                                </Button>
-
-                                {/* Hidden print container wrapper frame */}
-                                <div style={{ display: 'none' }}>
-                                    <div ref={contentRef} className="bol-print-wrapper">
-                                        <BillOfLadingAuto data={getObjectForBOL(getValues, watchedAirportPickupService, watchedAirportDeliveryService, isHazmatSelected,
-                                            selectedRouting, watchedLinehaulSelectRouting, watchedSelectedPickupCarrier,
-                                            watchedSelectedLineHaulCarrier, watchedSelectedDeliveryCarrier, watchedToLocation, watchedLinehaulToLocation, watchedDeliveryToLocation,
-                                            carrierTerminalDropdown, watchedOriginAirport, watchedDestinationAirport,
-                                            watchedLinehaulAddAcc, subModal, selectedShipmentBuildObj)} />
-                                    </div>
-                                </div>
-
-                                {/* Modal target element wrapper */}
-                                <ReferenceDialog
-                                    open={subModal.open}
-                                    fromSection={subModal.type}
-                                    onClose={() => setSubModal({ type: 'linehaul', open: false })}
-                                    control={control}
-                                    setValue={setValue}
-                                    getValues={getValues}
-                                />
-                            </Box>
-                        )}
-
+                   
                     {/* linehaul details  */}
                     {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
                         <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 4, mt: 1, mb: 3 }}>

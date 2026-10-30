@@ -569,7 +569,7 @@ export default function RateSearchFields({ padding, type, currentTab, handleClos
         }
         if (type === 'Search' && currentTab === 'airport' && currentRateRoutedFrom === 'carrier') {
             if (pathname.includes('/carrier-maintenance/terminal-view')) {
-                dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'TRANSPORT'));
+                dispatch(getTerminalRateData(selectedCarrierTabRowDetails.terminalId || localStorage.getItem('terminalId'), 'AIRPORT'));
             } else {
                 dispatch(getCarrierAirportRateDashboardData({
                     originZoneId: '',

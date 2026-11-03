@@ -51,6 +51,8 @@ export const AirportCodeMaintenance = Loadable(lazy (() => import('../pages/airp
 export const AirportCodeLayout = Loadable(lazy (() => import('../pages/airportcode/AirportCodeLayout')));
 export const AirlineMaintenance = Loadable(lazy (() => import('../pages/airline/AirlineMaintenance')));
 export const AirlineLayout = Loadable(lazy (() => import('../pages/airline/AirlineLayout')));
+export const UserMaintenancePage = Loadable(lazy(() => import('../pages/user/UserMaintenance')));
+export const RoleMaintenancePage = Loadable(lazy(() => import('../pages/role/RoleMaintenance')));
 
 
 // Error pages

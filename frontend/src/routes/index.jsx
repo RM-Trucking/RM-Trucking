@@ -47,6 +47,8 @@ import {
   AirportCodeLayout,
   AirlineMaintenance,
   AirlineLayout,
+  UserMaintenancePage,
+  RoleMaintenancePage,
 } from './elements';
 
 
@@ -178,6 +180,14 @@ export default function Router() {
               children: [
                 { index: true, element: <FuelSurchargeMaintenancePage /> },
               ]
+            },
+            {
+              path: 'user-maintenance',
+              element: <UserMaintenancePage />,
+            },
+            {
+              path: 'role-maintenance',
+              element: <RoleMaintenancePage />,
             },
             {
               path: 'airport-code-maintenance',

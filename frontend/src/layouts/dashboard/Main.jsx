@@ -26,6 +26,7 @@ export default function Main({ children, sx, ...other }) {
         // py: `${HEADER.H_MOBILE + SPACING}px`,
         px: 2,
         py: `${HEADER.H_DASHBOARD_DESKTOP + SPACING}px`,
+        ...((pathname.endsWith('/user-maintenance') || pathname.endsWith('/role-maintenance')) && { pb: 0 }),
         // width: `calc(100% - ${NAV.W_DASHBOARD}px)`,
         width: `calc(100% - 312px)`,
         position : 'absolute',

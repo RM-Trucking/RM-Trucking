@@ -797,7 +797,7 @@ const ConsolidatePickup = ({
                                     label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Add Pickup Accessorial</Typography>}
                                 />
                             </Box>
-                            <Box sx={{ flex: '0 1 150px' }}>
+                            <Box sx={{ flex: '0 1 250px' }}>
                                 <FormControlLabel
                                     control={<Controller name="carrierInfo.pickupAlert" control={control} render={({ field }) => <Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
                                         color: 'rgba(0, 25, 76, 1)',

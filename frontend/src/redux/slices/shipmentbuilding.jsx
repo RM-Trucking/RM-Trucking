@@ -101,6 +101,7 @@ const initialState = {
     addToQueuePagination: { page: 1, pageSize: 10, totalRecords: 0 },
     lineHaulSameDelDiff: false,
     shipmentToChangeIndex: null,
+    consolidatedFilterObj : {},
 };
 
 const slice = createSlice({
@@ -175,6 +176,9 @@ const slice = createSlice({
         setShipmentToChangeIndex(state, action) {
             state.shipmentToChangeIndex = action.payload;
         },
+        setConsolidatedFilterObj(state,action){
+            state.consolidatedFilterObj = action.payload;
+        },
     },
 });
 
@@ -190,6 +194,7 @@ export const {
     setSelectedDelName,
     setLineHaulSameDelDiff,
     setShipmentToChangeIndex,
+    setConsolidatedFilterObj,
 } = slice.actions;
 export default slice.reducer;
 

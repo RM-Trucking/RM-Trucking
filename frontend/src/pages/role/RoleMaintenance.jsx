@@ -387,16 +387,16 @@ export default function RoleMaintenance() {
         maxWidth={false}
         PaperProps={{
           sx: {
-            width: 'min(1000px, calc(100vw - 24px))',
-            maxHeight: 'calc(100vh - 24px)',
-            m: 1.5,
-            borderLeft: '6px solid #b51f24',
+            width: 'min(1280px, calc(100vw - 32px))',
+            height: 'min(900px, calc(100dvh - 32px))',
+            maxHeight: 'calc(100dvh - 32px)',
+            m: 2,
             borderRadius: 0.5,
           },
         }}
       >
-        <Box component="form" onSubmit={saveRolePermissions}>
-          <DialogTitle sx={{ px: 2.5, py: 1, fontSize: 14, fontWeight: 700 }}>
+        <Box component="form" onSubmit={saveRolePermissions} sx={{ display: 'flex', flexDirection: 'column', height: '100%', minHeight: 0 }}>
+          <DialogTitle sx={{ px: 3, py: 2, flexShrink: 0, fontSize: 20, fontWeight: 700 }}>
             <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
               <span>{editingRow ? 'Edit' : 'New'} {activeTab === 0 ? 'Employee' : 'Customer'} Role</span>
               <Stack direction="row" spacing={1}>
@@ -404,7 +404,7 @@ export default function RoleMaintenance() {
                   size="small"
                   variant="outlined"
                   onClick={() => setPermissionDialogOpen(false)}
-                  sx={{ minWidth: 56, py: 0.15, px: 1, color: '#333', borderColor: '#aaa', fontSize: 10, textTransform: 'none' }}
+                  sx={{ minWidth: 80, py: 0.75, px: 2, color: '#333', borderColor: '#aaa', fontSize: 14, textTransform: 'none' }}
                 >
                   Cancel
                 </Button>
@@ -412,15 +412,15 @@ export default function RoleMaintenance() {
                   size="small"
                   type="submit"
                   variant="contained"
-                  sx={{ minWidth: 56, py: 0.15, px: 1, bgcolor: '#b51f24', fontSize: 10, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
+                  sx={{ minWidth: 80, py: 0.75, px: 2, bgcolor: '#b51f24', fontSize: 14, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
                 >
                   {editingRow ? 'Submit' : 'Create'}
                 </Button>
               </Stack>
             </Stack>
           </DialogTitle>
-          <DialogContent sx={{ px: 2.5, pt: '4px !important', pb: 1.5, overflowY: 'auto' }}>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ mb: 1 }}>
+          <DialogContent sx={{ px: 3, pt: '12px !important', pb: 3, flex: 1, minHeight: 0, overflowY: 'auto' }}>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ mb: 2 }}>
               <TextField
                 label="Role Name"
                 required
@@ -432,7 +432,7 @@ export default function RoleMaintenance() {
                   setFormError('');
                 }}
                 InputLabelProps={{ shrink: true }}
-                sx={{ width: { xs: '100%', sm: 220 }, '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                sx={{ width: { xs: '100%', sm: 220 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
               />
               {editingRow && (
                 <>
@@ -443,7 +443,7 @@ export default function RoleMaintenance() {
                     value={editingRow.assignedCount}
                     InputLabelProps={{ shrink: true }}
                     InputProps={{ readOnly: true }}
-                    sx={{ width: { xs: '100%', sm: 150 }, '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                    sx={{ width: { xs: '100%', sm: 150 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                   />
                   <GroupsOutlinedIcon sx={{ color: '#b51f24', fontSize: 18, display: { xs: 'none', sm: 'block' } }} />
                 </>
@@ -456,9 +456,9 @@ export default function RoleMaintenance() {
               aria-label="Role permission module"
               variant="scrollable"
               sx={{
-                minHeight: 34,
+                minHeight: 44,
                 borderBottom: '1px solid #ddd',
-                '& .MuiTab-root': { minHeight: 34, px: 1, py: 0, textTransform: 'none', fontSize: 11, color: '#777' },
+                '& .MuiTab-root': { minHeight: 44, px: 1, py: 0, textTransform: 'none', fontSize: 14, color: '#777' },
                 '& .Mui-selected': { color: '#222', fontWeight: 600 },
                 '& .MuiTabs-indicator': { bgcolor: '#b51f24', height: 2 },
               }}
@@ -466,9 +466,9 @@ export default function RoleMaintenance() {
               {permissionModules.map((module) => <Tab key={module} value={module} label={module} />)}
             </Tabs>
 
-            {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 10 }}>{formError}</Typography>}
+            {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 14 }}>{formError}</Typography>}
 
-            <Stack spacing={2} sx={{ pt: 1.5 }}>
+            <Stack spacing={2.5} sx={{ pt: 2.5 }}>
               {permissionSections.map((section) => {
                 const checkedItems = permissionValues[permissionModule]?.[section.id] || [];
                 const allChecked = section.items.every((item) => checkedItems.includes(item.id));
@@ -477,15 +477,15 @@ export default function RoleMaintenance() {
                   <Box
                     key={section.id}
                     component="fieldset"
-                    sx={{ m: 0, minWidth: 0, px: 1.5, pt: 1, pb: 1.25, border: '1px solid #999', borderRadius: 1 }}
+                    sx={{ m: 0, minWidth: 0, px: 2, pt: 1.5, pb: 2, border: '1px solid #999', borderRadius: 1 }}
                   >
-                    <Typography component="legend" sx={{ px: 0.5, fontSize: 10, fontWeight: 600 }}>
+                    <Typography component="legend" sx={{ px: 0.5, fontSize: 14, fontWeight: 600 }}>
                       {section.title}
                     </Typography>
                     <Box
                       sx={{
                         display: 'grid',
-                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 110px' },
+                        gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr 150px' },
                         columnGap: 1,
                         alignItems: 'center',
                       }}
@@ -514,10 +514,10 @@ export default function RoleMaintenance() {
                                     };
                                   });
                                 }}
-                                sx={{ p: 0.4, mr: 0.4, '& .MuiSvgIcon-root': { fontSize: 14 } }}
+                                sx={{ p: 0.75, mr: 0.5, '& .MuiSvgIcon-root': { fontSize: 20 } }}
                               />
                             )}
-                            sx={{ m: 0, minHeight: 24, '& .MuiFormControlLabel-label': { fontSize: 10 } }}
+                            sx={{ m: 0, minHeight: 36, '& .MuiFormControlLabel-label': { fontSize: 14 } }}
                           />
                         ))}
                       </Box>
@@ -548,10 +548,10 @@ export default function RoleMaintenance() {
                                   },
                                 }));
                               }}
-                              sx={{ p: 0.4, mr: 0.4, '& .MuiSvgIcon-root': { fontSize: 14 } }}
+                              sx={{ p: 0.75, mr: 0.5, '& .MuiSvgIcon-root': { fontSize: 20 } }}
                             />
                           )}
-                          sx={{ m: 0, '& .MuiFormControlLabel-label': { fontSize: 10, whiteSpace: 'nowrap' } }}
+                          sx={{ m: 0, '& .MuiFormControlLabel-label': { fontSize: 14, whiteSpace: 'nowrap' } }}
                         />
                       </Box>
                     </Box>

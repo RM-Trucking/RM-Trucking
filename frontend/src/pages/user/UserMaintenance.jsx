@@ -362,23 +362,24 @@ export default function UserMaintenance() {
         maxWidth={false}
         PaperProps={{
           sx: {
-            width: 'min(740px, calc(100vw - 24px))',
-            m: 1.5,
-            borderLeft: '6px solid #b51f24',
+            width: 'min(1100px, calc(100vw - 32px))',
+            minHeight: activeTab === 0 ? 'min(320px, calc(100dvh - 32px))' : 'min(560px, calc(100dvh - 32px))',
+            maxHeight: 'calc(100dvh - 32px)',
+            m: 2,
             borderRadius: 0.5,
           },
         }}
       >
-        <Box component="form" onSubmit={saveUser}>
-          <DialogTitle sx={{ px: 2.75, py: 1.5, fontSize: 14, fontWeight: 700 }}>
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
+        <Box component="form" onSubmit={saveUser} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+          <DialogTitle sx={{ px: 3, py: 2, flexShrink: 0, fontSize: 20, fontWeight: 700 }}>
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ gap: 2, flexWrap: 'wrap' }}>
               <span>{editingRow ? `Edit ${activeTab === 0 ? 'Employee' : 'Customer'}` : `New ${activeTab === 0 ? 'Employee' : 'Customer'}`}</span>
               <Stack direction="row" spacing={1}>
                 <Button
                   size="small"
                   variant="outlined"
                   onClick={() => setFormOpen(false)}
-                  sx={{ minWidth: 56, py: 0.15, px: 1, color: '#333', borderColor: '#aaa', fontSize: 10, textTransform: 'none' }}
+                  sx={{ minWidth: 80, py: 0.75, px: 2, color: '#333', borderColor: '#aaa', fontSize: 14, textTransform: 'none' }}
                 >
                   Cancel
                 </Button>
@@ -386,20 +387,20 @@ export default function UserMaintenance() {
                   size="small"
                   type="submit"
                   variant="contained"
-                  sx={{ minWidth: 44, py: 0.15, px: 1, bgcolor: '#b51f24', fontSize: 10, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
+                  sx={{ minWidth: 80, py: 0.75, px: 2, bgcolor: '#b51f24', fontSize: 14, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
                 >
                   {editingRow ? 'Save' : 'Add'}
                 </Button>
               </Stack>
             </Stack>
           </DialogTitle>
-          <DialogContent sx={{ px: 2.75, pt: '12px !important', pb: 2.5, maxHeight: 'calc(100vh - 100px)' }}>
+          <DialogContent sx={{ px: 3, pt: '16px !important', pb: 3, flex: 1, minHeight: 0, overflowY: 'auto' }}>
             {activeTab === 0 ? (
               <Box
                 component="fieldset"
-                sx={{ m: 0, minWidth: 0, px: 1.5, pt: 1.25, pb: 2, border: '1px solid #999', borderRadius: 1 }}
+                sx={{ m: 0, minWidth: 0, px: 2, pt: 2, pb: 3, border: '1px solid #999', borderRadius: 1 }}
               >
-                <Typography component="legend" sx={{ px: 0.5, fontSize: 11, fontWeight: 600 }}>
+                <Typography component="legend" sx={{ px: 0.5, fontSize: 16, fontWeight: 600 }}>
                   Employee Details
                 </Typography>
                 <Box
@@ -420,7 +421,7 @@ export default function UserMaintenance() {
                     value={formValues.name}
                     onChange={(event) => setFormValues({ ...formValues, name: event.target.value })}
                     InputLabelProps={{ shrink: true }}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                   />
                   <TextField
                     label="Login Employee Name"
@@ -430,7 +431,7 @@ export default function UserMaintenance() {
                     value={formValues.loginName}
                     onChange={(event) => setFormValues({ ...formValues, loginName: event.target.value })}
                     InputLabelProps={{ shrink: true }}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                   />
                   <TextField
                     label="Employee Email ID"
@@ -440,14 +441,14 @@ export default function UserMaintenance() {
                     value={formValues.email}
                     onChange={(event) => setFormValues({ ...formValues, email: event.target.value })}
                     InputLabelProps={{ shrink: true }}
-                    sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                    sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                   />
                   <FormControl required variant="standard" size="small">
-                    <InputLabel sx={{ fontSize: 10 }}>Role</InputLabel>
+                    <InputLabel sx={{ fontSize: 14 }}>Role</InputLabel>
                     <Select
                       value={formValues.role}
                       onChange={(event) => setFormValues({ ...formValues, role: event.target.value })}
-                      sx={{ fontSize: 11, minHeight: 25 }}
+                      sx={{ fontSize: 16, minHeight: 36 }}
                     >
                       {[...new Set(roles)].map((role) => <MenuItem key={role} value={role}>{role}</MenuItem>)}
                     </Select>
@@ -458,9 +459,9 @@ export default function UserMaintenance() {
               <Stack spacing={2.5}>
                 <Box
                   component="fieldset"
-                  sx={{ m: 0, minWidth: 0, px: 1.5, pt: 1.25, pb: 2, border: '1px solid #999', borderRadius: 1 }}
+                  sx={{ m: 0, minWidth: 0, px: 2, pt: 2, pb: 3, border: '1px solid #999', borderRadius: 1 }}
                 >
-                  <Typography component="legend" sx={{ px: 0.5, fontSize: 11, fontWeight: 600 }}>
+                  <Typography component="legend" sx={{ px: 0.5, fontSize: 16, fontWeight: 600 }}>
                     Customer Details
                   </Typography>
                   <Box
@@ -474,11 +475,11 @@ export default function UserMaintenance() {
                     }}
                   >
                     <FormControl required variant="standard" size="small">
-                      <InputLabel sx={{ fontSize: 10 }}>Customer Name</InputLabel>
+                      <InputLabel sx={{ fontSize: 14 }}>Customer Name</InputLabel>
                       <Select
                         value={formValues.name}
                         onChange={(event) => setFormValues({ ...formValues, name: event.target.value })}
-                        sx={{ fontSize: 11, minHeight: 25 }}
+                        sx={{ fontSize: 16, minHeight: 36 }}
                       >
                         {[...new Set([...customerNames, formValues.name].filter(Boolean))].map((name) => (
                           <MenuItem key={name} value={name}>{name}</MenuItem>
@@ -486,18 +487,18 @@ export default function UserMaintenance() {
                       </Select>
                     </FormControl>
                     <FormControl required variant="standard" size="small">
-                      <InputLabel sx={{ fontSize: 10 }}>Station List</InputLabel>
+                      <InputLabel sx={{ fontSize: 14 }}>Station List</InputLabel>
                       <Select
                         multiple
                         value={formValues.stationList || []}
                         onChange={(event) => setFormValues({ ...formValues, stationList: event.target.value })}
                         renderValue={(selected) => selected.join(', ')}
-                        sx={{ fontSize: 11, minHeight: 25 }}
+                        sx={{ fontSize: 16, minHeight: 36 }}
                       >
                         {stationOptions.map((station) => (
                           <MenuItem key={station} value={station} dense>
                             <Checkbox size="small" checked={(formValues.stationList || []).includes(station)} sx={{ p: 0.25, mr: 0.5 }} />
-                            <ListItemText primary={station} primaryTypographyProps={{ fontSize: 11 }} />
+                            <ListItemText primary={station} primaryTypographyProps={{ fontSize: 16 }} />
                           </MenuItem>
                         ))}
                       </Select>
@@ -511,14 +512,14 @@ export default function UserMaintenance() {
                       value={formValues.email}
                       onChange={(event) => setFormValues({ ...formValues, email: event.target.value, loginName: event.target.value })}
                       InputLabelProps={{ shrink: true }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                     />
                     <FormControl required variant="standard" size="small">
-                      <InputLabel sx={{ fontSize: 10 }}>Role</InputLabel>
+                      <InputLabel sx={{ fontSize: 14 }}>Role</InputLabel>
                       <Select
                         value={formValues.role}
                         onChange={(event) => setFormValues({ ...formValues, role: event.target.value })}
-                        sx={{ fontSize: 11, minHeight: 25 }}
+                        sx={{ fontSize: 16, minHeight: 36 }}
                       >
                         {[...new Set([...customerRoles, formValues.role].filter(Boolean))].map((role) => (
                           <MenuItem key={role} value={role}>{role}</MenuItem>
@@ -532,7 +533,7 @@ export default function UserMaintenance() {
                       value={formValues.companyName || ''}
                       onChange={(event) => setFormValues({ ...formValues, companyName: event.target.value })}
                       InputLabelProps={{ shrink: true }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                     />
                   </Box>
                 </Box>
@@ -541,10 +542,10 @@ export default function UserMaintenance() {
                   component="fieldset"
                   sx={{ m: 0, minWidth: 0, px: 1.5, pt: 1.25, pb: 1.75, border: '1px solid #999', borderRadius: 1 }}
                 >
-                  <Typography component="legend" sx={{ px: 0.5, fontSize: 11, fontWeight: 600 }}>
+                  <Typography component="legend" sx={{ px: 0.5, fontSize: 16, fontWeight: 600 }}>
                     Customer Password Details
                   </Typography>
-                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(145px, 1fr))' }, columnGap: 3.25, maxWidth: 340, pt: 0.5 }}>
+                  <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(145px, 1fr))' }, columnGap: 3.25, maxWidth: 500, pt: 0.5 }}>
                     <TextField
                       label="New Password"
                       required={!editingRow}
@@ -566,7 +567,7 @@ export default function UserMaintenance() {
                           </InputAdornment>
                         ),
                       }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                     />
                     <TextField
                       label="Confirm Password"
@@ -589,11 +590,11 @@ export default function UserMaintenance() {
                           </InputAdornment>
                         ),
                       }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: 10 }, '& .MuiInputBase-input': { fontSize: 11, py: 0.5 } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                     />
                   </Box>
                   <Box sx={{ mt: 2.5 }}>
-                    <Typography sx={{ mb: 0.5, color: '#777', fontSize: 9 }}>Password Must:</Typography>
+                    <Typography sx={{ mb: 0.5, color: '#777', fontSize: 12 }}>Password Must:</Typography>
                     {[
                       ['Include an uppercase and a lowercase letter', /[A-Z]/.test(formValues.password || '') && /[a-z]/.test(formValues.password || '')],
                       ['Include a number and a special character', /[0-9]/.test(formValues.password || '') && /[^A-Za-z0-9]/.test(formValues.password || '')],
@@ -601,11 +602,11 @@ export default function UserMaintenance() {
                     ].map(([label, isValid]) => (
                       <Stack key={label} direction="row" alignItems="center" spacing={0.75} sx={{ mb: 0.2 }}>
                         <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: isValid ? '#55ad6a' : '#aaa' }} />
-                        <Typography sx={{ color: isValid ? '#777' : '#999', fontSize: 9 }}>{label}</Typography>
+                        <Typography sx={{ color: isValid ? '#777' : '#999', fontSize: 12 }}>{label}</Typography>
                       </Stack>
                     ))}
                   </Box>
-                  {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 10 }}>{formError}</Typography>}
+                  {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 14 }}>{formError}</Typography>}
                 </Box>
               </Stack>
             )}

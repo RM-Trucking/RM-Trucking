@@ -115,6 +115,7 @@ const ConsolidateLinehaul = ({
     const [subModal, setSubModal] = useState({ type: 'linehaul', open: false });
     const [clearModal, setClearModal] = useState({ type: watchedLinehaulSelectRouting, open: false });
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
+    const consolidatedFilterObj = useSelector((state) => state?.shipmentbuildingdata?.consolidatedFilterObj);
     const handlePrint = useReactToPrint({
         contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
     })
@@ -179,12 +180,6 @@ const ConsolidateLinehaul = ({
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
                     <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
-                        <Button component="div"
-                            role="button" variant="outlined" size="small"
-                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setClearModal({ type: watchedLinehaulSelectRouting, open: true }) }}
-                            sx={{ textTransform: 'none', color: '#a22', borderColor: '#a22', mr: 2 }} >
-                            Clear
-                        </Button>
                     </Box>
                 </AccordionSummary>
 
@@ -192,7 +187,7 @@ const ConsolidateLinehaul = ({
                    
                     {/* linehaul details  */}
                     {(selectedRouting !== 'pickup_linehaul_delivery' && selectedRouting !== 'pickup_linehaul') && <>
-                        <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 4, mt: 1, mb: 3 }}>
+                        {/* <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 4, mt: 1, mb: 3 }}>
                             <Box sx={{ flex: '0 1 250px' }}>
                                 <Controller
                                     name="carrierInfo.lineHaul.selectRouting"
@@ -213,7 +208,7 @@ const ConsolidateLinehaul = ({
                                     )}
                                 />
                             </Box>
-                        </Box>
+                        </Box> */}
                         {/* TOP SECTION: Flexbox row for Carrier and Bill info */}
                         <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
                             <Box sx={{ flex: '1 1 200px' }}>
@@ -306,7 +301,7 @@ const ConsolidateLinehaul = ({
                                                 />
                                             )}
                                             // disabled={!watchedPickupAgentTerminal}
-                                            disabled={(!watchedPickupAgentTerminal && (watchedSelectedPickupCarrier?.split('-')[1] !== watchedToLocation?.split('-')[1])) || type === 'View'}
+                                            // disabled={(!watchedPickupAgentTerminal && (watchedSelectedPickupCarrier?.split('-')[1] !== watchedToLocation?.split('-')[1])) || type === 'View'}
                                         />
                                     )}
                                 />
@@ -335,8 +330,8 @@ const ConsolidateLinehaul = ({
                             </Box>
 
                         </Box>
-                        <Box sx={{ display: 'flex', gap: 3, mb: 4, flexWrap: 'wrap' }}>
-                            {watchedPickupAgentTerminal && <Box>
+                        <Box sx={{ display: 'flex', gap: 3, mb: 4, flexWrap: 'wrap', alignItems : 'center' }}>
+                            {/* {watchedPickupAgentTerminal && <Box> */}
                                 <Controller
                                     name="carrierInfo.lineHaul.toggleAddress"
                                     control={control}
@@ -368,7 +363,7 @@ const ConsolidateLinehaul = ({
                                         </>
                                     )}
                                 />
-                            </Box>}
+                            {/* </Box>} */}
                             <Box sx={{ flex: '2 1 300px', display: 'flex', gap: 1 }}>
                                 <Controller
                                     name="carrierInfo.lineHaul.manualFromLocation"
@@ -433,11 +428,11 @@ const ConsolidateLinehaul = ({
                                             InputLabelProps={{ shrink: true }}
                                             disabled={type === 'View'}
                                         >
-                                            {watchedLinehaulSelectRouting === 'linehaul_only' && <MenuItem value="Carrier">
+                                            {consolidatedFilterObj?.routing === 'LINE_HAUL_ONLY' && <MenuItem value="Carrier">
                                                 Carrier
                                             </MenuItem>}
 
-                                            {watchedLinehaulSelectRouting === 'linehaul_delivery' && <MenuItem value="Consignee">
+                                            {consolidatedFilterObj?.routing === 'LINE_HAUL_DELIVERY' && <MenuItem value="Consignee">
                                                 Consignee
                                             </MenuItem>}
                                         </StyledTextField>

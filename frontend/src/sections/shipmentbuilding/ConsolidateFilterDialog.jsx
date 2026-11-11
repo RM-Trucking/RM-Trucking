@@ -14,8 +14,11 @@ import {
 } from '@mui/material';
 import { Controller } from 'react-hook-form';
 import CloseIcon from '@mui/icons-material/Close';
+import { useDispatch, useSelector } from '../../redux/store';
 
 export default function ConsolidateFilterDialog({ open, handleClose, control, errors, handleSubmit, onSubmit }) {
+    const dispatch = useDispatch();
+    const consolidatedFilterObj = useSelector((state) => state?.shipmentbuildingdata?.consolidatedFilterObj);
     return (
         <Dialog
             open={open}
@@ -59,6 +62,7 @@ export default function ConsolidateFilterDialog({ open, handleClose, control, er
                                             {...field}
                                             select
                                             fullWidth
+                                            value={consolidatedFilterObj?.routing || ''}
                                             variant="standard"
                                             label="Select Routing"
                                             error={!!errors.routing}

@@ -53,6 +53,7 @@ import BillOfLadingAuto from './BillOfLadingAuto';
 import ReferenceDialog from './ReferenceDialog';
 import { getObjectForBOL } from './getObjForBOL';
 
+
 const ConsolidatedDeliveryDetailsList = ({
     shipment,
     shipmentIndex,
@@ -123,13 +124,8 @@ const ConsolidatedDeliveryDetailsList = ({
     appendSelectedDeliveryDetailsList,
     removeSelectedDeliveryDetailsList,
 }) => {
-    const contentRef = useRef(null);
-    const [subModal, setSubModal] = useState({ type: 'delivery', open: false });
     const selectedShipmentBuildObj = useSelector((state) => state?.shipmentbuildingdata?.selectedShipmentBuildObj);
     const shipmentToChangeIndex = useSelector((state) => state?.shipmentbuildingdata?.shipmentToChangeIndex);
-    const handlePrint = useReactToPrint({
-        contentRef, documentTitle: `Bill_of_Lading_${selectedShipmentBuildObj?.shipmentId}`
-    })
     const logError = (error, info) => {
         // Use an error reporting service here
         console.error("Error caught:", info);
@@ -339,103 +335,8 @@ const ConsolidatedDeliveryDetailsList = ({
                 <AccordionDetails sx={{ pt: 2 }}>
 
                     {(watchedLinehaulSelectRouting === 'linehaul_only' || selectedRouting === 'pickup_only' || selectedRouting === 'pickup_linehaul') && (watchedLinehaulSelectRouting !== 'linehaul_delivery' && selectedRouting !== 'pickup_linehaul_delivery') && <>
-                        <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
-                            <Box sx={{ flex: '1 1 200px' }}>
-                                <Controller
-                                    name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.carrier`}
-                                    control={control}
-                                    rules={{ required: true }}
-                                    render={({ field: { onChange, value, ref, ...fieldProps } }) => (
-                                        <Autocomplete
-                                            {...fieldProps} // Spreads ref and name from React Hook Form
-                                            fullWidth
-                                            options={carrierTerminalDropdown || []}
-
-                                            // 1. RESOLVES KEY WARNINGS BY CREATING ISOLATED UNIQUE KEY NAMESPACES
-                                            renderOption={(props, option, state) => {
-                                                const uniqueKey = `delivery-carrier-${option.terminalId}-${option.carrierId}-${state.index}`;
-                                                return (
-                                                    <li {...props} key={uniqueKey}>
-                                                        {option.carrierName && option.terminalName
-                                                            ? `${option.carrierName} | ${option.terminalName}`
-                                                            : ""}
-                                                    </li>
-                                                );
-                                            }}
-
-                                            // 2. GUARANTEES EXACT DROPDOWN SELECTION MATCHES FOR COMPOSITE ID STRINGS
-                                            isOptionEqualToValue={(option, val) => {
-                                                const optionKey = `${option?.terminalId}-${option?.carrierId}`;
-                                                const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
-                                                return optionKey === valueKey;
-                                            }}
-
-                                            // Matches the combined string value logic from your previous MenuItem setup
-                                            getOptionLabel={(option) => {
-                                                if (option && option.carrierName && option.terminalName) {
-                                                    return `${option.carrierName} | ${option.terminalName}`;
-                                                }
-                                                return "";
-                                            }}
-
-                                            // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                                            value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                                            // Updates React Hook Form state on change
-                                            onChange={(event, newValue) => {
-                                                dispatch(getDeliveryAccessorials(newValue?.terminalEntityId));
-                                                isSelectingCarrierDeliveryRef.current = true;
-
-                                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                                onChange(formValue);
-                                            }}
-
-                                            onInputChange={(event, newInputValue, reason) => {
-                                                if (reason !== "reset") {
-                                                    setSelectCarrierDeliverySearchValue(newInputValue);
-                                                    // if (!newInputValue || newInputValue.trim() === "") {
-                                                    //   dispatch(searchCarriers(""));
-                                                    // }
-                                                }
-                                            }}
-                                            loading={isLoading}
-                                            loadingText="Searching carriers..."
-                                            noOptionsText={selectCarrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                                            renderInput={(params) => (
-                                                <StyledTextField
-                                                    {...params}
-                                                    inputRef={ref} // Keeps React Hook Form field focus tracking operational on error click
-                                                    variant="standard"
-                                                    label="Select Carrier *"
-                                                    error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                                    helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                                    InputLabelProps={{ shrink: true }}
-                                                    sx={{
-                                                        '& .MuiInputBase-input:disabled': {
-                                                            color: '#000',
-                                                            WebkitTextFillColor: '#000'
-                                                        }
-                                                    }}
-                                                    InputProps={{
-                                                        ...params.InputProps,
-                                                        endAdornment: (
-                                                            <>
-                                                                {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                                {params.InputProps.endAdornment}
-                                                            </>
-                                                        ),
-                                                    }}
-                                                />
-                                            )}
-                                            sx={{ width: '100% !important' }}
-                                            disabled={!watchedPickupAgentTerminal && ((watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1]) || type === 'View')}
-                                        />
-                                    )}
-                                />
-
-                            </Box>
+                       
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                             <Box sx={{ flex: '1 1 200px' }}>
                                 <Controller
                                     name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.billNumber`}
@@ -457,75 +358,6 @@ const ConsolidatedDeliveryDetailsList = ({
                                 />
 
                             </Box>
-                            <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-                                {/* <Controller
-                          name="carrierInfo.deliveryDetails.fromLocation"
-                          control={control}
-                          render={({ field }) => <TextField {...field} fullWidth label="From Location *" variant="standard" />}
-                        /> */}
-                                <Controller
-                                    name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`}
-                                    control={control}
-                                    render={({ field }) => (
-                                        <FormControlLabel
-                                            sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
-                                            control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
-                                                color: 'rgba(0, 25, 76, 1)',
-                                                '&.Mui-checked': {
-                                                    color: 'rgba(0, 25, 76, 1)'
-                                                },
-                                                '&.Mui-disabled': {
-                                                    color: 'rgba(0, 25, 76, 1) !important'
-                                                }
-                                            }} />}
-                                            label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit From Location</Typography>}
-                                        />
-                                    )}
-                                />
-                            </Box>
-                        </Box>
-
-                        {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
-
-                        <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
-                            <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
-                                Manual From Location
-                            </Typography>
-                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-                                <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 255 }} />} />
-                                </Box>
-                                <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller
-                                        name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.line2`}
-                                        control={control}
-                                        render={({ field }) => (
-                                            <StyledTextField
-                                                {...field}
-                                                fullWidth
-                                                label="Address Line 2"
-                                                variant="standard"
-                                                InputLabelProps={{ shrink: true }}
-                                                disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)}
-                                                inputProps={{ maxLength: 255 }}
-                                            />
-                                        )}
-                                    />
-
-                                </Box>
-                                <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
-                                </Box>
-                                <Box sx={{ flex: '1 1 18%' }}>
-                                    <Controller name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
-                                </Box>
-                                <Box sx={{ flex: '1 1 18%' }}>
-                                    {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocationDetails.zip`, !getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.manualFromLocation`))}
-                                </Box>
-                            </Box>
-                        </Paper>
-
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mb: 3, alignItems: 'center' }}>
                             <Box sx={{ flex: '1 1 200px' }}>
                                 <Controller
                                     name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.toLocationType`}
@@ -552,124 +384,28 @@ const ConsolidatedDeliveryDetailsList = ({
                                 />
                             </Box>
                             <Box sx={{ flex: '1 1 200px' }}>
-                                {(watchedDeliveryToLocationType === 'Carrier' || watchedDeliveryToLocationType === '') &&
-                                    <Controller
-                                        name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.toLocation`}
-                                        control={control}
-                                        rules={{ required: true }}
-                                        render={({ field: { onChange, value, ref, ...fieldProps } }) => (
-                                            <Autocomplete
-                                                {...fieldProps} // Spreads ref and name from React Hook Form
-                                                fullWidth
-                                                options={carrierTerminalDropdown || []}
+                                <Controller
+                                    name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.toLocation`}
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field: { onChange, value, ...fieldProps } }) => (
+                                        <StyledTextField
+                                            fullWidth
+                                            variant="standard"
+                                            label="To Location *"
+                                            value={getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.toLocation`)}// Your hardcoded static value displayed to the user
+                                            disabled // Visual indicator showing the user it cannot be changed manually
+                                            InputLabelProps={{ shrink: true }}
+                                            sx={{
+                                                '& .MuiInputBase-input:disabled': {
+                                                    color: '#000', // Ensures high contrast visibility even when disabled
+                                                    WebkitTextFillColor: '#000'
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                />
 
-                                                // 1. PROVIDES TOTALLY UNIQUE KEYS PER LIST ITEM DOM NODE
-                                                renderOption={(props, option, state) => {
-                                                    // FIXED: Converted to a clean, single-line concatenation string to prevent Vite parsing crashes
-                                                    const uniqueKey = "delivery-tolocation-" + option.terminalId + "-" + option.carrierId + "-" + state.index;
-                                                    return (
-                                                        <li {...props} key={uniqueKey}>
-                                                            {option.carrierName && option.terminalName
-                                                                ? option.carrierName + " | " + option.terminalName
-                                                                : ""}
-                                                        </li>
-                                                    );
-                                                }}
-
-                                                // 2. EQUATES INTERNAL STATE STRINGS ACCURATELY WITH THE CHOSEN OBJECTS
-                                                isOptionEqualToValue={(option, val) => {
-                                                    const optionKey = `${option?.terminalId}-${option?.carrierId}`;
-                                                    const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
-                                                    return optionKey === valueKey;
-                                                }}
-
-                                                // Matches the combined string value logic from your previous MenuItem setup
-                                                getOptionLabel={(option) => {
-                                                    if (option && option.carrierName && option.terminalName) {
-                                                        return `${option.carrierName} | ${option.terminalName}`;
-                                                    }
-                                                    return "";
-                                                }}
-
-                                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                                                // Updates React Hook Form state on change
-                                                onChange={(event, newValue) => {
-                                                    isSelectingToCarrierDeliveryRef.current = true;
-
-                                                    // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                                    const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                                    onChange(formValue);
-                                                }}
-
-                                                onInputChange={(event, newInputValue, reason) => {
-                                                    if (reason !== "reset") {
-                                                        setCarrierDeliverySearchValue(newInputValue);
-                                                        // if (!newInputValue || newInputValue.trim() === "") {
-                                                        //   dispatch(searchCarriers(""));
-                                                        // }
-                                                    }
-                                                }}
-                                                loading={isLoading}
-                                                loadingText="Searching carriers..."
-                                                noOptionsText={carrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                                                renderInput={(params) => (
-                                                    <StyledTextField
-                                                        {...params}
-                                                        inputRef={ref} // Forwards focal references safely back to React Hook Form validation routines
-                                                        variant="standard"
-                                                        label="To Location *"
-                                                        error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                                        helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                                        InputLabelProps={{ shrink: true }}
-                                                        sx={{
-                                                            '& .MuiInputBase-input:disabled': {
-                                                                color: '#000',
-                                                                WebkitTextFillColor: '#000'
-                                                            }
-                                                        }}
-                                                        InputProps={{
-                                                            ...params.InputProps,
-                                                            endAdornment: (
-                                                                <>
-                                                                    {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                                    {params.InputProps.endAdornment}
-                                                                </>
-                                                            ),
-                                                        }}
-                                                    />
-                                                )}
-                                                sx={{ width: '100% !important', mt: 2 }}
-                                                disabled={type === 'View'}
-                                            />
-                                        )}
-                                    />
-                                }
-                                {
-                                    watchedDeliveryToLocationType === 'Consignee' && <Controller
-                                        name={`carrierInfo.deliveryDetailsList.${shipmentIndex}.toLocation`}
-                                        control={control}
-                                        rules={{ required: true }}
-                                        render={({ field: { onChange, value, ...fieldProps } }) => (
-                                            <StyledTextField
-                                                fullWidth
-                                                variant="standard"
-                                                label="To Location *"
-                                                value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}// Your hardcoded static value displayed to the user
-                                                disabled // Visual indicator showing the user it cannot be changed manually
-                                                InputLabelProps={{ shrink: true }}
-                                                sx={{
-                                                    '& .MuiInputBase-input:disabled': {
-                                                        color: '#000', // Ensures high contrast visibility even when disabled
-                                                        WebkitTextFillColor: '#000'
-                                                    }
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                }
                             </Box>
                             <Box>
                                 <Controller
@@ -1185,50 +921,6 @@ const ConsolidatedDeliveryDetailsList = ({
                             }} />} />}
                             label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default' }} variant="body2">Delivery Alert </Typography>}
                         />
-                        <Button
-                            variant="contained"
-                            startIcon={<Iconify icon="material-symbols:print-rounded" sx={{ width: 18, height: 18 }} />}
-                            sx={{
-                                // 1. Structural Dimensions from your specifications
-                                width: '101.42px',
-                                height: '28px',
-                                minWidth: '90px',
-                                borderRadius: '6px',
-
-                                // 2. Padding and Spacing configurations
-                                pt: '10px',
-                                pr: '16px',
-                                pb: '10px',
-                                pl: '16px',
-                                gap: '10px',
-
-                                // 3. Visual Styling matching the layout image
-                                bgcolor: '#A22',
-                                color: '#ffffff',
-                                textTransform: 'none',
-                                boxShadow: 'none',
-                                fontWeight: 'normal',
-                                fontSize: '14px',
-                                lineHeight: 1,
-
-                                // Custom styling fixes to prevent padding from expanding the strict 28px height
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                whiteSpace: 'nowrap',
-                                '& .MuiButton-startIcon': {
-                                    margin: 0, // Let the layout gap handle inner layout distribution cleanly
-                                },
-
-                                // Hover fallback styles
-                                '&:hover': {
-                                    bgcolor: '#811',
-                                    boxShadow: 'none',
-                                },
-                            }}
-                        >
-                            Print
-                        </Button>
                     </Box>
                     {getValues(`carrierInfo.deliveryDetailsList.${shipmentIndex}.deliveryAlert`) && <>
                         {/* LINE-HAUL NOTES: Flexbox for chip gallery */}

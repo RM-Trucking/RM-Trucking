@@ -2,7 +2,7 @@ import PropTypes from 'prop-types';
 import React, { useState, useEffect, useRef } from 'react';
 
 import { useForm, Controller, useFieldArray, useWatch, set, get } from 'react-hook-form';
-
+import { useReactToPrint } from 'react-to-print';
 import {
   Box, Stepper, Step, StepLabel, Typography, TextField, MenuItem,
   Button, Paper, Alert, Snackbar, Checkbox, FormControlLabel, IconButton, Dialog, DialogTitle,
@@ -34,7 +34,7 @@ import {
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
   getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment, patchNetworkShipment,
-  getZipToZipCustomerRate,
+  getZipToZipCustomerRate, getDeliveryAccessorials as getIndividualDelAccessorials,
 
 } from '../../redux/slices/shipment';
 import ShipmentStatusUpdateDialog from './ShipmentStatusUpdateDialog';
@@ -60,6 +60,8 @@ import ConsolidateCarrierHmPage from './ConsolidateCarrierHmPage';
 import AccCheckDialog from './AccCheckDialog';
 import { handleNext, onFormSubmit, hasInitialData } from './handleNext';
 import { handleConsolidatedNext, onFormEditSubmit } from './handleConsolidatedNext';
+import { getObjectDorCIDAlert } from './getObjectForCIDAlert';
+import ConsolidateInboundAlert from './ConsolidateInboundDeliveryAlert';
 console.log('Imported function:', typeof handleConsolidatedNext);
 import {
   updateControlsForConsolidate,
@@ -109,6 +111,7 @@ const getFreightClass = (length, width, height, lbs) => {
 
 const ConsolidateHomePage = ({ type }) => {
   const dispatch = useDispatch();
+  const printContentRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
   const isLoading = useSelector((state) => state?.shipmentdata?.isLoading);
@@ -142,6 +145,7 @@ const ConsolidateHomePage = ({ type }) => {
   const [selectCarrierLinehaulSearchValue, setSelectCarrierLinehaulSearchValue] = useState('');
   const [selectCarrierPickupSearchValue, setSelectCarrierPickupSearchValue] = useState('');
   const [selectCarrierDeliverySearchValue, setSelectCarrierDeliverySearchValue] = useState('');
+  const [subModal, setSubModal] = useState({ type: 'delivery', open: false });
 
   const isSelectingCustomerRef = useRef(false);
   const isSelectingCarrierPickupRef = useRef(false);
@@ -155,6 +159,8 @@ const ConsolidateHomePage = ({ type }) => {
   const [activeStep, setActiveStep] = useState(0);
   const [errorVisible, setErrorVisible] = useState(false);
   const [errorVisibleFields, setErrorVisibleFields] = useState([]);
+  const [alertPdfErr, setAlertPdfErr] = useState(false);
+  const [alertPdfErrMsg, setAlertPdfErrMsg] = useState([]);
   // This state controls the opening, closing, and index of the Hazmat modal
   const [hazmatModal, setHazmatModal] = useState({ open: false, huIdx: null, itemIdx: null });
   const [accCheckModal, setAccCheckModal] = useState({ open: false, acc: '', });
@@ -198,6 +204,7 @@ const ConsolidateHomePage = ({ type }) => {
   const [totalConsolWeight, setTotalConsolWeight] = useState(0);
   const [totalConsolPieces, setTotalConsolPieces] = useState(0);
   const [totalConsolHazmatCount, setTotalConsolHazmatCount] = useState(0);
+  const [printData, setPrintData] = useState(null);
 
   const {
     control,
@@ -1516,7 +1523,8 @@ const ConsolidateHomePage = ({ type }) => {
   const customerZipRate = useWatch({ control, name: "customerRate.rate" })
 
   useEffect(() => {
-    if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress && type !== 'View') {
+    // if (watchedPickupAgentTerminal && watchedLineHaulToggledAddress && type !== 'View') {
+    if (watchedLineHaulToggledAddress && type !== 'View') {
       if (watchedLineHaulToggledAddress === 'pickup') {
         const [terminalId, carrierId] = getValues('carrierInfo.selectCarrier').split('-');
         if (terminalId && carrierId) {
@@ -1715,8 +1723,21 @@ const ConsolidateHomePage = ({ type }) => {
         isManual: false,
       }));
       setDELIVERY_MASTER_Accessorials(updatedAcc);
+      setDELIVERY_MASTER_Accessorials_For_Lists(updatedAcc);
     } else {
       setDELIVERY_MASTER_Accessorials([]);
+      setDELIVERY_MASTER_Accessorials_For_Lists([]);
+    }
+    // --- Reset deliveryAccessorials in useFieldArray ---
+    if (selectedDeliveryDetailsList && selectedDeliveryDetailsList.length > 0) {
+      // Map over the existing rows and set deliveryAccessorials to an empty array
+      const clearedDeliveryDetailsList = selectedDeliveryDetailsList.map((item) => ({
+        ...item,
+        deliveryAccessorials: [] // Empties the key for each object
+      }));
+
+      // Atomically replace the entire field array value
+      replaceSelectedDeliveryDetailsList(clearedDeliveryDetailsList);
     }
   }, [deliveryAccessorialsByEntityId])
   useEffect(() => {
@@ -1991,7 +2012,8 @@ const ConsolidateHomePage = ({ type }) => {
         zip: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editFromLocationDetails?.zipCode || '',
       },
       toLocationType: 'Consignee',
-      toLocation: getDeliveryToLocationValue(shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId),
+      // toLocation: getDeliveryToLocationValue(shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId),
+      toLocation: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.toLocation,
       manualToLocation: false,
       manualToLocationDetails: {
         line1: shipmentData?.carrierDetails?.deliveryDetails?.deliveryPrimaryInfo?.editToLocationDetails?.addressLine1 || '',
@@ -2214,6 +2236,76 @@ const ConsolidateHomePage = ({ type }) => {
     totalConsolWeight
   ]);
 
+  // useReactToPrint definition configured to look at our target content container frame
+  const triggerPrintAction = useReactToPrint({
+    contentRef: printContentRef, // V3 syntax uses contentRef
+    onAfterPrint: () => setPrintData(null), // Clean data payload when print completes/cancels
+    documentTitle: `Inbound_Delivery_Alert`,
+  });
+  useEffect(() => {
+    if (printData && printContentRef.current) {
+      // Crucial fix: Wrap in a zero-delay timeout to allow React to 
+      // finish drawing the new table data inside the DOM node.
+      const timer = setTimeout(() => {
+        triggerPrintAction();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [printData, triggerPrintAction]);
+  // Trigger event handler mounted directly to your MUI Button
+  const handlePrintClick = () => {
+    const currentValues = getValues();
+
+    // 1. Define all required fields with user-friendly error names
+    const lineHaul = currentValues?.carrierInfo?.lineHaul;
+    const lhManual = lineHaul?.manualFromLocationDetails;
+    const delivery = currentValues?.carrierInfo?.deliveryDetails;
+    const delManual = delivery?.manualFromLocationDetails;
+
+    const requiredFields = [
+      { value: lineHaul?.carrier, label: "Line Haul Carrier" },
+      { value: lineHaul?.billNumber, label: "Line Haul Bill Number" },
+      { value: lhManual?.line1, label: "Line Haul Origin Address Line 1" },
+      { value: lhManual?.city, label: "Line Haul Origin City" },
+      { value: lhManual?.state, label: "Line Haul Origin State" },
+      { value: lhManual?.zip, label: "Line Haul Origin ZIP" },
+      { value: delivery?.carrier, label: "Delivery Carrier" },
+      { value: delManual?.line1, label: "Delivery Destination Address Line 1" },
+      { value: delManual?.city, label: "Delivery Destination City" },
+      { value: delManual?.state, label: "Delivery Destination State" },
+      { value: delManual?.zip, label: "Delivery Destination ZIP" },
+    ];
+
+    // 2. Filter out the missing fields
+    const missingFields = requiredFields
+      .filter(field => !field.value)
+      .map(field => field.label);
+
+    // 3. Run your conditional logic
+    if (missingFields.length === 0) {
+      // All fields are valid, compile data
+      const compiledData = getObjectDorCIDAlert(
+        getValues,
+        consolidatedFilterObj,
+        selectedDeliveryDetailsList,
+        selectedShipmentObjects,
+        carrierTerminalDropdown,
+        watchedCarrierInfo
+      );
+
+      setPrintData(compiledData);
+    } else {
+      setAlertPdfErr(true);
+      // Construct a clean, scannable error message
+      const errorMessage = `Please fill out the following required fields:\n• ${missingFields.join('\n• ')}`;
+
+      // Replace this with your standard notification system (e.g., toast.error, alert, or state error)
+      setAlertPdfErrMsg(errorMessage);
+    }
+
+
+  };
+
 
 
   return (
@@ -2335,7 +2427,7 @@ const ConsolidateHomePage = ({ type }) => {
                 Add Shipment
               </Button>
               {/* stepper  */}
-              { consolidatedFilterObj?.routing === 'LINE_HAUL_DELIVERY' &&
+              {consolidatedFilterObj?.routing === 'LINE_HAUL_DELIVERY' &&
                 <ConsolidateStepper location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
                   PATH_DASHBOARD={PATH_DASHBOARD}
                   setHandleCancelModal={setHandleCancelModal}
@@ -2525,6 +2617,61 @@ const ConsolidateHomePage = ({ type }) => {
                   watchedOriginAirport={watchedOriginAirport}
                   watchedDestinationAirport={watchedDestinationAirport}
                 />
+                {selectedDeliveryDetailsList?.length > 0 && <Box sx={{ display: 'flex', mb: 3, mt: 3, alignItems: 'center', justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    startIcon={<Iconify icon="material-symbols:print-rounded" sx={{ width: 18, height: 18 }} />}
+                    sx={{
+                      // 1. Structural Dimensions from your specifications
+                      width: '101.42px',
+                      height: '28px',
+                      minWidth: '90px',
+                      borderRadius: '6px',
+
+                      // 2. Padding and Spacing configurations
+                      pt: '10px',
+                      pr: '16px',
+                      pb: '10px',
+                      pl: '16px',
+                      gap: '10px',
+
+                      // 3. Visual Styling matching the layout image
+                      bgcolor: '#A22',
+                      color: '#ffffff',
+                      textTransform: 'none',
+                      boxShadow: 'none',
+                      fontWeight: 'normal',
+                      fontSize: '14px',
+                      lineHeight: 1,
+
+                      // Custom styling fixes to prevent padding from expanding the strict 28px height
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      whiteSpace: 'nowrap',
+                      '& .MuiButton-startIcon': {
+                        margin: 0, // Let the layout gap handle inner layout distribution cleanly
+                      },
+
+                      // Hover fallback styles
+                      '&:hover': {
+                        bgcolor: '#811',
+                        boxShadow: 'none',
+                      },
+                    }}
+                    onClick={handlePrintClick}
+                  >
+                    Print
+                  </Button>
+                  {/* Hidden print container wrapper frame - mounts only during active print sessions */}
+                  {printData && (
+                    <div style={{ display: 'none' }}>
+                      <div ref={printContentRef} className="bol-print-wrapper">
+                        <ConsolidateInboundAlert data={printData} />
+                      </div>
+                    </div>
+                  )}
+                </Box>}
                 {consolidatedFilterObj?.routing === 'LINE_HAUL_DELIVERY' && <ConsolidateDelivery type={type}
                   dispatch={dispatch}
                   navigate={navigate}
@@ -2594,6 +2741,177 @@ const ConsolidateHomePage = ({ type }) => {
                   totalConsolPieces={totalConsolPieces}
                 />}
                 <Box>
+                  {consolidatedFilterObj?.routing === 'LINE_HAUL_ONLY' && selectedDeliveryDetailsList?.length > 0 && <Paper variant="outlined" sx={{ p: 2, mb: 3, mt: 2, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                    <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                      Delivery Carrier Common Info
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 3, mb: 3, flexWrap: 'wrap' }}>
+                      <Box sx={{ flex: '1 1 200px' }}>
+                        <Controller
+                          name={`carrierInfo.deliveryDetails.carrier`}
+                          // name={`carrierInfo.deliveryDetailsList.${0}.carrier`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { onChange, value, ref, ...fieldProps } }) => (
+                            <Autocomplete
+                              {...fieldProps} // Spreads ref and name from React Hook Form
+                              fullWidth
+                              options={carrierTerminalDropdown || []}
+
+                              // 1. RESOLVES KEY WARNINGS BY CREATING ISOLATED UNIQUE KEY NAMESPACES
+                              renderOption={(props, option, state) => {
+                                const uniqueKey = `delivery-carrier-${option.terminalId}-${option.carrierId}-${state.index}`;
+                                return (
+                                  <li {...props} key={uniqueKey}>
+                                    {option.carrierName && option.terminalName
+                                      ? `${option.carrierName} | ${option.terminalName}`
+                                      : ""}
+                                  </li>
+                                );
+                              }}
+
+                              // 2. GUARANTEES EXACT DROPDOWN SELECTION MATCHES FOR COMPOSITE ID STRINGS
+                              isOptionEqualToValue={(option, val) => {
+                                const optionKey = `${option?.terminalId}-${option?.carrierId}`;
+                                const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
+                                return optionKey === valueKey;
+                              }}
+
+                              // Matches the combined string value logic from your previous MenuItem setup
+                              getOptionLabel={(option) => {
+                                if (option && option.carrierName && option.terminalName) {
+                                  return `${option.carrierName} | ${option.terminalName}`;
+                                }
+                                return "";
+                              }}
+
+                              // Finds the matching option object from carrierTerminalDropdown array based on the stored value
+                              value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
+
+                              // Updates React Hook Form state on change
+                              onChange={(event, newValue) => {
+                                dispatch(getIndividualDelAccessorials(newValue?.terminalEntityId));
+                                isSelectingCarrierDeliveryRef.current = true;
+
+                                // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
+                                const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
+                                onChange(formValue);
+                                setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line1', newValue?.address?.addressLine1);
+                                setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.line2', newValue?.address?.addressLine2);
+                                setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.city', newValue?.address?.city);
+                                setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.state', newValue?.address?.state);
+                                setValue('carrierInfo.deliveryDetails.manualFromLocationDetails.zip', newValue?.address?.zipCode);
+                              }}
+
+                              onInputChange={(event, newInputValue, reason) => {
+                                if (reason !== "reset") {
+                                  setSelectCarrierDeliverySearchValue(newInputValue);
+                                  // if (!newInputValue || newInputValue.trim() === "") {
+                                  //   dispatch(searchCarriers(""));
+                                  // }
+                                }
+                              }}
+                              loading={isLoading}
+                              loadingText="Searching carriers..."
+                              noOptionsText={selectCarrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
+
+                              renderInput={(params) => (
+                                <StyledTextField
+                                  {...params}
+                                  inputRef={ref} // Keeps React Hook Form field focus tracking operational on error click
+                                  variant="standard"
+                                  label="Select Carrier *"
+                                  error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
+                                  helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
+                                  InputLabelProps={{ shrink: true }}
+                                  sx={{
+                                    '& .MuiInputBase-input:disabled': {
+                                      color: '#000',
+                                      WebkitTextFillColor: '#000'
+                                    }
+                                  }}
+                                  InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
+                                      <>
+                                        {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                      </>
+                                    ),
+                                  }}
+                                />
+                              )}
+                              sx={{ width: '100% !important' }}
+                            // disabled={!watchedPickupAgentTerminal && ((watchedSelectedLineHaulCarrier?.split('-')[1] !== watchedLinehaulToLocation?.split('-')[1]) || type === 'View')}
+                            />
+                          )}
+                        />
+                      </Box>
+
+                      <Box sx={{ flex: '2 1 300px', display: 'flex', alignItems: 'flex-end', gap: 1 }}>
+
+                        <Controller
+                          name={`carrierInfo.deliveryDetails.manualFromLocation`}
+                          control={control}
+                          render={({ field }) => (
+                            <FormControlLabel
+                              sx={{ mb: 2.5, whiteSpace: 'nowrap' }}
+                              control={<Checkbox {...field} disabled={type === 'View'} checked={field.value} size="small" sx={{
+                                color: 'rgba(0, 25, 76, 1)',
+                                '&.Mui-checked': {
+                                  color: 'rgba(0, 25, 76, 1)'
+                                },
+                                '&.Mui-disabled': {
+                                  color: 'rgba(0, 25, 76, 1) !important'
+                                }
+                              }} />}
+                              label={<Typography onClick={(e) => e.preventDefault()} sx={{ cursor: 'default', fontSize: '0.8rem' }} variant="body2">Edit From Location</Typography>}
+                            />
+                          )}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* MANUAL LOCATION FIELDSET: Flexbox for address fields */}
+
+                    <Paper variant="outlined" sx={{ p: 2, mb: 3, borderRadius: 1, position: 'relative', borderStyle: 'solid', borderColor: '#ccc' }}>
+                      <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
+                        Manual From Location
+                      </Typography>
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name={`carrierInfo.deliveryDetails.manualFromLocationDetails.line1`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="Address Line 1" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetails.manualFromLocation`)} inputProps={{ maxLength: 255 }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller
+                            name={`carrierInfo.deliveryDetails.manualFromLocationDetails.line2`}
+                            control={control}
+                            render={({ field }) => (
+                              <StyledTextField
+                                {...field}
+                                fullWidth
+                                label="Address Line 2"
+                                variant="standard"
+                                InputLabelProps={{ shrink: true }}
+                                disabled={!getValues(`carrierInfo.deliveryDetails.manualFromLocation`)}
+                                inputProps={{ maxLength: 255 }}
+                              />
+                            )}
+                          />
+
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name={`carrierInfo.deliveryDetails.manualFromLocationDetails.city`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="City" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetails.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          <Controller name={`carrierInfo.deliveryDetails.manualFromLocationDetails.state`} control={control} render={({ field }) => <StyledTextField {...field} fullWidth label="State" variant="standard" InputLabelProps={{ shrink: true }} disabled={!getValues(`carrierInfo.deliveryDetails.manualFromLocation`)} inputProps={{ maxLength: 100 }} />} />
+                        </Box>
+                        <Box sx={{ flex: '1 1 18%' }}>
+                          {renderZipCodeFieldCarrierInfo(`carrierInfo.deliveryDetails.manualFromLocationDetails.zip`, !getValues(`carrierInfo.deliveryDetails.manualFromLocation`))}
+                        </Box>
+                      </Box>
+                    </Paper>
+                  </Paper>}
                   {consolidatedFilterObj?.routing === 'LINE_HAUL_ONLY' && selectedDeliveryDetailsList.map((shipment, index) => {
                     return (
                       <ConsolidatedDeliveryDetailsList
@@ -2718,6 +3036,13 @@ const ConsolidateHomePage = ({ type }) => {
 
             <Alert severity="error" variant="filled">
               Please fill required fields: {Array.isArray(errorVisibleFields) ? errorVisibleFields.join(", ") : String(errorVisibleFields || "")}
+            </Alert>
+
+          </Snackbar>
+          <Snackbar open={alertPdfErr} autoHideDuration={6000} onClose={() => { setAlertPdfErr(false); setAlertPdfErrMsg(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+
+            <Alert severity="error" variant="filled">
+              {alertPdfErrMsg}
             </Alert>
 
           </Snackbar>

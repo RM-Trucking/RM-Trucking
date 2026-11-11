@@ -543,7 +543,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
             pageNo: paginationModel.page,
             pageSize: paginationModel.pageSize,
         }));
-        dispatch(setSelectedShipments([]));
+        // dispatch(setSelectedShipments([]));
     }, []);
     useEffect(() => {
         if (shipmentSuccess && operationalMessage) {

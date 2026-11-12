@@ -154,7 +154,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
                     reportableQuantity: pallet?.hazmatDetails?.reportableQuantity === 'Y',
                     dotExemption: pallet?.hazmatDetails?.dotExemption === 'Y'
                 })
-            }))
+            })),
+            key : `${shipmentDetails?.shipmentProNumber}-${huIndex}`,
         }));
 
         setValue('handlingUnits', mappedHandlingUnits, {

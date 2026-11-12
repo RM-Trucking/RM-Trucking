@@ -31,20 +31,18 @@ const actionBtnSx = {
 
 export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileInputRef,
     stagedFiles, setStagedFiles, isDraggingFiles, setIsDraggingFiles, cameraDialogOpen, setCameraDialogOpen,
-    cameraInputRef, cameraVideoRef, cameraStreamRef
+    cameraInputRef, cameraVideoRef, cameraStreamRef, getValues, selectedRowRef, updateHU
 }) {
     const [snackbar, setSnackbar] = useState({
         open: false,
         message: "",
         severity: "success",
     });
+
     const handleCloseImageUpload = () => {
         setUploadDialog({
             open: false,
             mode: "upload",
-            key: null,
-            formId: null,
-            itemId: null,
             imageField: "images",
         });
 
@@ -239,49 +237,22 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
 
         return hasDecimal ? `${integerValue || "0"}.${decimalValue}` : integerValue;
     };
-    const updateItem = (key, formId, itemId, field, value) => {
-        const nextValue = DECIMAL_ITEM_FIELDS.has(field)
-            ? formatDecimal10_2Input(value)
-            : value;
-
-        // updateReceipt(key, (p) => ({
-        //     forms: p.forms.map((f) =>
-        //         f.id === formId
-        //             ? {
-        //                 ...f,
-        //                 items: f.items.map((i) =>
-        //                     i.id === itemId ? { ...i, [field]: nextValue } : i,
-        //                 ),
-        //             }
-        //             : f,
-        //     ),
-        // }));
-    };
-    // const updateFormField = (key, formId, field, value) =>
-    // updateReceipt(key, (p) => ({
-    //   forms: p.forms.map((f) =>
-    //     f.id === formId ? { ...f, [field]: value } : f,
-    //   ),
-    // }));
+   
     const handleUploadImages = () => {
-        if (!uploadDialog.key || !uploadDialog.formId) return;
+        if (!stagedFiles || stagedFiles.length === 0) return;
 
-        // if (uploadDialog.itemId) {
-        //     updateItem(
-        //         uploadDialog.key,
-        //         uploadDialog.formId,
-        //         uploadDialog.itemId,
-        //         uploadDialog.imageField || "images",
-        //         stagedFiles,
-        //     );
-        // } else {
-        //     updateFormField(
-        //         uploadDialog.key,
-        //         uploadDialog.formId,
-        //         uploadDialog.imageField || "images",
-        //         stagedFiles,
-        //     );
-        // }
+        // Get current values of this specific handling unit so other inputs aren't lost
+        const currentHU = getValues(`handlingUnits.${selectedRowRef}`);
+        const existingImages = currentHU?.images || [];
+
+        // Add/append stagedFiles under the 'images' key
+        updateHU(selectedRowRef, {
+            ...currentHU,
+            images: [...existingImages, ...stagedFiles],
+        });
+
+        // Reset your staged files state
+        // setStagedFiles([]);
         handleCloseImageUpload();
     };
     const FileItem = ({ filename, onRemove, onView, hideRemove = false }) => (

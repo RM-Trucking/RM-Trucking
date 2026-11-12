@@ -12,6 +12,7 @@ import {
     ToggleButton, ToggleButtonGroup,
 
 } from '@mui/material';
+import CloseIcon from "@mui/icons-material/Close";
 import { ErrorBoundary } from 'react-error-boundary';
 import { LocalizationProvider, DatePicker, TimePicker } from '@mui/x-date-pickers';
 
@@ -49,6 +50,17 @@ import BadFreightDialog from './BadFreightDialog';
 import PrintLabelDialog from './PrintLabelDialog';
 import ImageUploadDilog from './ImageUpload';
 
+
+const actionBtnSx = {
+    bgcolor: "#A22",
+    color: "#fff",
+    textTransform: "none",
+    minWidth: 80,
+    height: 28,
+    px: 1.5,
+    fontSize: 12,
+    "&:hover": { bgcolor: "#8b1c1c" },
+};
 const ActiveStep2 = ({
     type,
     control,
@@ -66,37 +78,33 @@ const ActiveStep2 = ({
     isHazmatSelected,
     setHazmatModal,
     trigger,
+    updateHU,
 }) => {
     const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
     const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null, totalHU: null });
     const [uploadDialog, setUploadDialog] = useState({
         open: false,
         mode: "upload",
-        key: null,
-        formId: null,
-        itemId: null,
         imageField: "images",
     });
     const fileInputRef = useRef(null);
     const cameraInputRef = useRef(null);
     const cameraVideoRef = useRef(null);
     const cameraStreamRef = useRef(null);
+    const selectedRowRef = useRef(null);
     const [stagedFiles, setStagedFiles] = useState([]);
     const [isDraggingFiles, setIsDraggingFiles] = useState(false);
     const [cameraDialogOpen, setCameraDialogOpen] = useState(false);
     const [imagePreviewDialog, setImagePreviewDialog] = useState({
-    open: false,
-    images: [],
-    itemLabel: "",
-    key: null,
-    formId: null,
-    itemId: null,
-  });
-  const [fullImageDialog, setFullImageDialog] = useState({
-    open: false,
-    image: null,
-    title: "",
-  });
+        open: false,
+        images: [],
+        itemLabel: "",
+    });
+    const [fullImageDialog, setFullImageDialog] = useState({
+        open: false,
+        image: null,
+        title: "",
+    });
 
     const logError = (e, i) => {
         // Use an error reporting service here
@@ -135,12 +143,69 @@ const ActiveStep2 = ({
             setErrorVisible(true);
         }
     };
+    const handleCloseImagePreview = () => {
+        setImagePreviewDialog({
+            open: false,
+            images: [],
+            itemLabel: "",
+            imageField: "images",
+        });
+        setFullImageDialog({ open: false, image: null, title: "" });
+    };
     const handleOpenImagePreview = (
-        images = [],
-        itemLabel = "",
-        context = {},
+        images,
+        itemLabel,
     ) => {
-        setImagePreviewDialog({ open: true, images, itemLabel, ...context });
+        setImagePreviewDialog({ open: true, images, itemLabel, });
+    };
+    const handleOpenImageUpload = (
+
+        existingFiles = [],
+        mode = "upload",
+        imageField = "images",
+    ) => {
+        setUploadDialog({ open: true, mode, imageField });
+
+    };
+    const handleOpenFullImage = (image, title) => {
+        setFullImageDialog({ open: true, image, title });
+    };
+
+    const handleCloseFullImage = () => {
+        setFullImageDialog({ open: false, image: null, title: "" });
+    };
+    const getImageUrl = (file) => {
+        if (!file) return "";
+        if (typeof file === "string") {
+            const image = file.trim();
+            if (/^(data:image\/|https?:\/\/|blob:)/i.test(image)) return image;
+            if (looksLikeBase64Image(image))
+                return `data:${getBase64ImageMimeType(image)};base64,${image}`;
+            return image;
+        }
+        if (file.url) return file.url;
+        if (file.preview) return file.preview;
+        if (file.base64) return getImageUrl(file.base64);
+        if (file.image) return getImageUrl(file.image);
+        if (file instanceof File) return URL.createObjectURL(file);
+        return "";
+    };
+    const getImageName = (file, index) => {
+        if (!file) return `Image ${index + 1}`;
+        if (typeof file === "string") {
+            if (looksLikeBase64Image(file) || file.startsWith("data:image/"))
+                return `Cargo API Image ${index + 1}`;
+            return file.split("/").pop() || `Image ${index + 1}`;
+        }
+        return file.name || file.filename || `Image ${index + 1}`;
+    };
+    const handleRemovePreviewImage = (index) => {
+
+        const nextImages = imagePreviewDialog.images.filter(
+            (_, imageIndex) => imageIndex !== index,
+        );
+
+        setImagePreviewDialog((prev) => ({ ...prev, images: nextImages }));
     };
     return (
         <ErrorBoundary
@@ -156,7 +221,7 @@ const ActiveStep2 = ({
                     Commodities Details
                 </Typography>
 
-                {/* {
+                {
                     type === 'Edit' && <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
                         <Button variant="contained"
                             size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
@@ -169,24 +234,24 @@ const ActiveStep2 = ({
                             Print All Labels
                         </Button>
                     </Box>
-                } */}
+                }
 
                 {huFields.map((hu, huIdx) => (
                     <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
                         {/* Label on Border */}
                         <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
                             Handling Unit {huIdx + 1}/{huFields.length}
-                            {/* {type === 'Edit' && <>
+                            {type === 'Edit' && <>
                                 <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml: 1 }} /></IconButton>
-                                <IconButton onClick={() => {
+                                <IconButton title="Upload image" onClick={() => {
+                                    selectedRowRef.current = huIdx;
                                     setUploadDialog({
                                         open: true,
                                         mode: "upload",
-                                        key: null,
-                                        formId: null,
-                                        itemId: null,
                                         imageField: "images",
                                     });
+                                    setStagedFiles(existingFiles);
+                                    setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
                                 {(hu?.images?.length || 0) > 0 && (
                                     <IconButton
@@ -194,20 +259,15 @@ const ActiveStep2 = ({
                                         title="View images"
                                         onClick={() =>
                                             handleOpenImagePreview(
-                                                item.images || [],
-                                                `Item ${String(iIdx + 1).padStart(2, "0")}`,
-                                                {
-                                                    key: pr.key,
-                                                    formId: form.id,
-                                                    itemId: item.id,
-                                                },
+                                                hu?.images || [],
+                                                `Item ${String(huIdx + 1).padStart(2, "0")}`,
                                             )
                                         }
                                         sx={{ p: 0.4, position: "relative" }}
                                     >
                                         <Iconify
                                             icon="mdi:image-multiple"
-                                            width={30}
+                                            width={20}
                                             sx={{ color: "#000" }}
                                         />
                                         <Box
@@ -215,8 +275,8 @@ const ActiveStep2 = ({
                                                 position: "absolute",
                                                 top: -5,
                                                 right: -3,
-                                                width: 22,
-                                                height: 22,
+                                                width: 18,
+                                                height: 18,
                                                 borderRadius: "50%",
                                                 bgcolor: "#102a63",
                                                 color: "#fff",
@@ -232,21 +292,21 @@ const ActiveStep2 = ({
                                         </Box>
                                     </IconButton>
                                 )}
-                            </>} */}
+                            </>}
                         </Typography>
 
 
                         {/* bad freight  */}
                         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                            {/* {
+                            {
                                 type === 'Edit' && <Button variant="contained"
                                     size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
                                     onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: watchedHU.length, totalHU: watchedHU[huIdx].unitsCount })}
                                 >
                                     Print Label
                                 </Button>
-                            } */}
-                            {/* {type === 'Edit' && (
+                            }
+                            {type === 'Edit' && (
                                 <FormControlLabel
                                     sx={{ alignItems: 'center', m: 0 }} // Centers checkbox with label, removes default margin offsets
                                     control={
@@ -303,7 +363,7 @@ const ActiveStep2 = ({
                                         </Typography>
                                     }
                                 />
-                            )} */}
+                            )}
 
                             {/* Clear/Remove Logic */}
                             {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -669,6 +729,9 @@ const ActiveStep2 = ({
                     cameraInputRef={cameraInputRef}
                     cameraVideoRef={cameraVideoRef}
                     cameraStreamRef={cameraStreamRef}
+                    getValues={getValues}
+                    selectedRowRef={selectedRowRef.current}
+                    updateHU={updateHU}
                 />
 
                 {/* bad freight modal  */}
@@ -733,7 +796,7 @@ const ActiveStep2 = ({
                                             required={isHazmatSelected}
                                             // 3. FIXED: Attaches the error indicator and string feedback message dynamically
                                             error={!!error}
-                                            InputLabelProps={{ shrink: true }} 
+                                            InputLabelProps={{ shrink: true }}
                                             helperText={error ? error.message : ''}
                                             // 4. FIXED: Hard browser barrier blocking physical keyboard strokes at character 100
                                             inputProps={{
@@ -822,6 +885,157 @@ const ActiveStep2 = ({
 
                 {/* Commodities List Table */}
                 <CommoditiesList watchedHU={watchedHU} />
+
+                <Dialog
+                    open={imagePreviewDialog.open}
+                    onClose={handleCloseImagePreview}
+                    maxWidth="md"
+                    fullWidth
+                >
+                    <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pr: 5 }}>
+                        Uploaded Images - {imagePreviewDialog.itemLabel}
+                        <IconButton
+                            onClick={handleCloseImagePreview}
+                            size="small"
+                            sx={{ position: "absolute", right: 12, top: 12 }}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent dividers>
+                        {imagePreviewDialog.images.length === 0 ? (
+                            <Typography sx={{ fontSize: 13 }}>
+                                No uploaded images available.
+                            </Typography>
+                        ) : (
+                            <Stack direction="row" flexWrap="wrap" gap={2}>
+                                {imagePreviewDialog.images.map((file, index) => {
+                                    const imageUrl = getImageUrl(file);
+
+                                    return (
+                                        <Stack
+                                            key={`${getImageName(file, index)}-${index}`}
+                                            spacing={0.7}
+                                            sx={{ width: 170 }}
+                                        >
+                                            <Box
+                                                sx={{
+                                                    position: "relative",
+                                                    width: 170,
+                                                    height: 130,
+                                                    border: "1px solid #d0d0d0",
+                                                    borderRadius: 1,
+                                                    overflow: "hidden",
+                                                    bgcolor: "#f7f7f7",
+                                                }}
+                                            >
+                                                {imageUrl ? (
+                                                    <Box
+                                                        component="img"
+                                                        src={imageUrl}
+                                                        alt={getImageName(file, index)}
+                                                        onClick={() =>
+                                                            handleOpenFullImage(file, getImageName(file, index))
+                                                        }
+                                                        sx={{
+                                                            width: "100%",
+                                                            height: "100%",
+                                                            objectFit: "cover",
+                                                            cursor: "zoom-in",
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <Stack
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        sx={{ height: "100%", opacity: 0.5 }}
+                                                    >
+                                                        <Iconify icon="mdi:image-off" width={28} />
+                                                    </Stack>
+                                                )}
+                                                <IconButton
+                                                    size="small"
+                                                    title="Remove image"
+                                                    onClick={() => handleRemovePreviewImage(index)}
+                                                    sx={{
+                                                        position: "absolute",
+                                                        top: 4,
+                                                        right: 4,
+                                                        bgcolor: "rgba(255,255,255,0.9)",
+                                                        color: "#A22",
+                                                        "&:hover": { bgcolor: "#fff" },
+                                                    }}
+                                                >
+                                                    <Iconify icon="mdi:close-circle" width={18} />
+                                                </IconButton>
+                                            </Box>
+                                            <Typography sx={{ fontSize: 12, wordBreak: "break-word" }}>
+                                                {getImageName(file, index)}
+                                            </Typography>
+                                        </Stack>
+                                    );
+                                })}
+                            </Stack>
+                        )}
+                    </DialogContent>
+                    <DialogActions sx={{ px: 2, pb: 2 }}>
+                        <Button
+                            variant="contained"
+                            size="small"
+                            onClick={handleCloseImagePreview}
+                            sx={{ ...actionBtnSx, height: 32, minWidth: 70 }}
+                        >
+                            OK
+                        </Button>
+                    </DialogActions>
+                </Dialog>
+                <Dialog
+                    open={fullImageDialog.open}
+                    onClose={handleCloseFullImage}
+                    maxWidth="lg"
+                    fullWidth
+                >
+                    <DialogTitle sx={{ fontWeight: 700, fontSize: 16, pr: 5 }}>
+                        {fullImageDialog.title || "Image Preview"}
+                        <IconButton
+                            onClick={handleCloseFullImage}
+                            size="small"
+                            sx={{ position: "absolute", right: 12, top: 12 }}
+                        >
+                            <CloseIcon fontSize="small" />
+                        </IconButton>
+                    </DialogTitle>
+                    <DialogContent dividers sx={{ bgcolor: "#111", p: 2 }}>
+                        {getImageUrl(fullImageDialog.image) ? (
+                            <Box
+                                component="img"
+                                src={getImageUrl(fullImageDialog.image)}
+                                alt={fullImageDialog.title || "Image Preview"}
+                                sx={{
+                                    display: "block",
+                                    maxWidth: "100%",
+                                    maxHeight: "75vh",
+                                    mx: "auto",
+                                    objectFit: "contain",
+                                    bgcolor: "#fff",
+                                }}
+                            />
+                        ) : (
+                            <Stack
+                                alignItems="center"
+                                justifyContent="center"
+                                sx={{ minHeight: 320, color: "#fff" }}
+                                spacing={1}
+                            >
+                                <Iconify icon="mdi:image-off" width={32} />
+                                <Typography sx={{ fontSize: 13 }}>
+                                    Image preview unavailable.
+                                </Typography>
+                            </Stack>
+                        )}
+                    </DialogContent>
+                </Dialog>
+
             </Paper>
         </ErrorBoundary>
     );

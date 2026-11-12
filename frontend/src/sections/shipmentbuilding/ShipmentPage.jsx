@@ -435,7 +435,7 @@ const ShipmentPage = ({ type }) => {
     console.log(error);
   };
 
-  const { fields: huFields, append: appendHU, remove: removeHU } = useFieldArray({ control, name: "handlingUnits" });
+  const { fields: huFields, append: appendHU, remove: removeHU, update: updateHU, } = useFieldArray({ control, name: "handlingUnits" });
   const { fields: doDetailsFields, append: appendDoDetails, remove: removeDoDetails } = useFieldArray({ control, name: "doDetails.handlingUnits" });
   const { fields: customerRateAccFields, append: appendCustomerRateAccFields, replace: replaceCustomerRateAccFields } = useFieldArray({ control, name: "customerRate.customerAccessorials" });
   const customerApprovalRateHistory = useWatch({
@@ -2004,6 +2004,7 @@ const ShipmentPage = ({ type }) => {
               isHazmatSelected={isHazmatSelected}
               setHazmatModal={setHazmatModal}
               trigger={trigger}
+              updateHU = {updateHU}
             />
           )}
           {/* STEP 3 */}

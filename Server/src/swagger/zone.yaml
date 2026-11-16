@@ -573,6 +573,26 @@ components:
         createdBy: { type: string }
         updatedAt: { type: string, format: date-time }
         updatedBy: { type: string }
+        customerRateCount:
+          {
+            type: integer,
+            description: Number of customer rates referencing this zone,
+          }
+        carrierRateCount:
+          {
+            type: integer,
+            description: Total transport and airport carrier rates referencing this zone,
+          }
+        carrierTransportRateCount:
+          {
+            type: integer,
+            description: Number of transport carrier rates referencing this zone,
+          }
+        carrierAirportRateCount:
+          {
+            type: integer,
+            description: Number of airport carrier rates referencing this zone,
+          }
 
     NoteMessageResponse:
       type: object

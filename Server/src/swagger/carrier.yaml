@@ -167,7 +167,7 @@ paths:
       tags: [Carrier]
       summary: Get carriers by Rate ID
       description: >
-        Retrieves the list of carriers associated with a given transport or warehouse rate.
+        Retrieves carriers associated with a transport or airport rate.
       security:
         - bearerAuth: []
       parameters:
@@ -177,6 +177,13 @@ paths:
           schema:
             type: integer
           description: Unique identifier of the rate
+        - in: query
+          name: rateType
+          required: false
+          schema:
+            type: string
+            enum: [TRANSPORT, AIRPORT]
+          description: Rate type to avoid matching an ID from the other rate table
       responses:
         "200":
           description: Carriers linked to the given rate

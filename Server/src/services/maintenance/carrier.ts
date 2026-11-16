@@ -324,9 +324,10 @@ export async function toggleCarrierStatusService(
 
 export async function getCarriersByRateIdService(
     conn: Connection,
-    rateId: number
+    rateId: number,
+    rateType?: 'TRANSPORT' | 'AIRPORT'
 ): Promise<CarrierResponse[]> {
-    const carriers = await carrierDB.getCarriersByRateId(conn, rateId);
+    const carriers = await carrierDB.getCarriersByRateId(conn, rateId, rateType);
 
     const enriched = await Promise.all(
         carriers.map(async (carrier) => {

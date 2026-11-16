@@ -79,7 +79,7 @@ export interface TerminalRateMap {
     terminalRateId: number;
     terminalId: number;
     rateId: number;
-    rateType: 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT';
+    rateType: 'TRANSPORT' | 'AIRPORT';
     assignedBy: number;
     assignedAt: Date;
 }
@@ -88,7 +88,7 @@ export interface TerminalRateMap {
 export interface AssignRateToTerminalRequest {
     terminalId: number;
     rateId: number;
-    rateType: 'WAREHOUSE' | 'TRANSPORT' | 'AIRPORT';
+    rateType:  'TRANSPORT' | 'AIRPORT';
 }
 
 // Response object

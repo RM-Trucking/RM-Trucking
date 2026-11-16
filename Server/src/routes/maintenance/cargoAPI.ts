@@ -26,6 +26,12 @@ router.get("/", authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+router.get("/dimensions", async (req, res) => {
+    const conn = await db();
+    await cargoAPIController.getDimentionsFromCargoAPI(req, res, conn);
+    if (conn) conn.close();
+});
+
 // GET BY ID
 router.get("/:id", authenticateJWT, async (req, res) => {
     const conn = await db();
@@ -46,5 +52,6 @@ router.patch("/:id/status", authenticateJWT, async (req, res) => {
     await cargoAPIController.toggleCargoAPIStatus(req, res, conn);
     conn.close();
 });
+
 
 export default router;

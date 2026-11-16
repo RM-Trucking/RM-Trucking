@@ -391,7 +391,7 @@ export async function createCarrierTransportRateService(
         const createdByName = await userDB.getUserName(conn, rate!.createdBy);
         const updatedByName = rate!.updatedBy ? await userDB.getUserName(conn, rate!.updatedBy) : undefined;
 
-        const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId);
+        const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId, 'TRANSPORT');
 
         const notes = rate?.noteThreadId
             ? await noteDB.getMessagesByThread(conn, rate.noteThreadId)
@@ -458,7 +458,7 @@ export async function getCarrierTransportRateService(
     const updatedByName = rate.updatedBy ? await userDB.getUserName(conn, rate.updatedBy) : undefined;
 
     // ðŸ”‘ Fetch carrier count
-    const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId);
+    const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId, 'TRANSPORT');
 
     const notes = rate?.noteThreadId
         ? await noteDB.getMessagesByThread(conn, rate.noteThreadId)
@@ -562,7 +562,7 @@ export async function updateCarrierTransportRateService(
         // Resolve user names
         const createdByName = await userDB.getUserName(conn, rate!.createdBy);
         const updatedByName = rate!.updatedBy ? await userDB.getUserName(conn, rate!.updatedBy) : undefined;
-        const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId);
+        const carrierCount = await carrierDB.countCarriersByRateId(conn, rateId, 'TRANSPORT');
         const notes = rate?.noteThreadId
             ? await noteDB.getMessagesByThread(conn, rate.noteThreadId)
             : [];
@@ -618,7 +618,7 @@ async function enrichCarrierAirportRate(conn: Connection, rate: any): Promise<Ca
     const destinationZips = destinationZone ? await zoneDB.getZoneZips(conn, destinationZone.zoneId) : [];
     const createdByName = await userDB.getUserName(conn, rate.createdBy);
     const updatedByName = rate.updatedBy ? await userDB.getUserName(conn, rate.updatedBy) : undefined;
-    const carrierCount = await carrierDB.countCarriersByRateId(conn, rate.rateId);
+    const carrierCount = await carrierDB.countCarriersByRateId(conn, rate.rateId, 'AIRPORT');
     const notes = rate.noteThreadId ? await noteDB.getMessagesByThread(conn, rate.noteThreadId) : [];
 
     return {
@@ -846,7 +846,7 @@ export async function getTerminalRatesService(
                 const createdByName = await userDB.getUserName(conn, rate!.createdBy);
                 const updatedByName = rate!.updatedBy ? await userDB.getUserName(conn, rate!.updatedBy) : undefined;
 
-                const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId);
+                const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId, 'TRANSPORT');
 
                 const notes = rate?.noteThreadId
                     ? await noteDB.getMessagesByThread(conn, rate.noteThreadId)
@@ -934,7 +934,7 @@ export async function listCarrierTransportRatesService(
 
             const createdByName = await userDB.getUserName(conn, r.createdBy);
             const updatedByName = r.updatedBy ? await userDB.getUserName(conn, r.updatedBy) : undefined;
-            const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId);
+            const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId, 'TRANSPORT');
 
             const notes = r?.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, r.noteThreadId)
@@ -1002,7 +1002,7 @@ export async function listCarrierTransportRatesByZoneService(
             const createdByName = await userDB.getUserName(conn, r.createdBy);
             const updatedByName = r.updatedBy ? await userDB.getUserName(conn, r.updatedBy) : undefined;
 
-            const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId);
+            const carrierCount = await carrierDB.countCarriersByRateId(conn, r.rateId, 'TRANSPORT');
             const notes = r?.noteThreadId
                 ? await noteDB.getMessagesByThread(conn, r.noteThreadId)
                 : [];

@@ -72,6 +72,45 @@ paths:
                       page: { type: integer }
                       pageSize: { type: integer }
 
+  /api/maintenance/cargo-api/dimensions:
+    get:
+      summary: Get dimensions and images from a cargo API
+      tags: [Cargo API]
+      security: []
+      parameters:
+        - in: query
+          name: apiId
+          required: true
+          schema: { type: integer }
+          description: ID of the configured cargo API
+      responses:
+        "200":
+          description: Cargo dimensions and related images
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success: { type: boolean, example: true }
+                  data:
+                    type: object
+                    properties:
+                      length: { type: number }
+                      width: { type: number }
+                      height: { type: number }
+                      weight: { type: number }
+                      images:
+                        type: array
+                        items:
+                          type: string
+                          description: Base64-encoded image
+        "400":
+          description: Invalid apiId or no object detected
+        "404":
+          description: Cargo API not found
+        "500":
+          description: Failed to fetch dimensions from the cargo API
+
   /api/maintenance/cargo-api/{id}:
     get:
       summary: Get cargo API by ID

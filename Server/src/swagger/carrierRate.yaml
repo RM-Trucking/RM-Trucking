@@ -490,7 +490,7 @@ components:
           type: integer
         rateType:
           type: string
-          enum: [WAREHOUSE, TRANSPORT, AIRPORT]
+          enum: [TRANSPORT, AIRPORT]
       required: [terminalId, rateId, rateType]
 
     TerminalRateMapResponse:
@@ -499,7 +499,7 @@ components:
         terminalRateId: { type: integer }
         terminalId: { type: integer }
         rateId: { type: integer }
-        rateType: { type: string }
+        rateType: { type: string, enum: [TRANSPORT, AIRPORT] }
         assignedBy: { type: integer }
         assignedAt: { type: string, format: date-time }
 

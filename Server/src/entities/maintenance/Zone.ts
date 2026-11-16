@@ -50,6 +50,8 @@ export interface ZoneResponse {
     updatedBy?: string;  // userName instead of userId
     customerRateCount: number;
     carrierRateCount: number;
+    carrierTransportRateCount: number;
+    carrierAirportRateCount: number;
 }
 
 export interface ZoneInfo {

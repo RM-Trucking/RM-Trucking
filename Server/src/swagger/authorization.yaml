@@ -1,0 +1,161 @@
+openapi: 3.0.0
+info:
+  title: User and Role Authorization API
+  version: 1.0.0
+  description: Isolated RBAC module for user management, role management, login, refresh token handling, and password reset workflow.
+paths:
+  /authorization/roles:
+    get:
+      summary: List all roles
+      responses:
+        "200":
+          description: Successful response
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - roleId: 1
+                    name: Administrator
+                    roleKind: EMPLOYEE
+                    status: ACTIVE
+    post:
+      summary: Create a new role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: Customer Manager
+              description: Manages customer records and service access
+              roleKind: EMPLOYEE
+              status: ACTIVE
+      responses:
+        "201":
+          description: Role created
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  roleId: 2
+                  name: Customer Manager
+                  roleKind: EMPLOYEE
+                  status: ACTIVE
+  /authorization/users:
+    get:
+      summary: List all users
+      responses:
+        "200":
+          description: Successful response
+    post:
+      summary: Create a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              userName: John Doe
+              loginUserName: john.doe
+              email: john.doe@warehouse.local
+              password: MySecurePass123
+              userType: EMPLOYEE
+              roleIds: [1, 2]
+              customerId: 1001
+      responses:
+        "201":
+          description: User created
+  /authorization/users/assign-role:
+    post:
+      summary: Assign a role to a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              userId: 5
+              roleId: 3
+      responses:
+        "200":
+          description: Role assigned successfully
+  /authorization/login:
+    post:
+      summary: Authenticate a user and return JWT tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              loginUserName: john.doe
+              password: MySecurePass123
+      responses:
+        "200":
+          description: Login successful
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  user:
+                    userId: 5
+                    userName: John Doe
+                    email: john.doe@warehouse.local
+                    userType: EMPLOYEE
+                  tokenPair:
+                    accessToken: eyJhbGciOi...
+                    refreshToken: eyJhbGciOi...
+  /authorization/refresh:
+    post:
+      summary: Refresh access token using refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              refreshToken: eyJhbGciOi...
+      responses:
+        "200":
+          description: Access token refreshed
+  /authorization/forgot-password:
+    post:
+      summary: Request password reset email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              email: john.doe@warehouse.local
+      responses:
+        "200":
+          description: Reset email sent
+  /authorization/validate-reset-token:
+    post:
+      summary: Validate a reset token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              token: eyJhbGciOiJIUzI1NiJ9...
+      responses:
+        "200":
+          description: Token valid
+  /authorization/reset-password:
+    post:
+      summary: Reset a password using a valid token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              token: eyJhbGciOiJIUzI1NiJ9...
+              newPassword: NewSecurePass456
+      responses:
+        "200":
+          description: Password reset successful
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

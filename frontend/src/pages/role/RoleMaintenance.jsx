@@ -28,6 +28,7 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { HEADER } from '../../config';
+import axios from '../../utils/axios';
 
 const employeeRoles = [
   'Super Admin',
@@ -59,53 +60,24 @@ const sampleCustomers = [
   'Ventana Customer', 'Acme Distribution', 'Northstar Logistics', 'Pioneer Supply', 'Summit Freight',
 ];
 const permissionModules = ['AIR Export', 'Network', 'Maintenance'];
-const permissionSections = [
-  {
-    id: 'customer',
-    title: 'Customer Access',
-    items: [
-      { id: 'createCustomer', label: 'Can Create Customer' },
-      { id: 'editCustomer', label: 'Can Edit Customer' },
-      { id: 'viewCustomer', label: 'Can View Customer' },
-    ],
-  },
-  {
-    id: 'carrier',
-    title: 'Carrier Access',
-    items: [
-      { id: 'createCarrier', label: 'Can Create Carrier' },
-      { id: 'editCarrier', label: 'Can Edit Carrier' },
-      { id: 'viewCarrier', label: 'Can View Carrier' },
-    ],
-  },
-  {
-    id: 'user',
-    title: 'User Access',
-    items: [
-      { id: 'createUser', label: 'Can Create User' },
-      { id: 'editUser', label: 'Can Edit User' },
-      { id: 'viewUser', label: 'Can View User' },
-      { id: 'activateUser', label: 'Can Activate User' },
-      { id: 'deactivateUser', label: 'Can De-activate User' },
-      { id: 'resetPassword', label: 'Can Reset User Password' },
-    ],
-  },
-  {
-    id: 'role',
-    title: 'Role Access',
-    items: [
-      { id: 'createRole', label: 'Can Create Role' },
-      { id: 'editRole', label: 'Can Edit Role' },
-      { id: 'viewRole', label: 'Can View Role' },
-      { id: 'deleteRole', label: 'Can Delete Role' },
-    ],
-  },
-];
+const permissionApplications = {
+  'AIR Export': 'warehouse',
+  Network: 'network_services',
+  Maintenance: 'maintenance',
+};
 
-const createDefaultPermissions = () => Object.fromEntries(
+const getPermissionSections = (catalog, module) => Object.entries(
+  catalog[permissionApplications[module]] || {}
+).map(([id, permissions]) => ({
+  id,
+  title: id.split('_').map((word) => word === 'id' ? 'ID' : word.charAt(0).toUpperCase() + word.slice(1)).join(' '),
+  items: permissions.map((permission) => ({ id: permission.permissionId, label: permission.displayName })),
+}));
+
+const createDefaultPermissions = (catalog = {}) => Object.fromEntries(
   permissionModules.map((module) => [
     module,
-    Object.fromEntries(permissionSections.map((section) => [section.id, section.items.map((item) => item.id)])),
+    Object.fromEntries(getPermissionSections(catalog, module).map((section) => [section.id, section.items.map((item) => item.id)])),
   ])
 );
 
@@ -119,7 +91,7 @@ const createRows = (count, isCustomer = false) => {
       assignedCount: isCustomer ? String((index % 8) + 1).padStart(2, '0') : employeeCounts[index % employeeCounts.length],
       role: roleOptions[roleIndex],
       authorityRole: roleIndex === 0 ? '' : roleOptions[roleIndex - 1],
-      permissions: createDefaultPermissions(),
+
     };
   });
 };
@@ -146,15 +118,46 @@ export default function RoleMaintenance() {
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
   const [editingRow, setEditingRow] = useState(null);
   const [roleValues, setRoleValues] = useState({ role: '', authorityRole: '' });
-  const [permissionModule, setPermissionModule] = useState('Maintenance');
-  const [permissionValues, setPermissionValues] = useState(createDefaultPermissions);
+  const [permissionModule, setPermissionModule] = useState('AIR Export');
+  const [permissionValues, setPermissionValues] = useState(() => createDefaultPermissions());
   const [selectedRow, setSelectedRow] = useState(null);
   const [rowToDelete, setRowToDelete] = useState(null);
   const [formError, setFormError] = useState('');
+  const [permissionCatalog, setPermissionCatalog] = useState({});
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState('');
+  const permissionSections = getPermissionSections(permissionCatalog, permissionModule);
+
+  useEffect(() => {
+    if (!permissionDialogOpen) return undefined;
+    let active = true;
+    const loadCatalog = async () => {
+      setCatalogLoading(true);
+      setCatalogError('');
+      setPermissionCatalog({});
+      try {
+        const { data: response } = await axios.get('/authorization/permissions/catalog');
+        if (response.success !== true || !response.data || typeof response.data !== 'object') {
+          throw new Error('Unable to load the permissions catalog.');
+        }
+        if (active) {
+          setPermissionCatalog(response.data);
+          setPermissionValues(editingRow?.permissions || createDefaultPermissions(response.data));
+        }
+      } catch (error) {
+        if (active) setCatalogError(error?.message || 'Unable to load permissions. Please close and reopen the form to try again.');
+      } finally {
+        if (active) setCatalogLoading(false);
+      }
+    };
+    loadCatalog();
+    return () => { active = false; };
+  }, [permissionDialogOpen, editingRow]);
 
   const rows = activeTab === 0 ? employeeRows : customerRows;
   const setRows = activeTab === 0 ? setEmployeeRows : setCustomerRows;
   const roleOptions = activeTab === 0 ? employeeRoles : customerRoles;
+  const authorityRoleOptions = [...new Set(rows.map((row) => row.role))];
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
     return rows.filter((row) => {
@@ -167,7 +170,7 @@ export default function RoleMaintenance() {
   const openNewRole = () => {
     setEditingRow(null);
     setRoleValues({ role: '', authorityRole: '' });
-    setPermissionModule('Maintenance');
+    setPermissionModule('AIR Export');
     setPermissionValues(createDefaultPermissions());
     setFormError('');
     setPermissionDialogOpen(true);
@@ -176,7 +179,7 @@ export default function RoleMaintenance() {
   const openEditRole = (row) => {
     setEditingRow(row);
     setRoleValues({ role: row.role, authorityRole: row.authorityRole });
-    setPermissionModule('Maintenance');
+    setPermissionModule('AIR Export');
     setPermissionValues(row.permissions || createDefaultPermissions());
     setFormError('');
     setPermissionDialogOpen(true);
@@ -184,9 +187,14 @@ export default function RoleMaintenance() {
 
   const saveRolePermissions = (event) => {
     event.preventDefault();
+    if (catalogLoading || catalogError) return;
     const roleName = roleValues.role.trim();
     if (!roleName) {
       setFormError('Role name is required.');
+      return;
+    }
+    if (!authorityRoleOptions.includes(roleValues.authorityRole)) {
+      setFormError('Authority role is required.');
       return;
     }
     if (rows.some((row) => row.role.toLowerCase() === roleName.toLowerCase() && row.id !== editingRow?.id)) {
@@ -196,14 +204,14 @@ export default function RoleMaintenance() {
 
     setRows((currentRows) => editingRow
       ? currentRows.map((row) => row.id === editingRow.id
-        ? { ...row, role: roleName, permissions: permissionValues }
+        ? { ...row, role: roleName, authorityRole: roleValues.authorityRole, permissions: permissionValues }
         : row)
       : [{
           id: `${activeTab === 0 ? 'employee' : 'customer'}-role-${Date.now()}`,
           serialNumber: String(currentRows.length + 1).padStart(2, '0'),
           assignedCount: '00',
           role: roleName,
-          authorityRole: '',
+          authorityRole: roleValues.authorityRole,
           permissions: permissionValues,
         }, ...currentRows]);
     setPaginationModel((model) => ({ ...model, page: 0 }));
@@ -411,6 +419,7 @@ export default function RoleMaintenance() {
                 <Button
                   size="small"
                   type="submit"
+                  disabled={catalogLoading || Boolean(catalogError)}
                   variant="contained"
                   sx={{ minWidth: 80, py: 0.75, px: 2, bgcolor: '#b51f24', fontSize: 14, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
                 >
@@ -434,6 +443,24 @@ export default function RoleMaintenance() {
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: { xs: '100%', sm: 220 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
               />
+              <TextField
+                select
+                label="Authority Role"
+                required
+                variant="standard"
+                size="small"
+                value={roleValues.authorityRole}
+                onChange={(event) => {
+                  setRoleValues({ ...roleValues, authorityRole: event.target.value });
+                  setFormError('');
+                }}
+                InputLabelProps={{ shrink: true }}
+                sx={{ width: { xs: '100%', sm: 220 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
+              >
+                {authorityRoleOptions.map((role) => (
+                  <MenuItem key={role} value={role}>{role}</MenuItem>
+                ))}
+              </TextField>
               {editingRow && (
                 <>
                   <TextField
@@ -468,10 +495,16 @@ export default function RoleMaintenance() {
 
             {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 14 }}>{formError}</Typography>}
 
+            {catalogLoading && <Typography role="status" sx={{ mt: 2, fontSize: 14 }}>Loading permissions...</Typography>}
+            {catalogError && <Typography role="alert" sx={{ mt: 2, color: 'error.main', fontSize: 14 }}>{catalogError}</Typography>}
+            {!catalogLoading && !catalogError && permissionSections.length === 0 && (
+              <Typography sx={{ mt: 2, fontSize: 14 }}>No permissions available for this module.</Typography>
+            )}
+
             <Stack spacing={2.5} sx={{ pt: 2.5 }}>
               {permissionSections.map((section) => {
                 const checkedItems = permissionValues[permissionModule]?.[section.id] || [];
-                const allChecked = section.items.every((item) => checkedItems.includes(item.id));
+                const allChecked = section.items.length > 0 && section.items.every((item) => checkedItems.includes(item.id));
                 const someChecked = checkedItems.length > 0 && !allChecked;
                 return (
                   <Box
@@ -502,7 +535,7 @@ export default function RoleMaintenance() {
                                 onChange={(event) => {
                                   const isChecked = event.target.checked;
                                   setPermissionValues((current) => {
-                                    const currentSection = current[permissionModule][section.id];
+                                    const currentSection = current[permissionModule]?.[section.id] || [];
                                     return {
                                       ...current,
                                       [permissionModule]: {
@@ -524,10 +557,12 @@ export default function RoleMaintenance() {
                       <Box
                         sx={{
                           minHeight: 40,
+                          alignSelf: 'stretch',
                           borderLeft: { xs: 'none', sm: '2px solid #b51f24' },
                           borderTop: { xs: '1px solid #eee', sm: 'none' },
                           pl: { xs: 0, sm: 1.5 },
-                          mt: { xs: 0.5, sm: 0 },
+                          mt: { xs: 0.5, sm: -1.5 },
+                          mb: { xs: 0, sm: -2 },
                           display: 'flex',
                           alignItems: 'center',
                         }}

@@ -191,6 +191,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
     const handleRemoveStagedFile = (index) => {
         setStagedFiles((prev) => prev.filter((_, i) => i !== index));
     };
+    
 
     const stopCameraStream = () => {
         cameraStreamRef.current?.getTracks?.().forEach((track) => track.stop());
@@ -237,7 +238,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
 
         return hasDecimal ? `${integerValue || "0"}.${decimalValue}` : integerValue;
     };
-   
+
     const handleUploadImages = () => {
         if (!stagedFiles || stagedFiles.length === 0) return;
 

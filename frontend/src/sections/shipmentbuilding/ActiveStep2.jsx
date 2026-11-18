@@ -9,7 +9,7 @@ import {
     DialogContent, DialogActions, StepConnector, stepConnectorClasses, styled, Stack, Divider, Accordion,
     AccordionSummary, AccordionDetails, TableContainer, Table, TableHead, TableRow, TableCell,
     TableBody, ListItemText, CircularProgress, InputAdornment, Autocomplete, createFilterOptions,
-    ToggleButton, ToggleButtonGroup,
+    ToggleButton, ToggleButtonGroup, Popover, MenuList,
 
 } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
@@ -42,7 +42,7 @@ import {
     getZipToZipCarrierPickupRate,
     getZipToZipCarrierLinehaulRate,
     getZipToZipCarrierDeliveryRate, setError, setOperationalMessage,
-
+    getCargoSpectraDimentions, setCargoSpectraDientions,
 } from '../../redux/slices/shipment';
 import ItemsSection from './ItemsSection';
 import CommoditiesList from './CommoditiesList';
@@ -80,7 +80,11 @@ const ActiveStep2 = ({
     trigger,
     updateHU,
 }) => {
+    const cargoApiLoading = useSelector((state) => state?.shipmentdata?.cargoApiLoading);
+    const cargoSpectraDropdownList = useSelector((state) => state?.shipmentdata?.cargoSpectraDropdownList);
+    const cargoSpectraDimentions = useSelector((state) => state?.shipmentdata?.cargoSpectraDimentions);
     const [badFreightModal, setBadFreightModal] = useState({ open: false, huIdx: null, });
+    const [packageDropdownAnchor, setPackageDropdownAnchor] = useState(null);
     const [printLabelModal, setPrintLabelModal] = useState({ open: false, huIdx: null, totalUnits: null, totalHU: null });
     const [uploadDialog, setUploadDialog] = useState({
         open: false,
@@ -174,6 +178,15 @@ const ActiveStep2 = ({
     const handleCloseFullImage = () => {
         setFullImageDialog({ open: false, image: null, title: "" });
     };
+    const getBase64ImageMimeType = (value) => {
+        const compactValue = String(value || "").trim();
+
+        if (compactValue.startsWith("/9j/")) return "image/jpeg";
+        if (compactValue.startsWith("iVBORw0KGgo")) return "image/png";
+        if (compactValue.startsWith("R0lGOD")) return "image/gif";
+        if (compactValue.startsWith("UklGR")) return "image/webp";
+        return "image/jpeg";
+    };
     const getImageUrl = (file) => {
         if (!file) return "";
         if (typeof file === "string") {
@@ -199,14 +212,101 @@ const ActiveStep2 = ({
         }
         return file.name || file.filename || `Image ${index + 1}`;
     };
+    const looksLikeBase64Image = (value) => {
+        const compactValue = String(value || "").trim();
+        return (
+            compactValue.length > 80 && /^[A-Za-z0-9+/]+={0,2}$/.test(compactValue)
+        );
+    };
+    // const handleRemovePreviewImage = (index) => {
+
+    //     const nextImages = imagePreviewDialog.images.filter(
+    //         (_, imageIndex) => imageIndex !== index,
+    //     );
+
+    //     setImagePreviewDialog((prev) => ({ ...prev, images: nextImages }));
+    // };
     const handleRemovePreviewImage = (index) => {
+        const rowIndex = selectedRowRef.current;
 
         const nextImages = imagePreviewDialog.images.filter(
-            (_, imageIndex) => imageIndex !== index,
+            (_, imageIndex) => imageIndex !== index
         );
 
-        setImagePreviewDialog((prev) => ({ ...prev, images: nextImages }));
+        // 1. Update the preview dialog state
+        setImagePreviewDialog((prev) => ({
+            ...prev,
+            images: nextImages,
+        }));
+
+        // 2. Sync the updated images array back to React Hook Form
+        if (rowIndex !== null && rowIndex !== undefined) {
+            const currentHU = getValues(`handlingUnits.${rowIndex}`);
+            updateHU(rowIndex, {
+                ...currentHU,
+                images: nextImages,
+            });
+        }
     };
+
+    const handlePackageDetailsClick = (event) => {
+        setPackageDropdownAnchor(event.currentTarget);
+    };
+    const handleClosePackageDropdown = () => {
+        setPackageDropdownAnchor(null);
+    };
+    const handlePackageOptionSelect = async (option) => {
+        const apiId = option?.apiId
+
+        if (!apiId) {
+            handleClosePackageDropdown();
+            return;
+        }
+        try {
+            dispatch(getCargoSpectraDimentions(apiId));
+        } catch (err) {
+            console.log(err);
+        }
+    };
+    const getDropdownOptionLabel = (option) => {
+        if (option === null || option === undefined) return "";
+        if (typeof option !== "object") return String(option);
+
+        return (
+            option.label ||
+            option.name ||
+            option.value ||
+            option.description ||
+            option.deviceName ||
+            option.cargoApiName ||
+            option.apiName ||
+            option.code ||
+            option.apiId ||
+            option.id ||
+            ""
+        );
+    };
+
+    useEffect(() => {
+        const rowIndex = selectedRowRef.current;
+        const isEmpty =
+            !cargoSpectraDimentions ||
+            Object.keys(cargoSpectraDimentions).length === 0;
+        if (!isEmpty) {
+            if (rowIndex !== null && rowIndex !== undefined && huFields[rowIndex]) {
+                updateHU(rowIndex, {
+                    ...huFields[rowIndex], // Preserves all other fields in this handling unit
+                    length: cargoSpectraDimentions?.length,
+                    width: cargoSpectraDimentions?.width,
+                    height: cargoSpectraDimentions?.height,
+                    weight: cargoSpectraDimentions?.weight,
+                    images: cargoSpectraDimentions?.images, // Adds 'images' if missing, or replaces it if present
+                });
+            }
+            // dispatch(setCargoSpectraDientions({}));
+            setPackageDropdownAnchor(null);
+        }
+    }, [cargoSpectraDimentions])
     return (
         <ErrorBoundary
             FallbackComponent={ErrorFallback}
@@ -242,7 +342,13 @@ const ActiveStep2 = ({
                         <Typography variant="caption" sx={{ position: 'absolute', top: -10, left: 15, bgcolor: '#fff', px: 1, fontWeight: 'bold' }}>
                             Handling Unit {huIdx + 1}/{huFields.length}
                             {type === 'Edit' && <>
-                                <IconButton> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml: 1 }} /></IconButton>
+                                <IconButton onClick={(event) => {
+                                    selectedRowRef.current = huIdx;
+                                    handlePackageDetailsClick(
+                                        event,
+                                    );
+                                }
+                                }> <Iconify icon="fluent:cube-12-filled" sx={{ color: '#000', ml: 1 }} /></IconButton>
                                 <IconButton title="Upload image" onClick={() => {
                                     selectedRowRef.current = huIdx;
                                     setUploadDialog({
@@ -1035,6 +1141,55 @@ const ActiveStep2 = ({
                         )}
                     </DialogContent>
                 </Dialog>
+                <Popover
+                    open={Boolean(packageDropdownAnchor)}
+                    anchorEl={packageDropdownAnchor}
+                    onClose={handleClosePackageDropdown}
+                    anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+                    transformOrigin={{ vertical: "top", horizontal: "center" }}
+                    PaperProps={{
+                        sx: {
+                            mt: 0.5,
+                            minWidth: 180,
+                            maxWidth: 260,
+                            maxHeight: 280,
+                            border: "1px solid #d9d9d9",
+                            boxShadow: "0 8px 20px rgba(0,0,0,0.12)",
+                        },
+                    }}
+                >
+                    {cargoApiLoading ? (
+                        <Stack
+                            direction="row"
+                            alignItems="center"
+                            spacing={1}
+                            sx={{ px: 2, py: 1.5 }}
+                        >
+                            <CircularProgress size={16} />
+                            <Typography sx={{ fontSize: 12 }}>Loading...</Typography>
+                        </Stack>
+                    ) : cargoSpectraDropdownList?.length > 0 ? (
+                        <MenuList dense sx={{ py: 0.5 }}>
+                            {cargoSpectraDropdownList?.map((option, index) => (
+                                <MenuItem
+                                    key={
+                                        option?.apiId ||
+
+                                        index
+                                    }
+                                    onClick={() => handlePackageOptionSelect(option)}
+                                    sx={{ fontSize: 12, minHeight: 30 }}
+                                >
+                                    {getDropdownOptionLabel(option)}
+                                </MenuItem>
+                            ))}
+                        </MenuList>
+                    ) : (
+                        <Typography sx={{ px: 2, py: 1.5, fontSize: 12 }}>
+                            No package details available
+                        </Typography>
+                    )}
+                </Popover>
 
             </Paper>
         </ErrorBoundary>

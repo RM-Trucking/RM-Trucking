@@ -42,7 +42,7 @@ import {
   getZipToZipCarrierPickupRate,
   getZipToZipCarrierLinehaulRate,
   getZipToZipCarrierDeliveryRate, setError, setOperationalMessage, postNetworkShipment, patchNetworkShipment,
-  getZipToZipCustomerRate,
+  getZipToZipCustomerRate, getCargoSpectraDropdownList
 
 } from '../../redux/slices/shipment';
 import ShipmentStatusUpdateDialog from './ShipmentStatusUpdateDialog';
@@ -1094,7 +1094,8 @@ const ShipmentPage = ({ type }) => {
           dispatch(getCustomerStationDropdown()),
           dispatch(getCarrierTerminalDropdown()),
           dispatch(getShipperDropdown()),
-          dispatch(getConsigneeDropdown())
+          dispatch(getConsigneeDropdown()),
+          dispatch(getCargoSpectraDropdownList()),
         ]);
       };
       fetchDropdownData();

@@ -125,7 +125,16 @@ export async function toggleCarrierStatus(req: Request, res: Response, conn: Con
 export async function getCarriersByRateId(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const rateId = Number(req.params.rateId);
-        const customers = await carrierService.getCarriersByRateIdService(conn, rateId);
+        const rateType = req.query.rateType as string | undefined;
+        if (rateType && rateType !== 'TRANSPORT' && rateType !== 'AIRPORT') {
+            res.status(400).json({ success: false, message: 'rateType must be TRANSPORT or AIRPORT' });
+            return;
+        }
+        const customers = await carrierService.getCarriersByRateIdService(
+            conn,
+            rateId,
+            rateType as 'TRANSPORT' | 'AIRPORT' | undefined
+        );
 
         res.status(200).json({
             success: true,

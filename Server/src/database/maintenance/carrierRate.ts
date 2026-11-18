@@ -430,7 +430,7 @@ export async function listCarrierTransportRates(
 
 
 
-export async function countCarrierRatesForZone(conn: Connection, zoneId: number): Promise<number> {
+export async function countCarrierTransportRatesForZone(conn: Connection, zoneId: number): Promise<number> {
     const query = `
     SELECT COUNT(*) AS total
     FROM ${SCHEMA}."Carrier_Rate"
@@ -439,6 +439,25 @@ export async function countCarrierRatesForZone(conn: Connection, zoneId: number)
   `;
     const result = await conn.query(query, [zoneId, zoneId]) as any[];
     return result[0]?.TOTAL || 0;
+}
+
+export async function countCarrierAirportRatesForZone(conn: Connection, zoneId: number): Promise<number> {
+    const query = `
+    SELECT COUNT(*) AS total
+    FROM ${SCHEMA}."Carrier_Airport_Rate"
+    WHERE "activeStatus" = 'Y'
+      AND ("originZoneId" = ? OR "destinationZoneId" = ?)
+  `;
+    const result = await conn.query(query, [zoneId, zoneId]) as any[];
+    return result[0]?.TOTAL || 0;
+}
+
+export async function countCarrierRatesForZone(conn: Connection, zoneId: number): Promise<number> {
+    const [transportCount, airportCount] = await Promise.all([
+        countCarrierTransportRatesForZone(conn, zoneId),
+        countCarrierAirportRatesForZone(conn, zoneId)
+    ]);
+    return transportCount + airportCount;
 }
 
 export async function listCarrierTransportRatesByZone(

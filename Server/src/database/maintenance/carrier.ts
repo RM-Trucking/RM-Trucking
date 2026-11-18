@@ -163,30 +163,39 @@ export async function deleteCarrier(conn: Connection, carrierId: number): Promis
     await conn.query(query, [carrierId]);
 }
 
-export async function getCarriersByRateId(conn: Connection, rateId: number): Promise<Carrier[]> {
+export async function getCarriersByRateId(
+    conn: Connection,
+    rateId: number,
+    rateType?: 'TRANSPORT' | 'AIRPORT'
+): Promise<Carrier[]> {
     const query = `
-    SELECT c."carrierId", c."carrierName", c."carrierType", c."carrierStatus", c."tsaCertified", c."ustDotNo", c."mcnNo", c."insuranceExpiry", c."tariffRenewalDate",
+    SELECT DISTINCT c."carrierId", c."carrierName", c."carrierType", c."carrierStatus", c."tsaCertified", c."ustDotNo", c."mcnNo", c."insuranceExpiry", c."tariffRenewalDate",
            c."totalShipments", c."rmOnTimePercent", c."lateShipments", c."salesRepName", c."salesRepPhone", c."salesRepEmail", c."corporateBillingSame",
            c."createdAt", c."createdBy", c."updatedAt", c."updatedBy",
            c."noteThreadId", c."entityId", c."corporatePhoneNumber", c."isParcelCarrier"
     FROM ${SCHEMA}."Terminal_Rate_Map" srm
     JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
-    WHERE srm."rateId" = ?
+        WHERE srm."rateId" = ?${rateType ? ' AND srm."rateType" = ?' : ''}
   `;
-    const result = await conn.query(query, [rateId]) as any[];
+        const params = rateType ? [rateId, rateType] : [rateId];
+        const result = await conn.query(query, params) as any[];
     return result as Carrier[];
 }
 
-export async function countCarriersByRateId(conn: Connection, rateId: number): Promise<number> {
+export async function countCarriersByRateId(
+    conn: Connection,
+    rateId: number,
+    rateType: 'TRANSPORT' | 'AIRPORT'
+): Promise<number> {
     const query = `
-    SELECT COUNT(st."terminalId") AS total
+    SELECT COUNT(DISTINCT st."carrierId") AS total
     FROM ${SCHEMA}."Terminal_Rate_Map" srm
     JOIN ${SCHEMA}."Terminal" st ON srm."terminalId" = st."terminalId"
     JOIN ${SCHEMA}."Carrier" c ON st."carrierId" = c."carrierId"
-    WHERE srm."rateId" = ?
+    WHERE srm."rateId" = ? AND srm."rateType" = ?
   `;
-    const result = await conn.query(query, [rateId]) as any[];
+    const result = await conn.query(query, [rateId, rateType]) as any[];
     return result.length ? result[0].TOTAL : 0;
 }
 

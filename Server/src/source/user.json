@@ -215,5 +215,12 @@
     "email": "german.flores@rmtrucking.com",
     "loginPassword": "WH10",
     "userType": "EMPLOYEE"
+  },
+  {
+    "userName": "Mike Crowe",
+    "loginUserName": "Mike.Crowe",
+    "email": "mike.crowe@rmtrucking.com",
+    "loginPassword": "WH11",
+    "userType": "EMPLOYEE"
   }
 ]

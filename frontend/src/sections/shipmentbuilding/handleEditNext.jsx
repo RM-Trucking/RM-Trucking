@@ -12,6 +12,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
     let validAccessorials = true;
     let obj = {};
     const payloadFormData = new FormData();
+    const imageFormData = new FormData();
 
     // Array to collect missing or invalid fields at the very end
     const missingRequiredFields = [];
@@ -243,7 +244,7 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
         delete obj.customerDetails.deliveryAirlineDetails;
     }
     // step 2
-   
+
     if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
         // obj.commodityDetails = {
         //     commodityId: selectedShipmentBuildObj?.commodityDetails?.commodityId,
@@ -295,15 +296,23 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
 
                 const processedImages = await Promise.all(
                     (hu?.images || []).map(async (imgFile, imgIndex) => {
-                        const imageFormData = new FormData();
-                        const fieldName = `handlingUnit-${huIndex}-${imgIndex}`;
+                        if (!imgFile) return null;
 
-                        if (imgFile) {
-                            const base64DataUrl = await toBase64(imgFile);
-                            imageFormData.append(fieldName, base64DataUrl);
+                        // Keep existing server-side images; don't upload them again.
+                        if (imgFile.imageId) {
+                            return { imageId: imgFile.imageId };
                         }
 
-                        return imageFormData; // Returns the FormData object directly in the images array
+                        const fieldName = `handlingUnit-${huIndex}-${imgIndex}`;
+                        const base64DataUrl = await toBase64(imgFile);
+                        const base64Content = base64DataUrl.split(',')[1];
+
+                        if (!base64Content) {
+                            throw new Error(`Could not read handling-unit image ${fieldName}`);
+                        }
+
+                        imageFormData.append(fieldName, `base64,${base64Content}`);
+                        return {};
                     })
                 );
 
@@ -318,7 +327,9 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
                     handlingWeight: Number(hu?.weight) || 0,
                     handlingWeightUnit: hu?.weightUnit === 'lbs' ? 'LB' : hu?.weightUnit === 'kgs' ? 'KG' : '',
                     class: hu?.class ? `Class ${hu?.class}` : '',
-                    images: processedImages,
+                    images: hu?.deletedImages?.length
+                        ? [...processedImages, ...hu.deletedImages]
+                        : processedImages,
                     palletDetails: (hu?.items || []).map(item => ({
                         itemId: item?.itemId || '',
                         handlingUnitId: hu?.handlingUnitId || '',
@@ -1218,6 +1229,10 @@ export const handleEditNext = async (dispatch, setValue, getValues, trigger, err
             // dispatch(postStep1(obj));
             // dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
             payloadFormData.append('payload', JSON.stringify(obj));
+            for (const [fieldName, value] of imageFormData.entries()) {
+                console.log(`Appending file field: ${fieldName}, value: ${value}`);
+                payloadFormData.append(fieldName, value);
+            }
             dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, payloadFormData));
         } catch (error) {
             console.error("Submission failed:", error);
@@ -1624,37 +1639,68 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
     }
 };
 
-const toBase64 = async (imgFile) => {
-    // Case 1: Local File or Blob object
-    if (imgFile instanceof File || imgFile instanceof Blob) {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(imgFile);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    }
+const inferImageMimeType = (base64) => {
+    if (base64.startsWith('/9j/')) return 'image/jpeg';
+    if (base64.startsWith('iVBORw0KGgo')) return 'image/png';
+    if (base64.startsWith('R0lGOD')) return 'image/gif';
+    if (base64.startsWith('UklGR')) return 'image/webp';
 
-    // Case 2: String input
-    if (typeof imgFile === 'string') {
-        // 2a: Already a Base64 data URL (e.g., "data:image/png;base64,...")
-        if (imgFile.startsWith('data:')) {
-            return imgFile;
-        }
-
-        // 2b: Remote image URL (e.g., "https://..." or "/uploads/...") -> fetch & convert to Base64
-        const response = await fetch(imgFile);
-        const blob = await response.blob();
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = (error) => reject(error);
-        });
-    }
-
-    return '';
+    throw new Error('Unsupported or unrecognized image data');
 };
 
+const blobToImageDataUrl = async (blob) => {
+    const dataUrl = await new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+            if (typeof reader.result !== 'string') {
+                reject(new Error('Could not read image data'));
+                return;
+            }
+            resolve(reader.result);
+        };
+        reader.onerror = () => reject(reader.error || new Error('Could not read image'));
+        reader.readAsDataURL(blob);
+    });
+
+    const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+    const mimeType = blob.type.startsWith('image/')
+        ? blob.type
+        : inferImageMimeType(base64);
+
+    return `data:${mimeType};base64,${base64}`;
+};
+
+const toBase64 = async (imgFile) => {
+    if (imgFile instanceof Blob) {
+        return blobToImageDataUrl(imgFile);
+    }
+
+    if (typeof imgFile !== 'string') {
+        throw new TypeError('Expected an image File, Blob, data URL, base64 string, or URL');
+    }
+
+    const value = imgFile.trim();
+
+    if (value.startsWith('data:image/')) {
+        return value;
+    }
+
+    if (value.startsWith('data:application/octet-stream;base64,')) {
+        const base64 = value.slice(value.indexOf(',') + 1);
+        return `data:${inferImageMimeType(base64)};base64,${base64}`;
+    }
+
+    if (value.startsWith('/9j/') || value.startsWith('iVBORw0KGgo') ||
+        value.startsWith('R0lGOD') || value.startsWith('UklGR')) {
+        return `data:${inferImageMimeType(value)};base64,${value}`;
+    }
+
+    const response = await fetch(value);
+    if (!response.ok) {
+        throw new Error(`Could not fetch image: ${response.status}`);
+    }
+
+    return blobToImageDataUrl(await response.blob());
+};
 
 

@@ -49,6 +49,7 @@ import CommoditiesList from './CommoditiesList';
 import BadFreightDialog from './BadFreightDialog';
 import PrintLabelDialog from './PrintLabelDialog';
 import ImageUploadDilog from './ImageUpload';
+import { HOST_API_KEY } from '../../config';
 
 
 const actionBtnSx = {
@@ -201,6 +202,10 @@ const ActiveStep2 = ({
         if (file.base64) return getImageUrl(file.base64);
         if (file.image) return getImageUrl(file.image);
         if (file instanceof File) return URL.createObjectURL(file);
+        if (file.imagePath) {
+            const apiOrigin = new URL(HOST_API_KEY).origin;
+            return new URL(file.imagePath, apiOrigin).href;
+        }
         return "";
     };
     const getImageName = (file, index) => {
@@ -228,6 +233,7 @@ const ActiveStep2 = ({
     // };
     const handleRemovePreviewImage = (index) => {
         const rowIndex = selectedRowRef.current;
+        const removedImage = imagePreviewDialog.images[index];
 
         const nextImages = imagePreviewDialog.images.filter(
             (_, imageIndex) => imageIndex !== index
@@ -246,6 +252,19 @@ const ActiveStep2 = ({
                 ...currentHU,
                 images: nextImages,
             });
+            setValue(`handlingUnits.${rowIndex}.images`, nextImages, {
+                shouldDirty: true,
+            });
+        }
+        if (removedImage?.imageId && rowIndex != null) {
+            const deletedImages =
+                getValues(`handlingUnits.${rowIndex}.deletedImages`) || [];
+
+            setValue(
+                `handlingUnits.${rowIndex}.deletedImages`,
+                [...deletedImages, { imageId: removedImage.imageId, delete: true }],
+                { shouldDirty: true }
+            );
         }
     };
 
@@ -321,7 +340,7 @@ const ActiveStep2 = ({
                     Commodities Details
                 </Typography>
 
-                {
+                {/* {
                     type === 'Edit' && <Box display="flex" justifyContent="flex-end" sx={{ mb: 2 }}>
                         <Button variant="contained"
                             size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
@@ -334,7 +353,7 @@ const ActiveStep2 = ({
                             Print All Labels
                         </Button>
                     </Box>
-                }
+                } */}
 
                 {huFields.map((hu, huIdx) => (
                     <Paper key={hu.id} variant="outlined" sx={{ p: 3, mb: 4, borderRadius: 2, position: 'relative' }}>
@@ -356,18 +375,20 @@ const ActiveStep2 = ({
                                         mode: "upload",
                                         imageField: "images",
                                     });
-                                    setStagedFiles(existingFiles);
+                                    setStagedFiles(stagedFiles || []);
                                     setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
-                                {(hu?.images?.length || 0) > 0 && (
+                                {(hu?.images?.length) > 0 && (
                                     <IconButton
                                         size="small"
                                         title="View images"
-                                        onClick={() =>
+                                        onClick={() => {
+                                            selectedRowRef.current = huIdx;
                                             handleOpenImagePreview(
                                                 hu?.images || [],
                                                 `Item ${String(huIdx + 1).padStart(2, "0")}`,
-                                            )
+                                            );
+                                        }
                                         }
                                         sx={{ p: 0.4, position: "relative" }}
                                     >
@@ -394,7 +415,7 @@ const ActiveStep2 = ({
                                                 lineHeight: 1,
                                             }}
                                         >
-                                            {hu?.images?.length}
+                                            {watchedHU?.[huIdx]?.images?.length ?? 0}
                                         </Box>
                                     </IconButton>
                                 )}
@@ -404,15 +425,15 @@ const ActiveStep2 = ({
 
                         {/* bad freight  */}
                         <Box sx={{ mb: 2, display: 'flex', justifyContent: 'flex-end' }}>
-                            {
+                            {/* {
                                 type === 'Edit' && <Button variant="contained"
                                     size="small" sx={{ bgcolor: '#A22', height: 20, fontSize: '0.65rem', textTransform: 'none', mr: 2 }}
                                     onClick={() => setPrintLabelModal({ open: true, huIdx: huIdx + 1, totalUnits: watchedHU.length, totalHU: watchedHU[huIdx].unitsCount })}
                                 >
                                     Print Label
                                 </Button>
-                            }
-                            {type === 'Edit' && (
+                            } */}
+                            {/* {type === 'Edit' && (
                                 <FormControlLabel
                                     sx={{ alignItems: 'center', m: 0 }} // Centers checkbox with label, removes default margin offsets
                                     control={
@@ -469,7 +490,7 @@ const ActiveStep2 = ({
                                         </Typography>
                                     }
                                 />
-                            )}
+                            )} */}
 
                             {/* Clear/Remove Logic */}
                             {type !== 'View' && <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
@@ -1042,6 +1063,9 @@ const ActiveStep2 = ({
                                                         alt={getImageName(file, index)}
                                                         onClick={() =>
                                                             handleOpenFullImage(file, getImageName(file, index))
+                                                        }
+                                                        onError={(event) =>
+                                                            console.error('Failed to load image:', event.currentTarget.src)
                                                         }
                                                         sx={{
                                                             width: "100%",

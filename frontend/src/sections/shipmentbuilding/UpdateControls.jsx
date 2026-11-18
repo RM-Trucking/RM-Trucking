@@ -156,6 +156,8 @@ export const updateControls = (dispatch, setValue, selectedObj,
                 })
             })),
             key : `${shipmentDetails?.shipmentProNumber}-${huIndex}`,
+            images: hu?.images || [],
+            deletedImages:  [],
         }));
 
         setValue('handlingUnits', mappedHandlingUnits, {

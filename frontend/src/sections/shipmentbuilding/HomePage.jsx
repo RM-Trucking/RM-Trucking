@@ -441,28 +441,28 @@ export default function HomePage() {
             >
                 {/* The components within this boundary are protected */}
                 <SharedHomePageHeader title="Shipment Building" buttonText='New Shipment' onButtonClick={onClickOfNewDashboard} />
-                <Stack
-                    direction={{ xs: 'column', md: 'row' }} // Stacks vertically on mobile, horizontally on desktop
-                    spacing={1}                            // Safely manages gaps between fields
+                {/* <Stack
+                    direction={{ xs: 'column', md: 'row' }}
+                    spacing={1}
                     sx={{
                         width: '100%',
                         boxSizing: 'border-box',
                     }}
                 >
-                    {/* Field 1: Shipment Status */}
+
                     <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
                         <Controller
                             name="shipmentStatus"
                             control={control}
                             render={({ field }) => (
-                                <StyledTextField {...field} select fullWidth label="Select Shipment Status" variant="standard" error={!!errors.shipmentStatus} /* ... Rest of your SelectProps */>
+                                <StyledTextField {...field} select fullWidth label="Select Shipment Status" variant="standard" error={!!errors.shipmentStatus} >
                                     {shipmentStatusOptions.map((opt) => (<MenuItem key={opt} value={opt}>{opt}</MenuItem>))}
                                 </StyledTextField>
                             )}
                         />
                     </Box>
 
-                    {/* Field 2: Customer Reference */}
+
                     <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
                         <Controller
                             name="customerReference"
@@ -473,7 +473,7 @@ export default function HomePage() {
                         />
                     </Box>
 
-                    {/* Field 3: Carrier Autocomplete */}
+
                     <Box sx={{ flex: { xs: '1 1 100%', md: '1 1 0px' }, minWidth: { md: '180px' } }}>
                         <Controller
                             name="carrier"
@@ -484,7 +484,7 @@ export default function HomePage() {
                                     fullWidth
                                     options={carrierTerminalDropdown || []}
 
-                                    // Generates explicit, unique keys for each option item
+
                                     renderOption={(props, option, state) => {
                                         const uniqueKey = `carrier-terminal-${option.terminalId}-${option.carrierId}-${state.index}`;
                                         return (
@@ -496,7 +496,7 @@ export default function HomePage() {
                                         );
                                     }}
 
-                                    // Ensures accurate component highlighting matching values
+
                                     isOptionEqualToValue={(option, val) => {
                                         const optionKey = `${option?.terminalId}-${option?.carrierId}`;
                                         const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
@@ -552,17 +552,17 @@ export default function HomePage() {
                                     loading={isLoading}
                                     loadingText="Searching carriers..."
 
-                                    // Added your conditional empty results messaging
+
                                     noOptionsText={selectCarrierSearchValue ? "No carriers found" : "Type to search for carriers"}
 
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            inputRef={ref} // Keeps React Hook Form validation focus operational
+                                            inputRef={ref}
                                             variant="standard"
                                             label="Select Carrier"
                                             error={!!errors.carrier}
-                                            // Added space layout preservation helper text rule
+
                                             helperText={errors.carrier ? errors.carrier.message : ' '}
                                             sx={{
                                                 '& .MuiInputBase-input:disabled': {
@@ -587,19 +587,19 @@ export default function HomePage() {
                     </Box>
 
 
-                </Stack>
+                </Stack> */}
                 {/* Actions Section Container */}
-                <Stack
+                {/* <Stack
                     direction="row"
                     alignItems="center"
                     justifyContent={'space-between'}
                     sx={{
-                        gap: 1 // Cleaner approach for responsive button gaps
+                        gap: 1 
                     }}
                 >
                     <Stack direction={'row'} spacing={1} alignItems={'center'}>
                         <Stack direction="column" spacing={2} alignItems="flex-start" justifyContent={'flex-start'}>
-                            {/* Checkbox: R&M */}
+                            
                             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
                                 <FormControlLabel
                                     control={
@@ -616,13 +616,13 @@ export default function HomePage() {
                                             )}
                                         />
                                     }
-                                    label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
-                                        sx={{                 // 👈 Maintained your custom font weight
-                                            cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    label={<Typography onClick={(e) => e.preventDefault()} 
+                                        sx={{                
+                                            cursor: 'default'                  
                                         }} variant="body2">R&M</Typography>}
                                 />
                             </Box>
-                            {/* Checkbox: Others */}
+                           
                             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
                                 <FormControlLabel
                                     control={
@@ -639,9 +639,9 @@ export default function HomePage() {
                                             )}
                                         />
                                     }
-                                    label={<Typography onClick={(e) => e.preventDefault()} // 👈 Prevents the text click from toggling the checkbox
-                                        sx={{                 // 👈 Maintained your custom font weight
-                                            cursor: 'default'                  // 👈 Optional: Changes cursor to regular text arrow
+                                    label={<Typography onClick={(e) => e.preventDefault()} 
+                                        sx={{                 
+                                            cursor: 'default'                  
                                         }} variant="body2">Others</Typography>}
                                 />
                             </Box>
@@ -669,7 +669,7 @@ export default function HomePage() {
                                             variant="body2"
                                             sx={{
                                                 cursor: 'default',
-                                                whiteSpace: 'nowrap' // 👈 Forces the text to stay in a straight line
+                                                whiteSpace: 'nowrap' 
                                             }}
                                         >
                                             Carrier Rate Req
@@ -699,7 +699,7 @@ export default function HomePage() {
                                             variant="body2"
                                             sx={{
                                                 cursor: 'default',
-                                                whiteSpace: 'nowrap' // 👈 Forces the text to stay in a straight line
+                                                whiteSpace: 'nowrap' 
                                             }}
                                         >
                                             Customer Rate Req
@@ -711,7 +711,7 @@ export default function HomePage() {
                     </Stack>
                     <Stack direction={'column'} spacing={1} alignItems={'flex-start'}>
                         <Stack direction={'row'} alignItems={'center'} sx={{
-                            gap: 1 // Cleaner approach for responsive button gaps
+                            gap: 1 
                         }}>
                             <Button
                                 variant="contained"
@@ -723,7 +723,7 @@ export default function HomePage() {
                                     bgcolor: '#a22',
                                     whiteSpace: 'nowrap',
                                     minWidth: 'max-content',
-                                    flex: { xs: '1 1 auto', sm: '0 0 auto' }, // Lets buttons comfortably stretch on mobile but stay compact on desktop
+                                    flex: { xs: '1 1 auto', sm: '0 0 auto' }, 
                                     '&:hover': { bgcolor: '#811' }
                                 }}
                             >
@@ -746,7 +746,7 @@ export default function HomePage() {
                         </Stack>
                         <SharedSearchField page="shipmentbuilding" />
                     </Stack>
-                </Stack>
+                </Stack> */}
 
                 <ShipmentViewTable watchedConsolidateFlag={watchedConsolidateFlag} control={control}
                     setValue={setValue} getValues={getValues} />

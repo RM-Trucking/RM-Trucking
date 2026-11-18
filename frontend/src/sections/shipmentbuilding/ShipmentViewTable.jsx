@@ -538,7 +538,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
     // get call for notes
     useEffect(() => {
         dispatch(setTableBeingViewed('shipment view'));
-        // dispatch(setSelectedShipmentBuildObj({}));
+        dispatch(setSelectedShipmentBuildObj({}));
         dispatch(getShipmentBuildData({
             pageNo: paginationModel.page,
             pageSize: paginationModel.pageSize,

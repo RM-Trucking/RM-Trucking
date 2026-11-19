@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
+  Alert,
   Box,
   Button,
   Checkbox,
@@ -12,6 +13,7 @@ import {
   InputAdornment,
   Menu,
   MenuItem,
+  Snackbar,
   Stack,
   Tab,
   Tabs,
@@ -21,6 +23,7 @@ import {
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import AddIcon from '@mui/icons-material/Add';
+import CloseIcon from '@mui/icons-material/Close';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -28,30 +31,9 @@ import GroupsOutlinedIcon from '@mui/icons-material/GroupsOutlined';
 import SearchIcon from '@mui/icons-material/Search';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { HEADER } from '../../config';
-import axios from '../../utils/axios';
+import { useDispatch, useSelector } from '../../redux/store';
+import { getRoles, getAuthorityRoleOptions, getPermissionCatalog, createRole, deleteRole, setEmployeeRows, setCustomerRows } from '../../redux/slices/role';
 
-const employeeRoles = [
-  'Super Admin',
-  'Admin',
-  'Warehouse Supervisor',
-  'Warehouse Staff',
-  'Route Planner',
-  'Loading Admin',
-  'Logistics Dock Operator',
-  'Maintenance Technician',
-  'Ground Staff',
-  'General Staff',
-];
-
-const customerRoles = [
-  'Customer Admin',
-  'Account Admin',
-  'Shipping User',
-  'Billing Contact',
-  'Read Only User',
-];
-
-const employeeCounts = ['01', '05', '10', '14', '02', '03', '05', '00', '00', '00'];
 const sampleEmployees = [
   'Avery', 'Jordan', 'Taylor', 'Riley', 'Casey', 'Cameron', 'Morgan', 'Quinn', 'Skyler', 'Jamie',
   'Reese', 'Rowan', 'Parker', 'Drew', 'Payton', 'Robin', 'Ari', 'Sage', 'Cory', 'Frankie',
@@ -81,25 +63,16 @@ const createDefaultPermissions = (catalog = {}) => Object.fromEntries(
   ])
 );
 
-const createRows = (count, isCustomer = false) => {
-  const roleOptions = isCustomer ? customerRoles : employeeRoles;
-  return Array.from({ length: count }, (_, index) => {
-    const roleIndex = index % roleOptions.length;
-    return {
-      id: `${isCustomer ? 'customer' : 'employee'}-role-${index + 1}`,
-      serialNumber: String(index + 1).padStart(2, '0'),
-      assignedCount: isCustomer ? String((index % 8) + 1).padStart(2, '0') : employeeCounts[index % employeeCounts.length],
-      role: roleOptions[roleIndex],
-      authorityRole: roleIndex === 0 ? '' : roleOptions[roleIndex - 1],
-
-    };
-  });
-};
-
 export default function RoleMaintenance() {
-  const [employeeRows, setEmployeeRows] = useState(() => createRows(20));
-  const [customerRows, setCustomerRows] = useState(() => createRows(50, true));
+  const dispatch = useDispatch();
+  const { employeeRows, customerRows, isLoading: rolesLoading, error: rolesError, permissionCatalog, catalogLoading, catalogError, saving } = useSelector((state) => state.roledata);
+  const { authorityRoleOptions, authorityRolesLoading, authorityRolesError } = useSelector((state) => state.roledata);
+
   const [activeTab, setActiveTab] = useState(0);
+  const roleKind = activeTab === 0 ? 'EMPLOYEE' : 'CUSTOMER';
+  useEffect(() => {
+    dispatch(getRoles(roleKind));
+  }, [dispatch, roleKind]);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('All Roles');
   const [filterAnchor, setFilterAnchor] = useState(null);
@@ -122,42 +95,37 @@ export default function RoleMaintenance() {
   const [permissionValues, setPermissionValues] = useState(() => createDefaultPermissions());
   const [selectedRow, setSelectedRow] = useState(null);
   const [rowToDelete, setRowToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleteSucceeded, setDeleteSucceeded] = useState(false);
   const [formError, setFormError] = useState('');
-  const [permissionCatalog, setPermissionCatalog] = useState({});
-  const [catalogLoading, setCatalogLoading] = useState(false);
-  const [catalogError, setCatalogError] = useState('');
+  const [description, setDescription] = useState('');
+  const savingRef = useRef(false);
   const permissionSections = getPermissionSections(permissionCatalog, permissionModule);
+  const selectedAuthorityRole = roleValues.authorityRole || authorityRoleOptions.find(
+    (role) => editingRow?.parentRoleIds?.includes(role.id)
+  )?.role || '';
+
+  useEffect(() => {
+    if (permissionDialogOpen) dispatch(getAuthorityRoleOptions(roleKind));
+  }, [dispatch, permissionDialogOpen, roleKind]);
 
   useEffect(() => {
     if (!permissionDialogOpen) return undefined;
     let active = true;
     const loadCatalog = async () => {
-      setCatalogLoading(true);
-      setCatalogError('');
-      setPermissionCatalog({});
-      try {
-        const { data: response } = await axios.get('/authorization/permissions/catalog');
-        if (response.success !== true || !response.data || typeof response.data !== 'object') {
-          throw new Error('Unable to load the permissions catalog.');
-        }
-        if (active) {
-          setPermissionCatalog(response.data);
-          setPermissionValues(editingRow?.permissions || createDefaultPermissions(response.data));
-        }
-      } catch (error) {
-        if (active) setCatalogError(error?.message || 'Unable to load permissions. Please close and reopen the form to try again.');
-      } finally {
-        if (active) setCatalogLoading(false);
+      const action = await dispatch(getPermissionCatalog());
+      if (active && getPermissionCatalog.fulfilled.match(action)) {
+        setPermissionValues(editingRow?.permissions || createDefaultPermissions(action.payload));
       }
     };
     loadCatalog();
     return () => { active = false; };
-  }, [permissionDialogOpen, editingRow]);
+  }, [permissionDialogOpen, editingRow, dispatch]);
 
   const rows = activeTab === 0 ? employeeRows : customerRows;
-  const setRows = activeTab === 0 ? setEmployeeRows : setCustomerRows;
-  const roleOptions = activeTab === 0 ? employeeRoles : customerRoles;
-  const authorityRoleOptions = [...new Set(rows.map((row) => row.role))];
+  const setRows = (update) => dispatch((activeTab === 0 ? setEmployeeRows : setCustomerRows)(update(rows)));
+  const roleOptions = [...new Set(rows.map((row) => row.role))];
   const filteredRows = useMemo(() => {
     const query = search.trim().toLowerCase();
     return rows.filter((row) => {
@@ -170,6 +138,7 @@ export default function RoleMaintenance() {
   const openNewRole = () => {
     setEditingRow(null);
     setRoleValues({ role: '', authorityRole: '' });
+    setDescription('');
     setPermissionModule('AIR Export');
     setPermissionValues(createDefaultPermissions());
     setFormError('');
@@ -178,6 +147,7 @@ export default function RoleMaintenance() {
 
   const openEditRole = (row) => {
     setEditingRow(row);
+    setDescription(row.description || '');
     setRoleValues({ role: row.role, authorityRole: row.authorityRole });
     setPermissionModule('AIR Export');
     setPermissionValues(row.permissions || createDefaultPermissions());
@@ -185,15 +155,16 @@ export default function RoleMaintenance() {
     setPermissionDialogOpen(true);
   };
 
-  const saveRolePermissions = (event) => {
+  const saveRolePermissions = async (event) => {
     event.preventDefault();
-    if (catalogLoading || catalogError) return;
+    if (catalogLoading || catalogError || authorityRolesLoading || authorityRolesError || saving || savingRef.current) return;
     const roleName = roleValues.role.trim();
     if (!roleName) {
       setFormError('Role name is required.');
       return;
     }
-    if (!authorityRoleOptions.includes(roleValues.authorityRole)) {
+    const authorityRole = authorityRoleOptions.find((role) => role.role === selectedAuthorityRole);
+    if (!authorityRole) {
       setFormError('Authority role is required.');
       return;
     }
@@ -202,21 +173,67 @@ export default function RoleMaintenance() {
       return;
     }
 
+    let createdRole;
+    if (!editingRow && activeTab === 0) {
+      const permissionCodes = [...new Set(permissionModules.flatMap((module) =>
+        Object.entries(permissionCatalog[permissionApplications[module]] || {}).flatMap(([section, permissions]) =>
+          permissions
+            .filter((permission) => permissionValues[module]?.[section]?.includes(permission.permissionId))
+            .map((permission) => permission.permissionCode)
+        )
+      ))];
+      savingRef.current = true;
+      setFormError('');
+      try {
+        createdRole = await dispatch(createRole({
+          name: roleName,
+          description: description.trim(),
+          roleKind: 'EMPLOYEE',
+          status: 'ACTIVE',
+          permissionCodes,
+          parentRoleIds: authorityRole.id == null ? null : [authorityRole.id],
+        })).unwrap();
+      } catch (error) {
+        setFormError(error?.message || error?.error || (typeof error === 'string' ? error : 'Unable to create role. Please try again.'));
+        return;
+      } finally {
+        savingRef.current = false;
+      }
+    }
+
     setRows((currentRows) => editingRow
       ? currentRows.map((row) => row.id === editingRow.id
-        ? { ...row, role: roleName, authorityRole: roleValues.authorityRole, permissions: permissionValues }
+        ? { ...row, role: roleName, description: description.trim(), authorityRole: selectedAuthorityRole, permissions: permissionValues }
         : row)
       : [{
-          id: `${activeTab === 0 ? 'employee' : 'customer'}-role-${Date.now()}`,
+          id: createdRole?.roleId ?? createdRole?.id ?? `${activeTab === 0 ? 'employee' : 'customer'}-role-${Date.now()}`,
           serialNumber: String(currentRows.length + 1).padStart(2, '0'),
           assignedCount: '00',
           role: roleName,
-          authorityRole: roleValues.authorityRole,
+          description: description.trim(),
+          authorityRole: selectedAuthorityRole,
           permissions: permissionValues,
         }, ...currentRows]);
     setPaginationModel((model) => ({ ...model, page: 0 }));
     setPermissionDialogOpen(false);
     setEditingRow(null);
+    if (!editingRow && activeTab === 0) dispatch(getRoles(roleKind));
+  };
+
+  const confirmDeleteRole = async () => {
+    if (!rowToDelete || deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await dispatch(deleteRole(rowToDelete.id)).unwrap();
+      setRowToDelete(null);
+      setPaginationModel((model) => ({ ...model, page: 0 }));
+      setDeleteSucceeded(true);
+    } catch (error) {
+      setDeleteError(error?.message || (typeof error === 'string' ? error : 'Unable to delete role.'));
+    } finally {
+      setDeleting(false);
+    }
   };
 
   const columns = [
@@ -269,7 +286,10 @@ export default function RoleMaintenance() {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete role">
-            <IconButton size="small" aria-label={`Delete ${row.role}`} onClick={() => setRowToDelete(row)}>
+            <IconButton size="small" aria-label={`Delete ${row.role}`} onClick={() => {
+              setDeleteError('');
+              setRowToDelete(row);
+            }}>
               <DeleteOutlineIcon sx={{ fontSize: 15 }} />
             </IconButton>
           </Tooltip>
@@ -362,8 +382,16 @@ export default function RoleMaintenance() {
         </Stack>
       </Stack>
 
+      {rolesError && (
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1 }}>
+          <Typography role="alert" sx={{ color: 'error.main', fontSize: 14 }}>{rolesError}</Typography>
+          <Button size="small" onClick={() => dispatch(getRoles(roleKind))}>Retry</Button>
+        </Stack>
+      )}
+
       <Box ref={gridContainerRef} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', minWidth: 0, mt: 2 }}>
         <DataGrid
+          loading={rolesLoading}
           rows={filteredRows}
           columns={columns}
           rowHeight={rowHeight}
@@ -391,7 +419,7 @@ export default function RoleMaintenance() {
 
       <Dialog
         open={permissionDialogOpen}
-        onClose={() => setPermissionDialogOpen(false)}
+        onClose={() => { if (!saving) setPermissionDialogOpen(false); }}
         maxWidth={false}
         PaperProps={{
           sx: {
@@ -411,6 +439,7 @@ export default function RoleMaintenance() {
                 <Button
                   size="small"
                   variant="outlined"
+                  disabled={saving}
                   onClick={() => setPermissionDialogOpen(false)}
                   sx={{ minWidth: 80, py: 0.75, px: 2, color: '#333', borderColor: '#aaa', fontSize: 14, textTransform: 'none' }}
                 >
@@ -419,11 +448,11 @@ export default function RoleMaintenance() {
                 <Button
                   size="small"
                   type="submit"
-                  disabled={catalogLoading || Boolean(catalogError)}
+                  disabled={saving || catalogLoading || Boolean(catalogError) || authorityRolesLoading || Boolean(authorityRolesError)}
                   variant="contained"
                   sx={{ minWidth: 80, py: 0.75, px: 2, bgcolor: '#b51f24', fontSize: 14, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
                 >
-                  {editingRow ? 'Submit' : 'Create'}
+                  {saving ? 'Creating...' : editingRow ? 'Submit' : 'Create'}
                 </Button>
               </Stack>
             </Stack>
@@ -432,6 +461,7 @@ export default function RoleMaintenance() {
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems={{ xs: 'stretch', sm: 'center' }} sx={{ mb: 2 }}>
               <TextField
                 label="Role Name"
+                disabled={saving}
                 required
                 variant="standard"
                 size="small"
@@ -446,10 +476,13 @@ export default function RoleMaintenance() {
               <TextField
                 select
                 label="Authority Role"
+                disabled={saving || authorityRolesLoading || Boolean(authorityRolesError)}
+                error={Boolean(authorityRolesError)}
+                helperText={authorityRolesLoading ? 'Loading roles...' : authorityRolesError || (authorityRoleOptions.length === 0 ? 'No authority roles available.' : '')}
                 required
                 variant="standard"
                 size="small"
-                value={roleValues.authorityRole}
+                value={authorityRoleOptions.some((role) => role.role === selectedAuthorityRole) ? selectedAuthorityRole : ''}
                 onChange={(event) => {
                   setRoleValues({ ...roleValues, authorityRole: event.target.value });
                   setFormError('');
@@ -457,8 +490,9 @@ export default function RoleMaintenance() {
                 InputLabelProps={{ shrink: true }}
                 sx={{ width: { xs: '100%', sm: 220 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
               >
+                {authorityRoleOptions.length === 0 && <MenuItem disabled value="">No roles available</MenuItem>}
                 {authorityRoleOptions.map((role) => (
-                  <MenuItem key={role} value={role}>{role}</MenuItem>
+                  <MenuItem key={role.id ?? role.role} value={role.role}>{role.role}</MenuItem>
                 ))}
               </TextField>
               {editingRow && (
@@ -476,6 +510,17 @@ export default function RoleMaintenance() {
                 </>
               )}
             </Stack>
+
+            <TextField
+              label="Description"
+              disabled={saving}
+              variant="standard"
+              size="small"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mb: 2, width: { xs: '100%', sm: 464 }, '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
+            />
 
             <Tabs
               value={permissionModule}
@@ -532,6 +577,7 @@ export default function RoleMaintenance() {
                               <Checkbox
                                 size="small"
                                 checked={checkedItems.includes(item.id)}
+                                disabled={saving}
                                 onChange={(event) => {
                                   const isChecked = event.target.checked;
                                   setPermissionValues((current) => {
@@ -573,6 +619,7 @@ export default function RoleMaintenance() {
                             <Checkbox
                               size="small"
                               checked={allChecked}
+                              disabled={saving}
                               indeterminate={someChecked}
                               onChange={() => {
                                 setPermissionValues((current) => ({
@@ -659,24 +706,42 @@ export default function RoleMaintenance() {
         </DialogActions>
       </Dialog>
 
-      <Dialog open={Boolean(rowToDelete)} onClose={() => setRowToDelete(null)}>
-        <DialogTitle sx={{ fontSize: 16 }}>Delete Role</DialogTitle>
-        <DialogContent>
-          <Typography sx={{ fontSize: 13 }}>Delete the “{rowToDelete?.role}” role?</Typography>
+      <Dialog
+        open={Boolean(rowToDelete)}
+        onClose={() => { if (!deleting) setRowToDelete(null); }}
+        aria-labelledby="delete-role-title"
+        aria-describedby="delete-role-description"
+        slotProps={{ paper: { sx: { width: 500, maxWidth: 'calc(100% - 32px)', m: 2, p: '0 8px', border: '2px solid #2196f3', borderRadius: '10px', boxShadow: 'none', bgcolor: '#fff' } } }}
+      >
+        <DialogTitle id="delete-role-title" sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #999', px: 0.5, py: 0.5, fontSize: 13 }}>
+          Delete Role
+          <IconButton aria-label="Close" size="small" onClick={() => setRowToDelete(null)} disabled={deleting} sx={{ p: 0.25, color: 'text.primary' }}>
+            <CloseIcon sx={{ fontSize: 16 }} />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ '&&': { pt: 4, pb: '28px', px: 1 }, textAlign: 'center' }}>
+          <Typography id="delete-role-description" sx={{ fontSize: 12 }}>
+            Are you sure you want to delete the <strong>{rowToDelete?.role}</strong> role?
+          </Typography>
+          {deleteError && <Typography role="alert" color="error" sx={{ mt: 1, fontSize: 12 }}>{deleteError}</Typography>}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setRowToDelete(null)} color="inherit">Cancel</Button>
-          <Button
-            color="error"
-            onClick={() => {
-              setRows((currentRows) => currentRows.filter((row) => row.id !== rowToDelete.id));
-              setRowToDelete(null);
-            }}
-          >
-            Delete
+        <DialogActions disableSpacing sx={{ justifyContent: 'center', gap: 1.25, pt: 0, pb: '17px', '& .MuiButton-root': { minWidth: 62, minHeight: 22, px: 1, py: 0, fontSize: 12, lineHeight: 1.5, textTransform: 'none', borderRadius: '5px' } }}>
+          <Button variant="outlined" color="inherit" onClick={() => setRowToDelete(null)} disabled={deleting}>No</Button>
+          <Button variant="contained" color="error" disableElevation onClick={confirmDeleteRole} disabled={deleting} sx={{ bgcolor: '#ad201d', '&:hover': { bgcolor: '#8c1917' } }}>
+            {deleting ? 'Deleting…' : 'Yes'}
           </Button>
         </DialogActions>
       </Dialog>
+      <Snackbar
+        open={deleteSucceeded}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        autoHideDuration={5000}
+        onClose={(_, reason) => { if (reason !== 'clickaway') setDeleteSucceeded(false); }}
+      >
+        <Alert severity="success" variant="filled" onClose={() => setDeleteSucceeded(false)}>
+          Role deleted successfully
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }

@@ -15,7 +15,6 @@ export async function createUser(
     loginUserName: string,
     email: string,
     passwordHash: string,
-    roleId: number | null,
     userType: 'EMPLOYEE' | 'CUSTOMER',
     createdBy: number | null = null,
     customerId: number | null = null
@@ -23,8 +22,8 @@ export async function createUser(
     const query = `
         SELECT "userId"
         FROM FINAL TABLE (
-            INSERT INTO ${SCHEMA}."User" ("userName", "loginUserName", "email", "passwordHash", "createdAt", "activeStatus", "roleId", "userType", "customerId")
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, 'Y', ?, ?, ?)
+            INSERT INTO ${SCHEMA}."User" ("userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId")
+            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, 'Y', ?, ?)
         )
     `;
 
@@ -33,7 +32,7 @@ export async function createUser(
         loginUserName.toUpperCase(),
         email,
         passwordHash,
-        roleId,
+        createdBy,
         userType,
         customerId || null
     ];
@@ -47,7 +46,7 @@ export async function createUser(
  */
 export async function getUserById(conn: Connection, userId: number): Promise<User | null> {
     const query = `
-        SELECT "userId", "userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "roleId", "userType", "customerId"
+        SELECT "userId", "userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId"
         FROM ${SCHEMA}."User"
         WHERE "userId" = ?
     `;
@@ -61,7 +60,7 @@ export async function getUserById(conn: Connection, userId: number): Promise<Use
  */
 export async function getUserByLoginUsername(conn: Connection, loginUserName: string): Promise<User | null> {
     const query = `
-        SELECT "userId", "userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "roleId", "userType", "customerId"
+        SELECT "userId", "userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId"
         FROM ${SCHEMA}."User"
         WHERE "loginUserName" = ?
     `;
@@ -95,7 +94,7 @@ export async function getAllUsers(
     // Data query
     let query = `
         SELECT "userId", "userName", "loginUserName", "email", "createdAt", "createdBy", 
-               "activeStatus", "roleId", "userType", "customerId"
+               "activeStatus", "userType", "customerId"
         FROM ${SCHEMA}."User"
         ${whereClause}
         ORDER BY "userId" DESC`;
@@ -119,7 +118,6 @@ export async function updateUser(
         userName?: string;
         loginUserName?: string;
         email?: string;
-        roleId?: number;
         activeStatus?: string;
         userType?: string;
         customerId?: number | null;
@@ -139,10 +137,6 @@ export async function updateUser(
     if (updates.email) {
         updateFields.push('EMAIL = ?');
         values.push(updates.email);
-    }
-    if (updates.roleId) {
-        updateFields.push('ROLEID = ?');
-        values.push(updates.roleId);
     }
     if (updates.activeStatus) {
         updateFields.push('ACTIVESTATUS = ?');
@@ -201,21 +195,6 @@ export async function changeUserStatus(
     const query = `UPDATE User SET active_status = ? WHERE user_id = ?`;
     await conn.query(query, [activeStatus, userId]);
     return true;
-}
-
-/**
- * Get users by role
- */
-export async function getUsersByRole(conn: Connection, roleId: number): Promise<User[]> {
-    const query = `
-        SELECT user_id, user_name, login_user_name, email, password_hash, created_at, created_by, active_status, role_id, user_type, customer_id
-        FROM User
-        WHERE role_id = ?
-        ORDER BY user_id DESC
-    `;
-
-    const result = (await conn.query(query, [roleId])) as User[];
-    return result;
 }
 
 /**

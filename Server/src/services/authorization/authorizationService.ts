@@ -1,7 +1,7 @@
 import { createHmac, randomInt, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Connection } from 'odbc';
-import { Permission, Role, User, UserRoleAssignment } from '../../entities/authorization';
+import { Permission, PermissionApplicationCode, Role, User } from '../../entities/authorization';
 import { AuthorizationRoleKind, AuthorizationStatus } from '../../entities/authorization/User';
 import { createPasswordHash, verifyStoredPassword } from '../../utils/password';
 import { sendPasswordResetOtpEmail } from '../../utils/emailService';
@@ -17,7 +17,8 @@ export interface CreateRoleRequest {
     description?: string | null;
     roleKind: AuthorizationRoleKind;
     status?: AuthorizationStatus;
-    permissionIds?: number[];
+    permissionCodes?: string[];
+    parentRoleIds?: number[];
 }
 
 export interface UpdateRoleRequest {
@@ -25,7 +26,8 @@ export interface UpdateRoleRequest {
     description?: string | null;
     roleKind?: AuthorizationRoleKind;
     status?: AuthorizationStatus;
-    permissionIds?: number[];
+    permissionCodes?: string[];
+    parentRoleIds?: number[];
 }
 
 export interface CreateUserRequest {
@@ -65,7 +67,7 @@ export function getRoleIdsForUser(user: User, roles: Role[]): number[] {
 }
 
 export function getPermissionsByUser(_user: User, permissions: Permission[]): Permission[] {
-    return permissions.filter((permission) => permission.status === 'ACTIVE');
+    return permissions;
 }
 
 export function hasPermission(
@@ -75,12 +77,8 @@ export function hasPermission(
     userType?: AuthorizationRoleKind,
 ): boolean {
     const target = requiredPermissionKey.trim().toUpperCase();
-    const effectiveUserType = userType ?? user.userType;
-    return permissions.some((permission) =>
-        permission.status === 'ACTIVE' &&
-        permission.permissionKey.toUpperCase() === target &&
-        (effectiveUserType === 'EMPLOYEE' || permission.sensitivity !== 'CRITICAL'),
-    );
+    void userType;
+    return permissions.some((permission) => permission.permissionKey.toUpperCase() === target);
 }
 
 export function canAccessCustomerData(user: User, targetCustomerId: number | null): boolean {
@@ -92,6 +90,7 @@ export function isCustomerReadOnly(user: User): boolean {
 }
 
 function mapPermission(row: any): Permission {
+    const applicationCode = String(row.applicationCode ?? row.APPLICATIONCODE ?? '');
     const moduleKey = String(row.moduleKey ?? row.moduleName ?? row.MODULEKEY ?? row.MODULENAME ?? '');
     const resourceKey = String(row.resourceKey ?? row.formName ?? row.form ?? row.RESOURCEKEY ?? row.FORMNAME ?? '');
     const actionKey = String(row.actionKey ?? row.actionName ?? row.permissionName ?? row.ACTIONKEY ?? row.ACTIONNAME ?? row.PERMISSIONNAME ?? '');
@@ -100,26 +99,32 @@ function mapPermission(row: any): Permission {
 
     return {
         permissionId: Number(row.permissionId ?? row.PERMISSIONID),
+        permissionCode: String(row.permissionCode ?? row.PERMISSIONCODE),
+        displayName: String(row.displayName ?? row.DISPLAYNAME ?? row.permissionName ?? row.PERMISSIONNAME ?? permissionKey),
+        applicationCode: applicationCode as PermissionApplicationCode,
         permissionKey,
         moduleKey,
         resourceKey,
         actionKey,
         description: row.description ?? row.DESCRIPTION ?? null,
-        sensitivity: row.sensitivity ?? row.SENSITIVITY ?? 'LOW',
-        status: row.status ?? row.STATUS ?? 'ACTIVE',
     };
 }
 
-async function validatePermissionIds(conn: Connection, ids: number[]): Promise<number[]> {
-    if (!Array.isArray(ids) || ids.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
-        throw new Error('permissionIds must be an array of positive integer IDs');
+async function validatePermissionCodes(conn: Connection, codes: string[]): Promise<string[]> {
+    if (!Array.isArray(codes) || codes.some((code) => typeof code !== 'string' || !code.trim())) {
+        throw new Error('permissionCodes must be an array of non-empty strings');
     }
-    const uniqueIds = [...new Set(ids)];
-    const rows = await authorizationRepository.getPermissionsByIds(conn, uniqueIds);
-    const validIds = new Set(rows.map((row) => Number(row.permissionId ?? row.PERMISSIONID)));
-    const invalid = uniqueIds.filter((id) => !validIds.has(id));
-    if (invalid.length) throw new Error(`Unknown permission IDs: ${invalid.join(', ')}`);
-    return uniqueIds;
+    const requestedCodes = [...new Set(codes.map((code) => code.trim().toUpperCase()))];
+    const rows = await authorizationRepository.getPermissionsByCodes(conn, requestedCodes);
+    const codeByNormalizedValue = new Map(
+        rows.map((row) => {
+            const permissionCode = String(row.permissionCode ?? row.PERMISSIONCODE);
+            return [permissionCode.toUpperCase(), permissionCode];
+        }),
+    );
+    const invalid = requestedCodes.filter((code) => !codeByNormalizedValue.has(code));
+    if (invalid.length) throw new Error(`Unknown permission codes: ${invalid.join(', ')}`);
+    return requestedCodes.map((code) => codeByNormalizedValue.get(code)!);
 }
 
 async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationRoleKind, roleIds: number[]): Promise<Role[]> {
@@ -137,12 +142,24 @@ async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationR
     return roles;
 }
 
-export async function createRole(conn: Connection, input: CreateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionIds: number[] }> {
+export async function createRole(conn: Connection, input: CreateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionCodes: string[]; parentRoleIds: number[] }> {
     const name = input.name?.trim();
     if (!name) throw new Error('Role name is required');
     if (await authorizationRepository.getRoleByName(conn, name, input.roleKind)) throw new Error('Role name already exists for this role type');
 
-    const permissionIds = await validatePermissionIds(conn, input.permissionIds ?? []);
+    const permissionCodes = await validatePermissionCodes(conn, input.permissionCodes ?? []);
+    const parentRoleIds = input.parentRoleIds ?? [];
+    if (!Array.isArray(parentRoleIds) || parentRoleIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+        throw new Error('parentRoleIds must be an array of positive integer role IDs');
+    }
+    const uniqueParentRoleIds = [...new Set(parentRoleIds)];
+    for (const parentRoleId of uniqueParentRoleIds) {
+        const parentRole = await authorizationRepository.getRoleById(conn, parentRoleId);
+        if (!parentRole || parentRole.status !== 'ACTIVE' || parentRole.roleKind !== input.roleKind) {
+            throw new Error(`Parent role ${parentRoleId} is missing, inactive, or has a different role type`);
+        }
+    }
+
     await conn.beginTransaction();
     try {
         const role = await authorizationRepository.insertRole(conn, {
@@ -152,24 +169,43 @@ export async function createRole(conn: Connection, input: CreateRoleRequest, act
             status: input.status ?? 'ACTIVE',
             createdBy: actorUserId,
         });
-        await authorizationRepository.replaceRolePermissions(conn, role.roleId, permissionIds, actorUserId);
+        await authorizationRepository.replaceRolePermissions(conn, role.roleId, permissionCodes, actorUserId);
+        for (const parentRoleId of uniqueParentRoleIds) {
+            await authorizationRepository.assignParentRole(conn, parentRoleId, role.roleId, actorUserId);
+        }
         await conn.commit();
-        return { ...role, permissionIds };
+        return { ...role, permissionCodes, parentRoleIds: uniqueParentRoleIds };
     } catch (error) {
         await conn.rollback();
         throw error;
     }
 }
 
-export async function updateRole(conn: Connection, roleId: number, input: UpdateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionIds: number[] }> {
+export async function updateRole(conn: Connection, roleId: number, input: UpdateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionCodes: string[]; parentRoleIds: number[] }> {
     const role = await authorizationRepository.getRoleById(conn, roleId);
     if (!role) throw new Error('Role not found');
-    const permissionIds = input.permissionIds === undefined ? undefined : await validatePermissionIds(conn, input.permissionIds);
+    const permissionCodes = input.permissionCodes === undefined ? undefined : await validatePermissionCodes(conn, input.permissionCodes);
+    const parentRoleIds = input.parentRoleIds;
+    if (parentRoleIds !== undefined) {
+        if (!Array.isArray(parentRoleIds) || parentRoleIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+            throw new Error('parentRoleIds must be an array of positive integer role IDs');
+        }
+        const roleKind = input.roleKind ?? role.roleKind;
+        for (const parentRoleId of [...new Set(parentRoleIds)]) {
+            const parentRole = await authorizationRepository.getRoleById(conn, parentRoleId);
+            if (parentRoleId === roleId || !parentRole || parentRole.status !== 'ACTIVE' || parentRole.roleKind !== roleKind) {
+                throw new Error(`Parent role ${parentRoleId} is missing, inactive, self-referential, or incompatible with role type`);
+            }
+        }
+    }
 
     await conn.beginTransaction();
     try {
         await authorizationRepository.updateRole(conn, roleId, { ...input, updatedBy: actorUserId });
-        if (permissionIds !== undefined) await authorizationRepository.replaceRolePermissions(conn, roleId, permissionIds, actorUserId);
+        if (permissionCodes !== undefined) await authorizationRepository.replaceRolePermissions(conn, roleId, permissionCodes, actorUserId);
+        if (parentRoleIds !== undefined) {
+            await authorizationRepository.replaceParentRoles(conn, roleId, [...new Set(parentRoleIds)], actorUserId);
+        }
         await conn.commit();
     } catch (error) {
         await conn.rollback();
@@ -178,23 +214,42 @@ export async function updateRole(conn: Connection, roleId: number, input: Update
 
     const updated = await authorizationRepository.getRoleById(conn, roleId);
     if (!updated) throw new Error('Role not found after update');
-    return { ...updated, permissionIds: await authorizationRepository.getRolePermissionIds(conn, roleId) };
+    return {
+        ...updated,
+        permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, roleId),
+        parentRoleIds: await authorizationRepository.getParentRoleIds(conn, roleId),
+    };
 }
 
-export async function getRoleDetails(conn: Connection, roleId: number): Promise<Role & { permissions: Permission[] }> {
+export async function getRoleDetails(conn: Connection, roleId: number): Promise<Role & { permissions: Permission[]; parentRoleIds: number[] }> {
     const role = await authorizationRepository.getRoleById(conn, roleId);
     if (!role) throw new Error('Role not found');
-    const ids = await authorizationRepository.getRolePermissionIds(conn, roleId);
-    const rows = await authorizationRepository.getPermissionsByIds(conn, ids);
-    return { ...role, permissions: rows.map(mapPermission) };
+    const codes = await authorizationRepository.getRolePermissionCodes(conn, roleId);
+    const rows = await authorizationRepository.getPermissionsByCodes(conn, codes);
+    return {
+        ...role,
+        permissions: rows.map(mapPermission),
+        parentRoleIds: await authorizationRepository.getParentRoleIds(conn, roleId),
+    };
 }
 
-export async function listRoles(conn: Connection): Promise<Array<Role & { permissionIds: number[] }>> {
-    const roles = await authorizationRepository.getRoles(conn);
+export async function listRoles(conn: Connection, roleKind?: AuthorizationRoleKind, roleName?: string): Promise<Array<Role & { permissionCodes: string[]; parentRoleIds: number[] }>> {
+    if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+        throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
+    }
+    const roles = await authorizationRepository.getRoles(conn, roleKind, roleName?.trim() || undefined);
     return Promise.all(roles.map(async (role) => ({
         ...role,
-        permissionIds: await authorizationRepository.getRolePermissionIds(conn, role.roleId),
+        permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, role.roleId),
+        parentRoleIds: await authorizationRepository.getParentRoleIds(conn, role.roleId),
     })));
+}
+
+export async function getRoleOptions(conn: Connection, roleKind?: AuthorizationRoleKind): Promise<Array<Pick<Role, 'roleId' | 'name' | 'roleKind'>>> {
+    if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+        throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
+    }
+    return authorizationRepository.getRoleOptions(conn, roleKind);
 }
 
 export async function deactivateRole(conn: Connection, roleId: number, actorUserId: number | null = null): Promise<void> {
@@ -385,8 +440,19 @@ export async function resetPassword(conn: Connection, email: string, otp: string
     }
 }
 
-export async function getPermissionCatalog(conn: Connection): Promise<Permission[]> {
-    return (await authorizationRepository.getPermissionCatalog(conn)).map(mapPermission);
+export async function getPermissionCatalog(conn: Connection): Promise<Record<PermissionApplicationCode, Record<string, Permission[]>>> {
+    const catalog: Record<PermissionApplicationCode, Record<string, Permission[]>> = {
+        warehouse: {},
+        maintenance: {},
+        network_services: {},
+    };
+    for (const row of await authorizationRepository.getPermissionCatalog(conn)) {
+        const permission = mapPermission(row);
+        const modules = catalog[permission.applicationCode];
+        modules[permission.moduleKey] ??= [];
+        modules[permission.moduleKey].push(permission);
+    }
+    return catalog;
 }
 
 export async function getRolePermissionSummary(conn: Connection, userId: number): Promise<{ roles: Role[]; permissions: Permission[] }> {

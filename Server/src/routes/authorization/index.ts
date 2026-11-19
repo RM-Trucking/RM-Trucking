@@ -54,6 +54,16 @@ router.get('/roles', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+// ACTIVE ROLES FOR DROPDOWNS
+router.get('/roles/options', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    try {
+        await authorizationController.getRoleOptions(req, res, conn);
+    } finally {
+        await conn.close();
+    }
+});
+
 // ROLE SUMMARY
 router.get('/roles/summary', authenticateJWT, async (req, res) => {
     const conn = await db();
@@ -134,13 +144,6 @@ router.get('/permissions/catalog', authenticateJWT, async (req, res) => {
     } finally {
         await conn.close();
     }
-});
-
-// GET CURRENT USER PERMISSIONS
-router.get('/permissions', authenticateJWT, async (req, res) => {
-    const conn = await db();
-    await authorizationController.getUserPermissions(req, res, conn);
-    conn.close();
 });
 
 export default router;

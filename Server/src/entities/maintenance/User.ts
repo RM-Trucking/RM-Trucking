@@ -11,7 +11,6 @@ export interface User {
     createdAt: Date;
     createdBy: number | null;
     activeStatus: 'Y' | 'N';
-    roleId: number;
     userType: 'EMPLOYEE' | 'CUSTOMER';
     customerId: number | null;
 }
@@ -24,7 +23,6 @@ export interface CreateUserRequest {
     loginUserName: string;
     email: string;
     loginPassword: string; // Will be hashed using PBKDF2
-    roleId?: number;
     userType: 'EMPLOYEE' | 'CUSTOMER';
     customerId?: number | null;
 }
@@ -37,7 +35,6 @@ export interface UpdateUserRequest {
     userName?: string;
     loginUserName?: string;
     email?: string;
-    roleId?: number;
     userType?: 'EMPLOYEE' | 'CUSTOMER';
     customerId?: number | null;
 }
@@ -69,8 +66,6 @@ export interface UserResponse {
     createdAt: Date;
     createdBy: number | null;
     activeStatus: 'Y' | 'N';
-    roleId: number;
-    roleName?: string;
     userType: 'EMPLOYEE' | 'CUSTOMER';
     customerId: number | null;
     customerName?: string;

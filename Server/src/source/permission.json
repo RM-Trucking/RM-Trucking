@@ -1,0 +1,1082 @@
+[
+  {
+    "permissionCode": "PER1",
+    "displayName": "Create En-Route Record",
+    "applicationCode": "warehouse",
+    "permissionKey": "en_route.form.create",
+    "moduleKey": "en_route",
+    "resourceKey": "form",
+    "actionKey": "create",
+    "description": "Allows the user to create an en-route record."
+  },
+  {
+    "permissionCode": "PER2",
+    "displayName": "View En-Route Record",
+    "applicationCode": "warehouse",
+    "permissionKey": "en_route.form.view",
+    "moduleKey": "en_route",
+    "resourceKey": "form",
+    "actionKey": "view",
+    "description": "Allows the user to view an en-route record."
+  },
+  {
+    "permissionCode": "PER3",
+    "displayName": "Create Driver Check-In",
+    "applicationCode": "warehouse",
+    "permissionKey": "id_verification.form.create",
+    "moduleKey": "id_verification",
+    "resourceKey": "form",
+    "actionKey": "create",
+    "description": "Allows the user to create a driver check-in during ID verification."
+  },
+  {
+    "permissionCode": "PER4",
+    "displayName": "View ID Verification Record",
+    "applicationCode": "warehouse",
+    "permissionKey": "id_verification.form.view",
+    "moduleKey": "id_verification",
+    "resourceKey": "form",
+    "actionKey": "view",
+    "description": "Allows the user to view an ID verification record."
+  },
+  {
+    "permissionCode": "PER5",
+    "displayName": "Print ID Verification Form",
+    "applicationCode": "warehouse",
+    "permissionKey": "id_verification.form.print",
+    "moduleKey": "id_verification",
+    "resourceKey": "form",
+    "actionKey": "print",
+    "description": "Allows the user to print the ID verification form."
+  },
+  {
+    "permissionCode": "PER6",
+    "displayName": "Create Regular Receipt by PRO and Receipt Number",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt_regular.create_by_pro_and_receipt_number",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt_regular",
+    "actionKey": "create_by_pro_and_receipt_number",
+    "description": "Allows the user to create a regular warehouse receipt using the PRO number and receipt number."
+  },
+  {
+    "permissionCode": "PER7",
+    "displayName": "Create Regular Receipt by RM PRO",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt_regular.create_by_rmpro",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt_regular",
+    "actionKey": "create_by_rmpro",
+    "description": "Allows the user to create a regular warehouse receipt using the RM PRO."
+  },
+  {
+    "permissionCode": "PER8",
+    "displayName": "Create Regular Receipt by Parcel Carrier",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt_regular.create_by_parcel_carrier",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt_regular",
+    "actionKey": "create_by_parcel_carrier",
+    "description": "Allows the user to create a regular warehouse receipt for a parcel carrier shipment."
+  },
+  {
+    "permissionCode": "PER9",
+    "displayName": "Create Trailer Receipt by PRO and Receipt Number",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt_trailer.create_by_pro_and_receipt_number",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt_trailer",
+    "actionKey": "create_by_pro_and_receipt_number",
+    "description": "Allows the user to create a trailer warehouse receipt using the PRO number and receipt number."
+  },
+  {
+    "permissionCode": "PER10",
+    "displayName": "Create Trailer Receipt by RM PRO",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt_trailer.create_by_rmpro",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt_trailer",
+    "actionKey": "create_by_rmpro",
+    "description": "Allows the user to create a trailer warehouse receipt using the RM PRO."
+  },
+  {
+    "permissionCode": "PER11",
+    "displayName": "Reject Warehouse Receipt",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.reject",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "reject",
+    "description": "Allows the user to reject a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER12",
+    "displayName": "View Warehouse Receipt",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.view",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "view",
+    "description": "Allows the user to view a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER13",
+    "displayName": "Print Warehouse Receipt",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.print",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "print",
+    "description": "Allows the user to print a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER14",
+    "displayName": "Print Receipt Label",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.print_label",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "print_label",
+    "description": "Allows the user to print labels for a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER15",
+    "displayName": "View Receipt Status",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.status_view",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "status_view",
+    "description": "Allows the user to view the status of a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER16",
+    "displayName": "View Receipt Rate",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.rate_view",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "rate_view",
+    "description": "Allows the user to view the rate information on a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER17",
+    "displayName": "Split Warehouse Receipt",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.split",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "split",
+    "description": "Allows the user to split a warehouse receipt into multiple receipts."
+  },
+  {
+    "permissionCode": "PER18",
+    "displayName": "Edit Warehouse Receipt",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.edit",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "edit",
+    "description": "Allows the user to edit a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER19",
+    "displayName": "Edit Receipt Location",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.edit_location",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "edit_location",
+    "description": "Allows the user to edit the storage location of a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER20",
+    "displayName": "Edit Receipt Invoice Number",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.edit_invoice_number",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "edit_invoice_number",
+    "description": "Allows the user to edit the invoice number on a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER21",
+    "displayName": "Upload Receipt Document",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.document_upload",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "document_upload",
+    "description": "Allows the user to upload documents to a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER22",
+    "displayName": "View Receipt Document",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.document_view",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "document_view",
+    "description": "Allows the user to view documents attached to a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER23",
+    "displayName": "Send Receipt Email",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.email_send",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "email_send",
+    "description": "Allows the user to send emails from a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER24",
+    "displayName": "Request Receipt Accounting",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.accounting_request",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "accounting_request",
+    "description": "Allows the user to submit an accounting request for a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER25",
+    "displayName": "Approve Receipt Accounting",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.accounting_approve",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "accounting_approve",
+    "description": "Allows the user to approve an accounting request for a warehouse receipt."
+  },
+  {
+    "permissionCode": "PER26",
+    "displayName": "Export Receipts to Spreadsheet",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_receipt.receipt.export_spreadsheet",
+    "moduleKey": "warehouse_receipt",
+    "resourceKey": "receipt",
+    "actionKey": "export_spreadsheet",
+    "description": "Allows the user to export warehouse receipts to a spreadsheet."
+  },
+  {
+    "permissionCode": "PER27",
+    "displayName": "Create Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.create",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "create",
+    "description": "Allows the user to create a new Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER28",
+    "displayName": "Edit Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.edit",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER29",
+    "displayName": "View Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.view",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "view",
+    "description": "Allows the user to view an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER30",
+    "displayName": "Cancel Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.cancel",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "cancel",
+    "description": "Allows the user to cancel an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER31",
+    "displayName": "Scan Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "scan",
+    "description": "Allows the user to scan items on an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER32",
+    "displayName": "Un-Scan Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.un_scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "un_scan",
+    "description": "Allows the user to undo the scanning of items on an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER33",
+    "displayName": "Approve Split Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.approve_split",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "approve_split",
+    "description": "Allows the user to approve a split of an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER34",
+    "displayName": "Sign Off Air Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.sign_off",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "sign_off",
+    "description": "Allows the user to sign off on an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER35",
+    "displayName": "Send Air Shipment Pickup",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.send_pickup",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "send_pickup",
+    "description": "Allows the user to send the pickup request for an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER36",
+    "displayName": "Edit Air Shipment Pickup Number",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.edit_pickup_number",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "edit_pickup_number",
+    "description": "Allows the user to edit the pickup number on an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER37",
+    "displayName": "Upload Air Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.upload_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "upload_image",
+    "description": "Allows the user to upload images to an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER38",
+    "displayName": "View Air Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.view_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "view_image",
+    "description": "Allows the user to view images attached to an Air warehouse shipment."
+  },
+  {
+    "permissionCode": "PER39",
+    "displayName": "Export Air Shipments to Spreadsheet",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.air.export_spreadsheet",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "air",
+    "actionKey": "export_spreadsheet",
+    "description": "Allows the user to export Air warehouse shipments to a spreadsheet."
+  },
+  {
+    "permissionCode": "PER40",
+    "displayName": "Create Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.create",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "create",
+    "description": "Allows the user to create a new Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER41",
+    "displayName": "Edit Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.edit",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER42",
+    "displayName": "View Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.view",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "view",
+    "description": "Allows the user to view an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER43",
+    "displayName": "Cancel Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.cancel",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "cancel",
+    "description": "Allows the user to cancel an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER44",
+    "displayName": "Scan Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "scan",
+    "description": "Allows the user to scan items on an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER45",
+    "displayName": "Un-Scan Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.un_scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "un_scan",
+    "description": "Allows the user to undo the scanning of items on an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER46",
+    "displayName": "Approve Split Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.approve_split",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "approve_split",
+    "description": "Allows the user to approve a split of an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER47",
+    "displayName": "Sign Off Ocean LCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.sign_off",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "sign_off",
+    "description": "Allows the user to sign off on an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER48",
+    "displayName": "Upload Ocean LCL Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.upload_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "upload_image",
+    "description": "Allows the user to upload images to an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER49",
+    "displayName": "View Ocean LCL Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.view_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "view_image",
+    "description": "Allows the user to view images attached to an Ocean LCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER50",
+    "displayName": "Export Ocean LCL Shipments to Spreadsheet",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_lcl.export_spreadsheet",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_lcl",
+    "actionKey": "export_spreadsheet",
+    "description": "Allows the user to export Ocean LCL warehouse shipments to a spreadsheet."
+  },
+  {
+    "permissionCode": "PER51",
+    "displayName": "Create Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.create",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "create",
+    "description": "Allows the user to create a new Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER52",
+    "displayName": "Edit Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.edit",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER53",
+    "displayName": "View Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.view",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "view",
+    "description": "Allows the user to view an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER54",
+    "displayName": "Cancel Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.cancel",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "cancel",
+    "description": "Allows the user to cancel an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER55",
+    "displayName": "Scan Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "scan",
+    "description": "Allows the user to scan items on an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER56",
+    "displayName": "Un-Scan Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.un_scan",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "un_scan",
+    "description": "Allows the user to undo the scanning of items on an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER57",
+    "displayName": "Approve Split Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.approve_split",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "approve_split",
+    "description": "Allows the user to approve a split of an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER58",
+    "displayName": "Sign Off Ocean FCL Shipment",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.sign_off",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "sign_off",
+    "description": "Allows the user to sign off on an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER59",
+    "displayName": "Edit Ocean FCL Shipment Pickup Number",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.edit_pickup_number",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "edit_pickup_number",
+    "description": "Allows the user to edit the pickup number on an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER60",
+    "displayName": "Upload Ocean FCL Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.upload_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "upload_image",
+    "description": "Allows the user to upload images to an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER61",
+    "displayName": "View Ocean FCL Shipment Image",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.view_image",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "view_image",
+    "description": "Allows the user to view images attached to an Ocean FCL warehouse shipment."
+  },
+  {
+    "permissionCode": "PER62",
+    "displayName": "Export Ocean FCL Shipments to Spreadsheet",
+    "applicationCode": "warehouse",
+    "permissionKey": "warehouse_shipment.ocean_fcl.export_spreadsheet",
+    "moduleKey": "warehouse_shipment",
+    "resourceKey": "ocean_fcl",
+    "actionKey": "export_spreadsheet",
+    "description": "Allows the user to export Ocean FCL warehouse shipments to a spreadsheet."
+  },
+  {
+    "permissionCode": "PER63",
+    "displayName": "Create Customer",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.create",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "create",
+    "description": "Allows the user to create a new customer."
+  },
+  {
+    "permissionCode": "PER64",
+    "displayName": "Edit Customer",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.edit",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing customer."
+  },
+  {
+    "permissionCode": "PER65",
+    "displayName": "View Customer",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.view",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "view",
+    "description": "Allows the user to view customer details."
+  },
+  {
+    "permissionCode": "PER66",
+    "displayName": "Delete Customer",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.delete",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer."
+  },
+  {
+    "permissionCode": "PER67",
+    "displayName": "View Customer Dropdown",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.view_dropdown",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "view_dropdown",
+    "description": "Allows the user to view the customer list in dropdown selections."
+  },
+  {
+    "permissionCode": "PER68",
+    "displayName": "View Customer Common Dropdown",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.customer.view_common_dropdown",
+    "moduleKey": "customer",
+    "resourceKey": "customer",
+    "actionKey": "view_common_dropdown",
+    "description": "Allows the user to view the common customer list in dropdown selections."
+  },
+  {
+    "permissionCode": "PER69",
+    "displayName": "Create Customer Station",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.station.create",
+    "moduleKey": "customer",
+    "resourceKey": "station",
+    "actionKey": "create",
+    "description": "Allows the user to create a new customer station."
+  },
+  {
+    "permissionCode": "PER70",
+    "displayName": "Edit Customer Station",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.station.edit",
+    "moduleKey": "customer",
+    "resourceKey": "station",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing customer station."
+  },
+  {
+    "permissionCode": "PER71",
+    "displayName": "View Customer Station",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.station.view",
+    "moduleKey": "customer",
+    "resourceKey": "station",
+    "actionKey": "view",
+    "description": "Allows the user to view customer station details."
+  },
+  {
+    "permissionCode": "PER72",
+    "displayName": "Delete Customer Station",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.station.delete",
+    "moduleKey": "customer",
+    "resourceKey": "station",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer station."
+  },
+  {
+    "permissionCode": "PER73",
+    "displayName": "View Customer Station Dropdown",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.station.view_dropdown",
+    "moduleKey": "customer",
+    "resourceKey": "station",
+    "actionKey": "view_dropdown",
+    "description": "Allows the user to view the customer station list in dropdown selections."
+  },
+  {
+    "permissionCode": "PER74",
+    "displayName": "Create Customer Department",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.department.create",
+    "moduleKey": "customer",
+    "resourceKey": "department",
+    "actionKey": "create",
+    "description": "Allows the user to create a new customer department."
+  },
+  {
+    "permissionCode": "PER75",
+    "displayName": "Edit Customer Department",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.department.edit",
+    "moduleKey": "customer",
+    "resourceKey": "department",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing customer department."
+  },
+  {
+    "permissionCode": "PER76",
+    "displayName": "View Customer Department",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.department.view",
+    "moduleKey": "customer",
+    "resourceKey": "department",
+    "actionKey": "view",
+    "description": "Allows the user to view customer department details."
+  },
+  {
+    "permissionCode": "PER77",
+    "displayName": "Delete Customer Department",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.department.delete",
+    "moduleKey": "customer",
+    "resourceKey": "department",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer department."
+  },
+  {
+    "permissionCode": "PER78",
+    "displayName": "Create Customer Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.personnel.create",
+    "moduleKey": "customer",
+    "resourceKey": "personnel",
+    "actionKey": "create",
+    "description": "Allows the user to create a new customer personnel record."
+  },
+  {
+    "permissionCode": "PER79",
+    "displayName": "Edit Customer Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.personnel.edit",
+    "moduleKey": "customer",
+    "resourceKey": "personnel",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing customer personnel record."
+  },
+  {
+    "permissionCode": "PER80",
+    "displayName": "View Customer Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.personnel.view",
+    "moduleKey": "customer",
+    "resourceKey": "personnel",
+    "actionKey": "view",
+    "description": "Allows the user to view customer personnel record details."
+  },
+  {
+    "permissionCode": "PER81",
+    "displayName": "Delete Customer Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.personnel.delete",
+    "moduleKey": "customer",
+    "resourceKey": "personnel",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer personnel record."
+  },
+  {
+    "permissionCode": "PER82",
+    "displayName": "Select Customer Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.rate.select",
+    "moduleKey": "customer",
+    "resourceKey": "rate",
+    "actionKey": "select",
+    "description": "Allows the user to select a rate for a customer."
+  },
+  {
+    "permissionCode": "PER83",
+    "displayName": "View Customer Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.rate.view",
+    "moduleKey": "customer",
+    "resourceKey": "rate",
+    "actionKey": "view",
+    "description": "Allows the user to view customer rates."
+  },
+  {
+    "permissionCode": "PER84",
+    "displayName": "Delete Customer Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.rate.delete",
+    "moduleKey": "customer",
+    "resourceKey": "rate",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer rate."
+  },
+  {
+    "permissionCode": "PER85",
+    "displayName": "Create Customer Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.accessorial.create",
+    "moduleKey": "customer",
+    "resourceKey": "accessorial",
+    "actionKey": "create",
+    "description": "Allows the user to create a new customer accessorial charge."
+  },
+  {
+    "permissionCode": "PER86",
+    "displayName": "Edit Customer Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.accessorial.edit",
+    "moduleKey": "customer",
+    "resourceKey": "accessorial",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing customer accessorial charge."
+  },
+  {
+    "permissionCode": "PER87",
+    "displayName": "Delete Customer Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "customer.accessorial.delete",
+    "moduleKey": "customer",
+    "resourceKey": "accessorial",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a customer accessorial charge."
+  },
+  {
+    "permissionCode": "PER88",
+    "displayName": "Create Carrier",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier.create",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier",
+    "actionKey": "create",
+    "description": "Allows the user to create a new carrier."
+  },
+  {
+    "permissionCode": "PER89",
+    "displayName": "Edit Carrier",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier.edit",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing carrier."
+  },
+  {
+    "permissionCode": "PER90",
+    "displayName": "View Carrier",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier.view",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier",
+    "actionKey": "view",
+    "description": "Allows the user to view carrier details."
+  },
+  {
+    "permissionCode": "PER91",
+    "displayName": "Delete Carrier",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier."
+  },
+  {
+    "permissionCode": "PER92",
+    "displayName": "Create Carrier Terminal",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal.create",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal",
+    "actionKey": "create",
+    "description": "Allows the user to create a new carrier terminal."
+  },
+  {
+    "permissionCode": "PER93",
+    "displayName": "Edit Carrier Terminal",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal.edit",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing carrier terminal."
+  },
+  {
+    "permissionCode": "PER94",
+    "displayName": "View Carrier Terminal",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal.view",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal",
+    "actionKey": "view",
+    "description": "Allows the user to view carrier terminal details."
+  },
+  {
+    "permissionCode": "PER95",
+    "displayName": "Delete Carrier Terminal",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier terminal."
+  },
+  {
+    "permissionCode": "PER96",
+    "displayName": "Create Carrier Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.personnel.create",
+    "moduleKey": "carrier",
+    "resourceKey": "personnel",
+    "actionKey": "create",
+    "description": "Allows the user to create a new carrier personnel record."
+  },
+  {
+    "permissionCode": "PER97",
+    "displayName": "Edit Carrier Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.personnel.edit",
+    "moduleKey": "carrier",
+    "resourceKey": "personnel",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing carrier personnel record."
+  },
+  {
+    "permissionCode": "PER98",
+    "displayName": "View Carrier Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.personnel.view",
+    "moduleKey": "carrier",
+    "resourceKey": "personnel",
+    "actionKey": "view",
+    "description": "Allows the user to view carrier personnel record details."
+  },
+  {
+    "permissionCode": "PER99",
+    "displayName": "Delete Carrier Personnel",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.personnel.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "personnel",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier personnel record."
+  },
+  {
+    "permissionCode": "PER100",
+    "displayName": "Select Carrier Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.rate.select",
+    "moduleKey": "carrier",
+    "resourceKey": "rate",
+    "actionKey": "select",
+    "description": "Allows the user to select a rate for a carrier."
+  },
+  {
+    "permissionCode": "PER101",
+    "displayName": "View Carrier Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.rate.view",
+    "moduleKey": "carrier",
+    "resourceKey": "rate",
+    "actionKey": "view",
+    "description": "Allows the user to view carrier rates."
+  },
+  {
+    "permissionCode": "PER102",
+    "displayName": "Delete Carrier Rate",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.rate.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "rate",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier rate."
+  },
+  {
+    "permissionCode": "PER103",
+    "displayName": "Create Carrier Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier_accessorial.create",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier_accessorial",
+    "actionKey": "create",
+    "description": "Allows the user to create a new carrier accessorial charge."
+  },
+  {
+    "permissionCode": "PER104",
+    "displayName": "Edit Carrier Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier_accessorial.edit",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier_accessorial",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing carrier accessorial charge."
+  },
+  {
+    "permissionCode": "PER105",
+    "displayName": "Delete Carrier Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.carrier_accessorial.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "carrier_accessorial",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier accessorial charge."
+  },
+  {
+    "permissionCode": "PER106",
+    "displayName": "Create Terminal Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal_accessorial.create",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal_accessorial",
+    "actionKey": "create",
+    "description": "Allows the user to create a new carrier terminal accessorial charge."
+  },
+  {
+    "permissionCode": "PER107",
+    "displayName": "Edit Terminal Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal_accessorial.edit",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal_accessorial",
+    "actionKey": "edit",
+    "description": "Allows the user to edit an existing carrier terminal accessorial charge."
+  },
+  {
+    "permissionCode": "PER108",
+    "displayName": "Delete Terminal Accessorial",
+    "applicationCode": "maintenance",
+    "permissionKey": "carrier.terminal_accessorial.delete",
+    "moduleKey": "carrier",
+    "resourceKey": "terminal_accessorial",
+    "actionKey": "delete",
+    "description": "Allows the user to delete a carrier terminal accessorial charge."
+  }
+]

@@ -5,7 +5,8 @@ const users = `${SCHEMA}."User"`;
 const roles = `${SCHEMA}."Role"`;
 const userRoles = `${SCHEMA}."UserRoleAssignment"`;
 const rolePermissions = `${SCHEMA}."RolePermission"`;
-const permissions = `${SCHEMA}."Permissions"`;
+const roleHierarchy = `${SCHEMA}."RoleHierarchyLink"`;
+const permissions = `${SCHEMA}."Permission"`;
 const resetOtps = `${SCHEMA}."PasswordResetOtp"`;
 
 export interface RoleRecord {
@@ -14,8 +15,7 @@ export interface RoleRecord {
     description: string | null;
     roleKind: 'EMPLOYEE' | 'CUSTOMER';
     status: 'ACTIVE' | 'INACTIVE';
-    isSystemManaged: boolean;
-    rowVersion: number;
+    isSystemManaged: 'Y' | 'N';
     createdBy: number | null;
     createdAt: Date;
     updatedBy: number | null;
@@ -36,15 +36,47 @@ export interface UserRecord {
 }
 
 export async function getPermissionCatalog(conn: Connection): Promise<any[]> {
-    return (await conn.query(`SELECT * FROM ${permissions} ORDER BY "permissionId"`)) as any[];
+    return (await conn.query(`SELECT * FROM ${permissions} ORDER BY "applicationCode", "moduleKey", "permissionCode"`)) as any[];
 }
 
-export async function getPermissionsByIds(conn: Connection, permissionIds: number[]): Promise<any[]> {
-    if (permissionIds.length === 0) return [];
-    const marks = permissionIds.map(() => '?').join(', ');
+export interface PermissionImportRecord {
+    permissionCode: string;
+    displayName: string;
+    applicationCode: 'warehouse' | 'maintenance' | 'network_services';
+    permissionKey: string;
+    moduleKey: string;
+    resourceKey: string;
+    actionKey: string;
+    description: string | null;
+}
+
+export async function upsertPermission(conn: Connection, permission: PermissionImportRecord): Promise<'inserted' | 'updated'> {
+    const existing = (await conn.query(
+        `SELECT "permissionId" FROM ${permissions} WHERE UPPER("permissionCode") = UPPER(?)`,
+        [permission.permissionCode],
+    )) as any[];
+
+    if (existing.length > 0) {
+        await conn.query(
+            `UPDATE ${permissions} SET "displayName" = ?, "applicationCode" = ?, "permissionKey" = ?, "moduleKey" = ?, "resourceKey" = ?, "actionKey" = ?, "description" = ? WHERE UPPER("permissionCode") = UPPER(?)`,
+            [permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description, permission.permissionCode] as any[],
+        );
+        return 'updated';
+    }
+
+    await conn.query(
+        `INSERT INTO ${permissions} ("permissionCode", "displayName", "applicationCode", "permissionKey", "moduleKey", "resourceKey", "actionKey", "description") VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [permission.permissionCode, permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description] as any[],
+    );
+    return 'inserted';
+}
+
+export async function getPermissionsByCodes(conn: Connection, permissionCodes: string[]): Promise<any[]> {
+    if (permissionCodes.length === 0) return [];
+    const marks = permissionCodes.map(() => '?').join(', ');
     return (await conn.query(
-        `SELECT * FROM ${permissions} WHERE "permissionId" IN (${marks})`,
-        permissionIds as any[],
+        `SELECT * FROM ${permissions} WHERE UPPER("permissionCode") IN (${marks})`,
+        permissionCodes.map((code) => code.toUpperCase()),
     )) as any[];
 }
 
@@ -58,8 +90,60 @@ export async function getRoleByName(conn: Connection, name: string, roleKind: 'E
     return rows[0] ?? null;
 }
 
-export async function getRoles(conn: Connection): Promise<RoleRecord[]> {
-    return (await conn.query(`SELECT * FROM ${roles} ORDER BY "name"`)) as RoleRecord[];
+export async function getRoles(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOMER', roleName?: string): Promise<RoleRecord[]> {
+    const filters: string[] = [];
+    const values: string[] = [];
+    if (roleKind) {
+        filters.push('"roleKind" = ?');
+        values.push(roleKind);
+    }
+    if (roleName?.trim()) {
+        filters.push('UPPER("name") LIKE UPPER(?)');
+        values.push(`%${roleName.trim()}%`);
+    }
+    const whereClause = filters.length ? ` WHERE ${filters.join(' AND ')}` : '';
+    return (await conn.query(`SELECT * FROM ${roles}${whereClause} ORDER BY "name"`, values)) as RoleRecord[];
+}
+
+export async function getRoleOptions(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOMER'): Promise<Array<Pick<RoleRecord, 'roleId' | 'name' | 'roleKind'>>> {
+    const roleKindFilter = roleKind ? ' AND "roleKind" = ?' : '';
+    const values = roleKind ? ['ACTIVE', roleKind] : ['ACTIVE'];
+    return (await conn.query(
+        `SELECT "roleId", "name", "roleKind" FROM ${roles} WHERE "status" = ?${roleKindFilter} ORDER BY "name"`,
+        values,
+    )) as Array<Pick<RoleRecord, 'roleId' | 'name' | 'roleKind'>>;
+}
+
+export async function getParentRoleIds(conn: Connection, childRoleId: number): Promise<number[]> {
+    const rows = (await conn.query(
+        `SELECT "parentRoleId" FROM ${roleHierarchy} WHERE "childRoleId" = ? ORDER BY "parentRoleId"`,
+        [childRoleId],
+    )) as Array<{ parentRoleId: number }>;
+    return rows.map(({ parentRoleId }) => Number(parentRoleId));
+}
+
+export async function assignParentRole(conn: Connection, parentRoleId: number, childRoleId: number, createdBy: number | null): Promise<void> {
+    await conn.query(
+        `INSERT INTO ${roleHierarchy} ("parentRoleId", "childRoleId", "createdBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+        [parentRoleId, childRoleId, createdBy] as any[],
+    );
+}
+
+function withCause(message: string, cause: unknown): Error {
+    const error = new Error(message);
+    (error as Error & { cause?: unknown }).cause = cause;
+    return error;
+}
+
+export async function replaceParentRoles(conn: Connection, childRoleId: number, parentRoleIds: number[], createdBy: number | null): Promise<void> {
+    try {
+        await conn.query(`DELETE FROM ${roleHierarchy} WHERE "childRoleId" = ?`, [childRoleId]);
+        for (const parentRoleId of parentRoleIds) {
+            await assignParentRole(conn, parentRoleId, childRoleId, createdBy);
+        }
+    } catch (error) {
+        throw withCause(`RoleHierarchyLink operation failed for childRoleId=${childRoleId}`, error);
+    }
 }
 
 export async function insertRole(conn: Connection, input: {
@@ -67,14 +151,18 @@ export async function insertRole(conn: Connection, input: {
     description: string | null;
     roleKind: 'EMPLOYEE' | 'CUSTOMER';
     status: 'ACTIVE' | 'INACTIVE';
+    isSystemManaged?: 'Y' | 'N';
     createdBy: number | null;
 }): Promise<RoleRecord> {
-    await conn.query(
-        `INSERT INTO ${roles} ("name", "description", "roleKind", "status", "isSystemManaged", "rowVersion", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, 0, 1, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)`,
-        [input.name, input.description, input.roleKind, input.status, input.createdBy, input.createdBy] as any[],
-    );
-    const result = (await conn.query(`SELECT IDENTITY_VAL_LOCAL() AS "roleId" FROM SYSIBM.SYSDUMMY1`)) as Array<{ roleId: number }>;
-    const role = await getRoleById(conn, Number(result[0]?.roleId));
+    try {
+        await conn.query(
+            `INSERT INTO ${roles} ("name", "description", "roleKind", "status", "isSystemManaged", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)`,
+            [input.name, input.description, input.roleKind, input.status, input.isSystemManaged ?? 'N', input.createdBy, input.createdBy] as any[],
+        );
+    } catch (error) {
+        throw withCause(`Role INSERT failed for name=${input.name}`, error);
+    }
+    const role = await getRoleByName(conn, input.name, input.roleKind);
     if (!role) throw new Error('Failed to retrieve the created role');
     return role;
 }
@@ -84,6 +172,7 @@ export async function updateRole(conn: Connection, roleId: number, input: {
     description?: string | null;
     roleKind?: 'EMPLOYEE' | 'CUSTOMER';
     status?: 'ACTIVE' | 'INACTIVE';
+    isSystemManaged?: 'Y' | 'N';
     updatedBy?: number | null;
 }): Promise<void> {
     const sets: string[] = [];
@@ -93,6 +182,7 @@ export async function updateRole(conn: Connection, roleId: number, input: {
         ['description', 'description'],
         ['roleKind', 'roleKind'],
         ['status', 'status'],
+        ['isSystemManaged', 'isSystemManaged'],
         ['updatedBy', 'updatedBy'],
     ] as const) {
         if (input[field] !== undefined) {
@@ -101,22 +191,38 @@ export async function updateRole(conn: Connection, roleId: number, input: {
         }
     }
     if (sets.length === 0) return;
-    sets.push('"updatedAt" = CURRENT_TIMESTAMP', '"rowVersion" = "rowVersion" + 1');
-    await conn.query(`UPDATE ${roles} SET ${sets.join(', ')} WHERE "roleId" = ?`, [...values, roleId] as any[]);
+    sets.push('"updatedAt" = CURRENT_TIMESTAMP');
+    try {
+        await conn.query(`UPDATE ${roles} SET ${sets.join(', ')} WHERE "roleId" = ?`, [...values, roleId] as any[]);
+    } catch (error) {
+        throw withCause(`Role UPDATE failed for roleId=${roleId}`, error);
+    }
 }
 
-export async function getRolePermissionIds(conn: Connection, roleId: number): Promise<number[]> {
-    const rows = (await conn.query(`SELECT "permissionId" FROM ${rolePermissions} WHERE "roleId" = ?`, [roleId])) as Array<{ permissionId: number }>;
-    return rows.map(({ permissionId }) => Number(permissionId));
+export async function getRolePermissionCodes(conn: Connection, roleId: number): Promise<string[]> {
+    const rows = (await conn.query(`SELECT "permissionCode" FROM ${rolePermissions} WHERE "roleId" = ?`, [roleId])) as Array<{ permissionCode: string }>;
+    return rows.map(({ permissionCode }) => permissionCode);
 }
 
-export async function replaceRolePermissions(conn: Connection, roleId: number, permissionIds: number[], grantedBy: number | null): Promise<void> {
-    await conn.query(`DELETE FROM ${rolePermissions} WHERE "roleId" = ?`, [roleId]);
-    for (const permissionId of permissionIds) {
-        await conn.query(
-            `INSERT INTO ${rolePermissions} ("roleId", "permissionId", "grantedBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
-            [roleId, permissionId, grantedBy] as any[],
-        );
+export async function replaceRolePermissions(conn: Connection, roleId: number, permissionCodes: string[], grantedBy: number | null): Promise<void> {
+    const permissionRows = await getPermissionsByCodes(conn, permissionCodes);
+    if (permissionRows.length !== permissionCodes.length) throw new Error('One or more permission codes were not found');
+
+    try {
+        await conn.query(`DELETE FROM ${rolePermissions} WHERE "roleId" = ?`, [roleId]);
+    } catch (error) {
+        throw withCause(`RolePermission DELETE failed for roleId=${roleId}`, error);
+    }
+    for (const permission of permissionRows) {
+        const permissionCode = String(permission.permissionCode ?? permission.PERMISSIONCODE);
+        try {
+            await conn.query(
+                `INSERT INTO ${rolePermissions} ("roleId", "permissionCode", "grantedBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+                [roleId, permissionCode, grantedBy] as any[],
+            );
+        } catch (error) {
+            throw withCause(`RolePermission INSERT failed for roleId=${roleId}, permissionCode=${permissionCode}`, error);
+        }
     }
 }
 
@@ -127,6 +233,14 @@ export async function getUserById(conn: Connection, userId: number): Promise<Use
 
 export async function getUserByLoginName(conn: Connection, loginUserName: string): Promise<UserRecord | null> {
     const rows = (await conn.query(`SELECT * FROM ${users} WHERE UPPER("loginUserName") = UPPER(?)`, [loginUserName])) as UserRecord[];
+    return rows[0] ?? null;
+}
+
+export async function getUserByName(conn: Connection, userName: string): Promise<UserRecord | null> {
+    const rows = (await conn.query(
+        `SELECT * FROM ${users} WHERE UPPER("userName") = UPPER(?) OR UPPER("loginUserName") = UPPER(?)`,
+        [userName, userName],
+    )) as UserRecord[];
     return rows[0] ?? null;
 }
 
@@ -217,7 +331,7 @@ export async function removeRole(conn: Connection, userId: number, roleId: numbe
 
 export async function getUserPermissions(conn: Connection, userId: number): Promise<any[]> {
     return (await conn.query(
-        `SELECT DISTINCT p.* FROM ${permissions} p INNER JOIN ${rolePermissions} rp ON rp."permissionId" = p."permissionId" INNER JOIN ${userRoles} ur ON ur."roleId" = rp."roleId" INNER JOIN ${roles} r ON r."roleId" = ur."roleId" WHERE ur."userId" = ? AND ur."assignmentStatus" = 'ACTIVE' AND r."status" = 'ACTIVE'`,
+        `SELECT DISTINCT p.* FROM ${permissions} p INNER JOIN ${rolePermissions} rp ON rp."permissionCode" = p."permissionCode" INNER JOIN ${userRoles} ur ON ur."roleId" = rp."roleId" INNER JOIN ${roles} r ON r."roleId" = ur."roleId" WHERE ur."userId" = ? AND ur."assignmentStatus" = 'ACTIVE' AND r."status" = 'ACTIVE'`,
         [userId],
     )) as any[];
 }

@@ -78,7 +78,6 @@ async function createUserRecord(conn: Connection, source: UserSourceRecord): Pro
         loginUserName,
         source.email.trim(),
         passwordHash,
-        source.roleId ?? null,
         source.userType,
         adminId,
         source.customerId ?? null

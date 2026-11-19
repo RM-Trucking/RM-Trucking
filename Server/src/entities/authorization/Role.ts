@@ -6,8 +6,7 @@ export interface Role {
   description: string | null;
   roleKind: AuthorizationRoleKind;
   status: AuthorizationStatus;
-  isSystemManaged: boolean;
-  rowVersion: number;
+  isSystemManaged: 'Y' | 'N';
   createdBy: number | null;
   createdAt: Date;
   updatedBy: number | null;

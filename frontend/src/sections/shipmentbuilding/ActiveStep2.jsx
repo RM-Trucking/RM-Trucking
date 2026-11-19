@@ -266,6 +266,9 @@ const ActiveStep2 = ({
                 { shouldDirty: true }
             );
         }
+        if (removedImage instanceof File) {
+            setStagedFiles((prev) => prev.filter((file) => file !== removedImage));
+        }
     };
 
     const handlePackageDetailsClick = (event) => {
@@ -375,7 +378,7 @@ const ActiveStep2 = ({
                                         mode: "upload",
                                         imageField: "images",
                                     });
-                                    setStagedFiles(stagedFiles || []);
+                                   
                                     setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
                                 {(hu?.images?.length) > 0 && (

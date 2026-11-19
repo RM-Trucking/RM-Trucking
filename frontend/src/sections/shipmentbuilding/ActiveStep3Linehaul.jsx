@@ -179,11 +179,11 @@ const ActiveStep3Linehaul = ({
                 <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
                     <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
-                        <Button variant="outlined" size="small"
+                       {type !== 'View' && <Button variant="outlined" size="small"
                             onClick={(e) => { e.preventDefault();  e.stopPropagation();  setClearModal({ type: watchedLinehaulSelectRouting, open: true }) }}
                             sx={{ textTransform: 'none', color: '#a22', borderColor: '#a22', mr: 2 }} >
                             Clear
-                        </Button>
+                        </Button>}
                     </Box>
                 </AccordionSummary>
 

@@ -40,6 +40,8 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
     });
 
     const handleCloseImageUpload = () => {
+        setStagedFiles([]);
+        setIsDraggingFiles(false);
         setUploadDialog({
             open: false,
             mode: "upload",
@@ -191,7 +193,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
     const handleRemoveStagedFile = (index) => {
         setStagedFiles((prev) => prev.filter((_, i) => i !== index));
     };
-    
+
 
     const stopCameraStream = () => {
         cameraStreamRef.current?.getTracks?.().forEach((track) => track.stop());
@@ -253,7 +255,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
         });
 
         // Reset your staged files state
-        // setStagedFiles([]);
+        setStagedFiles([]);
         handleCloseImageUpload();
     };
     const FileItem = ({ filename, onRemove, onView, hideRemove = false }) => (

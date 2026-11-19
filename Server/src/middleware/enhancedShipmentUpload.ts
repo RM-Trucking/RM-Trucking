@@ -1,51 +1,17 @@
-import multer from "multer";
 import { RequestHandler } from "express";
-import { mkdirSync } from "fs";
-import { join } from "path";
-import { randomUUID } from "crypto";
+import { enhancedShipmentImageUploader } from "../config/multer";
 import {
     EnhancedShipmentImageFile,
     removeEnhancedStoredImage,
     saveEnhancedBase64Image,
 } from "../utils/enhancedShipmentImageStorage";
 
-const uploadDirectory = join(process.cwd(), "uploads", "shipments");
-mkdirSync(uploadDirectory, { recursive: true });
-
-const storage = multer.diskStorage({
-    destination: (_req, _file, callback) => callback(null, uploadDirectory),
-    filename: (_req, file, callback) => {
-        const extension = file.originalname.includes(".")
-            ? file.originalname.substring(file.originalname.lastIndexOf("."))
-            : "";
-        callback(null, `${randomUUID()}${extension}`);
-    },
-});
-
-const multerEnhancedShipmentUpload = multer({
-    storage,
-    limits: {
-        files: 100,
-        fileSize: 10 * 1024 * 1024,
-        fields: 101,
-        fieldSize: 14 * 1024 * 1024,
-        parts: 201,
-    },
-    fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.startsWith("image/")) {
-            callback(new Error(`Unsupported upload type for ${file.fieldname}; image files are required`));
-            return;
-        }
-        callback(null, true);
-    },
-}).any();
-
 export const enhancedShipmentUpload: RequestHandler = (req, res, next) => {
     if (!req.is("multipart/form-data")) {
         next();
         return;
     }
-    multerEnhancedShipmentUpload(req, res, next);
+    enhancedShipmentImageUploader(req, res, next);
 };
 
 export async function materializeEnhancedShipmentBase64Fields(
@@ -88,7 +54,7 @@ export async function materializeEnhancedShipmentBase64Fields(
 }
 
 export function parseEnhancedShipmentPayload(body: Record<string, any>): Record<string, any> {
-    const rawPayload = body.payload ?? body.shipmentPayload ?? body.data;
+    const rawPayload = body.payload ?? body.shipmentPayload ?? body.data ?? body;
     let payload: Record<string, any>;
     if (typeof rawPayload === "string") {
         payload = JSON.parse(rawPayload);

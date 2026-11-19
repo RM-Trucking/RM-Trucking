@@ -41,7 +41,6 @@ export async function createNewUser(
         createUserReq.loginUserName,
         createUserReq.email,
         passwordHash,
-        createUserReq.roleId ?? null,
         createUserReq.userType,
         adminId,
         createUserReq.customerId || null
@@ -87,7 +86,6 @@ export async function loginUser(conn: Connection, loginReq: LoginRequest): Promi
         userId: user.userId,
         userName: user.userName,
         email: user.email,
-        roleId: user.roleId
     };
 
     console.log(JWT_EXPIRY);
@@ -147,7 +145,6 @@ export async function updateUserDetails(
         userName: updateReq.userName,
         loginUserName: updateReq.loginUserName,
         email: updateReq.email,
-        roleId: updateReq.roleId,
         userType: updateReq.userType,
         customerId: updateReq.customerId
     });
@@ -230,15 +227,6 @@ export async function listAllUsers(
     return { users, total };
 }
 
-
-/**
- * Get users by role
- */
-export async function listUsersByRole(conn: Connection, roleId: number): Promise<UserResponse[]> {
-    const users = await userDB.getUsersByRole(conn, roleId);
-    return users;
-}
-
 /**
  * Verify JWT token
  */
@@ -281,8 +269,7 @@ export async function refreshAccessToken(conn: Connection, userId: number, refre
     const tokenPayload: any = {
         userId: user.userId,
         userName: user.userName,
-        email: user.email,
-        roleId: user.roleId
+        email: user.email
     };
 
     const accessToken = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any);

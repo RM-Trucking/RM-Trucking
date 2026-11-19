@@ -47,10 +47,4 @@ router.delete('/:userId', authenticateJWT, async (req: Request, res: Response) =
     if (conn) conn.close();
 });
 
-router.get('/role/:roleId', authenticateJWT, async (req: Request, res: Response) => {
-    const conn = await db();
-    await userController.getUsersByRole(req, res, conn);
-    if (conn) conn.close();
-});
-
 export default router;

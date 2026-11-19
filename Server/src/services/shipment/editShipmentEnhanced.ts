@@ -27,6 +27,13 @@ function findFile(
     return files.find((file) => file.fieldname === fieldName && !usedFileNames.has(file.filename));
 }
 
+function parseHandlingUnitId(value: unknown): number | undefined {
+    if (value === undefined || value === null || (typeof value === "string" && !value.trim())) {
+        return undefined;
+    }
+    return Number(value);
+}
+
 async function resolveNewImagePath(
     fieldName: string,
     files: EnhancedShipmentImageFile[],
@@ -102,8 +109,8 @@ async function synchronizeEnhancedHandlingUnits(
     const existingIds = new Set(existingUnits.map((unit) => Number(unit.handlingUnitId)));
     const requestedIds = new Set<number>();
     for (const handlingUnit of handlingUnits) {
-        const handlingUnitId = Number(handlingUnit.handlingUnitId);
-        if (handlingUnit.handlingUnitId !== undefined) {
+        const handlingUnitId = parseHandlingUnitId(handlingUnit.handlingUnitId);
+        if (handlingUnitId !== undefined) {
             if (!Number.isInteger(handlingUnitId) || !existingIds.has(handlingUnitId)) {
                 throw new Error(`Handling unit ${handlingUnit.handlingUnitId} does not belong to shipment ${shipmentId}`);
             }
@@ -131,9 +138,7 @@ async function synchronizeEnhancedHandlingUnits(
     }
 
     for (const [handlingUnitIndex, handlingUnit] of handlingUnits.entries()) {
-        const handlingUnitId = handlingUnit.handlingUnitId === undefined
-            ? undefined
-            : Number(handlingUnit.handlingUnitId);
+        const handlingUnitId = parseHandlingUnitId(handlingUnit.handlingUnitId);
         const resolvedId = handlingUnitId ?? (await enhancedDB.insertHandlingUnitRecord(conn, shipmentId, handlingUnit)).handlingUnitId;
         if (handlingUnitId !== undefined) {
             await enhancedDB.updateHandlingUnitRecord(conn, resolvedId, handlingUnit);

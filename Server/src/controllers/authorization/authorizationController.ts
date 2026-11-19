@@ -2,12 +2,6 @@ import { Request, Response } from 'express';
 import { Connection } from 'odbc';
 import * as authorizationService from '../../services/authorization/authorizationService';
 
-export interface RolePermissionSummary {
-    userId: number;
-    userType: 'EMPLOYEE' | 'CUSTOMER';
-    permissions: string[];
-}
-
 export async function createRole(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const role = await authorizationService.createRole(conn, req.body, Number((req as any).user?.userId) || null);
@@ -26,9 +20,36 @@ export async function updateRole(req: Request, res: Response, conn: Connection):
     }
 }
 
-export async function listRoles(_req: Request, res: Response, conn: Connection): Promise<void> {
+export async function listRoles(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        res.status(200).json({ success: true, data: await authorizationService.listRoles(conn) });
+        const roleKind = typeof req.query.roleKind === 'string' ? req.query.roleKind.toUpperCase() : undefined;
+        if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+            res.status(400).json({ success: false, message: 'roleKind must be EMPLOYEE or CUSTOMER' });
+            return;
+        }
+        if (req.query.roleName !== undefined && typeof req.query.roleName !== 'string') {
+            res.status(400).json({ success: false, message: 'roleName must be a string' });
+            return;
+        }
+        const roleName = typeof req.query.roleName === 'string' ? req.query.roleName.trim() : undefined;
+        res.status(200).json({
+            success: true,
+            data: await authorizationService.listRoles(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined, roleName),
+        });
+    } catch (error) {
+        res.status(500).json({ success: false, message: (error as Error).message });
+    }
+}
+
+export async function getRoleOptions(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const roleKind = typeof req.query.roleKind === 'string' ? req.query.roleKind.toUpperCase() : undefined;
+        if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+            res.status(400).json({ success: false, message: 'roleKind must be EMPLOYEE or CUSTOMER' });
+            return;
+        }
+        const options = await authorizationService.getRoleOptions(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined);
+        res.status(200).json({ success: true, data: options });
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });
     }
@@ -101,24 +122,6 @@ export async function listUsers(_req: Request, res: Response, conn: Connection):
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });
     }
-}
-
-export async function getUserPermissions(req: Request, res: Response, conn: Connection): Promise<void> {
-    const user = (req as any).user ?? null;
-
-    if (!user) {
-        res.status(401).json({ message: 'Unauthorized' });
-        return;
-    }
-
-    const permissions = await authorizationService.getUserPermissions(conn, Number(user.userId));
-    const summary: RolePermissionSummary = {
-        userId: user.userId,
-        userType: user.userType ?? 'EMPLOYEE',
-        permissions: permissions.map((permission) => permission.permissionKey),
-    };
-
-    res.status(200).json(summary);
 }
 
 export async function getUserRoleSummary(req: Request, res: Response, conn: Connection): Promise<void> {

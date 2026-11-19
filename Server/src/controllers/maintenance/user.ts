@@ -229,28 +229,6 @@ export async function getAllUsers(req: Request, res: Response, conn: Connection)
     }
 }
 
-
-/**
- * GET /api/users/role/:roleId
- * Get users by role
- */
-export async function getUsersByRole(req: Request, res: Response, conn: Connection): Promise<void> {
-    try {
-        const { roleId } = req.params;
-        const users = await userService.listUsersByRole(conn, Number(roleId));
-
-        res.status(200).json({
-            success: true,
-            data: users
-        });
-    } catch (error) {
-        res.status(400).json({
-            error: 'Failed to fetch users',
-            message: (error as Error).message
-        });
-    }
-}
-
 /**
  * POST /api/auth/refresh
  * Refresh access token using refresh token

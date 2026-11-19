@@ -3,10 +3,79 @@ info:
   title: User and Role Authorization API
   version: 1.0.0
   description: Isolated RBAC module for user management, role management, login, refresh token handling, and password reset workflow.
+tags:
+  - name: Authorization
+    description: User, role, permission, and authentication operations.
 paths:
-  /authorization/roles:
+  /api/authorization/permissions/catalog:
     get:
+      tags:
+        - Authorization
+      summary: Get permissions grouped by application
+      description: Returns the preloaded permission master grouped for the Warehouse, Maintenance, and Network Services tabs.
+      responses:
+        "200":
+          description: Permission catalog grouped by application
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  warehouse:
+                    warehouse_receipt:
+                      - permissionId: 12
+                        permissionCode: PER18
+                        displayName: Edit warehouse receipt
+                        applicationCode: warehouse
+                        permissionKey: warehouse_receipt.receipt.edit
+                        moduleKey: warehouse_receipt
+                        resourceKey: receipt
+                        actionKey: edit
+                  maintenance: {}
+                  network_services: {}
+  /api/authorization/roles/options:
+    get:
+      tags:
+        - Authorization
+      summary: Get active roles for dropdowns
+      description: Returns active roles with their IDs and role kinds. Optionally filter by role kind.
+      parameters:
+        - in: query
+          name: roleKind
+          required: false
+          schema:
+            type: string
+            enum: [EMPLOYEE, CUSTOMER]
+      responses:
+        "200":
+          description: Active roles
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - roleId: 3
+                    name: Dispatcher
+                    roleKind: EMPLOYEE
+  /api/authorization/roles:
+    get:
+      tags:
+        - Authorization
       summary: List all roles
+      description: Returns full role records with permission codes and parent role IDs. Optionally filter by role kind and a case-insensitive partial role name.
+      parameters:
+        - in: query
+          name: roleKind
+          required: false
+          schema:
+            type: string
+            enum: [EMPLOYEE, CUSTOMER]
+        - in: query
+          name: roleName
+          required: false
+          description: Case-insensitive partial match against the role name.
+          schema:
+            type: string
       responses:
         "200":
           description: Successful response
@@ -16,10 +85,14 @@ paths:
                 success: true
                 data:
                   - roleId: 1
-                    name: Administrator
+                    name: SYSTEM
                     roleKind: EMPLOYEE
                     status: ACTIVE
+                    permissionCodes: [PER1, PER2]
+                    parentRoleIds: []
     post:
+      tags:
+        - Authorization
       summary: Create a new role
       requestBody:
         required: true
@@ -30,6 +103,10 @@ paths:
               description: Manages customer records and service access
               roleKind: EMPLOYEE
               status: ACTIVE
+              permissionCodes:
+                - PER1
+                - PER2
+              parentRoleIds: [1, 2]
       responses:
         "201":
           description: Role created
@@ -42,13 +119,76 @@ paths:
                   name: Customer Manager
                   roleKind: EMPLOYEE
                   status: ACTIVE
+  /api/authorization/roles/{roleId}:
+    parameters:
+      - in: path
+        name: roleId
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Authorization
+      summary: Get a role with permissions by ID
+      responses:
+        "200":
+          description: Role details with permission objects and hierarchy links
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  roleId: 3
+                  name: Dispatcher
+                  roleKind: EMPLOYEE
+                  status: ACTIVE
+                  permissions:
+                    - permissionId: 1
+                      permissionCode: PER1
+                      permissionKey: en_route.form.create
+                  parentRoleIds: []
+        "404":
+          description: Role not found
+    put:
+      tags:
+        - Authorization
+      summary: Update a role
+      description: Updates role fields. If permissionCodes or parentRoleIds are provided, they replace the existing assignments.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              name: Dispatcher
+              description: Dispatch team access
+              roleKind: EMPLOYEE
+              status: ACTIVE
+              permissionCodes: [PER1, PER2]
+              parentRoleIds: []
+      responses:
+        "200":
+          description: Role updated
+        "400":
+          description: Invalid role data
+    delete:
+      tags:
+        - Authorization
+      summary: Deactivate a role
+      description: Soft-deletes the role by setting status to INACTIVE.
+      responses:
+        "200":
+          description: Role deactivated
   /authorization/users:
     get:
+      tags:
+        - Authorization
       summary: List all users
       responses:
         "200":
           description: Successful response
     post:
+      tags:
+        - Authorization
       summary: Create a user
       requestBody:
         required: true
@@ -67,6 +207,8 @@ paths:
           description: User created
   /authorization/users/assign-role:
     post:
+      tags:
+        - Authorization
       summary: Assign a role to a user
       requestBody:
         required: true
@@ -80,6 +222,8 @@ paths:
           description: Role assigned successfully
   /authorization/login:
     post:
+      tags:
+        - Authorization
       summary: Authenticate a user and return JWT tokens
       requestBody:
         required: true
@@ -106,6 +250,8 @@ paths:
                     refreshToken: eyJhbGciOi...
   /authorization/refresh:
     post:
+      tags:
+        - Authorization
       summary: Refresh access token using refresh token
       requestBody:
         required: true
@@ -118,6 +264,8 @@ paths:
           description: Access token refreshed
   /authorization/forgot-password:
     post:
+      tags:
+        - Authorization
       summary: Request password reset email
       requestBody:
         required: true
@@ -130,6 +278,8 @@ paths:
           description: Reset email sent
   /authorization/validate-reset-token:
     post:
+      tags:
+        - Authorization
       summary: Validate a reset token
       requestBody:
         required: true
@@ -142,6 +292,8 @@ paths:
           description: Token valid
   /authorization/reset-password:
     post:
+      tags:
+        - Authorization
       summary: Reset a password using a valid token
       requestBody:
         required: true

@@ -5,6 +5,23 @@ import {
     materializeEnhancedShipmentBase64Fields,
     parseEnhancedShipmentPayload,
 } from "../../middleware/enhancedShipmentUpload";
+import {
+    getEnhancedUploadedImagePath,
+    removeEnhancedStoredImage,
+} from "../../utils/enhancedShipmentImageStorage";
+
+function makeJsonSafe(value: any): any {
+    if (typeof value === "bigint") {
+        return value >= BigInt(Number.MIN_SAFE_INTEGER) && value <= BigInt(Number.MAX_SAFE_INTEGER)
+            ? Number(value)
+            : value.toString();
+    }
+    if (Array.isArray(value)) return value.map(makeJsonSafe);
+    if (value && typeof value === "object" && !(value instanceof Date)) {
+        return Object.fromEntries(Object.entries(value).map(([key, nestedValue]) => [key, makeJsonSafe(nestedValue)]));
+    }
+    return value;
+}
 
 // export async function createNetworkShipment(req: Request, res: Response, conn: Connection): Promise<void> {
 //     try {
@@ -64,7 +81,7 @@ export async function getNetworkShipmentView(req: Request, res: Response, conn: 
         res.status(200).json({
             success: true,
             message: "Network shipment retrieved successfully",
-            data: shipment
+            data: makeJsonSafe(shipment)
         });
     } catch (error: any) {
         console.log(error);
@@ -80,7 +97,7 @@ export async function getNetworkShipmentForms(req: Request, res: Response, conn:
         res.status(200).json({
             success: true,
             message: "Shipments retrieved successfully",
-            data: result.items,
+            data: makeJsonSafe(result.items),
             pagination: result.pagination
         });
     } catch (error: any) {
@@ -124,9 +141,21 @@ export async function editShipmentEnhanced(req: Request, res: Response, conn: Co
         }
 
         const userId = (req as any).user?.userId || 1;
-        const payload = parseEnhancedShipmentPayload(req.body);
+        const body = req.body ?? {};
+        const payload = parseEnhancedShipmentPayload(body);
         const files = ((req as any).files ?? []) as Array<{ fieldname: string; filename: string }>;
-        await materializeEnhancedShipmentBase64Fields(req.body, payload, files);
+        const payloadShipmentId = payload.shipmentDetails?.shipmentId;
+        if (payloadShipmentId !== undefined && Number(payloadShipmentId) !== shipmentId) {
+            await Promise.all(files.map((file) =>
+                removeEnhancedStoredImage(getEnhancedUploadedImagePath(file))
+            ));
+            res.status(400).json({
+                success: false,
+                message: `Route shipmentId ${shipmentId} does not match payload shipmentId ${payloadShipmentId}`,
+            });
+            return;
+        }
+        await materializeEnhancedShipmentBase64Fields(body, payload, files);
         const result = await shipmentService.editShipmentEnhanced(
             conn,
             shipmentId,

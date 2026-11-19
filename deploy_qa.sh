@@ -61,6 +61,7 @@ ENVIRONMENT=qa
 PORT=5500
 JWT_EXPIRY=36000s
 FIRST_EDI_204_REQUEST_PATH=/home/FTP/NWPICKUP/REQUEST
+HANDLING_UNIT_IMAGE_PATH=/home/netwok-app-docs/handling-unit-images
 ENVFILE
 
 # Remove existing zip on remote

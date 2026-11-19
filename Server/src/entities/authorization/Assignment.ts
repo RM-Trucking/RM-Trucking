@@ -13,7 +13,7 @@ export interface UserRoleAssignment {
 
 export interface RolePermission {
   roleId: number;
-  permissionId: number;
+  permissionCode: string;
   grantedBy: number | null;
   createdAt: Date;
 }

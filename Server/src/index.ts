@@ -3,11 +3,12 @@ import express, { Express, Request, Response, NextFunction } from 'express';
 import { Server } from 'http';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import { join, resolve, sep } from 'path';
+import { existsSync, mkdirSync } from 'fs';
 import routes from './routes';
 import cors from 'cors';
 import { initializeDB2Pool, closeDB2Pool, getSchema } from './config/db2';
+import { enhancedShipmentImageRoute, getEnhancedShipmentImageDirectory } from './utils/enhancedShipmentImageStorage';
 
 // ============================================================================
 // CONFIGURATION
@@ -76,8 +77,27 @@ if (!serverConfig.database.connectionString) {
 
 // Initialize Express app
 const app: Express = express();
+app.set('json replacer', (_key: string, value: unknown) =>
+    typeof value === 'bigint' ? Number(value) : value
+);
 const PORT: number = serverConfig.port;
 const NODE_ENV: string = serverConfig.env;
+
+
+
+function mountUploadStaticRoute(routePath: string, directoryPath: string | undefined) {
+    const resolvedDir = directoryPath
+        ? resolve(process.cwd(), directoryPath)
+        : resolve(process.cwd(), routePath.replace(/^\//, '').replace(/\//g, sep));
+
+    try {
+        mkdirSync(resolvedDir, { recursive: true });
+        app.use(routePath, express.static(resolvedDir));
+        console.log(`Static upload route mounted: ${routePath} -> ${resolvedDir}`);
+    } catch (err: any) {
+        console.warn(`Could not mount upload route ${routePath}: ${err.message}`);
+    }
+}
 
 // ============================================================================
 // MIDDLEWARE
@@ -202,6 +222,9 @@ app.get('/api', (req: Request, res: Response) => {
 // Register all routes via common route handler
 // This automatically mounts all module routes (auth, maintenance, warehouse-form, etc.)
 app.use('/api', routes);
+
+mountUploadStaticRoute(enhancedShipmentImageRoute, getEnhancedShipmentImageDirectory());
+
 app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
 

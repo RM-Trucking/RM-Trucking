@@ -378,7 +378,7 @@ const ActiveStep2 = ({
                                         mode: "upload",
                                         imageField: "images",
                                     });
-                                    setStagedFiles([]);
+                                    // setStagedFiles([]);
                                     setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
                                 {(hu?.images?.length) > 0 && (
@@ -423,6 +423,49 @@ const ActiveStep2 = ({
                                     </IconButton>
                                 )}
                             </>}
+
+                            {(hu?.images?.length) > 0 && type === 'View' && (
+                                <IconButton
+                                    size="small"
+                                    title="View images"
+                                    onClick={() => {
+                                        selectedRowRef.current = huIdx;
+                                        handleOpenImagePreview(
+                                            hu?.images || [],
+                                            `Item ${String(huIdx + 1).padStart(2, "0")}`,
+                                        );
+                                    }
+                                    }
+                                    sx={{ p: 0.4, position: "relative", ml:1 }}
+                                >
+                                    <Iconify
+                                        icon="mdi:image-multiple"
+                                        width={20}
+                                        sx={{ color: "#000" }}
+                                    />
+                                    <Box
+                                        sx={{
+                                            position: "absolute",
+                                            top: -5,
+                                            right: -3,
+                                            width: 18,
+                                            height: 18,
+                                            borderRadius: "50%",
+                                            bgcolor: "#102a63",
+                                            color: "#fff",
+                                            display: "flex",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            fontSize: 14,
+                                            fontWeight: 700,
+                                            lineHeight: 1,
+                                        }}
+                                    >
+                                        {watchedHU?.[huIdx]?.images?.length ?? 0}
+                                    </Box>
+                                </IconButton>
+                            )}
+
                         </Typography>
 
 

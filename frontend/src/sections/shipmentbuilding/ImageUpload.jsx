@@ -40,7 +40,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
     });
 
     const handleCloseImageUpload = () => {
-        setStagedFiles([]);
+        // setStagedFiles([]);
         setIsDraggingFiles(false);
         setUploadDialog({
             open: false,
@@ -50,11 +50,48 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
 
         handleCloseCamera();
     };
-    const addFilesToStage = (files) => {
-        const selectedFiles = Array.from(files || []);
+    const getFileKey = (file) =>
+        `${file.name.toLowerCase()}|${file.size}|${file.lastModified}`;
 
-        if (selectedFiles.length > 0) {
-            setStagedFiles((prev) => [...prev, ...selectedFiles]);
+    // const addFilesToStage = (files) => {
+    //     const selectedFiles = Array.from(files || []);
+
+    //     if (selectedFiles.length > 0) {
+    //         setStagedFiles((prev) => [...prev, ...selectedFiles]);
+    //     }
+    // };
+    const addFilesToStage = (files) => {
+        const rowIndex = selectedRowRef;
+        const existingHUImages =
+            getValues(`handlingUnits.${rowIndex}.images`) || [];
+
+        const existingKeys = new Set(
+            [...stagedFiles, ...existingHUImages]
+                .filter((file) => file instanceof File)
+                .map(getFileKey)
+        );
+
+        const uniqueFiles = [];
+
+        for (const file of Array.from(files || [])) {
+            const key = getFileKey(file);
+
+            if (!existingKeys.has(key)) {
+                existingKeys.add(key);
+                uniqueFiles.push(file);
+            }
+        }
+
+        if (uniqueFiles.length < files.length) {
+            setSnackbar({
+                open: true,
+                message: "That file has already been added.",
+                severity: "warning",
+            });
+        }
+
+        if (uniqueFiles.length > 0) {
+            setStagedFiles((prev) => [...prev, ...uniqueFiles]);
         }
     };
 
@@ -241,21 +278,60 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
         return hasDecimal ? `${integerValue || "0"}.${decimalValue}` : integerValue;
     };
 
-    const handleUploadImages = () => {
-        if (!stagedFiles || stagedFiles.length === 0) return;
+    // const handleUploadImages = () => {
+    //     if (!stagedFiles || stagedFiles.length === 0) return;
 
-        // Get current values of this specific handling unit so other inputs aren't lost
+    //     // Get current values of this specific handling unit so other inputs aren't lost
+    //     const currentHU = getValues(`handlingUnits.${selectedRowRef}`);
+    //     const existingImages = currentHU?.images || [];
+
+    //     // Add/append stagedFiles under the 'images' key
+    //     updateHU(selectedRowRef, {
+    //         ...currentHU,
+    //         images: [...existingImages, ...stagedFiles],
+    //     });
+
+    //     // Reset your staged files state
+    //     // setStagedFiles([]);
+    //     handleCloseImageUpload();
+    // };
+    const handleUploadImages = () => {
+        if (!stagedFiles.length) return;
+
         const currentHU = getValues(`handlingUnits.${selectedRowRef}`);
         const existingImages = currentHU?.images || [];
 
-        // Add/append stagedFiles under the 'images' key
+        const existingFileKeys = new Set(
+            existingImages
+                .filter((image) => image instanceof File)
+                .map((file) => `${file.name}|${file.size}|${file.lastModified}`)
+        );
+
+        const filesToAdd = stagedFiles.filter(
+            (file) =>
+                !existingFileKeys.has(
+                    `${file.name}|${file.size}|${file.lastModified}`
+                )
+        );
+        const duplicateCount = stagedFiles.length - filesToAdd.length;
+
+        if (duplicateCount > 0) {
+            setSnackbar({
+                open: true,
+                message: filesToAdd.length
+                    ? `${duplicateCount} file(s) were already uploaded. Only new files were added.`
+                    : "These files have already been uploaded.",
+                severity: "info",
+            });
+        }
+
+        if (!filesToAdd.length) return;
+
         updateHU(selectedRowRef, {
             ...currentHU,
-            images: [...existingImages, ...stagedFiles],
+            images: [...existingImages, ...filesToAdd],
         });
 
-        // Reset your staged files state
-        setStagedFiles([]);
         handleCloseImageUpload();
     };
     const FileItem = ({ filename, onRemove, onView, hideRemove = false }) => (

@@ -378,7 +378,7 @@ const ActiveStep2 = ({
                                         mode: "upload",
                                         imageField: "images",
                                     });
-                                   
+                                    setStagedFiles([]);
                                     setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
                                 {(hu?.images?.length) > 0 && (

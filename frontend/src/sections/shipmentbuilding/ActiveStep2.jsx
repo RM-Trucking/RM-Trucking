@@ -1129,7 +1129,7 @@ const ActiveStep2 = ({
                                                         <Iconify icon="mdi:image-off" width={28} />
                                                     </Stack>
                                                 )}
-                                                <IconButton
+                                                {type !== 'View' && <IconButton
                                                     size="small"
                                                     title="Remove image"
                                                     onClick={() => handleRemovePreviewImage(index)}
@@ -1143,7 +1143,7 @@ const ActiveStep2 = ({
                                                     }}
                                                 >
                                                     <Iconify icon="mdi:close-circle" width={18} />
-                                                </IconButton>
+                                                </IconButton>}
                                             </Box>
                                             <Typography sx={{ fontSize: 12, wordBreak: "break-word" }}>
                                                 {getImageName(file, index)}

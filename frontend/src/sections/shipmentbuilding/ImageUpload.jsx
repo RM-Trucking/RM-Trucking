@@ -228,7 +228,27 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
         }
     };
     const handleRemoveStagedFile = (index) => {
+        const fileToRemove = stagedFiles[index];
+        if (!fileToRemove) return;
+
         setStagedFiles((prev) => prev.filter((_, i) => i !== index));
+
+        const rowIndex = selectedRowRef;
+        if (rowIndex == null) return;
+
+        const currentHU = getValues(`handlingUnits.${rowIndex}`);
+        const images = currentHU?.images || [];
+
+        const isSameFile = (image) =>
+            image === fileToRemove ||
+            (image instanceof File &&
+                fileToRemove instanceof File &&
+                getFileKey(image) === getFileKey(fileToRemove));
+
+        updateHU(rowIndex, {
+            ...currentHU,
+            images: images.filter((image) => !isSameFile(image)),
+        });
     };
 
 

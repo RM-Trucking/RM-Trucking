@@ -1372,6 +1372,8 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
     const missingRequiredFields = [];
     let valid = false;
     const obj = {};
+    const payloadFormData = new FormData();
+    const imageFormData = new FormData();
     // adding to object - step 0
     obj.shipmentDetails = {
         "shipmentId": selectedShipmentBuildObj?.shipmentId,
@@ -1470,43 +1472,79 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
 
     // step 2
     if (currentValues?.handlingUnits?.length > 0 && currentValues?.handlingUnits[0]?.uom) {
+        const mappedHandlingUnits = await Promise.all(
+            (currentValues?.handlingUnits || []).map(async (hu, huIndex) => {
+
+                const processedImages = await Promise.all(
+                    (hu?.images || []).map(async (imgFile, imgIndex) => {
+                        if (!imgFile) return null;
+
+                        // Keep existing server-side images; don't upload them again.
+                        if (imgFile.imageId) {
+                            return { imageId: imgFile.imageId };
+                        }
+
+                        const fieldName = `handlingUnit-${huIndex}-${imgIndex}`;
+                        const base64DataUrl = await toBase64(imgFile);
+                        const base64Content = base64DataUrl.split(',')[1];
+
+                        if (!base64Content) {
+                            throw new Error(`Could not read handling-unit image ${fieldName}`);
+                        }
+
+                        imageFormData.append(fieldName, `base64,${base64Content}`);
+                        return {};
+                    })
+                );
+
+                return {
+                    handlingUnitId: hu?.handlingUnitId || '',
+                    handlingUnitUOM: hu?.uom || '',
+                    handlingUnits: Number(hu?.unitsCount) || 0,
+                    unit: hu?.unit || '',
+                    handlingLength: Number(hu?.length) || 0,
+                    handlingWidth: Number(hu?.width) || 0,
+                    handlingHeight: Number(hu?.height) || 0,
+                    handlingWeight: Number(hu?.weight) || 0,
+                    handlingWeightUnit: hu?.weightUnit === 'lbs' ? 'LB' : hu?.weightUnit === 'kgs' ? 'KG' : '',
+                    class: hu?.class ? `Class ${hu?.class}` : '',
+                    images: hu?.deletedImages?.length
+                        ? [...processedImages, ...hu.deletedImages]
+                        : processedImages,
+                    palletDetails: (hu?.items || []).map(item => ({
+                        itemId: item?.itemId || '',
+                        handlingUnitId: hu?.handlingUnitId || '',
+                        pieces: Number(item?.pieces) || 0,
+                        piecesUOM: item?.piecesUom || '',
+                        description: item?.description || '',
+                        hazmat: item?.hazmatInfo ? 'Y' : 'N',
+                        hazmatDetails: item?.hazmatInfo ? {
+                            itemId: item?.itemId || '',
+                            hazmatId: item?.hazmatData?.hazmatId || '',
+                            unNumber: item?.hazmatData?.unNumber || '',
+                            properShippingName: item?.hazmatData?.shippingName || '',
+                            hazardClass: `${item?.hazmatData?.hazmatClass || ''}`,
+                            packingGroup: `${item?.hazmatData?.packagingGroup || ''}`,
+                            weight: Number(item?.hazmatData?.weight) || 0,
+                            weightUnit: item?.hazmatData?.weightUnit || '',
+                            technicalName: item?.hazmatData?.technicalName || '',
+                            contactPhoneNumber: item?.hazmatData?.contactPhone || '',
+                            hazmatDescription: item?.hazmatData?.description || '',
+                            limitedQuantity: item?.hazmatData?.limitedQuality ? 'Y' : 'N',
+                            marinePollutant: item?.hazmatData?.marinePollutant ? 'Y' : 'N',
+                            residueLastContained: item?.hazmatData?.residueLastContained ? 'Y' : 'N',
+                            reportableQuantity: item?.hazmatData?.reportableQuantity ? 'Y' : 'N',
+                            dotExemption: item?.hazmatData?.dotExemption ? 'Y' : 'N'
+                        } : null
+                    }))
+                };
+            })
+        );
         obj.commodityDetails = {
+            commodityId: selectedShipmentBuildObj?.commodityDetails?.commodityId,
             emergencyContactName: isHazmatSelected ? currentValues?.emergencyContactName : '',
             emergencyContactPhone: isHazmatSelected ? currentValues?.emergencyContactPhone : '',
-            handlingUnits: currentValues?.handlingUnits.map(hu => ({
-                handlingUnitUOM: hu.uom,
-                handlingUnits: Number(hu.unitsCount) || 0, // Ensures it maps to a number
-                unit: hu.unit,
-                handlingLength: Number(hu.length) || 0,
-                handlingWidth: Number(hu.width) || 0,
-                handlingHeight: Number(hu.height) || 0,
-                handlingWeight: Number(hu.weight) || 0,
-                handlingWeightUnit: hu.weightUnit === 'lbs' ? 'LB' : hu.weightUnit === 'kgs' ? 'KG' : '', // Standardizes 'lbs' to 'LB'
-                class: hu.class ? `Class ${hu.class}` : '', // Formats class number to "Class X"
-                palletDetails: hu?.items?.map(item => ({
-                    pieces: Number(item?.pieces) || 0,
-                    piecesUOM: item?.piecesUom,
-                    description: item?.description,
-                    hazmat: item?.hazmatInfo ? 'Y' : 'N',
-                    hazmatDetails: item?.hazmatInfo ? {
-                        unNumber: item?.hazmatData?.unNumber,
-                        properShippingName: item?.hazmatData?.shippingName,
-                        hazardClass: `Class ${item?.hazmatData?.hazmatClass}`,
-                        packingGroup: `${item?.hazmatData?.packagingGroup}`,
-                        weight: Number(item?.hazmatData?.weight) || 0,
-                        weightUnit: item?.hazmatData?.weightUnit,
-                        technicalName: item?.hazmatData?.technicalName,
-                        contactPhoneNumber: item?.hazmatData?.contactPhone,
-                        hazmatDescription: item?.hazmatData?.description,
-                        // Converts boolean values to API's expected "Y" / "N" string flags
-                        limitedQuantity: item?.hazmatData?.limitedQuality ? "Y" : "N",
-                        marinePollutant: item?.hazmatData?.marinePollutant ? "Y" : "N",
-                        residueLastContained: item?.hazmatData?.residueLastContained ? "Y" : "N",
-                        reportableQuantity: item?.hazmatData?.reportableQuantity ? "Y" : "N",
-                        dotExemption: item?.hazmatData?.dotExemption ? "Y" : "N"
-                    } : null
-                }))
-            }))
+            handlingUnits: mappedHandlingUnits
         };
     }
 
@@ -1527,7 +1565,12 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
         try {
             // 2. Execute your API call
             // await dispatch(postStep1(obj));
-            await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
+            payloadFormData.append('payload', JSON.stringify(obj));
+            for (const [fieldName, value] of imageFormData.entries()) {
+                console.log(`Appending file field: ${fieldName}, value: ${value}`);
+                payloadFormData.append(fieldName, value);
+            }
+            await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, payloadFormData));
         } catch (error) {
             console.error("Submission failed:", error);
             setIsSubmitting(false);
@@ -1624,7 +1667,12 @@ export const onFormEditSubmit = async (dispatch, setValue, getValues, trigger, e
             try {
                 // 2. Execute your API call
                 // await dispatch(postStep1(obj));
-                await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, obj));
+                payloadFormData.append('payload', JSON.stringify(obj));
+                for (const [fieldName, value] of imageFormData.entries()) {
+                    console.log(`Appending file field: ${fieldName}, value: ${value}`);
+                    payloadFormData.append(fieldName, value);
+                }
+                await dispatch(patchNetworkShipment(selectedShipmentBuildObj?.shipmentId, payloadFormData));
             } catch (error) {
                 console.error("Submission failed:", error);
                 setIsSubmitting(false);

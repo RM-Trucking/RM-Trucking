@@ -211,13 +211,26 @@ const ActiveStep2 = ({
         return "";
     };
     const getImageName = (file, index) => {
-        if (!file) return `Image ${index + 1}`;
+        const fallback = `Image ${index + 1}`;
+
+        if (!file) return fallback;
+
         if (typeof file === "string") {
-            if (looksLikeBase64Image(file) || file.startsWith("data:image/"))
-                return `Cargo API Image ${index + 1}`;
-            return file.split("/").pop() || `Image ${index + 1}`;
+            if (looksLikeBase64Image(file) || file.startsWith("data:image/")) {
+                return `Image ${index + 1}`;
+            }
+
+            return decodeURIComponent(file.split(/[\\/]/).pop() || fallback);
         }
-        return file.name || file.filename || `Image ${index + 1}`;
+
+        if (file.name || file.originalName) {
+            return file.name || file.originalName;
+        }
+
+        const path = file.filename || file.imagePath;
+        return path
+            ? decodeURIComponent(path.split(/[\\/]/).pop() || fallback)
+            : fallback;
     };
     const looksLikeBase64Image = (value) => {
         const compactValue = String(value || "").trim();

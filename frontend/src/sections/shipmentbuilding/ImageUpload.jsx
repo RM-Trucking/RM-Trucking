@@ -316,7 +316,14 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
     //     handleCloseImageUpload();
     // };
     const handleUploadImages = () => {
-        if (!stagedFiles.length) return;
+        if (!stagedFiles.length) {
+            setSnackbar({
+                open: true,
+                message: "Add files to upload.",
+                severity: "warning",
+            });
+            return;
+        }
 
         const currentHU = getValues(`handlingUnits.${selectedRowRef}`);
         const existingImages = currentHU?.images || [];

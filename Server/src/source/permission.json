@@ -7,7 +7,9 @@
     "moduleKey": "en_route",
     "resourceKey": "form",
     "actionKey": "create",
-    "description": "Allows the user to create an en-route record."
+    "description": "Allows the user to create an en-route record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER2",
@@ -17,7 +19,9 @@
     "moduleKey": "en_route",
     "resourceKey": "form",
     "actionKey": "view",
-    "description": "Allows the user to view an en-route record."
+    "description": "Allows the user to view an en-route record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER3",
@@ -27,7 +31,9 @@
     "moduleKey": "id_verification",
     "resourceKey": "form",
     "actionKey": "create",
-    "description": "Allows the user to create a driver check-in during ID verification."
+    "description": "Allows the user to create a driver check-in during ID verification.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER4",
@@ -37,7 +43,9 @@
     "moduleKey": "id_verification",
     "resourceKey": "form",
     "actionKey": "view",
-    "description": "Allows the user to view an ID verification record."
+    "description": "Allows the user to view an ID verification record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER5",
@@ -47,7 +55,9 @@
     "moduleKey": "id_verification",
     "resourceKey": "form",
     "actionKey": "print",
-    "description": "Allows the user to print the ID verification form."
+    "description": "Allows the user to print the ID verification form.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER6",
@@ -57,7 +67,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt_regular",
     "actionKey": "create_by_pro_and_receipt_number",
-    "description": "Allows the user to create a regular warehouse receipt using the PRO number and receipt number."
+    "description": "Allows the user to create a regular warehouse receipt using the PRO number and receipt number.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER7",
@@ -67,7 +79,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt_regular",
     "actionKey": "create_by_rmpro",
-    "description": "Allows the user to create a regular warehouse receipt using the RM PRO."
+    "description": "Allows the user to create a regular warehouse receipt using the RM PRO.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER8",
@@ -77,7 +91,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt_regular",
     "actionKey": "create_by_parcel_carrier",
-    "description": "Allows the user to create a regular warehouse receipt for a parcel carrier shipment."
+    "description": "Allows the user to create a regular warehouse receipt for a parcel carrier shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER9",
@@ -87,7 +103,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt_trailer",
     "actionKey": "create_by_pro_and_receipt_number",
-    "description": "Allows the user to create a trailer warehouse receipt using the PRO number and receipt number."
+    "description": "Allows the user to create a trailer warehouse receipt using the PRO number and receipt number.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER10",
@@ -97,7 +115,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt_trailer",
     "actionKey": "create_by_rmpro",
-    "description": "Allows the user to create a trailer warehouse receipt using the RM PRO."
+    "description": "Allows the user to create a trailer warehouse receipt using the RM PRO.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER11",
@@ -107,7 +127,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "reject",
-    "description": "Allows the user to reject a warehouse receipt."
+    "description": "Allows the user to reject a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER12",
@@ -117,7 +139,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "view",
-    "description": "Allows the user to view a warehouse receipt."
+    "description": "Allows the user to view a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER13",
@@ -127,7 +151,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "print",
-    "description": "Allows the user to print a warehouse receipt."
+    "description": "Allows the user to print a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER14",
@@ -137,7 +163,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "print_label",
-    "description": "Allows the user to print labels for a warehouse receipt."
+    "description": "Allows the user to print labels for a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER15",
@@ -147,7 +175,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "status_view",
-    "description": "Allows the user to view the status of a warehouse receipt."
+    "description": "Allows the user to view the status of a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER16",
@@ -157,7 +187,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "rate_view",
-    "description": "Allows the user to view the rate information on a warehouse receipt."
+    "description": "Allows the user to view the rate information on a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER17",
@@ -167,7 +199,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "split",
-    "description": "Allows the user to split a warehouse receipt into multiple receipts."
+    "description": "Allows the user to split a warehouse receipt into multiple receipts.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER18",
@@ -177,7 +211,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "edit",
-    "description": "Allows the user to edit a warehouse receipt."
+    "description": "Allows the user to edit a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER19",
@@ -187,7 +223,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "edit_location",
-    "description": "Allows the user to edit the storage location of a warehouse receipt."
+    "description": "Allows the user to edit the storage location of a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER20",
@@ -197,7 +235,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "edit_invoice_number",
-    "description": "Allows the user to edit the invoice number on a warehouse receipt."
+    "description": "Allows the user to edit the invoice number on a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER21",
@@ -207,7 +247,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "document_upload",
-    "description": "Allows the user to upload documents to a warehouse receipt."
+    "description": "Allows the user to upload documents to a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER22",
@@ -217,7 +259,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "document_view",
-    "description": "Allows the user to view documents attached to a warehouse receipt."
+    "description": "Allows the user to view documents attached to a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER23",
@@ -227,7 +271,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "email_send",
-    "description": "Allows the user to send emails from a warehouse receipt."
+    "description": "Allows the user to send emails from a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER24",
@@ -237,7 +283,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "accounting_request",
-    "description": "Allows the user to submit an accounting request for a warehouse receipt."
+    "description": "Allows the user to submit an accounting request for a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER25",
@@ -247,7 +295,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "accounting_approve",
-    "description": "Allows the user to approve an accounting request for a warehouse receipt."
+    "description": "Allows the user to approve an accounting request for a warehouse receipt.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER26",
@@ -257,7 +307,9 @@
     "moduleKey": "warehouse_receipt",
     "resourceKey": "receipt",
     "actionKey": "export_spreadsheet",
-    "description": "Allows the user to export warehouse receipts to a spreadsheet."
+    "description": "Allows the user to export warehouse receipts to a spreadsheet.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER27",
@@ -267,7 +319,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "create",
-    "description": "Allows the user to create a new Air warehouse shipment."
+    "description": "Allows the user to create a new Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER28",
@@ -277,7 +331,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing Air warehouse shipment."
+    "description": "Allows the user to edit an existing Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER29",
@@ -287,7 +343,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "view",
-    "description": "Allows the user to view an Air warehouse shipment."
+    "description": "Allows the user to view an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER30",
@@ -297,7 +355,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "cancel",
-    "description": "Allows the user to cancel an Air warehouse shipment."
+    "description": "Allows the user to cancel an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER31",
@@ -307,7 +367,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "scan",
-    "description": "Allows the user to scan items on an Air warehouse shipment."
+    "description": "Allows the user to scan items on an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER32",
@@ -317,7 +379,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "un_scan",
-    "description": "Allows the user to undo the scanning of items on an Air warehouse shipment."
+    "description": "Allows the user to undo the scanning of items on an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER33",
@@ -327,7 +391,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "approve_split",
-    "description": "Allows the user to approve a split of an Air warehouse shipment."
+    "description": "Allows the user to approve a split of an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER34",
@@ -337,7 +403,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "sign_off",
-    "description": "Allows the user to sign off on an Air warehouse shipment."
+    "description": "Allows the user to sign off on an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER35",
@@ -347,7 +415,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "send_pickup",
-    "description": "Allows the user to send the pickup request for an Air warehouse shipment."
+    "description": "Allows the user to send the pickup request for an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER36",
@@ -357,7 +427,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "edit_pickup_number",
-    "description": "Allows the user to edit the pickup number on an Air warehouse shipment."
+    "description": "Allows the user to edit the pickup number on an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER37",
@@ -367,7 +439,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "upload_image",
-    "description": "Allows the user to upload images to an Air warehouse shipment."
+    "description": "Allows the user to upload images to an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER38",
@@ -377,7 +451,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "view_image",
-    "description": "Allows the user to view images attached to an Air warehouse shipment."
+    "description": "Allows the user to view images attached to an Air warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER39",
@@ -387,7 +463,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "air",
     "actionKey": "export_spreadsheet",
-    "description": "Allows the user to export Air warehouse shipments to a spreadsheet."
+    "description": "Allows the user to export Air warehouse shipments to a spreadsheet.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER40",
@@ -397,7 +475,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "create",
-    "description": "Allows the user to create a new Ocean LCL warehouse shipment."
+    "description": "Allows the user to create a new Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER41",
@@ -407,7 +487,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing Ocean LCL warehouse shipment."
+    "description": "Allows the user to edit an existing Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER42",
@@ -417,7 +499,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "view",
-    "description": "Allows the user to view an Ocean LCL warehouse shipment."
+    "description": "Allows the user to view an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER43",
@@ -427,7 +511,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "cancel",
-    "description": "Allows the user to cancel an Ocean LCL warehouse shipment."
+    "description": "Allows the user to cancel an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER44",
@@ -437,7 +523,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "scan",
-    "description": "Allows the user to scan items on an Ocean LCL warehouse shipment."
+    "description": "Allows the user to scan items on an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER45",
@@ -447,7 +535,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "un_scan",
-    "description": "Allows the user to undo the scanning of items on an Ocean LCL warehouse shipment."
+    "description": "Allows the user to undo the scanning of items on an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER46",
@@ -457,7 +547,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "approve_split",
-    "description": "Allows the user to approve a split of an Ocean LCL warehouse shipment."
+    "description": "Allows the user to approve a split of an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER47",
@@ -467,7 +559,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "sign_off",
-    "description": "Allows the user to sign off on an Ocean LCL warehouse shipment."
+    "description": "Allows the user to sign off on an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER48",
@@ -477,7 +571,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "upload_image",
-    "description": "Allows the user to upload images to an Ocean LCL warehouse shipment."
+    "description": "Allows the user to upload images to an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER49",
@@ -487,7 +583,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "view_image",
-    "description": "Allows the user to view images attached to an Ocean LCL warehouse shipment."
+    "description": "Allows the user to view images attached to an Ocean LCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER50",
@@ -497,7 +595,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_lcl",
     "actionKey": "export_spreadsheet",
-    "description": "Allows the user to export Ocean LCL warehouse shipments to a spreadsheet."
+    "description": "Allows the user to export Ocean LCL warehouse shipments to a spreadsheet.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER51",
@@ -507,7 +607,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "create",
-    "description": "Allows the user to create a new Ocean FCL warehouse shipment."
+    "description": "Allows the user to create a new Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER52",
@@ -517,7 +619,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing Ocean FCL warehouse shipment."
+    "description": "Allows the user to edit an existing Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER53",
@@ -527,7 +631,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "view",
-    "description": "Allows the user to view an Ocean FCL warehouse shipment."
+    "description": "Allows the user to view an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER54",
@@ -537,7 +643,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "cancel",
-    "description": "Allows the user to cancel an Ocean FCL warehouse shipment."
+    "description": "Allows the user to cancel an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER55",
@@ -547,7 +655,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "scan",
-    "description": "Allows the user to scan items on an Ocean FCL warehouse shipment."
+    "description": "Allows the user to scan items on an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER56",
@@ -557,7 +667,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "un_scan",
-    "description": "Allows the user to undo the scanning of items on an Ocean FCL warehouse shipment."
+    "description": "Allows the user to undo the scanning of items on an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER57",
@@ -567,7 +679,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "approve_split",
-    "description": "Allows the user to approve a split of an Ocean FCL warehouse shipment."
+    "description": "Allows the user to approve a split of an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER58",
@@ -577,7 +691,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "sign_off",
-    "description": "Allows the user to sign off on an Ocean FCL warehouse shipment."
+    "description": "Allows the user to sign off on an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER59",
@@ -587,7 +703,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "edit_pickup_number",
-    "description": "Allows the user to edit the pickup number on an Ocean FCL warehouse shipment."
+    "description": "Allows the user to edit the pickup number on an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER60",
@@ -597,7 +715,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "upload_image",
-    "description": "Allows the user to upload images to an Ocean FCL warehouse shipment."
+    "description": "Allows the user to upload images to an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER61",
@@ -607,7 +727,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "view_image",
-    "description": "Allows the user to view images attached to an Ocean FCL warehouse shipment."
+    "description": "Allows the user to view images attached to an Ocean FCL warehouse shipment.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER62",
@@ -617,7 +739,9 @@
     "moduleKey": "warehouse_shipment",
     "resourceKey": "ocean_fcl",
     "actionKey": "export_spreadsheet",
-    "description": "Allows the user to export Ocean FCL warehouse shipments to a spreadsheet."
+    "description": "Allows the user to export Ocean FCL warehouse shipments to a spreadsheet.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER63",
@@ -627,7 +751,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "create",
-    "description": "Allows the user to create a new customer."
+    "description": "Allows the user to create a new customer.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER64",
@@ -637,7 +763,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing customer."
+    "description": "Allows the user to edit an existing customer.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER65",
@@ -647,7 +775,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "view",
-    "description": "Allows the user to view customer details."
+    "description": "Allows the user to view customer details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER66",
@@ -657,7 +787,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer."
+    "description": "Allows the user to delete a customer.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER67",
@@ -667,7 +799,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "view_dropdown",
-    "description": "Allows the user to view the customer list in dropdown selections."
+    "description": "Allows the user to view the customer list in dropdown selections.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER68",
@@ -677,7 +811,9 @@
     "moduleKey": "customer",
     "resourceKey": "customer",
     "actionKey": "view_common_dropdown",
-    "description": "Allows the user to view the common customer list in dropdown selections."
+    "description": "Allows the user to view the common customer list in dropdown selections.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER69",
@@ -687,7 +823,9 @@
     "moduleKey": "customer",
     "resourceKey": "station",
     "actionKey": "create",
-    "description": "Allows the user to create a new customer station."
+    "description": "Allows the user to create a new customer station.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER70",
@@ -697,7 +835,9 @@
     "moduleKey": "customer",
     "resourceKey": "station",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing customer station."
+    "description": "Allows the user to edit an existing customer station.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER71",
@@ -707,7 +847,9 @@
     "moduleKey": "customer",
     "resourceKey": "station",
     "actionKey": "view",
-    "description": "Allows the user to view customer station details."
+    "description": "Allows the user to view customer station details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER72",
@@ -717,7 +859,9 @@
     "moduleKey": "customer",
     "resourceKey": "station",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer station."
+    "description": "Allows the user to delete a customer station.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER73",
@@ -727,7 +871,9 @@
     "moduleKey": "customer",
     "resourceKey": "station",
     "actionKey": "view_dropdown",
-    "description": "Allows the user to view the customer station list in dropdown selections."
+    "description": "Allows the user to view the customer station list in dropdown selections.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER74",
@@ -737,7 +883,9 @@
     "moduleKey": "customer",
     "resourceKey": "department",
     "actionKey": "create",
-    "description": "Allows the user to create a new customer department."
+    "description": "Allows the user to create a new customer department.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER75",
@@ -747,7 +895,9 @@
     "moduleKey": "customer",
     "resourceKey": "department",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing customer department."
+    "description": "Allows the user to edit an existing customer department.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER76",
@@ -757,7 +907,9 @@
     "moduleKey": "customer",
     "resourceKey": "department",
     "actionKey": "view",
-    "description": "Allows the user to view customer department details."
+    "description": "Allows the user to view customer department details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER77",
@@ -767,7 +919,9 @@
     "moduleKey": "customer",
     "resourceKey": "department",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer department."
+    "description": "Allows the user to delete a customer department.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER78",
@@ -777,7 +931,9 @@
     "moduleKey": "customer",
     "resourceKey": "personnel",
     "actionKey": "create",
-    "description": "Allows the user to create a new customer personnel record."
+    "description": "Allows the user to create a new customer personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER79",
@@ -787,7 +943,9 @@
     "moduleKey": "customer",
     "resourceKey": "personnel",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing customer personnel record."
+    "description": "Allows the user to edit an existing customer personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER80",
@@ -797,7 +955,9 @@
     "moduleKey": "customer",
     "resourceKey": "personnel",
     "actionKey": "view",
-    "description": "Allows the user to view customer personnel record details."
+    "description": "Allows the user to view customer personnel record details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER81",
@@ -807,7 +967,9 @@
     "moduleKey": "customer",
     "resourceKey": "personnel",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer personnel record."
+    "description": "Allows the user to delete a customer personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER82",
@@ -817,7 +979,9 @@
     "moduleKey": "customer",
     "resourceKey": "rate",
     "actionKey": "select",
-    "description": "Allows the user to select a rate for a customer."
+    "description": "Allows the user to select a rate for a customer.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER83",
@@ -827,7 +991,9 @@
     "moduleKey": "customer",
     "resourceKey": "rate",
     "actionKey": "view",
-    "description": "Allows the user to view customer rates."
+    "description": "Allows the user to view customer rates.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER84",
@@ -837,7 +1003,9 @@
     "moduleKey": "customer",
     "resourceKey": "rate",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer rate."
+    "description": "Allows the user to delete a customer rate.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER85",
@@ -847,7 +1015,9 @@
     "moduleKey": "customer",
     "resourceKey": "accessorial",
     "actionKey": "create",
-    "description": "Allows the user to create a new customer accessorial charge."
+    "description": "Allows the user to create a new customer accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER86",
@@ -857,7 +1027,9 @@
     "moduleKey": "customer",
     "resourceKey": "accessorial",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing customer accessorial charge."
+    "description": "Allows the user to edit an existing customer accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER87",
@@ -867,7 +1039,9 @@
     "moduleKey": "customer",
     "resourceKey": "accessorial",
     "actionKey": "delete",
-    "description": "Allows the user to delete a customer accessorial charge."
+    "description": "Allows the user to delete a customer accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER88",
@@ -877,7 +1051,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier",
     "actionKey": "create",
-    "description": "Allows the user to create a new carrier."
+    "description": "Allows the user to create a new carrier.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER89",
@@ -887,7 +1063,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing carrier."
+    "description": "Allows the user to edit an existing carrier.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER90",
@@ -897,7 +1075,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier",
     "actionKey": "view",
-    "description": "Allows the user to view carrier details."
+    "description": "Allows the user to view carrier details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER91",
@@ -907,7 +1087,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier."
+    "description": "Allows the user to delete a carrier.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER92",
@@ -917,7 +1099,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal",
     "actionKey": "create",
-    "description": "Allows the user to create a new carrier terminal."
+    "description": "Allows the user to create a new carrier terminal.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER93",
@@ -927,7 +1111,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing carrier terminal."
+    "description": "Allows the user to edit an existing carrier terminal.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER94",
@@ -937,7 +1123,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal",
     "actionKey": "view",
-    "description": "Allows the user to view carrier terminal details."
+    "description": "Allows the user to view carrier terminal details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER95",
@@ -947,7 +1135,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier terminal."
+    "description": "Allows the user to delete a carrier terminal.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER96",
@@ -957,7 +1147,9 @@
     "moduleKey": "carrier",
     "resourceKey": "personnel",
     "actionKey": "create",
-    "description": "Allows the user to create a new carrier personnel record."
+    "description": "Allows the user to create a new carrier personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER97",
@@ -967,7 +1159,9 @@
     "moduleKey": "carrier",
     "resourceKey": "personnel",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing carrier personnel record."
+    "description": "Allows the user to edit an existing carrier personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER98",
@@ -977,7 +1171,9 @@
     "moduleKey": "carrier",
     "resourceKey": "personnel",
     "actionKey": "view",
-    "description": "Allows the user to view carrier personnel record details."
+    "description": "Allows the user to view carrier personnel record details.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER99",
@@ -987,7 +1183,9 @@
     "moduleKey": "carrier",
     "resourceKey": "personnel",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier personnel record."
+    "description": "Allows the user to delete a carrier personnel record.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER100",
@@ -997,7 +1195,9 @@
     "moduleKey": "carrier",
     "resourceKey": "rate",
     "actionKey": "select",
-    "description": "Allows the user to select a rate for a carrier."
+    "description": "Allows the user to select a rate for a carrier.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER101",
@@ -1007,7 +1207,9 @@
     "moduleKey": "carrier",
     "resourceKey": "rate",
     "actionKey": "view",
-    "description": "Allows the user to view carrier rates."
+    "description": "Allows the user to view carrier rates.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER102",
@@ -1017,7 +1219,9 @@
     "moduleKey": "carrier",
     "resourceKey": "rate",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier rate."
+    "description": "Allows the user to delete a carrier rate.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER103",
@@ -1027,7 +1231,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier_accessorial",
     "actionKey": "create",
-    "description": "Allows the user to create a new carrier accessorial charge."
+    "description": "Allows the user to create a new carrier accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER104",
@@ -1037,7 +1243,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier_accessorial",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing carrier accessorial charge."
+    "description": "Allows the user to edit an existing carrier accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER105",
@@ -1047,7 +1255,9 @@
     "moduleKey": "carrier",
     "resourceKey": "carrier_accessorial",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier accessorial charge."
+    "description": "Allows the user to delete a carrier accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER106",
@@ -1057,7 +1267,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal_accessorial",
     "actionKey": "create",
-    "description": "Allows the user to create a new carrier terminal accessorial charge."
+    "description": "Allows the user to create a new carrier terminal accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER107",
@@ -1067,7 +1279,9 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal_accessorial",
     "actionKey": "edit",
-    "description": "Allows the user to edit an existing carrier terminal accessorial charge."
+    "description": "Allows the user to edit an existing carrier terminal accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   },
   {
     "permissionCode": "PER108",
@@ -1077,6 +1291,8 @@
     "moduleKey": "carrier",
     "resourceKey": "terminal_accessorial",
     "actionKey": "delete",
-    "description": "Allows the user to delete a carrier terminal accessorial charge."
+    "description": "Allows the user to delete a carrier terminal accessorial charge.",
+    "forEmployee": "Y",
+    "forCustomer": "Y"
   }
 ]

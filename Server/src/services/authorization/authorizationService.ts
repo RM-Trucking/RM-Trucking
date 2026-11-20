@@ -107,24 +107,34 @@ function mapPermission(row: any): Permission {
         resourceKey,
         actionKey,
         description: row.description ?? row.DESCRIPTION ?? null,
+        forEmployee: String(row.forEmployee ?? row.FOREMPLOYEE ?? 'N').toUpperCase() === 'Y' ? 'Y' : 'N',
+        forCustomer: String(row.forCustomer ?? row.FORCUSTOMER ?? 'N').toUpperCase() === 'Y' ? 'Y' : 'N',
     };
 }
 
-async function validatePermissionCodes(conn: Connection, codes: string[]): Promise<string[]> {
+async function validatePermissionCodes(conn: Connection, codes: string[], roleKind: AuthorizationRoleKind): Promise<string[]> {
     if (!Array.isArray(codes) || codes.some((code) => typeof code !== 'string' || !code.trim())) {
         throw new Error('permissionCodes must be an array of non-empty strings');
     }
+    if (roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+        throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
+    }
     const requestedCodes = [...new Set(codes.map((code) => code.trim().toUpperCase()))];
     const rows = await authorizationRepository.getPermissionsByCodes(conn, requestedCodes);
-    const codeByNormalizedValue = new Map(
+    const codeByNormalizedValue = new Map<string, { permissionCode: string; isAllowed: boolean }>(
         rows.map((row) => {
             const permissionCode = String(row.permissionCode ?? row.PERMISSIONCODE);
-            return [permissionCode.toUpperCase(), permissionCode];
+            const roleFlag = roleKind === 'EMPLOYEE'
+                ? row.forEmployee ?? row.FOREMPLOYEE
+                : row.forCustomer ?? row.FORCUSTOMER;
+            return [permissionCode.toUpperCase(), { permissionCode, isAllowed: String(roleFlag ?? 'N').toUpperCase() === 'Y' }];
         }),
     );
     const invalid = requestedCodes.filter((code) => !codeByNormalizedValue.has(code));
     if (invalid.length) throw new Error(`Unknown permission codes: ${invalid.join(', ')}`);
-    return requestedCodes.map((code) => codeByNormalizedValue.get(code)!);
+    const incompatible = requestedCodes.filter((code) => !codeByNormalizedValue.get(code)!.isAllowed);
+    if (incompatible.length) throw new Error(`Permissions not available for ${roleKind}: ${incompatible.join(', ')}`);
+    return requestedCodes.map((code) => codeByNormalizedValue.get(code)!.permissionCode);
 }
 
 async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationRoleKind, roleIds: number[]): Promise<Role[]> {
@@ -147,7 +157,7 @@ export async function createRole(conn: Connection, input: CreateRoleRequest, act
     if (!name) throw new Error('Role name is required');
     if (await authorizationRepository.getRoleByName(conn, name, input.roleKind)) throw new Error('Role name already exists for this role type');
 
-    const permissionCodes = await validatePermissionCodes(conn, input.permissionCodes ?? []);
+    const permissionCodes = await validatePermissionCodes(conn, input.permissionCodes ?? [], input.roleKind);
     const parentRoleIds = input.parentRoleIds ?? [];
     if (!Array.isArray(parentRoleIds) || parentRoleIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
         throw new Error('parentRoleIds must be an array of positive integer role IDs');
@@ -184,7 +194,13 @@ export async function createRole(conn: Connection, input: CreateRoleRequest, act
 export async function updateRole(conn: Connection, roleId: number, input: UpdateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionCodes: string[]; parentRoleIds: number[] }> {
     const role = await authorizationRepository.getRoleById(conn, roleId);
     if (!role) throw new Error('Role not found');
-    const permissionCodes = input.permissionCodes === undefined ? undefined : await validatePermissionCodes(conn, input.permissionCodes);
+    const permissionCodes = input.permissionCodes === undefined
+        ? undefined
+        : await validatePermissionCodes(conn, input.permissionCodes, input.roleKind ?? role.roleKind);
+    if (input.roleKind !== undefined && input.roleKind !== role.roleKind && input.permissionCodes === undefined) {
+        const existingPermissionCodes = await authorizationRepository.getRolePermissionCodes(conn, roleId);
+        await validatePermissionCodes(conn, existingPermissionCodes, input.roleKind);
+    }
     const parentRoleIds = input.parentRoleIds;
     if (parentRoleIds !== undefined) {
         if (!Array.isArray(parentRoleIds) || parentRoleIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
@@ -233,16 +249,37 @@ export async function getRoleDetails(conn: Connection, roleId: number): Promise<
     };
 }
 
-export async function listRoles(conn: Connection, roleKind?: AuthorizationRoleKind, roleName?: string): Promise<Array<Role & { permissionCodes: string[]; parentRoleIds: number[] }>> {
+export async function listRoles(
+    conn: Connection,
+    roleKind?: AuthorizationRoleKind,
+    roleName?: string,
+    page = 1,
+    pageSize = 20,
+): Promise<{
+    roles: Array<Role & { permissionCodes: string[]; parentRoleIds: number[]; authorityRoles: Array<Pick<Role, 'roleId' | 'name'>> }>;
+    pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
+    roleCounts: Record<'EMPLOYEE' | 'CUSTOMER', number>;
+}> {
     if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
         throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
     }
-    const roles = await authorizationRepository.getRoles(conn, roleKind, roleName?.trim() || undefined);
-    return Promise.all(roles.map(async (role) => ({
+    if (!Number.isSafeInteger(page) || page < 1) throw new Error('page must be a positive integer');
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100) throw new Error('pageSize must be between 1 and 100');
+
+    const roleRows = await authorizationRepository.getRoles(conn, roleKind, roleName?.trim() || undefined, page, pageSize);
+    const totalCount = await authorizationRepository.countRoles(conn, roleKind, roleName?.trim() || undefined);
+    const roleCounts = await authorizationRepository.countRolesByKind(conn, roleName?.trim() || undefined);
+    const roles = await Promise.all(roleRows.map(async (role) => ({
         ...role,
         permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, role.roleId),
         parentRoleIds: await authorizationRepository.getParentRoleIds(conn, role.roleId),
+        authorityRoles: await authorizationRepository.getParentRoles(conn, role.roleId),
     })));
+    return {
+        roles,
+        pagination: { page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) },
+        roleCounts,
+    };
 }
 
 export async function getRoleOptions(conn: Connection, roleKind?: AuthorizationRoleKind): Promise<Array<Pick<Role, 'roleId' | 'name' | 'roleKind'>>> {
@@ -440,7 +477,10 @@ export async function resetPassword(conn: Connection, email: string, otp: string
     }
 }
 
-export async function getPermissionCatalog(conn: Connection): Promise<Record<PermissionApplicationCode, Record<string, Permission[]>>> {
+export async function getPermissionCatalog(conn: Connection, roleKind?: AuthorizationRoleKind): Promise<Record<PermissionApplicationCode, Record<string, Permission[]>>> {
+    if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+        throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
+    }
     const catalog: Record<PermissionApplicationCode, Record<string, Permission[]>> = {
         warehouse: {},
         maintenance: {},
@@ -448,6 +488,8 @@ export async function getPermissionCatalog(conn: Connection): Promise<Record<Per
     };
     for (const row of await authorizationRepository.getPermissionCatalog(conn)) {
         const permission = mapPermission(row);
+        if (roleKind === 'EMPLOYEE' && permission.forEmployee !== 'Y') continue;
+        if (roleKind === 'CUSTOMER' && permission.forCustomer !== 'Y') continue;
         const modules = catalog[permission.applicationCode];
         modules[permission.moduleKey] ??= [];
         modules[permission.moduleKey].push(permission);

@@ -15,6 +15,8 @@ interface PermissionSourceRecord {
     resourceKey: string;
     actionKey: string;
     description?: string | null;
+    forEmployee: "Y" | "N";
+    forCustomer: "Y" | "N";
 }
 
 const sourcePath = resolve(process.argv[2] || resolve(__dirname, "../source/permission.json"));
@@ -44,7 +46,7 @@ function validatePermissions(permissions: PermissionSourceRecord[]): string[] {
 
     permissions.forEach((permission, index) => {
         const label = `Permission ${index + 1}${permission?.permissionCode ? ` (${permission.permissionCode})` : ""}`;
-        for (const field of ["permissionCode", "displayName", "applicationCode", "permissionKey", "moduleKey", "resourceKey", "actionKey"] as const) {
+        for (const field of ["permissionCode", "displayName", "applicationCode", "permissionKey", "moduleKey", "resourceKey", "actionKey", "forEmployee", "forCustomer"] as const) {
             if (!required(permission?.[field])) {
                 errors.push(`${label}.${field} is required`);
             }
@@ -76,6 +78,12 @@ function validatePermissions(permissions: PermissionSourceRecord[]): string[] {
         if (permission?.description !== undefined && permission.description !== null && typeof permission.description !== "string") {
             errors.push(`${label}.description must be a string or null`);
         }
+        if (required(permission?.forEmployee) && !["Y", "N"].includes(permission.forEmployee)) {
+            errors.push(`${label}.forEmployee must be Y or N`);
+        }
+        if (required(permission?.forCustomer) && !["Y", "N"].includes(permission.forCustomer)) {
+            errors.push(`${label}.forCustomer must be Y or N`);
+        }
     });
 
     return errors;
@@ -91,6 +99,8 @@ async function upsertPermission(conn: Connection, source: PermissionSourceRecord
         resourceKey: source.resourceKey.trim(),
         actionKey: source.actionKey.trim(),
         description: source.description?.trim() || null,
+        forEmployee: source.forEmployee,
+        forCustomer: source.forCustomer,
     });
 }
 

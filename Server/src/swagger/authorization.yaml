@@ -12,7 +12,14 @@ paths:
       tags:
         - Authorization
       summary: Get permissions grouped by application
-      description: Returns the preloaded permission master grouped for the Warehouse, Maintenance, and Network Services tabs.
+      description: Returns permissions grouped for the Warehouse, Maintenance, and Network Services tabs. Optionally filter by role kind eligibility.
+      parameters:
+        - in: query
+          name: roleKind
+          required: false
+          schema:
+            type: string
+            enum: [EMPLOYEE, CUSTOMER]
       responses:
         "200":
           description: Permission catalog grouped by application
@@ -31,6 +38,8 @@ paths:
                         moduleKey: warehouse_receipt
                         resourceKey: receipt
                         actionKey: edit
+                        forEmployee: Y
+                        forCustomer: N
                   maintenance: {}
                   network_services: {}
   /api/authorization/roles/options:
@@ -62,7 +71,7 @@ paths:
       tags:
         - Authorization
       summary: List all roles
-      description: Returns full role records with permission codes and parent role IDs. Optionally filter by role kind and a case-insensitive partial role name.
+      description: Returns paginated active role records with permission codes and authority roles (parent role IDs and names). roleCounts are active-role counts for each kind and respect roleName search, but not the roleKind filter.
       parameters:
         - in: query
           name: roleKind
@@ -76,6 +85,21 @@ paths:
           description: Case-insensitive partial match against the role name.
           schema:
             type: string
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: pageSize
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         "200":
           description: Successful response
@@ -90,6 +114,15 @@ paths:
                     status: ACTIVE
                     permissionCodes: [PER1, PER2]
                     parentRoleIds: []
+                    authorityRoles: []
+                pagination:
+                  page: 1
+                  pageSize: 20
+                  totalCount: 1
+                  totalPages: 1
+                roleCounts:
+                  EMPLOYEE: 1
+                  CUSTOMER: 0
     post:
       tags:
         - Authorization

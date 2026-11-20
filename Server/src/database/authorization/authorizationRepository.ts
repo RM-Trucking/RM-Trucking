@@ -48,6 +48,8 @@ export interface PermissionImportRecord {
     resourceKey: string;
     actionKey: string;
     description: string | null;
+    forEmployee: 'Y' | 'N';
+    forCustomer: 'Y' | 'N';
 }
 
 export async function upsertPermission(conn: Connection, permission: PermissionImportRecord): Promise<'inserted' | 'updated'> {
@@ -58,15 +60,15 @@ export async function upsertPermission(conn: Connection, permission: PermissionI
 
     if (existing.length > 0) {
         await conn.query(
-            `UPDATE ${permissions} SET "displayName" = ?, "applicationCode" = ?, "permissionKey" = ?, "moduleKey" = ?, "resourceKey" = ?, "actionKey" = ?, "description" = ? WHERE UPPER("permissionCode") = UPPER(?)`,
-            [permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description, permission.permissionCode] as any[],
+            `UPDATE ${permissions} SET "displayName" = ?, "applicationCode" = ?, "permissionKey" = ?, "moduleKey" = ?, "resourceKey" = ?, "actionKey" = ?, "description" = ?, "forEmployee" = ?, "forCustomer" = ? WHERE UPPER("permissionCode") = UPPER(?)`,
+            [permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description, permission.forEmployee, permission.forCustomer, permission.permissionCode] as any[],
         );
         return 'updated';
     }
 
     await conn.query(
-        `INSERT INTO ${permissions} ("permissionCode", "displayName", "applicationCode", "permissionKey", "moduleKey", "resourceKey", "actionKey", "description") VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [permission.permissionCode, permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description] as any[],
+        `INSERT INTO ${permissions} ("permissionCode", "displayName", "applicationCode", "permissionKey", "moduleKey", "resourceKey", "actionKey", "description", "forEmployee", "forCustomer") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [permission.permissionCode, permission.displayName, permission.applicationCode, permission.permissionKey, permission.moduleKey, permission.resourceKey, permission.actionKey, permission.description, permission.forEmployee, permission.forCustomer] as any[],
     );
     return 'inserted';
 }
@@ -90,10 +92,10 @@ export async function getRoleByName(conn: Connection, name: string, roleKind: 'E
     return rows[0] ?? null;
 }
 
-export async function getRoles(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOMER', roleName?: string): Promise<RoleRecord[]> {
-    const filters: string[] = [];
-    const values: string[] = [];
-    if (roleKind) {
+function buildRoleFilters(roleKind?: 'EMPLOYEE' | 'CUSTOMER', roleName?: string, includeRoleKind = true): { whereClause: string; values: string[] } {
+    const filters: string[] = ['"status" = ?'];
+    const values: string[] = ['ACTIVE'];
+    if (includeRoleKind && roleKind) {
         filters.push('"roleKind" = ?');
         values.push(roleKind);
     }
@@ -101,8 +103,44 @@ export async function getRoles(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOM
         filters.push('UPPER("name") LIKE UPPER(?)');
         values.push(`%${roleName.trim()}%`);
     }
-    const whereClause = filters.length ? ` WHERE ${filters.join(' AND ')}` : '';
-    return (await conn.query(`SELECT * FROM ${roles}${whereClause} ORDER BY "name"`, values)) as RoleRecord[];
+    return { whereClause: ` WHERE ${filters.join(' AND ')}`, values };
+}
+
+export async function getRoles(
+    conn: Connection,
+    roleKind?: 'EMPLOYEE' | 'CUSTOMER',
+    roleName?: string,
+    page = 1,
+    pageSize = 20,
+): Promise<RoleRecord[]> {
+    const { whereClause, values } = buildRoleFilters(roleKind, roleName);
+    const offset = (page - 1) * pageSize;
+    return (await conn.query(
+        `SELECT * FROM ${roles}${whereClause} ORDER BY "name" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`,
+        [...values, offset, pageSize],
+    )) as RoleRecord[];
+}
+
+export async function countRoles(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOMER', roleName?: string): Promise<number> {
+    const { whereClause, values } = buildRoleFilters(roleKind, roleName);
+    const rows = (await conn.query(`SELECT COUNT(*) AS "totalCount" FROM ${roles}${whereClause}`, values)) as Array<{ totalCount?: number; TOTALCOUNT?: number }>;
+    return Number(rows[0]?.totalCount ?? rows[0]?.TOTALCOUNT ?? 0);
+}
+
+export async function countRolesByKind(conn: Connection, roleName?: string): Promise<Record<'EMPLOYEE' | 'CUSTOMER', number>> {
+    const { whereClause, values } = buildRoleFilters(undefined, roleName, false);
+    const rows = (await conn.query(
+        `SELECT "roleKind", COUNT(*) AS "roleCount" FROM ${roles}${whereClause} GROUP BY "roleKind"`,
+        values,
+    )) as Array<{ roleKind?: string; ROLEKIND?: string; roleCount?: number; ROLECOUNT?: number }>;
+    const counts: Record<'EMPLOYEE' | 'CUSTOMER', number> = { EMPLOYEE: 0, CUSTOMER: 0 };
+    for (const row of rows) {
+        const roleKind = String(row.roleKind ?? row.ROLEKIND ?? '').toUpperCase();
+        if (roleKind === 'EMPLOYEE' || roleKind === 'CUSTOMER') {
+            counts[roleKind] = Number(row.roleCount ?? row.ROLECOUNT ?? 0);
+        }
+    }
+    return counts;
 }
 
 export async function getRoleOptions(conn: Connection, roleKind?: 'EMPLOYEE' | 'CUSTOMER'): Promise<Array<Pick<RoleRecord, 'roleId' | 'name' | 'roleKind'>>> {
@@ -120,6 +158,13 @@ export async function getParentRoleIds(conn: Connection, childRoleId: number): P
         [childRoleId],
     )) as Array<{ parentRoleId: number }>;
     return rows.map(({ parentRoleId }) => Number(parentRoleId));
+}
+
+export async function getParentRoles(conn: Connection, childRoleId: number): Promise<Array<Pick<RoleRecord, 'roleId' | 'name'>>> {
+    return (await conn.query(
+        `SELECT r."roleId", r."name" FROM ${roleHierarchy} h INNER JOIN ${roles} r ON r."roleId" = h."parentRoleId" WHERE h."childRoleId" = ? ORDER BY r."name"`,
+        [childRoleId],
+    )) as Array<Pick<RoleRecord, 'roleId' | 'name'>>;
 }
 
 export async function assignParentRole(conn: Connection, parentRoleId: number, childRoleId: number, createdBy: number | null): Promise<void> {

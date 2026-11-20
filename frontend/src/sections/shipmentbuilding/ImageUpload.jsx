@@ -16,6 +16,7 @@ import {
 } from '@mui/material';
 import CloseIcon from "@mui/icons-material/Close";
 import Iconify from '../../components/iconify';
+import { HOST_API_KEY } from '../../config';
 
 
 const actionBtnSx = {
@@ -31,7 +32,7 @@ const actionBtnSx = {
 
 export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileInputRef,
     stagedFiles, setStagedFiles, isDraggingFiles, setIsDraggingFiles, cameraDialogOpen, setCameraDialogOpen,
-    cameraInputRef, cameraVideoRef, cameraStreamRef, getValues, selectedRowRef, updateHU
+    cameraInputRef, cameraVideoRef, cameraStreamRef, getValues, selectedRowRef, updateHU, handlingUnitImages
 }) {
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -151,6 +152,8 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
                 return `Cargo API Image ${index + 1}`;
             return file.split("/").pop() || `Image ${index + 1}`;
         }
+        // New line added
+        if (file.imagePath) return file.imagePath.split("/").pop();
         return file.name || file.filename || `Image ${index + 1}`;
     };
     const looksLikeBase64Image = (value) => {
@@ -182,6 +185,15 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
         if (file.base64) return getImageUrl(file.base64);
         if (file.image) return getImageUrl(file.image);
         if (file instanceof File) return URL.createObjectURL(file);
+        // New lines added
+        if (file.imagePath) {
+            const apiBase = new URL(HOST_API_KEY);
+            const path = file.imagePath.startsWith("/api/")
+                ? file.imagePath
+                : `${apiBase.pathname.replace(/\/+$/, "")}/${file.imagePath.replace(/^\/+/, "")}`;
+
+            return new URL(path, apiBase.origin).href;
+        }
         return "";
     };
     const openImagePreviewTab = (imageUrl, title = "Image Preview") => {
@@ -352,13 +364,17 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
             });
         }
 
-        if (!filesToAdd.length) return;
+        if (!filesToAdd.length) {
+            setStagedFiles([]);
+            return;
+        }
 
         updateHU(selectedRowRef, {
             ...currentHU,
             images: [...existingImages, ...filesToAdd],
         });
 
+        setStagedFiles([]);
         handleCloseImageUpload();
     };
     const FileItem = ({ filename, onRemove, onView, hideRemove = false }) => (
@@ -396,6 +412,30 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
             )}
         </Box>
     );
+    const handleRemoveHandlingUnitImage = (index) => {
+        const rowIndex = selectedRowRef;
+        if (rowIndex == null) return;
+
+        const currentHU = getValues(`handlingUnits.${rowIndex}`);
+        const images = currentHU?.images || [];
+        const removedImage = images[index];
+
+        const deletedImages = removedImage?.imageId
+            ? [
+                ...(currentHU.deletedImages || []),
+                { imageId: removedImage.imageId, delete: true },
+            ]
+            : currentHU.deletedImages || [];
+
+        updateHU(rowIndex, {
+            ...currentHU,
+            images: images.filter((_, imageIndex) => imageIndex !== index),
+            deletedImages,
+        });
+    };
+
+    const existingImages = handlingUnitImages || [];
+    const totalFiles = existingImages.length + stagedFiles.length;
 
     return (
         <>
@@ -506,7 +546,7 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
                             <Stack
                                 sx={{
                                     width: "100%",
-                                    pl: 0,
+                                    pl: 1,
                                 }}
                             >
                                 <Stack
@@ -519,32 +559,31 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
                                         Uploaded Files
                                     </Typography>
                                     <Typography sx={{ fontSize: 12, color: "#555" }}>
-                                        {stagedFiles.length} file(s)
+                                        {totalFiles} file(s)
                                     </Typography>
                                 </Stack>
                                 <Divider sx={{ mb: 1 }} />
 
-                                {stagedFiles.length === 0 ? (
-                                    <Stack
-                                        alignItems="center"
-                                        justifyContent="center"
-                                        sx={{ minHeight: 140, opacity: 0.5 }}
-                                        spacing={1}
-                                    >
-                                        <Iconify icon="mdi:file-document-multiple" width={32} />
-                                        <Typography sx={{ fontSize: 12 }}>No Files</Typography>
-                                    </Stack>
+                                {totalFiles === 0 ? (
+                                    // Keep your existing "No Files" content here
+                                    <Typography>No Files</Typography>
                                 ) : (
                                     <Box sx={{ maxHeight: 180, overflowY: "auto", pr: 1 }}>
-                                        {stagedFiles.map((file, idx) => (
+                                        {existingImages.map((image, index) => (
                                             <FileItem
-                                                key={`${getImageName(file, idx)}-${file.lastModified || idx}-${idx}`}
-                                                filename={getImageName(file, idx)}
-                                                onView={() => handleViewStagedFile(file, idx)}
-                                                onRemove={
-                                                    () => handleRemoveStagedFile(idx)
-                                                }
-                                            // hideRemove={uploadDialog.mode === "view"}
+                                                key={`existing-${image.imageId ?? index}`}
+                                                filename={getImageName(image, index)}
+                                                onView={() => handleViewStagedFile(image, index)}
+                                                onRemove={() => handleRemoveHandlingUnitImage(index)}
+                                            />
+                                        ))}
+
+                                        {stagedFiles.map((file, index) => (
+                                            <FileItem
+                                                key={`staged-${getImageName(file, index)}-${file.lastModified ?? index}`}
+                                                filename={getImageName(file, index)}
+                                                onView={() => handleViewStagedFile(file, index)}
+                                                onRemove={() => handleRemoveStagedFile(index)}
                                             />
                                         ))}
                                     </Box>

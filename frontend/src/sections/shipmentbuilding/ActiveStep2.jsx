@@ -141,7 +141,9 @@ const ActiveStep2 = ({
                     description: '',
                     hazmatInfo: false,
                     hazmatData: null
-                }]
+                }],
+                images: [],
+                deletedImages: [],
             });
         } else {
             // Show the error snackbar if fields are missing
@@ -378,7 +380,7 @@ const ActiveStep2 = ({
                                         mode: "upload",
                                         imageField: "images",
                                     });
-                                    // setStagedFiles([]);
+                                    setStagedFiles([]);
                                     setIsDraggingFiles(false);
                                 }}> <Iconify icon="gridicons:add-image" sx={{ color: '#000' }} /></IconButton>
                                 {(hu?.images?.length) > 0 && (
@@ -436,7 +438,7 @@ const ActiveStep2 = ({
                                         );
                                     }
                                     }
-                                    sx={{ p: 0.4, position: "relative", ml:1 }}
+                                    sx={{ p: 0.4, position: "relative", ml: 1 }}
                                 >
                                     <Iconify
                                         icon="mdi:image-multiple"
@@ -905,6 +907,7 @@ const ActiveStep2 = ({
                     getValues={getValues}
                     selectedRowRef={selectedRowRef.current}
                     updateHU={updateHU}
+                    handlingUnitImages={watchedHU?.[selectedRowRef.current]?.images || []}
                 />
 
                 {/* bad freight modal  */}

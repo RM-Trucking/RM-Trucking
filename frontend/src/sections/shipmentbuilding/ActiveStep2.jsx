@@ -908,6 +908,7 @@ const ActiveStep2 = ({
                     selectedRowRef={selectedRowRef.current}
                     updateHU={updateHU}
                     handlingUnitImages={watchedHU?.[selectedRowRef.current]?.images || []}
+                    onOpenFullImage={handleOpenFullImage}
                 />
 
                 {/* bad freight modal  */}

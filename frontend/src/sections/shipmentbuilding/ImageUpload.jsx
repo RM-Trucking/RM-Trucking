@@ -32,7 +32,8 @@ const actionBtnSx = {
 
 export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileInputRef,
     stagedFiles, setStagedFiles, isDraggingFiles, setIsDraggingFiles, cameraDialogOpen, setCameraDialogOpen,
-    cameraInputRef, cameraVideoRef, cameraStreamRef, getValues, selectedRowRef, updateHU, handlingUnitImages
+    cameraInputRef, cameraVideoRef, cameraStreamRef, getValues, selectedRowRef, updateHU, handlingUnitImages,
+    onOpenFullImage,
 }) {
     const [snackbar, setSnackbar] = useState({
         open: false,
@@ -222,22 +223,27 @@ export default function ImageUploadDilog({ uploadDialog, setUploadDialog, fileIn
         previewWindow.document.close();
         return true;
     };
+    // const handleViewStagedFile = (file, index = 0) => {
+    //     if (!file) return;
+
+    //     // if (isScanGunScreen) {
+    //     //   handleOpenFullImage(file, getImageName(file, index));
+    //     //   return;
+    //     // }
+    //     // const previewUrl = getImageUrl(file);
+    //     // if (!previewUrl) return;
+
+    //     // const opened = openImagePreviewTab(previewUrl, getImageName(file, index));
+
+    //     // if (opened && file instanceof File) {
+    //     //     setTimeout(() => {
+    //     //         URL.revokeObjectURL(previewUrl);
+    //     //     }, 1000);
+    //     // }
+    // };
     const handleViewStagedFile = (file, index = 0) => {
         if (!file) return;
-        // if (isScanGunScreen) {
-        //   handleOpenFullImage(file, getImageName(file, index));
-        //   return;
-        // }
-        const previewUrl = getImageUrl(file);
-        if (!previewUrl) return;
-
-        const opened = openImagePreviewTab(previewUrl, getImageName(file, index));
-
-        if (opened && file instanceof File) {
-            setTimeout(() => {
-                URL.revokeObjectURL(previewUrl);
-            }, 1000);
-        }
+        onOpenFullImage(file, getImageName(file, index));
     };
     const handleRemoveStagedFile = (index) => {
         const fileToRemove = stagedFiles[index];

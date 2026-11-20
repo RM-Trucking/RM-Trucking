@@ -32,9 +32,30 @@ export async function listRoles(req: Request, res: Response, conn: Connection): 
             return;
         }
         const roleName = typeof req.query.roleName === 'string' ? req.query.roleName.trim() : undefined;
+        const parsePositiveInteger = (value: unknown, defaultValue: number): number | undefined => {
+            if (value === undefined) return defaultValue;
+            if (typeof value !== 'string' || !/^\d+$/.test(value)) return undefined;
+            const parsed = Number(value);
+            return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+        };
+        const page = parsePositiveInteger(req.query.page, 1);
+        const pageSize = parsePositiveInteger(req.query.pageSize, 20);
+        if (page === undefined || pageSize === undefined || pageSize > 100) {
+            res.status(400).json({ success: false, message: 'page must be positive and pageSize must be between 1 and 100' });
+            return;
+        }
+        const result = await authorizationService.listRoles(
+            conn,
+            roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined,
+            roleName,
+            page,
+            pageSize,
+        );
         res.status(200).json({
             success: true,
-            data: await authorizationService.listRoles(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined, roleName),
+            data: result.roles,
+            pagination: result.pagination,
+            roleCounts: result.roleCounts,
         });
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });
@@ -72,9 +93,17 @@ export async function deactivateRole(req: Request, res: Response, conn: Connecti
     }
 }
 
-export async function getPermissionCatalog(_req: Request, res: Response, conn: Connection): Promise<void> {
+export async function getPermissionCatalog(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        res.status(200).json({ success: true, data: await authorizationService.getPermissionCatalog(conn) });
+        const roleKind = typeof req.query.roleKind === 'string' ? req.query.roleKind.toUpperCase() : undefined;
+        if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+            res.status(400).json({ success: false, message: 'roleKind must be EMPLOYEE or CUSTOMER' });
+            return;
+        }
+        res.status(200).json({
+            success: true,
+            data: await authorizationService.getPermissionCatalog(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined),
+        });
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });
     }

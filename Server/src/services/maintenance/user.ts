@@ -87,7 +87,6 @@ export async function loginUser(conn: Connection, loginReq: LoginRequest): Promi
         userId: user.userId,
         userName: user.userName,
         email: user.email,
-        roleId: user.roleId
     };
 
     console.log(JWT_EXPIRY);

@@ -518,7 +518,8 @@ export default function RoleMaintenance() {
           <DialogContent sx={{
             px: 3, pt: '12px !important', pb: 3, flex: 1, minHeight: 0, overflowY: 'auto',
             ...(viewingRole && {
-              '& .MuiInputLabel-root, & .MuiInputLabel-root.Mui-disabled, & .MuiFormLabel-root.Mui-disabled, & .MuiFormControlLabel-label.Mui-disabled, & .MuiTab-root': { color: '#000' },
+              '& .MuiInputLabel-root, & .MuiInputLabel-root.Mui-disabled, & .MuiFormLabel-root.Mui-disabled, & .MuiTab-root': { color: '#000' },
+              '& .MuiFormControlLabel-root .MuiFormControlLabel-label.Mui-disabled': { color: '#000' },
               '& .MuiInputBase-input, & .MuiInputBase-input.Mui-disabled': { color: '#000', WebkitTextFillColor: '#000' },
             }),
           }}>

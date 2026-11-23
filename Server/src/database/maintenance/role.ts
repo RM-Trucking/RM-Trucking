@@ -15,7 +15,7 @@ export async function createRole(
 ): Promise<number> {
     const query = `
     INSERT INTO RANDM_TST.ROLE (ROLENAME, CREATEDAT, CREATEDBY)
-    VALUES (?, CURRENT_TIMESTAMP, ?)
+    VALUES (?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?)
   `;
 
     await conn.query(query, [roleName, createdBy]);

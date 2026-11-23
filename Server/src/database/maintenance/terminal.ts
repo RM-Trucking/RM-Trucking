@@ -143,7 +143,7 @@ export async function softDeleteTerminal(conn: Connection, terminalId: number, u
         UPDATE ${SCHEMA}."Terminal"
         SET "activeStatus" = 'N',
             "updatedBy" = ?,
-            "updatedAt" = CURRENT_TIMESTAMP
+            "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
         WHERE "terminalId" = ?
     `;
     await conn.query(query, [userId, terminalId]);

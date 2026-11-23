@@ -99,7 +99,7 @@ export async function insertHandlingUnitImage(
         `SELECT * FROM FINAL TABLE (
             INSERT INTO ${SCHEMA}."Network_Shipment_Handling_Unit_Images"
                 ("handlingUnitId", "imagePath", "uploadedAt")
-            VALUES (?, ?, CURRENT_TIMESTAMP - CURRENT TIMEZONE)
+            VALUES (?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
         )`,
         [handlingUnitId, imagePath]
     ) as EnhancedHandlingUnitImage[];

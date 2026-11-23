@@ -54,6 +54,16 @@ export interface TokenPair {
     refreshToken: string;
 }
 
+type RoleWithAuditNames = Role & { createdByName: string | null; updatedByName: string | null };
+
+async function addRoleAuditNames(conn: Connection, role: Role): Promise<RoleWithAuditNames> {
+    return {
+        ...role,
+        createdByName: await authorizationRepository.getUserNameById(conn, role.createdBy),
+        updatedByName: await authorizationRepository.getUserNameById(conn, role.updatedBy),
+    };
+}
+
 const JWT_SECRET = process.env.JWT_SECRET || 'authorization-secret';
 const REFRESH_SECRET = process.env.REFRESH_SECRET || 'authorization-refresh-secret';
 const ACCESS_TOKEN_TTL = process.env.JWT_EXPIRY || '3600s';
@@ -152,7 +162,7 @@ async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationR
     return roles;
 }
 
-export async function createRole(conn: Connection, input: CreateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionCodes: string[]; parentRoleIds: number[] }> {
+export async function createRole(conn: Connection, input: CreateRoleRequest, actorUserId: number | null = null): Promise<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[] }> {
     const name = input.name?.trim();
     if (!name) throw new Error('Role name is required');
     if (await authorizationRepository.getRoleByName(conn, name, input.roleKind)) throw new Error('Role name already exists for this role type');
@@ -184,14 +194,14 @@ export async function createRole(conn: Connection, input: CreateRoleRequest, act
             await authorizationRepository.assignParentRole(conn, parentRoleId, role.roleId, actorUserId);
         }
         await conn.commit();
-        return { ...role, permissionCodes, parentRoleIds: uniqueParentRoleIds };
+        return { ...(await addRoleAuditNames(conn, role)), permissionCodes, parentRoleIds: uniqueParentRoleIds };
     } catch (error) {
         await conn.rollback();
         throw error;
     }
 }
 
-export async function updateRole(conn: Connection, roleId: number, input: UpdateRoleRequest, actorUserId: number | null = null): Promise<Role & { permissionCodes: string[]; parentRoleIds: number[] }> {
+export async function updateRole(conn: Connection, roleId: number, input: UpdateRoleRequest, actorUserId: number | null = null): Promise<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[] }> {
     const role = await authorizationRepository.getRoleById(conn, roleId);
     if (!role) throw new Error('Role not found');
     const permissionCodes = input.permissionCodes === undefined
@@ -231,19 +241,19 @@ export async function updateRole(conn: Connection, roleId: number, input: Update
     const updated = await authorizationRepository.getRoleById(conn, roleId);
     if (!updated) throw new Error('Role not found after update');
     return {
-        ...updated,
+        ...(await addRoleAuditNames(conn, updated)),
         permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, roleId),
         parentRoleIds: await authorizationRepository.getParentRoleIds(conn, roleId),
     };
 }
 
-export async function getRoleDetails(conn: Connection, roleId: number): Promise<Role & { permissions: Permission[]; parentRoleIds: number[] }> {
+export async function getRoleDetails(conn: Connection, roleId: number): Promise<RoleWithAuditNames & { permissions: Permission[]; parentRoleIds: number[] }> {
     const role = await authorizationRepository.getRoleById(conn, roleId);
     if (!role) throw new Error('Role not found');
     const codes = await authorizationRepository.getRolePermissionCodes(conn, roleId);
     const rows = await authorizationRepository.getPermissionsByCodes(conn, codes);
     return {
-        ...role,
+        ...(await addRoleAuditNames(conn, role)),
         permissions: rows.map(mapPermission),
         parentRoleIds: await authorizationRepository.getParentRoleIds(conn, roleId),
     };
@@ -256,7 +266,7 @@ export async function listRoles(
     page = 1,
     pageSize = 20,
 ): Promise<{
-    roles: Array<Role & { permissionCodes: string[]; parentRoleIds: number[]; authorityRoles: Array<Pick<Role, 'roleId' | 'name'>> }>;
+    roles: Array<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[]; authorityRoles: Array<Pick<Role, 'roleId' | 'name'>> }>;
     pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
     roleCounts: Record<'EMPLOYEE' | 'CUSTOMER', number>;
 }> {
@@ -268,9 +278,9 @@ export async function listRoles(
 
     const roleRows = await authorizationRepository.getRoles(conn, roleKind, roleName?.trim() || undefined, page, pageSize);
     const totalCount = await authorizationRepository.countRoles(conn, roleKind, roleName?.trim() || undefined);
-    const roleCounts = await authorizationRepository.countRolesByKind(conn, roleName?.trim() || undefined);
+    const roleCounts = await authorizationRepository.countRolesByKind(conn);
     const roles = await Promise.all(roleRows.map(async (role) => ({
-        ...role,
+        ...(await addRoleAuditNames(conn, role)),
         permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, role.roleId),
         parentRoleIds: await authorizationRepository.getParentRoleIds(conn, role.roleId),
         authorityRoles: await authorizationRepository.getParentRoles(conn, role.roleId),
@@ -362,8 +372,9 @@ export async function listUsers(conn: Connection): Promise<Array<Omit<User, 'pas
     return rows.map(({ passwordHash: _passwordHash, ...user }) => user);
 }
 
-export async function getUserRoles(conn: Connection, userId: number): Promise<Role[]> {
-    return authorizationRepository.getUserRoles(conn, userId);
+export async function getUserRoles(conn: Connection, userId: number): Promise<RoleWithAuditNames[]> {
+    const roles = await authorizationRepository.getUserRoles(conn, userId);
+    return Promise.all(roles.map((role) => addRoleAuditNames(conn, role)));
 }
 
 export async function getUserPermissions(conn: Connection, userId: number): Promise<Permission[]> {
@@ -382,10 +393,10 @@ export async function removeUserRole(conn: Connection, userId: number, roleId: n
     await authorizationRepository.removeRole(conn, userId, roleId);
 }
 
-export async function login(conn: Connection, input: LoginRequest): Promise<{ user: Omit<User, 'passwordHash'>; roles: Role[]; permissions: Permission[]; tokenPair: TokenPair }> {
+export async function login(conn: Connection, input: LoginRequest): Promise<{ user: Omit<User, 'passwordHash'>; roles: RoleWithAuditNames[]; permissions: Permission[]; tokenPair: TokenPair }> {
     const user = await authorizationRepository.getUserByLoginName(conn, input.loginUserName);
     if (!user || user.activeStatus !== 'Y' || !verifyStoredPassword(input.password, user.passwordHash)) throw new Error('Invalid username or password');
-    const roles = await authorizationRepository.getUserRoles(conn, user.userId);
+    const roles = await getUserRoles(conn, user.userId);
     const permissions = await getUserPermissions(conn, user.userId);
     const tokenPair = generateTokenPair(user);
     const { passwordHash: _passwordHash, ...safeUser } = user;
@@ -477,8 +488,8 @@ export async function resetPassword(conn: Connection, email: string, otp: string
     }
 }
 
-export async function getPermissionCatalog(conn: Connection, roleKind?: AuthorizationRoleKind): Promise<Record<PermissionApplicationCode, Record<string, Permission[]>>> {
-    if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+export async function getPermissionCatalog(conn: Connection, roleKind: AuthorizationRoleKind): Promise<Record<PermissionApplicationCode, Record<string, Permission[]>>> {
+    if (roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
         throw new Error('roleKind must be EMPLOYEE or CUSTOMER');
     }
     const catalog: Record<PermissionApplicationCode, Record<string, Permission[]>> = {
@@ -497,8 +508,8 @@ export async function getPermissionCatalog(conn: Connection, roleKind?: Authoriz
     return catalog;
 }
 
-export async function getRolePermissionSummary(conn: Connection, userId: number): Promise<{ roles: Role[]; permissions: Permission[] }> {
-    const roles = await authorizationRepository.getUserRoles(conn, userId);
+export async function getRolePermissionSummary(conn: Connection, userId: number): Promise<{ roles: RoleWithAuditNames[]; permissions: Permission[] }> {
+    const roles = await getUserRoles(conn, userId);
     const permissions = await getUserPermissions(conn, userId);
     return { roles, permissions };
 }

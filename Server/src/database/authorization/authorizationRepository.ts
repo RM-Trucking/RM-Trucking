@@ -169,7 +169,7 @@ export async function getParentRoles(conn: Connection, childRoleId: number): Pro
 
 export async function assignParentRole(conn: Connection, parentRoleId: number, childRoleId: number, createdBy: number | null): Promise<void> {
     await conn.query(
-        `INSERT INTO ${roleHierarchy} ("parentRoleId", "childRoleId", "createdBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+        `INSERT INTO ${roleHierarchy} ("parentRoleId", "childRoleId", "createdBy", "createdAt") VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
         [parentRoleId, childRoleId, createdBy] as any[],
     );
 }
@@ -201,7 +201,7 @@ export async function insertRole(conn: Connection, input: {
 }): Promise<RoleRecord> {
     try {
         await conn.query(
-            `INSERT INTO ${roles} ("name", "description", "roleKind", "status", "isSystemManaged", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)`,
+            `INSERT INTO ${roles} ("name", "description", "roleKind", "status", "isSystemManaged", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
             [input.name, input.description, input.roleKind, input.status, input.isSystemManaged ?? 'N', input.createdBy, input.createdBy] as any[],
         );
     } catch (error) {
@@ -236,7 +236,7 @@ export async function updateRole(conn: Connection, roleId: number, input: {
         }
     }
     if (sets.length === 0) return;
-    sets.push('"updatedAt" = CURRENT_TIMESTAMP');
+    sets.push('"updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)');
     try {
         await conn.query(`UPDATE ${roles} SET ${sets.join(', ')} WHERE "roleId" = ?`, [...values, roleId] as any[]);
     } catch (error) {
@@ -262,7 +262,7 @@ export async function replaceRolePermissions(conn: Connection, roleId: number, p
         const permissionCode = String(permission.permissionCode ?? permission.PERMISSIONCODE);
         try {
             await conn.query(
-                `INSERT INTO ${rolePermissions} ("roleId", "permissionCode", "grantedBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+                `INSERT INTO ${rolePermissions} ("roleId", "permissionCode", "grantedBy", "createdAt") VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
                 [roleId, permissionCode, grantedBy] as any[],
             );
         } catch (error) {
@@ -274,6 +274,13 @@ export async function replaceRolePermissions(conn: Connection, roleId: number, p
 export async function getUserById(conn: Connection, userId: number): Promise<UserRecord | null> {
     const rows = (await conn.query(`SELECT * FROM ${users} WHERE "userId" = ?`, [userId])) as UserRecord[];
     return rows[0] ?? null;
+}
+
+export async function getUserNameById(conn: Connection, userId: number | null): Promise<string | null> {
+    if (userId === null) return null;
+    const rows = (await conn.query(`SELECT "userName" FROM ${users} WHERE "userId" = ?`, [userId])) as Array<{ userName?: string; USERNAME?: string }>;
+    const userName = rows[0]?.userName ?? rows[0]?.USERNAME;
+    return userName === undefined ? null : String(userName);
 }
 
 export async function getUserByLoginName(conn: Connection, loginUserName: string): Promise<UserRecord | null> {
@@ -310,7 +317,7 @@ export async function insertUser(conn: Connection, input: {
     createdBy: number | null;
 }): Promise<UserRecord> {
     await conn.query(
-        `INSERT INTO ${users} ("userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId") VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, 'Y', ?, ?)`,
+        `INSERT INTO ${users} ("userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId") VALUES (?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, 'Y', ?, ?)`,
         [input.userName, input.loginUserName, input.email, input.passwordHash, input.createdBy, input.userType, input.customerId] as any[],
     );
     const result = (await conn.query(`SELECT IDENTITY_VAL_LOCAL() AS "userId" FROM SYSIBM.SYSDUMMY1`)) as Array<{ userId: number }>;
@@ -356,20 +363,20 @@ export async function assignRole(conn: Connection, userId: number, roleId: numbe
     const existing = (await conn.query(`SELECT "userId" FROM ${userRoles} WHERE "userId" = ? AND "roleId" = ?`, [userId, roleId])) as any[];
     if (existing.length > 0) {
         await conn.query(
-            `UPDATE ${userRoles} SET "assignmentStatus" = 'ACTIVE', "validFrom" = CURRENT_TIMESTAMP, "validTo" = NULL, "grantedBy" = ?, "reason" = ? WHERE "userId" = ? AND "roleId" = ?`,
+            `UPDATE ${userRoles} SET "assignmentStatus" = 'ACTIVE', "validFrom" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), "validTo" = NULL, "grantedBy" = ?, "reason" = ? WHERE "userId" = ? AND "roleId" = ?`,
             [grantedBy, reason, userId, roleId] as any[],
         );
         return;
     }
     await conn.query(
-        `INSERT INTO ${userRoles} ("userId", "roleId", "assignmentStatus", "validFrom", "validTo", "grantedBy", "reason", "createdAt") VALUES (?, ?, 'ACTIVE', CURRENT_TIMESTAMP, NULL, ?, ?, CURRENT_TIMESTAMP)`,
+        `INSERT INTO ${userRoles} ("userId", "roleId", "assignmentStatus", "validFrom", "validTo", "grantedBy", "reason", "createdAt") VALUES (?, ?, 'ACTIVE', (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), NULL, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
         [userId, roleId, grantedBy, reason] as any[],
     );
 }
 
 export async function removeRole(conn: Connection, userId: number, roleId: number): Promise<void> {
     await conn.query(
-        `UPDATE ${userRoles} SET "assignmentStatus" = 'INACTIVE', "validTo" = CURRENT_TIMESTAMP WHERE "userId" = ? AND "roleId" = ?`,
+        `UPDATE ${userRoles} SET "assignmentStatus" = 'INACTIVE', "validTo" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE) WHERE "userId" = ? AND "roleId" = ?`,
         [userId, roleId],
     );
 }
@@ -384,14 +391,14 @@ export async function getUserPermissions(conn: Connection, userId: number): Prom
 export async function createResetOtp(conn: Connection, userId: number, otpHash: string, expiresAtIso: string): Promise<void> {
     await conn.query(`UPDATE ${resetOtps} SET "status" = 'INVALIDATED' WHERE "userId" = ? AND "status" = 'PENDING'`, [userId]);
     await conn.query(
-        `INSERT INTO ${resetOtps} ("userId", "otpHash", "createdAt", "expiresAt", "attemptCount", "status") VALUES (?, ?, CURRENT_TIMESTAMP, ?, 0, 'PENDING')`,
+        `INSERT INTO ${resetOtps} ("userId", "otpHash", "createdAt", "expiresAt", "attemptCount", "status") VALUES (?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, 0, 'PENDING')`,
         [userId, otpHash, expiresAtIso] as any[],
     );
 }
 
 export async function getPendingResetOtp(conn: Connection, userId: number): Promise<any | null> {
     const rows = (await conn.query(
-        `SELECT * FROM ${resetOtps} WHERE "userId" = ? AND "status" = 'PENDING' AND "expiresAt" > CURRENT_TIMESTAMP ORDER BY "createdAt" DESC FETCH FIRST 1 ROW ONLY`,
+        `SELECT * FROM ${resetOtps} WHERE "userId" = ? AND "status" = 'PENDING' AND "expiresAt" > (CURRENT_TIMESTAMP - CURRENT_TIMEZONE) ORDER BY "createdAt" DESC FETCH FIRST 1 ROW ONLY`,
         [userId],
     )) as any[];
     return rows[0] ?? null;
@@ -406,7 +413,7 @@ export async function incrementResetOtpAttempts(conn: Connection, resetOtpId: nu
 
 export async function consumeResetOtp(conn: Connection, resetOtpId: number): Promise<void> {
     await conn.query(
-        `UPDATE ${resetOtps} SET "status" = 'CONSUMED', "consumedAt" = CURRENT_TIMESTAMP WHERE "resetOtpId" = ? AND "status" = 'PENDING'`,
+        `UPDATE ${resetOtps} SET "status" = 'CONSUMED', "consumedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE) WHERE "resetOtpId" = ? AND "status" = 'PENDING'`,
         [resetOtpId],
     );
 }

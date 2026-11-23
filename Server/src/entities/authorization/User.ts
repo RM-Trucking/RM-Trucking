@@ -12,4 +12,6 @@ export interface User {
   activeStatus: 'Y' | 'N';
   userType: AuthorizationRoleKind;
   customerId: number | null;
+  updatedAt: Date;
+  updatedBy: number | null;
 }

@@ -96,13 +96,17 @@ export async function deactivateRole(req: Request, res: Response, conn: Connecti
 export async function getPermissionCatalog(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const roleKind = typeof req.query.roleKind === 'string' ? req.query.roleKind.toUpperCase() : undefined;
-        if (roleKind !== undefined && roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
+        if (roleKind === undefined) {
+            res.status(400).json({ success: false, message: 'roleKind query parameter is required' });
+            return;
+        }
+        if (roleKind !== 'EMPLOYEE' && roleKind !== 'CUSTOMER') {
             res.status(400).json({ success: false, message: 'roleKind must be EMPLOYEE or CUSTOMER' });
             return;
         }
         res.status(200).json({
             success: true,
-            data: await authorizationService.getPermissionCatalog(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER' | undefined),
+            data: await authorizationService.getPermissionCatalog(conn, roleKind as 'EMPLOYEE' | 'CUSTOMER'),
         });
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });

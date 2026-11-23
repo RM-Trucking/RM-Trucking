@@ -16,7 +16,7 @@ paths:
       parameters:
         - in: query
           name: roleKind
-          required: false
+          required: true
           schema:
             type: string
             enum: [EMPLOYEE, CUSTOMER]
@@ -71,7 +71,7 @@ paths:
       tags:
         - Authorization
       summary: List all roles
-      description: Returns paginated active role records with permission codes and authority roles (parent role IDs and names). roleCounts are active-role counts for each kind and respect roleName search, but not the roleKind filter.
+      description: Returns paginated active role records with permission codes and authority roles (parent role IDs and names). roleCounts are stable active-role totals for each kind and are not affected by roleName or roleKind filters.
       parameters:
         - in: query
           name: roleKind
@@ -112,6 +112,10 @@ paths:
                     name: SYSTEM
                     roleKind: EMPLOYEE
                     status: ACTIVE
+                    createdBy: 1
+                    createdByName: System
+                    updatedBy: 1
+                    updatedByName: System
                     permissionCodes: [PER1, PER2]
                     parentRoleIds: []
                     authorityRoles: []
@@ -152,6 +156,10 @@ paths:
                   name: Customer Manager
                   roleKind: EMPLOYEE
                   status: ACTIVE
+                  createdBy: 1
+                  createdByName: System
+                  updatedBy: 1
+                  updatedByName: System
   /api/authorization/roles/{roleId}:
     parameters:
       - in: path
@@ -175,6 +183,10 @@ paths:
                   name: Dispatcher
                   roleKind: EMPLOYEE
                   status: ACTIVE
+                  createdBy: 1
+                  createdByName: System
+                  updatedBy: 1
+                  updatedByName: System
                   permissions:
                     - permissionId: 1
                       permissionCode: PER1

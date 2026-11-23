@@ -23,7 +23,7 @@ export async function createUser(
         SELECT "userId"
         FROM FINAL TABLE (
             INSERT INTO ${SCHEMA}."User" ("userName", "loginUserName", "email", "passwordHash", "createdAt", "createdBy", "activeStatus", "userType", "customerId")
-            VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, 'Y', ?, ?)
+            VALUES (?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, 'Y', ?, ?)
         )
     `;
 
@@ -208,7 +208,7 @@ export async function storeRefreshToken(
 ): Promise<boolean> {
     const query = `
         INSERT INTO RefreshToken (user_id, token, expires_at, created_at)
-        VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+        VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
     `;
 
     try {
@@ -228,7 +228,7 @@ export async function getRefreshToken(conn: Connection, userId: number, token: s
     const query = `
         SELECT user_id, token, expires_at
         FROM RefreshToken
-        WHERE user_id = ? AND token = ? AND expires_at > CURRENT_TIMESTAMP
+        WHERE user_id = ? AND token = ? AND expires_at > (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
     `;
 
     const result = (await conn.query(query, [userId, token])) as any[];

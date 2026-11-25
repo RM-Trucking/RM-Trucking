@@ -589,7 +589,7 @@ export default function HomePage() {
 
                 </Stack> */}
                 {/* Actions Section Container */}
-                <Stack
+                {/* <Stack
                     direction="row"
                     alignItems="center"
                     justifyContent={'space-between'}
@@ -746,7 +746,7 @@ export default function HomePage() {
                         </Stack>
                         <SharedSearchField page="shipmentbuilding" />
                     </Stack>
-                </Stack>
+                </Stack> */}
 
                 <ShipmentViewTable watchedConsolidateFlag={watchedConsolidateFlag} control={control}
                     setValue={setValue} getValues={getValues} />

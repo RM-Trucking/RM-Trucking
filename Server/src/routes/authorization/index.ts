@@ -105,6 +105,16 @@ router.get('/users', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
+// GET USER BY ID
+router.get('/users/:userId', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    try {
+        await authorizationController.getUserById(req, res, conn);
+    } finally {
+        await conn.close();
+    }
+});
+
 // CREATE USER
 router.post('/users', authenticateJWT, async (req, res) => {
     const conn = await db();
@@ -119,11 +129,14 @@ router.put('/users/:userId', authenticateJWT, async (req, res) => {
     conn.close();
 });
 
-// ASSIGN ROLE TO USER
-router.post('/users/assign-role', authenticateJWT, async (req, res) => {
+// UPDATE USER ACTIVE STATUS
+router.patch('/users/:userId/status', authenticateJWT, async (req, res) => {
     const conn = await db();
-    await authorizationController.assignRole(req, res, conn);
-    conn.close();
+    try {
+        await authorizationController.updateUserStatus(req, res, conn);
+    } finally {
+        await conn.close();
+    }
 });
 
 // REMOVE ROLE FROM USER

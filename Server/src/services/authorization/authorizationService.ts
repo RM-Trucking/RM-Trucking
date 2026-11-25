@@ -4,7 +4,7 @@ import { Connection } from 'odbc';
 import { Permission, PermissionApplicationCode, Role, User } from '../../entities/authorization';
 import { AuthorizationRoleKind, AuthorizationStatus } from '../../entities/authorization/User';
 import { createPasswordHash, verifyStoredPassword } from '../../utils/password';
-import { sendPasswordResetOtpEmail } from '../../utils/emailService';
+import { sendEmail, sendPasswordResetOtpEmail } from '../../utils/emailService';
 import * as authorizationRepository from '../../database/authorization/authorizationRepository';
 
 export interface LoginRequest {
@@ -34,10 +34,10 @@ export interface CreateUserRequest {
     userName: string;
     loginUserName: string;
     email: string;
-    password: string;
     userType: AuthorizationRoleKind;
     customerId?: number | null;
     roleIds?: number[];
+    stationIds?: number[];
 }
 
 export interface UpdateUserRequest {
@@ -47,7 +47,11 @@ export interface UpdateUserRequest {
     customerId?: number | null;
     activeStatus?: 'Y' | 'N';
     roleIds?: number[];
+    stationIds?: number[];
 }
+
+type UserWithRoleIds = Omit<User, 'passwordHash'> & { roleIds: number[]; stationIds: number[] };
+type CreatedUser = UserWithRoleIds & { credentialEmailSent: boolean };
 
 export interface TokenPair {
     accessToken: string;
@@ -151,6 +155,7 @@ async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationR
     if (!Array.isArray(roleIds) || roleIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
         throw new Error('roleIds must be an array of positive integer IDs');
     }
+    if (new Set(roleIds).size > 1) throw new Error('A user can only have one role');
     const roles: Role[] = [];
     for (const roleId of [...new Set(roleIds)]) {
         const role = await authorizationRepository.getRoleById(conn, roleId);
@@ -160,6 +165,18 @@ async function validateRoleIdsForUser(conn: Connection, userType: AuthorizationR
         roles.push(role);
     }
     return roles;
+}
+
+async function validateStationIdsForCustomer(conn: Connection, customerId: number, stationIds: number[]): Promise<number[]> {
+    if (!Array.isArray(stationIds) || stationIds.length === 0 || stationIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+        throw new Error('Customer users require at least one positive integer stationId');
+    }
+    const uniqueStationIds = [...new Set(stationIds)];
+    const validStationIds = await authorizationRepository.getActiveStationIdsForCustomer(conn, customerId, uniqueStationIds);
+    if (validStationIds.length !== uniqueStationIds.length) {
+        throw new Error('All stationIds must belong to the customer and be active');
+    }
+    return uniqueStationIds;
 }
 
 export async function createRole(conn: Connection, input: CreateRoleRequest, actorUserId: number | null = null): Promise<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[] }> {
@@ -305,56 +322,107 @@ export async function deactivateRole(conn: Connection, roleId: number, actorUser
     await authorizationRepository.updateRole(conn, roleId, { status: 'INACTIVE', updatedBy: actorUserId });
 }
 
-export async function createUser(conn: Connection, input: CreateUserRequest, actorUserId: number | null = null): Promise<Omit<User, 'passwordHash'>> {
+export async function createUser(conn: Connection, input: CreateUserRequest, actorUserId: number | null = null): Promise<CreatedUser> {
     const userName = input.userName?.trim();
     const loginUserName = input.loginUserName?.trim();
     const email = input.email?.trim();
-    if (!userName || !loginUserName || !email || !input.password) throw new Error('Missing required user fields');
-    if (input.userType === 'CUSTOMER' && !input.customerId) throw new Error('Customer users require a customerId');
+    if (!userName || !loginUserName || !email) throw new Error('Missing required user fields');
+    if (input.userType !== 'EMPLOYEE' && input.userType !== 'CUSTOMER') throw new Error('userType must be EMPLOYEE or CUSTOMER');
+    if (input.userType === 'CUSTOMER' && (!Number.isSafeInteger(input.customerId) || input.customerId! <= 0)) {
+        throw new Error('Customer users require a positive integer customerId');
+    }
+    if (input.customerId != null && (!Number.isSafeInteger(input.customerId) || input.customerId <= 0)) {
+        throw new Error('customerId must be a positive integer');
+    }
+    const stationIds = input.userType === 'CUSTOMER'
+        ? await validateStationIdsForCustomer(conn, input.customerId!, input.stationIds ?? [])
+        : [];
+    if (input.userType === 'EMPLOYEE' && input.stationIds != null && (!Array.isArray(input.stationIds) || input.stationIds.length > 0)) {
+        throw new Error('stationIds can only be assigned to CUSTOMER users');
+    }
     if (await authorizationRepository.getUserByLoginName(conn, loginUserName)) throw new Error('Login name already exists');
     if (await authorizationRepository.getUserByEmail(conn, email)) throw new Error('Email already exists');
 
-    const roleIds = input.roleIds ?? [];
-    await validateRoleIdsForUser(conn, input.userType, roleIds);
+    const roles = await validateRoleIdsForUser(conn, input.userType, input.roleIds ?? []);
+    const roleIds = roles.map(({ roleId }) => roleId);
+    const passwordCharacters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    const generatedPassword = Array.from(
+        { length: 10 },
+        () => passwordCharacters.charAt(randomInt(passwordCharacters.length)),
+    ).join('');
     await conn.beginTransaction();
     try {
         const user = await authorizationRepository.insertUser(conn, {
             userName,
             loginUserName,
             email,
-            passwordHash: createPasswordHash(input.password),
+            passwordHash: createPasswordHash(generatedPassword),
             userType: input.userType,
             customerId: input.customerId ?? null,
             createdBy: actorUserId,
+            updatedBy: actorUserId,
         });
-        for (const roleId of roleIds) await authorizationRepository.assignRole(conn, user.userId, roleId, actorUserId, 'Initial assignment');
+        for (const roleId of roleIds) await authorizationRepository.assignRole(conn, user.userId, roleId, actorUserId);
+        await authorizationRepository.replaceUserStations(conn, user.userId, stationIds, actorUserId);
         await conn.commit();
+        let credentialEmailSent = true;
+        try {
+            await sendEmail(
+                email,
+                'Your RM Trucking account credentials',
+                `Your account has been created.\n\nLogin user name: ${loginUserName}\nPassword: ${generatedPassword}\n\nPlease sign in and change your password after logging in.`,
+            );
+        } catch (error) {
+            credentialEmailSent = false;
+            console.error(`Failed to send initial credentials for userId=${user.userId}:`, error instanceof Error ? error.message : String(error));
+        }
         const { passwordHash: _passwordHash, ...safeUser } = user;
-        return safeUser;
+        return { ...safeUser, roleIds, stationIds, credentialEmailSent };
     } catch (error) {
         await conn.rollback();
         throw error;
     }
 }
 
-export async function updateUser(conn: Connection, userId: number, input: UpdateUserRequest, actorUserId: number | null = null): Promise<Omit<User, 'passwordHash'>> {
+export async function updateUser(conn: Connection, userId: number, input: UpdateUserRequest, actorUserId: number | null = null): Promise<UserWithRoleIds> {
     const existing = await authorizationRepository.getUserById(conn, userId);
     if (!existing) throw new Error('User not found');
     const userType = input.userType ?? existing.userType;
-    if (userType === 'CUSTOMER' && (input.customerId ?? existing.customerId) === null) throw new Error('Customer users require a customerId');
+    if (userType !== 'EMPLOYEE' && userType !== 'CUSTOMER') throw new Error('userType must be EMPLOYEE or CUSTOMER');
+    const customerId = input.customerId ?? existing.customerId;
+    if (customerId !== null && (!Number.isSafeInteger(customerId) || customerId <= 0)) throw new Error('customerId must be a positive integer');
+    if (input.userType !== undefined && input.userType !== existing.userType && input.roleIds === undefined) {
+        throw new Error('roleIds must be provided when changing userType');
+    }
+    if (userType === 'CUSTOMER' && customerId === null) throw new Error('Customer users require a customerId');
+    const customerChanged = input.customerId !== undefined && input.customerId !== existing.customerId;
+    if (userType === 'CUSTOMER' && input.stationIds === undefined && (existing.userType !== 'CUSTOMER' || customerChanged)) {
+        throw new Error('stationIds must be provided when changing a user to CUSTOMER or changing customerId');
+    }
+    let stationIds: number[] | undefined;
+    if (userType === 'CUSTOMER' && input.stationIds !== undefined) {
+        stationIds = await validateStationIdsForCustomer(conn, customerId!, input.stationIds);
+    } else if (userType === 'EMPLOYEE') {
+        if (input.stationIds != null && (!Array.isArray(input.stationIds) || input.stationIds.length > 0)) {
+            throw new Error('stationIds can only be assigned to CUSTOMER users');
+        }
+        if (existing.userType === 'CUSTOMER') stationIds = [];
+    }
     if (input.email && input.email.toLowerCase() !== existing.email.toLowerCase() && await authorizationRepository.getUserByEmail(conn, input.email)) {
         throw new Error('Email already exists');
     }
-    const roleIds = input.roleIds;
-    if (roleIds !== undefined) await validateRoleIdsForUser(conn, userType, roleIds);
+    const roleIds = input.roleIds === undefined
+        ? undefined
+        : (await validateRoleIdsForUser(conn, userType, input.roleIds)).map(({ roleId }) => roleId);
 
     await conn.beginTransaction();
     try {
-        await authorizationRepository.updateUser(conn, userId, input);
+        await authorizationRepository.updateUser(conn, userId, { ...input, updatedBy: actorUserId });
+        if (stationIds !== undefined) await authorizationRepository.replaceUserStations(conn, userId, stationIds, actorUserId);
         if (roleIds !== undefined) {
             const oldRoles = await authorizationRepository.getUserRoles(conn, userId);
             for (const role of oldRoles) await authorizationRepository.removeRole(conn, userId, role.roleId);
-            for (const roleId of roleIds) await authorizationRepository.assignRole(conn, userId, roleId, actorUserId, 'Role reassignment');
+            for (const roleId of roleIds) await authorizationRepository.assignRole(conn, userId, roleId, actorUserId);
         }
         await conn.commit();
     } catch (error) {
@@ -364,12 +432,80 @@ export async function updateUser(conn: Connection, userId: number, input: Update
     const updated = await authorizationRepository.getUserById(conn, userId);
     if (!updated) throw new Error('User not found after update');
     const { passwordHash: _passwordHash, ...safeUser } = updated;
-    return safeUser;
+    return {
+        ...safeUser,
+        roleIds: await authorizationRepository.getUserRoleIds(conn, userId),
+        stationIds: await authorizationRepository.getUserStationIds(conn, userId),
+    };
 }
 
-export async function listUsers(conn: Connection): Promise<Array<Omit<User, 'passwordHash'>>> {
-    const rows = await authorizationRepository.getUsers(conn);
-    return rows.map(({ passwordHash: _passwordHash, ...user }) => user);
+export async function listUsers(
+    conn: Connection,
+    userType: AuthorizationRoleKind,
+    search: string | undefined,
+    page: number,
+    pageSize: number,
+): Promise<{
+    users: UserWithRoleIds[];
+    pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
+    userCounts: Record<'EMPLOYEE' | 'CUSTOMER', number>;
+}> {
+    if (userType !== 'EMPLOYEE' && userType !== 'CUSTOMER') throw new Error('userType must be EMPLOYEE or CUSTOMER');
+    if (!Number.isSafeInteger(page) || page < 1) throw new Error('page must be a positive integer');
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100) throw new Error('pageSize must be between 1 and 100');
+
+    const normalizedSearch = search?.trim() || undefined;
+    const rows = await authorizationRepository.getUsers(conn, userType, normalizedSearch, page, pageSize);
+    const totalCount = await authorizationRepository.countUsers(conn, userType, normalizedSearch);
+    const userCounts = await authorizationRepository.countUsersByType(conn);
+    const assignments = await authorizationRepository.getUserRoleIdsForUsers(conn, rows.map(({ userId }) => userId));
+    const stationAssignments = await authorizationRepository.getUserStationIdsForUsers(conn, rows.map(({ userId }) => userId));
+    const roleIdsByUser = new Map<number, number[]>();
+    const stationIdsByUser = new Map<number, number[]>();
+    for (const { userId, roleId } of assignments) {
+        const roleIds = roleIdsByUser.get(userId) ?? [];
+        roleIds.push(roleId);
+        roleIdsByUser.set(userId, roleIds);
+    }
+    for (const { userId, stationId } of stationAssignments) {
+        const stationIds = stationIdsByUser.get(userId) ?? [];
+        stationIds.push(stationId);
+        stationIdsByUser.set(userId, stationIds);
+    }
+    const users = rows.map(({ passwordHash: _passwordHash, ...user }) => ({
+        ...user,
+        roleIds: roleIdsByUser.get(user.userId) ?? [],
+        stationIds: stationIdsByUser.get(user.userId) ?? [],
+    }));
+    return {
+        users,
+        pagination: { page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) },
+        userCounts,
+    };
+}
+
+export async function getUserById(conn: Connection, userId: number): Promise<UserWithRoleIds | null> {
+    const user = await authorizationRepository.getUserById(conn, userId);
+    if (!user) return null;
+    const { passwordHash: _passwordHash, ...safeUser } = user;
+    return {
+        ...safeUser,
+        roleIds: await authorizationRepository.getUserRoleIds(conn, userId),
+        stationIds: await authorizationRepository.getUserStationIds(conn, userId),
+    };
+}
+
+export async function setUserActiveStatus(
+    conn: Connection,
+    userId: number,
+    activeStatus: 'Y' | 'N',
+    actorUserId: number | null = null,
+): Promise<UserWithRoleIds> {
+    if (!await authorizationRepository.getUserById(conn, userId)) throw new Error('User not found');
+    await authorizationRepository.updateUser(conn, userId, { activeStatus, updatedBy: actorUserId });
+    const user = await getUserById(conn, userId);
+    if (!user) throw new Error('User not found after status update');
+    return user;
 }
 
 export async function getUserRoles(conn: Connection, userId: number): Promise<RoleWithAuditNames[]> {
@@ -380,13 +516,6 @@ export async function getUserRoles(conn: Connection, userId: number): Promise<Ro
 export async function getUserPermissions(conn: Connection, userId: number): Promise<Permission[]> {
     const rows = await authorizationRepository.getUserPermissions(conn, userId);
     return rows.map(mapPermission);
-}
-
-export async function assignUserRole(conn: Connection, userId: number, roleId: number, actorUserId: number | null = null): Promise<void> {
-    const user = await authorizationRepository.getUserById(conn, userId);
-    const role = await authorizationRepository.getRoleById(conn, roleId);
-    if (!user || !role || role.status !== 'ACTIVE' || user.userType !== role.roleKind) throw new Error('User or compatible active role not found');
-    await authorizationRepository.assignRole(conn, userId, roleId, actorUserId, 'User-role assignment');
 }
 
 export async function removeUserRole(conn: Connection, userId: number, roleId: number): Promise<void> {

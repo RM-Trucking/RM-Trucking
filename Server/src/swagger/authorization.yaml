@@ -223,14 +223,65 @@ paths:
       responses:
         "200":
           description: Role deactivated
-  /authorization/users:
+  /api/authorization/users:
     get:
       tags:
         - Authorization
-      summary: List all users
+      summary: List users by type
+      description: Returns paginated users without password hashes. Search matches userName, loginUserName, or email. userCounts are total user counts by type and are unaffected by search or the selected userType.
+      parameters:
+        - in: query
+          name: userType
+          required: true
+          schema:
+            type: string
+            enum: [EMPLOYEE, CUSTOMER]
+        - in: query
+          name: search
+          required: false
+          description: Case-insensitive partial match against name, login username, or email.
+          schema:
+            type: string
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: pageSize
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
       responses:
         "200":
-          description: Successful response
+          description: Paginated users and user counts by type
+          content:
+            application/json:
+              example:
+                success: true
+                data:
+                  - userId: 7
+                    userName: Jane Smith
+                    loginUserName: jane.smith
+                    email: jane.smith@rmtrucking.com
+                    userType: EMPLOYEE
+                    customerId: null
+                    activeStatus: Y
+                    roleIds: [2]
+                    stationIds: []
+                pagination:
+                  page: 1
+                  pageSize: 20
+                  totalCount: 1
+                  totalPages: 1
+                userCounts:
+                  EMPLOYEE: 14
+                  CUSTOMER: 32
     post:
       tags:
         - Authorization
@@ -239,33 +290,94 @@ paths:
         required: true
         content:
           application/json:
-            example:
-              userName: John Doe
-              loginUserName: john.doe
-              email: john.doe@warehouse.local
-              password: MySecurePass123
-              userType: EMPLOYEE
-              roleIds: [1, 2]
-              customerId: 1001
+            examples:
+              employee:
+                summary: Create an employee user
+                value:
+                  userName: Jane Smith
+                  loginUserName: jane.smith
+                  email: jane.smith@rmtrucking.com
+                  userType: EMPLOYEE
+                  roleIds: [2]
+              customer:
+                summary: Create a customer user
+                value:
+                  userName: John Doe
+                  loginUserName: john.doe
+                  email: john.doe@customer.com
+                  userType: CUSTOMER
+                  roleIds: [5]
+                  customerId: 1001
+                  stationIds: [11, 12]
+            description: CUSTOMER users require a positive customerId and at least one active stationId belonging to that customer. EMPLOYEE users may omit customerId and cannot be assigned stations. A user may have only one role, supplied as a single-item roleIds array matching userType. A random 10-character password is generated, hashed for storage, and sent with the login user name to the provided email address.
       responses:
         "201":
-          description: User created
-  /authorization/users/assign-role:
-    post:
+          description: User created. data.credentialEmailSent indicates whether the initial credentials email was delivered.
+  /api/authorization/users/{userId}:
+    parameters:
+      - in: path
+        name: userId
+        required: true
+        schema:
+          type: integer
+    get:
       tags:
         - Authorization
-      summary: Assign a role to a user
+      summary: Get a user by ID
+      responses:
+        "200":
+          description: User details with active role IDs and assigned station IDs
+        "404":
+          description: User not found
+    put:
+      tags:
+        - Authorization
+      summary: Update a user
+      description: If roleIds is provided, it replaces the user's role assignment and may contain at most one role. If stationIds is provided, it replaces station assignments; CUSTOMER station IDs must be active and belong to the user's customer. stationIds is required when changing to CUSTOMER or changing customerId.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            examples:
+              employee:
+                summary: Update an employee user
+                value:
+                  userName: Jane Smith
+                  email: jane.smith@rmtrucking.com
+                  userType: EMPLOYEE
+                  roleIds: [2]
+              customer:
+                summary: Update a customer user
+                value:
+                  userName: John Doe
+                  email: john.doe@customer.com
+                  userType: CUSTOMER
+                  roleIds: [5]
+                  customerId: 1001
+                  stationIds: [11, 12]
+      responses:
+        "200":
+          description: User updated
+        "400":
+          description: Invalid user data
+  /api/authorization/users/{userId}/status:
+    patch:
+      tags:
+        - Authorization
+      summary: Activate or inactivate a user
+      description: Set activeStatus to Y to activate the user or N to inactivate the user.
       requestBody:
         required: true
         content:
           application/json:
             example:
-              userId: 5
-              roleId: 3
+              activeStatus: N
       responses:
         "200":
-          description: Role assigned successfully
-  /authorization/login:
+          description: User status updated
+        "404":
+          description: User not found
+  /api/authorization/login:
     post:
       tags:
         - Authorization
@@ -293,7 +405,7 @@ paths:
                   tokenPair:
                     accessToken: eyJhbGciOi...
                     refreshToken: eyJhbGciOi...
-  /authorization/refresh:
+  /api/authorization/refresh:
     post:
       tags:
         - Authorization
@@ -307,7 +419,7 @@ paths:
       responses:
         "200":
           description: Access token refreshed
-  /authorization/forgot-password:
+  /api/authorization/forgot-password:
     post:
       tags:
         - Authorization
@@ -321,7 +433,7 @@ paths:
       responses:
         "200":
           description: Reset email sent
-  /authorization/validate-reset-token:
+  /api/authorization/validate-reset-token:
     post:
       tags:
         - Authorization
@@ -335,7 +447,7 @@ paths:
       responses:
         "200":
           description: Token valid
-  /authorization/reset-password:
+  /api/authorization/reset-password:
     post:
       tags:
         - Authorization

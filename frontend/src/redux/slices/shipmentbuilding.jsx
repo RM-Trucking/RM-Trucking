@@ -214,6 +214,17 @@ export function getShipmentBuildData({ pageNo, pageSize }) {
         }
     };
 }
+export function getFilterShipmentBuildData({ pageNo, pageSize, routing}) {
+    return async () => {
+        dispatch(slice.actions.startLoading());
+        try {
+            const response = await axios.get(`network-shipment?page=${pageNo}&limit=${pageSize}&routing=${routing}`);
+            dispatch(slice.actions.getShipmentBuildDataSuccess(response.data));
+        } catch (error) {
+            dispatch(slice.actions.hasError(error));
+        }
+    };
+}
 export function getCustomerStationDropdown() {
     return async () => {
         dispatch(slice.actions.startLoading());

@@ -25,7 +25,7 @@ import SharedSearchField from '../shared/SharedSearchField';
 import ShipmentViewTable from './ShipmentViewTable';
 
 import {
-    setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj, setLineHaulSameDelDiff, setConsolidatedFilterObj
+    setError, getCarrierTerminalDropdown, setSelectedShipmentBuildObj, setLineHaulSameDelDiff, setConsolidatedFilterObj, getFilterShipmentBuildData
 } from '../../redux/slices/shipmentbuilding';
 import WeightAlert from './WeightAlert';
 import AddressAlert from './AddressAlert';
@@ -72,6 +72,7 @@ export default function HomePage() {
     const carrierTerminalDropdown = useSelector((state) => state?.shipmentbuildingdata?.carrierTerminalDropdown);
     const selectedShipments = useSelector((state) => state?.shipmentbuildingdata?.selectedShipments);
     const shipmentViewData = useSelector((state) => state?.shipmentbuildingdata?.shipmentViewData);
+    const shipmentBuildPagination = useSelector((state) => state?.shipmentbuildingdata?.shipmentBuildPagination);
     const isSelectingCarrierRef = useRef(false);
     const [selectCarrierSearchValue, setSelectCarrierSearchValue] = useState('');
     const [showWeightLimitAlert, setShowWeightLimitAlert] = useState(false);
@@ -594,12 +595,12 @@ export default function HomePage() {
                     alignItems="center"
                     justifyContent={'space-between'}
                     sx={{
-                        gap: 1 
+                        gap: 1
                     }}
                 >
                     <Stack direction={'row'} spacing={1} alignItems={'center'}>
                         <Stack direction="column" spacing={2} alignItems="flex-start" justifyContent={'flex-start'}>
-                            
+
                             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
                                 <FormControlLabel
                                     control={
@@ -616,13 +617,13 @@ export default function HomePage() {
                                             )}
                                         />
                                     }
-                                    label={<Typography onClick={(e) => e.preventDefault()} 
-                                        sx={{                
-                                            cursor: 'default'                  
+                                    label={<Typography onClick={(e) => e.preventDefault()}
+                                        sx={{
+                                            cursor: 'default'
                                         }} variant="body2">R&M</Typography>}
                                 />
                             </Box>
-                           
+
                             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 'fit-content' }}>
                                 <FormControlLabel
                                     control={
@@ -639,9 +640,9 @@ export default function HomePage() {
                                             )}
                                         />
                                     }
-                                    label={<Typography onClick={(e) => e.preventDefault()} 
-                                        sx={{                 
-                                            cursor: 'default'                  
+                                    label={<Typography onClick={(e) => e.preventDefault()}
+                                        sx={{
+                                            cursor: 'default'
                                         }} variant="body2">Others</Typography>}
                                 />
                             </Box>
@@ -669,7 +670,7 @@ export default function HomePage() {
                                             variant="body2"
                                             sx={{
                                                 cursor: 'default',
-                                                whiteSpace: 'nowrap' 
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
                                             Carrier Rate Req
@@ -699,7 +700,7 @@ export default function HomePage() {
                                             variant="body2"
                                             sx={{
                                                 cursor: 'default',
-                                                whiteSpace: 'nowrap' 
+                                                whiteSpace: 'nowrap'
                                             }}
                                         >
                                             Customer Rate Req
@@ -711,7 +712,7 @@ export default function HomePage() {
                     </Stack>
                     <Stack direction={'column'} spacing={1} alignItems={'flex-start'}>
                         <Stack direction={'row'} alignItems={'center'} sx={{
-                            gap: 1 
+                            gap: 1
                         }}>
                             <Button
                                 variant="contained"
@@ -723,7 +724,7 @@ export default function HomePage() {
                                     bgcolor: '#a22',
                                     whiteSpace: 'nowrap',
                                     minWidth: 'max-content',
-                                    flex: { xs: '1 1 auto', sm: '0 0 auto' }, 
+                                    flex: { xs: '1 1 auto', sm: '0 0 auto' },
                                     '&:hover': { bgcolor: '#811' }
                                 }}
                             >
@@ -784,6 +785,11 @@ export default function HomePage() {
                         dispatch(setConsolidatedFilterObj(consolFilterObj));
                         if (data.routing) {
                             setValue('consolidateFlag', true);
+                            dispatch(getFilterShipmentBuildData({
+                                pageNo: shipmentBuildPagination?.page || 1,
+                                pageSize: shipmentBuildPagination?.pageSize || 10,
+                                routing: data.routing,
+                            }))
                         } else {
                             setValue('consolidateFlag', false);
                         }

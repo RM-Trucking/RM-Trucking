@@ -2166,16 +2166,16 @@ const ShipmentPage = ({ type }) => {
               onClose={() => setHandleCancelModal(false)}
               onSave={() => {
                 // Handle cancel save logic here
-                if (activeStep === 0) {
+                // if (activeStep === 0) {
                   reset();
                   setActiveStep(0);
                   setHandleCancelModal(false);
                   navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
-                } else {
-                  reset();
-                  setActiveStep(0);
-                  setHandleCancelModal(false);
-                }
+                // } else {
+                  // reset();
+                  // setActiveStep(0);
+                  // setHandleCancelModal(false);
+                // }
               }}
             />
             {/* STEP 0 */}

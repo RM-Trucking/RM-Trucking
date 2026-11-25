@@ -153,7 +153,10 @@ export const updateControlsForConsolidate = (dispatch, setValue, selectedObj,
                     residueLastContained: pallet?.hazmatDetails?.residueLastContained === 'Y',
                     reportableQuantity: pallet?.hazmatDetails?.reportableQuantity === 'Y',
                     dotExemption: pallet?.hazmatDetails?.dotExemption === 'Y'
-                })
+                }),
+                key: `${shipmentDetails?.shipmentProNumber}-${huIndex}`,
+                images: hu?.images || [],
+                deletedImages: [],
             }))
         }));
 
@@ -268,6 +271,47 @@ export const updateControlsForConsolidate = (dispatch, setValue, selectedObj,
     }
     if (deliveryDetails === undefined) {
         setValue('carrierInfo.deliveryDetails.deliveryAlert', false);
+    }
+    // step 4
+    if (carrierTerminalDropdown?.length > 0) {
+        const selectedPickupFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === pickupDetails?.carrierId && item?.terminalId === pickupDetails?.terminalId
+        ) || null;
+        // have to call api for accessorials, call for rates (taken care on handle next)
+        if (selectedPickupFromTerminal?.terminalEntityId) {
+            dispatch(getPickupAccessorials(selectedPickupFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.selectCarrier', `${selectedPickupFromTerminal?.terminalId}-${selectedPickupFromTerminal?.carrierId}`);
+        const selectedPickupToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === pickupDetails?.pickupAgentTerminalDetails?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.toLocation', `${selectedPickupToTerminal?.terminalId}-${selectedPickupToTerminal?.carrierId}`);
+
+        // linehaul
+        const selectedLinehaulFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === linehaulDetails?.linehaulPrimaryInfo?.carrierId && item?.terminalId === linehaulDetails?.linehaulPrimaryInfo?.terminalId
+        ) || null;
+        if (selectedLinehaulFromTerminal?.terminalEntityId) {
+            dispatch(getLinehaulAccessorials(selectedLinehaulFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.lineHaul.carrier', `${selectedLinehaulFromTerminal?.terminalId}-${selectedLinehaulFromTerminal?.carrierId}`);
+        const selectedLinehaulToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === linehaulDetails?.linehaulPrimaryInfo?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.lineHaul.toLocation', `${selectedLinehaulToTerminal?.terminalId}-${selectedLinehaulToTerminal?.carrierId}`);
+
+        // delivery
+        const selectedDeliveryFromTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.carrierId === deliveryDetails?.deliveryPrimaryInfo?.carrierId && item?.terminalId === deliveryDetails?.deliveryPrimaryInfo?.terminalId
+        ) || null;
+        if (selectedDeliveryFromTerminal?.terminalEntityId) {
+            dispatch(getDeliveryAccessorials(selectedDeliveryFromTerminal?.terminalEntityId));
+        }
+        setValue('carrierInfo.deliveryDetails.carrier', `${selectedDeliveryFromTerminal?.terminalId}-${selectedDeliveryFromTerminal?.carrierId}`);
+        const selectedDeliveryToTerminal = carrierTerminalDropdown?.find(
+            (item) => item?.terminalEntityId === deliveryDetails?.deliveryPrimaryInfo?.toLocationEntityId
+        ) || null;
+        setValue('carrierInfo.deliveryDetails.toLocation', `${selectedDeliveryToTerminal?.terminalId}-${selectedDeliveryToTerminal?.carrierId}`);
     }
     // step 5
     if (pickupRateDetails && Object.keys(pickupRateDetails).length > 0) {

@@ -62,7 +62,7 @@ export default function ConsolidateFilterDialog({ open, handleClose, control, er
                                             {...field}
                                             select
                                             fullWidth
-                                            value={consolidatedFilterObj?.routing || ''}
+                                            value={field.value ?? ''}
                                             variant="standard"
                                             label="Select Routing"
                                             error={!!errors.routing}

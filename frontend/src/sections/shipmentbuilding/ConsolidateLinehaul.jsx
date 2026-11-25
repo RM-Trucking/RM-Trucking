@@ -177,7 +177,7 @@ const ConsolidateLinehaul = ({
         >
             {/* line haul details section  */}
             <Accordion defaultExpanded sx={{ mt: 3, boxShadow: 'none', border: '1px solid #ccc', borderRadius: 1, p: 1 }}>
-                <AccordionSummary expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
+                <AccordionSummary component="div" expandIcon={<Iconify icon="eva:arrow-ios-downward-fill" />} sx={{ borderBottom: '1px solid #ccc', px: 0 }}>
                     <Box display="flex" alignItems="center" justifyContent="space-between" width="100%">
                         <Typography variant="subtitle1" fontWeight="bold">Line-haul</Typography>
                     </Box>
@@ -536,7 +536,7 @@ const ConsolidateLinehaul = ({
                                 }
                                 {
                                     watchedLinehaulToLocationType === 'Consignee' && <Controller
-                                        name="carrierInfo.toLocation"
+                                        name="carrierInfo.lineHaul.toLocation"
                                         control={control}
                                         rules={{ required: true }}
                                         render={({ field: { onChange, value, ...fieldProps } }) => (

@@ -181,6 +181,14 @@ const ShipmentPage = ({ type }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmittingFinal, setIsSubmittingFinal] = useState(false);
 
+  // for data load issue fix
+  const [editLookupsLoaded, setEditLookupsLoaded] = useState(false);
+  const [isLoadingEditData, setIsLoadingEditData] = useState(
+    type === "Edit" || type === "View"
+  );
+  const requestedAirports = useRef({ origin: null, destination: null });
+  const hydratedShipmentId = useRef(null);
+
   const {
     control,
     trigger,
@@ -298,7 +306,7 @@ const ShipmentPage = ({ type }) => {
         },
         lineHaul: {
           selectRouting: '',
-          airportCode : '',
+          airportCode: '',
           // selectRouting: 'linehaul_only',
           carrier: '',
           billNumber: "",
@@ -1089,14 +1097,49 @@ const ShipmentPage = ({ type }) => {
       navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
     }
     else {
+      // const fetchDropdownData = async () => {
+      //   await Promise.all([
+      //     dispatch(getCustomerStationDropdown()),
+      //     dispatch(getCarrierTerminalDropdown()),
+      //     dispatch(getShipperDropdown()),
+      //     dispatch(getConsigneeDropdown()),
+      //     dispatch(getCargoSpectraDropdownList()),
+      //   ]);
+      // };
       const fetchDropdownData = async () => {
-        await Promise.all([
+        const customer = selectedShipmentBuildObj?.customerDetails;
+        const origin = customer?.originAirportCode || "";
+        const destination = customer?.destinationAirportCode || "";
+        const isExistingShipment = type === "View" || type === "Edit";
+
+        if (isExistingShipment && customer) {
+          setIsLoadingEditData(true);
+          setValue("airportPickupService", customer.airportPickupService === "Y");
+          setValue("originAirport", origin);
+          setValue("airportDeliveryService", customer.airportDeliveryService === "Y");
+          setValue("destinationAirport", destination);
+        }
+
+        const requests = [
           dispatch(getCustomerStationDropdown()),
           dispatch(getCarrierTerminalDropdown()),
           dispatch(getShipperDropdown()),
           dispatch(getConsigneeDropdown()),
           dispatch(getCargoSpectraDropdownList()),
-        ]);
+        ];
+
+        if (isExistingShipment && customer?.airportPickupService === "Y" && origin.length > 2) {
+          requestedAirports.current.origin = origin;
+          requests.push(dispatch(getShipperAirlineDropdown(origin, "")));
+        }
+
+        if (isExistingShipment && customer?.airportDeliveryService === "Y" && destination.length > 2) {
+          requestedAirports.current.destination = destination;
+          requests.push(dispatch(getConsigneeAirlineDropdown(destination, "")));
+        }
+
+        await Promise.all(requests);
+        setEditLookupsLoaded(true);
       };
       fetchDropdownData();
     }
@@ -1432,6 +1475,7 @@ const ShipmentPage = ({ type }) => {
   // watching pickup agent terminal
   const watchedPickupAgentTerminal = useWatch({ control, name: "carrierInfo.pickupAgentTerminal" });
   const watchedLinehaulSelectRouting = useWatch({ control, name: "carrierInfo.lineHaul.selectRouting" });
+  const previousLinehaulRouting = useRef(watchedLinehaulSelectRouting);
   const watchedLineHaulToggledAddress = useWatch({ control, name: "carrierInfo.lineHaul.toggleAddress" });
   const watchedAddPickupAccessorial = useWatch({ control, name: "carrierInfo.addPickupAccessorial" });
   const watchedPickupAlert = useWatch({ control, name: "carrierInfo.pickupAlert" });
@@ -1440,6 +1484,8 @@ const ShipmentPage = ({ type }) => {
   const watchedDeliveryAlert = useWatch({ control, name: "carrierInfo.deliveryDetails.deliveryAlert" });
   const watchedAirportPickupService = useWatch({ control, name: "airportPickupService" });
   const watchedAirportDeliveryService = useWatch({ control, name: "airportDeliveryService" });
+  const previousAirportPickupService = useRef(watchedAirportPickupService);
+  const previousAirportDeliveryService = useRef(watchedAirportDeliveryService);
 
   const watchedOriginAirport = useWatch({ control, name: "originAirport" });
   const watchedDestinationAirport = useWatch({ control, name: "destinationAirport" });
@@ -1449,6 +1495,12 @@ const ShipmentPage = ({ type }) => {
       if ((watchedLinehaulSelectRouting === 'linehaul_only')) {
         setValue('carrierInfo.lineHaul.toggleAddress', 'linehaul');
         setValue('carrierInfo.lineHaul.toLocationType', 'Carrier');
+        const previousRouting = previousLinehaulRouting.current;
+        previousLinehaulRouting.current = watchedLinehaulSelectRouting;
+
+        if (!watchedLinehaulSelectRouting || previousRouting === watchedLinehaulSelectRouting) {
+          return;
+        }
         setValue('carrierInfo.lineHaul.toLocation', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line1', '');
         setValue('carrierInfo.lineHaul.manualToLocationDetails.line2', '');
@@ -1467,6 +1519,7 @@ const ShipmentPage = ({ type }) => {
       }
     }
   }, [watchedLinehaulSelectRouting]);
+
   // call use effect when there is change in select carrier of pickup and linehaul to update the address details in linehaul
   const watchedSelectedPickupCarrier = useWatch({ control, name: "carrierInfo.selectCarrier" });
   const watchedSelectedLineHaulCarrier = useWatch({ control, name: "carrierInfo.lineHaul.carrier" });
@@ -1581,72 +1634,178 @@ const ShipmentPage = ({ type }) => {
     }
   }, [watchedSelectedDeliveryCarrier])
 
+  // useEffect(() => {
+  //   if (watchedOriginAirport?.length > 2) {
+  //     dispatch(getShipperAirlineDropdown(watchedOriginAirport, ''));
+  //   }
+  // }, [watchedOriginAirport])
   useEffect(() => {
-    if (watchedOriginAirport?.length > 2) {
-      dispatch(getShipperAirlineDropdown(watchedOriginAirport, ''));
-    }
-  }, [watchedOriginAirport])
-  useEffect(() => {
-    if (watchedDestinationAirport?.length > 2)
-      dispatch(getConsigneeAirlineDropdown(watchedDestinationAirport, ''));
-  }, [watchedDestinationAirport])
+    const airport = watchedOriginAirport || "";
 
+    if (airport.length > 2 && requestedAirports.current.origin !== airport) {
+      requestedAirports.current.origin = airport;
+      dispatch(getShipperAirlineDropdown(airport, ""));
+    }
+  }, [watchedOriginAirport, dispatch]);
+  // useEffect(() => {
+  //   if (watchedDestinationAirport?.length > 2)
+  //     dispatch(getConsigneeAirlineDropdown(watchedDestinationAirport, ''));
+  // }, [watchedDestinationAirport])
   useEffect(() => {
-    if (watchedAirportPickupService !== undefined) {
-      // if they check or uncheck the values have to be empty for the new select
-      setValue('shipperName', '');
-      setValue('shipperAddr1', '');
-      setValue('shipperAddr2', '');
-      setValue('shipperCity', '');
-      setValue('shipperState', '');
-      setValue('shipperZip', '');
-      setValue('shipperContact', '');
-      setValue('shipperPhone', '');
+    const airport = watchedDestinationAirport || "";
+
+    if (airport.length > 2 && requestedAirports.current.destination !== airport) {
+      requestedAirports.current.destination = airport;
+      dispatch(getConsigneeAirlineDropdown(airport, ""));
     }
-    // if false if there are values and edit give previous values
-    if (watchedAirportPickupService !== undefined && !watchedAirportPickupService && type === 'Edit') {
-      const customerDetails = selectedShipmentBuildObj?.customerDetails;
-      const selectedShipper = shipperDropdown?.find(
-        (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
-      ) || null;
-      setValue('shipperName', selectedShipper || {});
-      setValue('shipperAddr1', selectedShipper?.addressLine1 || '');
-      setValue('shipperAddr2', selectedShipper?.addressLine2 || '');
-      setValue('shipperCity', selectedShipper?.city || '');
-      setValue('shipperState', selectedShipper?.state || '');
-      setValue('shipperZip', selectedShipper?.zipCode || '');
-      setValue('shipperContact', selectedShipper?.contactPersonName || '');
-      setValue('shipperPhone', selectedShipper?.phoneNumber || '');
-    }
-  }, [watchedAirportPickupService])
+  }, [watchedDestinationAirport, dispatch]);
+
+  // useEffect(() => {
+  //   if (watchedAirportPickupService !== undefined) {
+  //     // if they check or uncheck the values have to be empty for the new select
+  //     setValue('shipperName', '');
+  //     setValue('shipperAddr1', '');
+  //     setValue('shipperAddr2', '');
+  //     setValue('shipperCity', '');
+  //     setValue('shipperState', '');
+  //     setValue('shipperZip', '');
+  //     setValue('shipperContact', '');
+  //     setValue('shipperPhone', '');
+  //   }
+  //   // if false if there are values and edit give previous values
+  //   if (watchedAirportPickupService !== undefined && !watchedAirportPickupService && type === 'Edit') {
+  //     const customerDetails = selectedShipmentBuildObj?.customerDetails;
+  //     const selectedShipper = shipperDropdown?.find(
+  //       (item) => item?.shipperId === customerDetails?.shipperDetails?.shipperId
+  //     ) || null;
+  //     setValue('shipperName', selectedShipper || {});
+  //     setValue('shipperAddr1', selectedShipper?.addressLine1 || '');
+  //     setValue('shipperAddr2', selectedShipper?.addressLine2 || '');
+  //     setValue('shipperCity', selectedShipper?.city || '');
+  //     setValue('shipperState', selectedShipper?.state || '');
+  //     setValue('shipperZip', selectedShipper?.zipCode || '');
+  //     setValue('shipperContact', selectedShipper?.contactPersonName || '');
+  //     setValue('shipperPhone', selectedShipper?.phoneNumber || '');
+  //   }
+  // }, [watchedAirportPickupService])
   useEffect(() => {
-    if (watchedAirportDeliveryService !== undefined) {
-      // if they check or uncheck the values have to be empty for the new select
-      setValue('consigneeName', '');
-      setValue('consigneeAddr1', '');
-      setValue('consigneeAddr2', '');
-      setValue('consigneeCity', '');
-      setValue('consigneeState', '');
-      setValue('consigneeZip', '');
-      setValue('consigneeContact', '');
-      setValue('consigneePhone', '');
+    const previousValue = previousAirportPickupService.current;
+    previousAirportPickupService.current = watchedAirportPickupService;
+
+    if (
+      !editLookupsLoaded ||
+      watchedAirportPickupService === undefined ||
+      previousValue === watchedAirportPickupService
+    ) {
+      return;
     }
-    if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService && type === 'Edit') {
-      const customerDetails = selectedShipmentBuildObj?.customerDetails;
-      const selectedConsignee = consigneeDropdown?.find(
-        (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
+
+    setValue("shipperName", "");
+    setValue("shipperAddr1", "");
+    setValue("shipperAddr2", "");
+    setValue("shipperCity", "");
+    setValue("shipperState", "");
+    setValue("shipperZip", "");
+    setValue("shipperContact", "");
+    setValue("shipperPhone", "");
+
+    if (!watchedAirportPickupService && type === "Edit") {
+      const selectedShipper = shipperDropdown.find(
+        (item) =>
+          item?.shipperId ===
+          selectedShipmentBuildObj?.customerDetails?.shipperDetails?.shipperId
       ) || null;
-      setValue('consigneeName', selectedConsignee || {});
-      setValue('consigneeAddr1', selectedConsignee?.addressLine1 || '');
-      setValue('consigneeAddr2', selectedConsignee?.addressLine2 || '');
-      setValue('consigneeCity', selectedConsignee?.city || '');
-      setValue('consigneeState', selectedConsignee?.state || '');
-      setValue('consigneeZip', selectedConsignee?.zipCode || "");
-      setValue('consigneeContact', selectedConsignee?.contactPersonName || '');
-      setValue('consigneePhone', selectedConsignee?.phoneNumber || '');
+
+      setValue("shipperName", selectedShipper || {});
+      setValue("shipperAddr1", selectedShipper?.addressLine1 || "");
+      setValue("shipperAddr2", selectedShipper?.addressLine2 || "");
+      setValue("shipperCity", selectedShipper?.city || "");
+      setValue("shipperState", selectedShipper?.state || "");
+      setValue("shipperZip", selectedShipper?.zipCode || "");
+      setValue("shipperContact", selectedShipper?.contactPersonName || "");
+      setValue("shipperPhone", selectedShipper?.phoneNumber || "");
     }
-    // if false if there are values and edit give previous values
-  }, [watchedAirportDeliveryService])
+  }, [
+    watchedAirportPickupService,
+    editLookupsLoaded,
+    type,
+    selectedShipmentBuildObj,
+    shipperDropdown,
+    setValue,
+  ]);
+  // useEffect(() => {
+  //   if (watchedAirportDeliveryService !== undefined) {
+  //     // if they check or uncheck the values have to be empty for the new select
+  //     setValue('consigneeName', '');
+  //     setValue('consigneeAddr1', '');
+  //     setValue('consigneeAddr2', '');
+  //     setValue('consigneeCity', '');
+  //     setValue('consigneeState', '');
+  //     setValue('consigneeZip', '');
+  //     setValue('consigneeContact', '');
+  //     setValue('consigneePhone', '');
+  //   }
+  //   if (watchedAirportDeliveryService !== undefined && !watchedAirportDeliveryService && type === 'Edit') {
+  //     const customerDetails = selectedShipmentBuildObj?.customerDetails;
+  //     const selectedConsignee = consigneeDropdown?.find(
+  //       (item) => item?.consigneeId === customerDetails?.consigneeDetails?.consigneeId
+  //     ) || null;
+  //     setValue('consigneeName', selectedConsignee || {});
+  //     setValue('consigneeAddr1', selectedConsignee?.addressLine1 || '');
+  //     setValue('consigneeAddr2', selectedConsignee?.addressLine2 || '');
+  //     setValue('consigneeCity', selectedConsignee?.city || '');
+  //     setValue('consigneeState', selectedConsignee?.state || '');
+  //     setValue('consigneeZip', selectedConsignee?.zipCode || "");
+  //     setValue('consigneeContact', selectedConsignee?.contactPersonName || '');
+  //     setValue('consigneePhone', selectedConsignee?.phoneNumber || '');
+  //   }
+  //   // if false if there are values and edit give previous values
+  // }, [watchedAirportDeliveryService])
+  useEffect(() => {
+    const previousValue = previousAirportDeliveryService.current;
+    previousAirportDeliveryService.current = watchedAirportDeliveryService;
+
+    if (
+      !editLookupsLoaded ||
+      watchedAirportDeliveryService === undefined ||
+      previousValue === watchedAirportDeliveryService
+    ) {
+      return;
+    }
+
+    setValue("consigneeName", "");
+    setValue("consigneeAddr1", "");
+    setValue("consigneeAddr2", "");
+    setValue("consigneeCity", "");
+    setValue("consigneeState", "");
+    setValue("consigneeZip", "");
+    setValue("consigneeContact", "");
+    setValue("consigneePhone", "");
+
+    if (!watchedAirportDeliveryService && type === "Edit") {
+      const selectedConsignee = consigneeDropdown.find(
+        (item) =>
+          item?.consigneeId ===
+          selectedShipmentBuildObj?.customerDetails?.consigneeDetails?.consigneeId
+      ) || null;
+
+      setValue("consigneeName", selectedConsignee || {});
+      setValue("consigneeAddr1", selectedConsignee?.addressLine1 || "");
+      setValue("consigneeAddr2", selectedConsignee?.addressLine2 || "");
+      setValue("consigneeCity", selectedConsignee?.city || "");
+      setValue("consigneeState", selectedConsignee?.state || "");
+      setValue("consigneeZip", selectedConsignee?.zipCode || "");
+      setValue("consigneeContact", selectedConsignee?.contactPersonName || "");
+      setValue("consigneePhone", selectedConsignee?.phoneNumber || "");
+    }
+  }, [
+    watchedAirportDeliveryService,
+    editLookupsLoaded,
+    type,
+    selectedShipmentBuildObj,
+    consigneeDropdown,
+    setValue,
+  ]);
   useEffect(() => {
     if (pickupAccessorialsByEntityId.length > 0) {
       const updatedAcc = pickupAccessorialsByEntityId.map((acc, index) => ({
@@ -1764,74 +1923,115 @@ const ShipmentPage = ({ type }) => {
     }
   }, [watchedDeliveryAddAcc,]);
 
+  // useEffect(() => {
+  //   if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
+  //   }
+  // }, [type])
+  // useEffect(() => {
+  //   if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateShipperDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, shipperDropdown])
+  // useEffect(() => {
+  //   if (watchedAirportPickupService) {
+  //     setValue('shipperName', {});
+  //     setValue('shipperAddr1', '');
+  //     setValue('shipperAddr2', '');
+  //     setValue('shipperCity', '');
+  //     setValue('shipperState', '');
+  //     setValue('shipperZip', '');
+  //     setValue('shipperContact', '');
+  //     setValue('shipperPhone', '');
+  //   }
+  //   if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, shipperAirlineDropdown])
+  // useEffect(() => {
+  //   if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateConsigneeDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, consigneeDropdown])
+  // useEffect(() => {
+  //   if (watchedAirportDeliveryService) {
+  //     setValue('consigneeName', {});
+  //     setValue('consigneeAddr1', '');
+  //     setValue('consigneeAddr2', '');
+  //     setValue('consigneeCity', '');
+  //     setValue('consigneeState', '');
+  //     setValue('consigneeZip', '');
+  //     setValue('consigneeContact', '');
+  //     setValue('consigneePhone', '');
+  //   }
+  //   if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, consigneeAirlineDropdown])
+  // useEffect(() => {
+  //   if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateCustomerStationDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, customerStationDropdown])
+  // useEffect(() => {
+  //   if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
+  //     updateCarrierTerminalDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
+  //       shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
+  //       getValues);
+  //   }
+  // }, [type, carrierTerminalDropdown])
+
   useEffect(() => {
-    if ((type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateControls(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown);
+    const shipmentId = selectedShipmentBuildObj?.shipmentId;
+
+    if (
+      (type !== "Edit" && type !== "View") ||
+      !shipmentId ||
+      !editLookupsLoaded ||
+      hydratedShipmentId.current === shipmentId
+    ) {
+      return;
     }
-  }, [type])
-  useEffect(() => {
-    if (shipperDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, shipperDropdown])
-  useEffect(() => {
-    if (watchedAirportPickupService) {
-      setValue('shipperName', {});
-      setValue('shipperAddr1', '');
-      setValue('shipperAddr2', '');
-      setValue('shipperCity', '');
-      setValue('shipperState', '');
-      setValue('shipperZip', '');
-      setValue('shipperContact', '');
-      setValue('shipperPhone', '');
-    }
-    if (shipperAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateShipperAilineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, shipperAirlineDropdown])
-  useEffect(() => {
-    if (consigneeDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, consigneeDropdown])
-  useEffect(() => {
-    if (watchedAirportDeliveryService) {
-      setValue('consigneeName', {});
-      setValue('consigneeAddr1', '');
-      setValue('consigneeAddr2', '');
-      setValue('consigneeCity', '');
-      setValue('consigneeState', '');
-      setValue('consigneeZip', '');
-      setValue('consigneeContact', '');
-      setValue('consigneePhone', '');
-    }
-    if (consigneeAirlineDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateConsigneeAirlineDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, consigneeAirlineDropdown])
-  useEffect(() => {
-    if (customerStationDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCustomerStationDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, customerStationDropdown])
-  useEffect(() => {
-    if (carrierTerminalDropdown.length > 0 && (type === 'View' || type === 'Edit') && (selectedShipmentBuildObj !== undefined || selectedShipmentBuildObj && Object.keys(selectedShipmentBuildObj).length > 0)) {
-      updateCarrierTerminalDropdown(dispatch, setValue, selectedShipmentBuildObj, customerStationDropdown,
-        shipperDropdown, shipperAirlineDropdown, consigneeDropdown, consigneeAirlineDropdown, carrierTerminalDropdown,
-        getValues);
-    }
-  }, [type, carrierTerminalDropdown])
+
+    updateControls(
+      dispatch,
+      setValue,
+      selectedShipmentBuildObj,
+      customerStationDropdown,
+      shipperDropdown,
+      shipperAirlineDropdown,
+      consigneeDropdown,
+      consigneeAirlineDropdown,
+      carrierTerminalDropdown
+    );
+
+    previousLinehaulRouting.current = getValues("carrierInfo.lineHaul.selectRouting");
+    hydratedShipmentId.current = shipmentId;
+    setIsLoadingEditData(false);
+  }, [
+    type,
+    selectedShipmentBuildObj,
+    editLookupsLoaded,
+    customerStationDropdown,
+    shipperDropdown,
+    shipperAirlineDropdown,
+    consigneeDropdown,
+    consigneeAirlineDropdown,
+    carrierTerminalDropdown,
+    dispatch,
+    setValue,
+  ]);
 
   return (
     <ErrorBoundary
@@ -1843,245 +2043,326 @@ const ShipmentPage = ({ type }) => {
       }}
     >
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Box sx={{ p: 2, mt: 2 }}>
-          {/* HEADER & STEPPER */}
-          <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
-            PATH_DASHBOARD={PATH_DASHBOARD}
-            setHandleCancelModal={setHandleCancelModal}
-            hasInitialData={hasInitialData}
-            handleNext={handleNext}
-            onFormSubmit={onFormSubmit}
-            handleEditNext={handleEditNext}
-            onFormEditSubmit={onFormEditSubmit}
-            isPickupPending={isPickupPending}
-            isSubmitting={isSubmitting} isSubmittingFinal={isSubmittingFinal}
-            type={type}
-            setDoDetailsModal={setDoDetailsModal}
-            setCustomerRateModal={setCustomerRateModal}
-            setOpenNotesDialog={setOpenNotesDialog}
-            notesRef={notesRef}
-            liveShipmentStatus={liveShipmentStatus}
-            setShipmentStatusModal={setShipmentStatusModal}
-            dispatch={dispatch}
-            setValue={setValue}
-            getValues={getValues}
-            trigger={trigger}
-            errors={errors}
-            activeStep={activeStep}
-            watchedServiceLevel={watchedServiceLevel}
-            watchedAirportPickupService={watchedAirportPickupService}
-            watchedAirportDeliveryService={watchedAirportDeliveryService}
-            isHazmatSelected={isHazmatSelected}
-            selectedRouting={selectedRouting}
-            watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-            setErrorVisible={setErrorVisible}
-            setErrorVisibleFields={setErrorVisibleFields}
-            watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-            watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-            watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-            watchedToLocation={watchedToLocation}
-            watchedLinehaulToLocation={watchedLinehaulToLocation}
-            watchedDeliveryToLocation={watchedDeliveryToLocation}
-            carrierTerminalDropdown={carrierTerminalDropdown}
-            getZipToZipCarrierPickupRate={getZipToZipCarrierPickupRate}
-            getZipToZipCarrierLinehaulRate={getZipToZipCarrierLinehaulRate}
-            getZipToZipCarrierDeliveryRate={getZipToZipCarrierDeliveryRate}
-            setIsSubmitting={setIsSubmitting} setIsSubmittingFinal={setIsSubmittingFinal}
-            postStep1={postStep1}
-            postNetworkShipment={postNetworkShipment}
-            watchedOriginAirport={watchedOriginAirport}
-            watchedDestinationAirport={watchedDestinationAirport}
-            setActiveStep={setActiveStep}
-            totals={totals}
-            watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-            patchNetworkShipment={patchNetworkShipment}
-            watch={watch}
-            getZipToZipCustomerRate = {getZipToZipCustomerRate}
-          />
-          {/* dialog for update shipment status  */}
-          <ShipmentStatusUpdateDialog
-            open={shipmentStatusModal}
-            onClose={() => setShipmentStatusModal(false)}
-            setValue={setValue}
-            getValues={getValues}
-            control={control}
-            errors={errors}
-            liveShipmentStatus={liveShipmentStatus}
-          />
-          {/* dialog for DO details */}
-          <DoDetailsDialog
-            open={doDetailsModal}
-            onClose={() => setDoDetailsModal(false)}
-            getValues={getValues}
-            setValue={setValue}
-            control={control}
-            doDetailsFields={doDetailsFields}
-            isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
-          />
-          {/* dialog for customer rate  */}
-          <CustomerRateDialog
-            type={type}
-            open={custommerRateModal}
-            onClose={() => {
-              setCustomerRateModal(false);
-            }}
-            getValues={getValues}
-            setValue={setValue}
-            control={control}
-            totals={totals}
-            customerRateAccFields={customerRateAccFields}
-            appendCustomerRateAccFields={appendCustomerRateAccFields}
-            replaceCustomerRateAccFields={replaceCustomerRateAccFields}
-            watchedHU={watchedHU}
-            masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
-            watch={watch}
-            customerRateNotesArr={customerRateNotesArr}
-            appendCustomerRateNotesArr={appendCustomerRateNotesArr}
-            currentCustomerNoteText={currentCustomerNoteText}
-            customerApprovalRateHistory={customerApprovalRateHistory}
-          />
-          <HandleCancelDialog
-            open={handleCancelModal}
-            onClose={() => setHandleCancelModal(false)}
-            onSave={() => {
-              // Handle cancel save logic here
-              if (activeStep === 0) {
-                reset();
-                setActiveStep(0);
-                setHandleCancelModal(false);
-                navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
-              } else {
-                reset();
-                setActiveStep(0);
-                setHandleCancelModal(false);
-              }
-            }}
-          />
-          {/* STEP 0 */}
-          {activeStep === 0 && (
-            <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} type={type} />
+        <Box sx={{ p: 2, mt: 2, position: "relative" }}>
+          {isLoadingEditData && (
+            <Box
+              role="status"
+              aria-live="polite"
+              sx={{
+                position: "absolute",
+                inset: 0,
+                zIndex: 10,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                bgcolor: "rgba(255, 255, 255, 0.85)",
+              }}
+            >
+              <CircularProgress size={32} />
+              <Typography>Data is being loaded...</Typography>
+            </Box>
           )}
-          {/* STEP 1 */}
-          {activeStep === 1 && (
-            <ActiveStep1 control={control} errors={errors} type={type}
-              customerStationDropdown={customerStationDropdown}
-              renderTextField={renderTextField}
-              renderZipCodeField={renderZipCodeField}
-              renderPhoneField={renderPhoneField}
+
+          <Box sx={{ visibility: isLoadingEditData ? "hidden" : "visible" }}>
+            {/* HEADER & STEPPER */}
+            <StepperHeader location={location} navigate={navigate} watchedCarrierInfoSubmit={watchedCarrierInfoSubmit}
+              PATH_DASHBOARD={PATH_DASHBOARD}
+              setHandleCancelModal={setHandleCancelModal}
+              hasInitialData={hasInitialData}
+              handleNext={handleNext}
+              onFormSubmit={onFormSubmit}
+              handleEditNext={handleEditNext}
+              onFormEditSubmit={onFormEditSubmit}
+              isPickupPending={isPickupPending}
+              isSubmitting={isSubmitting} isSubmittingFinal={isSubmittingFinal}
+              type={type}
+              setDoDetailsModal={setDoDetailsModal}
+              setCustomerRateModal={setCustomerRateModal}
+              setOpenNotesDialog={setOpenNotesDialog}
+              notesRef={notesRef}
+              liveShipmentStatus={liveShipmentStatus}
+              setShipmentStatusModal={setShipmentStatusModal}
+              dispatch={dispatch}
+              setValue={setValue}
+              getValues={getValues}
+              trigger={trigger}
+              errors={errors}
+              activeStep={activeStep}
+              watchedServiceLevel={watchedServiceLevel}
               watchedAirportPickupService={watchedAirportPickupService}
               watchedAirportDeliveryService={watchedAirportDeliveryService}
-              shipperDropdown={shipperDropdown}
-              watchedOriginAirport={watchedOriginAirport}
-              shipperAirlineDropdown={shipperAirlineDropdown}
-              consigneeDropdown={consigneeDropdown}
-              consigneeAirlineDropdown={consigneeAirlineDropdown}
-              watchedDestinationAirport={watchedDestinationAirport}
-              dispatch={dispatch}
-              navigate={navigate}
-              location={location}
-              setValue={setValue}
-              clearErrors={clearErrors}
-              getValues={getValues}
-              watch={watch} watchedShipperName={watchedShipperName}
-              watchedConsigneeName={watchedConsigneeName}
-            />
-          )}
-          {/* STEP 2 */}
-          {activeStep === 2 && (
-            <ActiveStep2
-              type={type}
-              control={control}
-              dispatch={dispatch}
-              navigate={navigate}
-              location={location}
-              setValue={setValue}
-              huFields={huFields}
-              removeHU={removeHU}
-              errors={errors}
-              watchedHU={watchedHU}
-              getValues={getValues}
-              appendHU={appendHU}
-              setErrorVisible={setErrorVisible}
               isHazmatSelected={isHazmatSelected}
-              setHazmatModal={setHazmatModal}
-              trigger={trigger}
-              updateHU = {updateHU}
+              selectedRouting={selectedRouting}
+              watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+              setErrorVisible={setErrorVisible}
+              setErrorVisibleFields={setErrorVisibleFields}
+              watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+              watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+              watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+              watchedToLocation={watchedToLocation}
+              watchedLinehaulToLocation={watchedLinehaulToLocation}
+              watchedDeliveryToLocation={watchedDeliveryToLocation}
+              carrierTerminalDropdown={carrierTerminalDropdown}
+              getZipToZipCarrierPickupRate={getZipToZipCarrierPickupRate}
+              getZipToZipCarrierLinehaulRate={getZipToZipCarrierLinehaulRate}
+              getZipToZipCarrierDeliveryRate={getZipToZipCarrierDeliveryRate}
+              setIsSubmitting={setIsSubmitting} setIsSubmittingFinal={setIsSubmittingFinal}
+              postStep1={postStep1}
+              postNetworkShipment={postNetworkShipment}
+              watchedOriginAirport={watchedOriginAirport}
+              watchedDestinationAirport={watchedDestinationAirport}
+              setActiveStep={setActiveStep}
+              totals={totals}
+              watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+              patchNetworkShipment={patchNetworkShipment}
+              watch={watch}
+              getZipToZipCustomerRate={getZipToZipCustomerRate}
             />
-          )}
-          {/* STEP 3 */}
-          {activeStep === 3 && (
-            <>
-              <ActiveStep3Pickup
-                type={type}
+            {/* dialog for update shipment status  */}
+            <ShipmentStatusUpdateDialog
+              open={shipmentStatusModal}
+              onClose={() => setShipmentStatusModal(false)}
+              setValue={setValue}
+              getValues={getValues}
+              control={control}
+              errors={errors}
+              liveShipmentStatus={liveShipmentStatus}
+            />
+            {/* dialog for DO details */}
+            <DoDetailsDialog
+              open={doDetailsModal}
+              onClose={() => setDoDetailsModal(false)}
+              getValues={getValues}
+              setValue={setValue}
+              control={control}
+              doDetailsFields={doDetailsFields}
+              isHazmatSelectedInDoDetails={isHazmatSelectedInDoDetails}
+            />
+            {/* dialog for customer rate  */}
+            <CustomerRateDialog
+              type={type}
+              open={custommerRateModal}
+              onClose={() => {
+                setCustomerRateModal(false);
+              }}
+              getValues={getValues}
+              setValue={setValue}
+              control={control}
+              totals={totals}
+              customerRateAccFields={customerRateAccFields}
+              appendCustomerRateAccFields={appendCustomerRateAccFields}
+              replaceCustomerRateAccFields={replaceCustomerRateAccFields}
+              watchedHU={watchedHU}
+              masterAccessorials={CUSTOMER_MASTER_ACCESSORIALS}
+              watch={watch}
+              customerRateNotesArr={customerRateNotesArr}
+              appendCustomerRateNotesArr={appendCustomerRateNotesArr}
+              currentCustomerNoteText={currentCustomerNoteText}
+              customerApprovalRateHistory={customerApprovalRateHistory}
+            />
+            <HandleCancelDialog
+              open={handleCancelModal}
+              onClose={() => setHandleCancelModal(false)}
+              onSave={() => {
+                // Handle cancel save logic here
+                if (activeStep === 0) {
+                  reset();
+                  setActiveStep(0);
+                  setHandleCancelModal(false);
+                  navigate(PATH_DASHBOARD?.shipmentBuilding?.root);
+                } else {
+                  reset();
+                  setActiveStep(0);
+                  setHandleCancelModal(false);
+                }
+              }}
+            />
+            {/* STEP 0 */}
+            {activeStep === 0 && (
+              <ActiveStep0 control={control} errors={errors} watchedServiceLevel={watchedServiceLevel} clearErrors={clearErrors} type={type} />
+            )}
+            {/* STEP 1 */}
+            {activeStep === 1 && (
+              <ActiveStep1 control={control} errors={errors} type={type}
+                customerStationDropdown={customerStationDropdown}
+                renderTextField={renderTextField}
+                renderZipCodeField={renderZipCodeField}
+                renderPhoneField={renderPhoneField}
+                watchedAirportPickupService={watchedAirportPickupService}
+                watchedAirportDeliveryService={watchedAirportDeliveryService}
+                shipperDropdown={shipperDropdown}
+                watchedOriginAirport={watchedOriginAirport}
+                shipperAirlineDropdown={shipperAirlineDropdown}
+                consigneeDropdown={consigneeDropdown}
+                consigneeAirlineDropdown={consigneeAirlineDropdown}
+                watchedDestinationAirport={watchedDestinationAirport}
                 dispatch={dispatch}
                 navigate={navigate}
                 location={location}
-                control={control}
-                errors={errors}
-                isPickupPending={isPickupPending}
-                carrierTerminalDropdown={carrierTerminalDropdown}
-                setSelectCarrierPickupSearchValue={setSelectCarrierPickupSearchValue}
-                selectCarrierPickupSearchValue={selectCarrierPickupSearchValue}
-                watchedFromLocationFlag={watchedFromLocationFlag}
-                renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
-                watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                selectedRouting={selectedRouting}
-                watchedToLocationType={watchedToLocationType}
-                isSelectingCarrierPickupRef={isSelectingCarrierPickupRef}
-                isSelectingToCarrierPickupRef={isSelectingToCarrierPickupRef}
-                isLoading={isLoading}
-                watchedConsigneeName={watchedConsigneeName}
-                watchedToLocationFlag={watchedToLocationFlag}
-                watchedAddPickupAccessorial={watchedAddPickupAccessorial}
-                setPickupAccModal={setPickupAccModal}
-                pickupAccModal={pickupAccModal}
-                pickupAccFields={pickupAccFields}
-                setActiveAccType={setActiveAccType}
-                notesRefArray={notesRefArray}
-                notesRefArrayIndex={notesRefArrayIndex}
-                notesRefArrayObj={notesRefArrayObj}
-                setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
-                setEditAccIndex={setEditAccIndex}
-                editAccIndex={editAccIndex}
-                setActiveNotesIndex={setActiveNotesIndex}
-                setActionType={setActionType}
-                actionType={actionType}
-                setAddPickUpAccModal={setAddPickUpAccModal}
-                removePickupAcc={removePickupAcc}
-                replacePickupAcc={replacePickupAcc}
-                PICKUP_MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS}
-                setPICKUP_MASTER_Accessorials={setPICKUP_MASTER_Accessorials}
-                onSaveOfEdit={onSaveOfEdit}
-                addPickUpAccModal={addPickUpAccModal}
-                watchedPickupAlert={watchedPickupAlert}
-                inboundNotes={inboundNotes}
                 setValue={setValue}
-                watchedCarrierInfo={watchedCarrierInfo}
-                appendPickupAccFields={appendPickupAccFields}
-                carrierTerminalSelectError={carrierTerminalSelectError}
-                setCarrierTerminalSelectError={setCarrierTerminalSelectError}
-                watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
-                watchedPickupAdditionalMails={watchedPickupAdditionalMails}
-                carrierPickupSearchValue={carrierPickupSearchValue}
-                setCarrierPickupSearchValue={setCarrierPickupSearchValue}
+                clearErrors={clearErrors}
                 getValues={getValues}
-                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                watchedAirportPickupService={watchedAirportPickupService}
-                watchedAirportDeliveryService={watchedAirportDeliveryService}
-                isHazmatSelected={isHazmatSelected}
-                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                watchedToLocation={watchedToLocation}
-                watchedLinehaulToLocation={watchedLinehaulToLocation}
-                watchedDeliveryToLocation={watchedDeliveryToLocation}
-                watchedOriginAirport={watchedOriginAirport}
-                watchedDestinationAirport={watchedDestinationAirport}
-                watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                watch={watch} watchedShipperName={watchedShipperName}
+                watchedConsigneeName={watchedConsigneeName}
               />
-              {
-                isPickupPending === false &&
-                <ActiveStep3Linehaul type={type}
+            )}
+            {/* STEP 2 */}
+            {activeStep === 2 && (
+              <ActiveStep2
+                type={type}
+                control={control}
+                dispatch={dispatch}
+                navigate={navigate}
+                location={location}
+                setValue={setValue}
+                huFields={huFields}
+                removeHU={removeHU}
+                errors={errors}
+                watchedHU={watchedHU}
+                getValues={getValues}
+                appendHU={appendHU}
+                setErrorVisible={setErrorVisible}
+                isHazmatSelected={isHazmatSelected}
+                setHazmatModal={setHazmatModal}
+                trigger={trigger}
+                updateHU={updateHU}
+              />
+            )}
+            {/* STEP 3 */}
+            {activeStep === 3 && (
+              <>
+                <ActiveStep3Pickup
+                  type={type}
+                  dispatch={dispatch}
+                  navigate={navigate}
+                  location={location}
+                  control={control}
+                  errors={errors}
+                  isPickupPending={isPickupPending}
+                  carrierTerminalDropdown={carrierTerminalDropdown}
+                  setSelectCarrierPickupSearchValue={setSelectCarrierPickupSearchValue}
+                  selectCarrierPickupSearchValue={selectCarrierPickupSearchValue}
+                  watchedFromLocationFlag={watchedFromLocationFlag}
+                  renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                  watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                  selectedRouting={selectedRouting}
+                  watchedToLocationType={watchedToLocationType}
+                  isSelectingCarrierPickupRef={isSelectingCarrierPickupRef}
+                  isSelectingToCarrierPickupRef={isSelectingToCarrierPickupRef}
+                  isLoading={isLoading}
+                  watchedConsigneeName={watchedConsigneeName}
+                  watchedToLocationFlag={watchedToLocationFlag}
+                  watchedAddPickupAccessorial={watchedAddPickupAccessorial}
+                  setPickupAccModal={setPickupAccModal}
+                  pickupAccModal={pickupAccModal}
+                  pickupAccFields={pickupAccFields}
+                  setActiveAccType={setActiveAccType}
+                  notesRefArray={notesRefArray}
+                  notesRefArrayIndex={notesRefArrayIndex}
+                  notesRefArrayObj={notesRefArrayObj}
+                  setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
+                  setEditAccIndex={setEditAccIndex}
+                  editAccIndex={editAccIndex}
+                  setActiveNotesIndex={setActiveNotesIndex}
+                  setActionType={setActionType}
+                  setAddPickUpAccModal={setAddPickUpAccModal}
+                  removePickupAcc={removePickupAcc}
+                  replacePickupAcc={replacePickupAcc}
+                  PICKUP_MASTER_ACCESSORIALS={PICKUP_MASTER_ACCESSORIALS}
+                  setPICKUP_MASTER_Accessorials={setPICKUP_MASTER_Accessorials}
+                  onSaveOfEdit={onSaveOfEdit}
+                  addPickUpAccModal={addPickUpAccModal}
+                  watchedPickupAlert={watchedPickupAlert}
+                  inboundNotes={inboundNotes}
+                  setValue={setValue}
+                  watchedCarrierInfo={watchedCarrierInfo}
+                  appendPickupAccFields={appendPickupAccFields}
+                  carrierTerminalSelectError={carrierTerminalSelectError}
+                  setCarrierTerminalSelectError={setCarrierTerminalSelectError}
+                  watchedLineHaulToggledAddress={watchedLineHaulToggledAddress}
+                  watchedPickupAdditionalMails={watchedPickupAdditionalMails}
+                  carrierPickupSearchValue={carrierPickupSearchValue}
+                  setCarrierPickupSearchValue={setCarrierPickupSearchValue}
+                  getValues={getValues}
+                  watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                  watchedAirportPickupService={watchedAirportPickupService}
+                  watchedAirportDeliveryService={watchedAirportDeliveryService}
+                  isHazmatSelected={isHazmatSelected}
+                  watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                  watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                  watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                  watchedToLocation={watchedToLocation}
+                  watchedLinehaulToLocation={watchedLinehaulToLocation}
+                  watchedDeliveryToLocation={watchedDeliveryToLocation}
+                  watchedOriginAirport={watchedOriginAirport}
+                  watchedDestinationAirport={watchedDestinationAirport}
+                  watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                />
+                {
+                  isPickupPending === false &&
+                  <ActiveStep3Linehaul type={type}
+                    dispatch={dispatch}
+                    navigate={navigate}
+                    location={location}
+                    control={control}
+                    errors={errors}
+                    selectedRouting={selectedRouting}
+                    carrierTerminalDropdown={carrierTerminalDropdown}
+                    isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
+                    setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
+                    selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
+                    watchedPickupAgentTerminal={watchedPickupAgentTerminal}
+                    watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                    renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                    watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                    watchedLinehaulToLocationType={watchedLinehaulToLocationType}
+                    isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
+                    setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
+                    carrierLinehaulSearchValue={carrierLinehaulSearchValue}
+                    watchedConsigneeName={watchedConsigneeName}
+                    watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
+                    watchedLinehaulAddAcc={watchedLinehaulAddAcc}
+                    setLineHaulAccModal={setLineHaulAccModal}
+                    lineHaulAccFields={lineHaulAccFields}
+                    setActiveAccType={setActiveAccType}
+                    notesRefArray={notesRefArray}
+                    notesRefArrayIndex={notesRefArrayIndex}
+                    notesRefArrayObj={notesRefArrayObj}
+                    setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
+                    setEditAccIndex={setEditAccIndex}
+                    setActionType={setActionType}
+                    setAddLineHaulAccModal={setAddLineHaulAccModal}
+                    removeLineHaulAcc={removeLineHaulAcc}
+                    lineHaulAccModal={lineHaulAccModal}
+                    replaceLineHaulAcc={replaceLineHaulAcc}
+                    addLineHaulAccModal={addLineHaulAccModal}
+                    actionType={actionType}
+                    LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
+                    setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
+                    appendLineHaulAccFields={appendLineHaulAccFields}
+                    lineHaulNotesArr={lineHaulNotesArr}
+                    watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
+                    onSaveOfEdit={onSaveOfEdit}
+                    editAccIndex={editAccIndex}
+                    isLoading={isLoading}
+                    setValue={setValue}
+                    watchedCarrierInfo={watchedCarrierInfo}
+                    watchedToLocation={watchedToLocation}
+                    isPickupPending={isPickupPending}
+                    getValues={getValues}
+                    watchedAirportPickupService={watchedAirportPickupService}
+                    watchedAirportDeliveryService={watchedAirportDeliveryService}
+                    isHazmatSelected={isHazmatSelected}
+                    watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                    watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                    watchedLinehaulToLocation={watchedLinehaulToLocation}
+                    watchedDeliveryToLocation={watchedDeliveryToLocation}
+                    watchedOriginAirport={watchedOriginAirport}
+                    watchedDestinationAirport={watchedDestinationAirport}
+                  />
+                }
+                {isPickupPending === false && <ActiveStep3Delivery type={type}
                   dispatch={dispatch}
                   navigate={navigate}
                   location={location}
@@ -2089,22 +2370,22 @@ const ShipmentPage = ({ type }) => {
                   errors={errors}
                   selectedRouting={selectedRouting}
                   carrierTerminalDropdown={carrierTerminalDropdown}
-                  isSelectingCarrierLinehaulRef={isSelectingCarrierLinehaulRef}
-                  setSelectCarrierLinehaulSearchValue={setSelectCarrierLinehaulSearchValue}
-                  selectCarrierLinehaulSearchValue={selectCarrierLinehaulSearchValue}
-                  watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                  watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                  renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                  isLoading={isLoading}
+                  setValue={setValue}
                   watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                  watchedLinehaulToLocationType={watchedLinehaulToLocationType}
-                  isSelectingToCarrierLinehaulRef={isSelectingToCarrierLinehaulRef}
-                  setCarrierLinehaulSearchValue={setCarrierLinehaulSearchValue}
-                  carrierLinehaulSearchValue={carrierLinehaulSearchValue}
+                  isSelectingCarrierDeliveryRef={isSelectingCarrierDeliveryRef}
+                  setSelectCarrierDeliverySearchValue={setSelectCarrierDeliverySearchValue}
+                  selectCarrierDeliverySearchValue={selectCarrierDeliverySearchValue}
+                  watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                  watchedLinehaulToLocation={watchedLinehaulToLocation}
+                  watchedDeliveryFromLocationFlag={watchedDeliveryFromLocationFlag}
+                  watchedDeliveryToLocationType={watchedDeliveryToLocationType}
+                  isSelectingToCarrierDeliveryRef={isSelectingToCarrierDeliveryRef}
+                  setCarrierDeliverySearchValue={setCarrierDeliverySearchValue}
+                  carrierDeliverySearchValue={carrierDeliverySearchValue}
                   watchedConsigneeName={watchedConsigneeName}
-                  watchedLinehaulToLocationFlag={watchedLinehaulToLocationFlag}
-                  watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-                  setLineHaulAccModal={setLineHaulAccModal}
-                  lineHaulAccFields={lineHaulAccFields}
+                  watchedDeliveryAddAcc={watchedDeliveryAddAcc}
+                  deliveryAccFields={deliveryAccFields}
                   setActiveAccType={setActiveAccType}
                   notesRefArray={notesRefArray}
                   notesRefArrayIndex={notesRefArrayIndex}
@@ -2112,200 +2393,140 @@ const ShipmentPage = ({ type }) => {
                   setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
                   setEditAccIndex={setEditAccIndex}
                   setActionType={setActionType}
-                  setAddLineHaulAccModal={setAddLineHaulAccModal}
-                  removeLineHaulAcc={removeLineHaulAcc}
-                  lineHaulAccModal={lineHaulAccModal}
-                  replaceLineHaulAcc={replaceLineHaulAcc}
-                  addLineHaulAccModal={addLineHaulAccModal}
+                  setAddDeliveryAccModal={setAddDeliveryAccModal}
+                  removeDeliveryAcc={removeDeliveryAcc}
+                  deliveryAccModal={deliveryAccModal}
+                  setDeliveryAccModal={setDeliveryAccModal}
+                  replaceDeliveryAcc={replaceDeliveryAcc}
+                  addDeliveryAccModal={addDeliveryAccModal}
                   actionType={actionType}
-                  LINEHAUL_MASTER_ACCESSORIALS={LINEHAUL_MASTER_ACCESSORIALS}
-                  setLINEHAUL_MASTER_Accessorials={setLINEHAUL_MASTER_Accessorials}
-                  appendLineHaulAccFields={appendLineHaulAccFields}
-                  lineHaulNotesArr={lineHaulNotesArr}
-                  watchedLinehaulFromLocationFlag={watchedLinehaulFromLocationFlag}
+                  DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
+                  setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
                   onSaveOfEdit={onSaveOfEdit}
+                  appendDeliveryAccFields={appendDeliveryAccFields}
+                  watchedDeliveryAlert={watchedDeliveryAlert}
+                  deliveryLineHaulNotesArr={deliveryLineHaulNotesArr}
+                  deliveryNotesArr={deliveryNotesArr}
+                  watchedDeliveryAdditionalMails={watchedDeliveryAdditionalMails}
+                  renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
+                  watchedDeliveryToLocationFlag={watchedDeliveryToLocationFlag}
                   editAccIndex={editAccIndex}
-                  isLoading={isLoading}
-                  setValue={setValue}
                   watchedCarrierInfo={watchedCarrierInfo}
-                  watchedToLocation={watchedToLocation}
                   isPickupPending={isPickupPending}
+                  watchedPickupAgentTerminal={watchedPickupAgentTerminal}
                   getValues={getValues}
                   watchedAirportPickupService={watchedAirportPickupService}
                   watchedAirportDeliveryService={watchedAirportDeliveryService}
                   isHazmatSelected={isHazmatSelected}
-                  watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                  watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
                   watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                  watchedLinehaulToLocation={watchedLinehaulToLocation}
+                  watchedToLocation={watchedToLocation}
                   watchedDeliveryToLocation={watchedDeliveryToLocation}
                   watchedOriginAirport={watchedOriginAirport}
                   watchedDestinationAirport={watchedDestinationAirport}
+                  watchedLinehaulAddAcc={watchedLinehaulAddAcc}
                 />
-              }
-              {isPickupPending === false && <ActiveStep3Delivery type={type}
-                dispatch={dispatch}
-                navigate={navigate}
-                location={location}
-                control={control}
-                errors={errors}
-                selectedRouting={selectedRouting}
-                carrierTerminalDropdown={carrierTerminalDropdown}
-                isLoading={isLoading}
-                setValue={setValue}
-                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                isSelectingCarrierDeliveryRef={isSelectingCarrierDeliveryRef}
-                setSelectCarrierDeliverySearchValue={setSelectCarrierDeliverySearchValue}
-                selectCarrierDeliverySearchValue={selectCarrierDeliverySearchValue}
-                watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-                watchedLinehaulToLocation={watchedLinehaulToLocation}
-                watchedDeliveryFromLocationFlag={watchedDeliveryFromLocationFlag}
-                watchedDeliveryToLocationType={watchedDeliveryToLocationType}
-                isSelectingToCarrierDeliveryRef={isSelectingToCarrierDeliveryRef}
-                setCarrierDeliverySearchValue={setCarrierDeliverySearchValue}
-                carrierDeliverySearchValue={carrierDeliverySearchValue}
-                watchedConsigneeName={watchedConsigneeName}
-                watchedDeliveryAddAcc={watchedDeliveryAddAcc}
-                deliveryAccFields={deliveryAccFields}
-                setActiveAccType={setActiveAccType}
-                notesRefArray={notesRefArray}
-                notesRefArrayIndex={notesRefArrayIndex}
-                notesRefArrayObj={notesRefArrayObj}
-                setOpenNotesDialogForShipmentAccs={setOpenNotesDialogForShipmentAccs}
-                setEditAccIndex={setEditAccIndex}
-                setActionType={setActionType}
-                setAddDeliveryAccModal={setAddDeliveryAccModal}
-                removeDeliveryAcc={removeDeliveryAcc}
-                deliveryAccModal={deliveryAccModal}
-                setDeliveryAccModal={setDeliveryAccModal}
-                replaceDeliveryAcc={replaceDeliveryAcc}
-                addDeliveryAccModal={addDeliveryAccModal}
-                actionType={actionType}
-                DELIVERY_MASTER_ACCESSORIALS={DELIVERY_MASTER_ACCESSORIALS}
-                setDELIVERY_MASTER_Accessorials={setDELIVERY_MASTER_Accessorials}
-                onSaveOfEdit={onSaveOfEdit}
-                appendDeliveryAccFields={appendDeliveryAccFields}
-                watchedDeliveryAlert={watchedDeliveryAlert}
-                deliveryLineHaulNotesArr={deliveryLineHaulNotesArr}
-                deliveryNotesArr={deliveryNotesArr}
-                watchedDeliveryAdditionalMails={watchedDeliveryAdditionalMails}
-                renderZipCodeFieldCarrierInfo={renderZipCodeFieldCarrierInfo}
-                watchedDeliveryToLocationFlag={watchedDeliveryToLocationFlag}
-                editAccIndex={editAccIndex}
-                watchedCarrierInfo={watchedCarrierInfo}
-                isPickupPending={isPickupPending}
-                watchedPickupAgentTerminal={watchedPickupAgentTerminal}
-                getValues={getValues}
-                watchedAirportPickupService={watchedAirportPickupService}
-                watchedAirportDeliveryService={watchedAirportDeliveryService}
-                isHazmatSelected={isHazmatSelected}
-                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                watchedToLocation={watchedToLocation}
-                watchedDeliveryToLocation={watchedDeliveryToLocation}
-                watchedOriginAirport={watchedOriginAirport}
-                watchedDestinationAirport={watchedDestinationAirport}
-                watchedLinehaulAddAcc={watchedLinehaulAddAcc}
-              />
-              }
-            </>
-          )}
-          {/* step 4 */}
-          {
-            activeStep === 4 && (
-              <ActiveStep4 type={type}
-                carrierRatesPickUpAccessorials={carrierRatesPickUpAccessorials}
-                watchedCarrierRateInfo={watchedCarrierRateInfo}
-                carrierTerminalDropdown={carrierTerminalDropdown}
-                watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
-                setValue={setValue}
-                control={control}
-                getValues={getValues}
-                totals={totals}
-                carrierRatesLineHaulAccessorials={carrierRatesLineHaulAccessorials}
-                selectedRouting={selectedRouting}
-                watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
-                watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
-                carrierRatesDeliveryAccessorials={carrierRatesDeliveryAccessorials}
-                watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
-                carrierRatesPickUpUpdateAccessorials={carrierRatesPickUpUpdateAccessorials}
-                carrierRatesLineHaulUpdateAccessorials={carrierRatesLineHaulUpdateAccessorials}
-                carrierRatesDeliveryUpdateAccessorials={carrierRatesDeliveryUpdateAccessorials}
-                watchedCRPickupAccessorials={watchedCRPickupAccessorials}
-                watchedCRLinehaulAccessorials={watchedCRLinehaulAccessorials}
-                watchedCRDeliveryAccessorials={watchedCRDeliveryAccessorials}
+                }
+              </>
+            )}
+            {/* step 4 */}
+            {
+              activeStep === 4 && (
+                <ActiveStep4 type={type}
+                  carrierRatesPickUpAccessorials={carrierRatesPickUpAccessorials}
+                  watchedCarrierRateInfo={watchedCarrierRateInfo}
+                  carrierTerminalDropdown={carrierTerminalDropdown}
+                  watchedSelectedPickupCarrier={watchedSelectedPickupCarrier}
+                  setValue={setValue}
+                  control={control}
+                  getValues={getValues}
+                  totals={totals}
+                  carrierRatesLineHaulAccessorials={carrierRatesLineHaulAccessorials}
+                  selectedRouting={selectedRouting}
+                  watchedLinehaulSelectRouting={watchedLinehaulSelectRouting}
+                  watchedSelectedLineHaulCarrier={watchedSelectedLineHaulCarrier}
+                  carrierRatesDeliveryAccessorials={carrierRatesDeliveryAccessorials}
+                  watchedSelectedDeliveryCarrier={watchedSelectedDeliveryCarrier}
+                  carrierRatesPickUpUpdateAccessorials={carrierRatesPickUpUpdateAccessorials}
+                  carrierRatesLineHaulUpdateAccessorials={carrierRatesLineHaulUpdateAccessorials}
+                  carrierRatesDeliveryUpdateAccessorials={carrierRatesDeliveryUpdateAccessorials}
+                  watchedCRPickupAccessorials={watchedCRPickupAccessorials}
+                  watchedCRLinehaulAccessorials={watchedCRLinehaulAccessorials}
+                  watchedCRDeliveryAccessorials={watchedCRDeliveryAccessorials}
 
-                carrierPickupApprovalRateHistory={carrierPickupApprovalRateHistory}
-                carrierLinehaulApprovalRateHistory={carrierLinehaulApprovalRateHistory}
-                carrierDeliveryApprovalRateHistory={carrierDeliveryApprovalRateHistory}
-                carrierPickupRateNotesArr={carrierPickupRateNotesArr}
-                appendCarrierPickupRateNotesArr={appendCarrierPickupRateNotesArr}
-                currentCarrierPickupNoteText={currentCarrierPickupNoteText}
-                carrierLinehaulRateNotesArr={carrierLinehaulRateNotesArr}
-                appendCarrierLinehaulRateNotesArr={appendCarrierLinehaulRateNotesArr}
-                currentCarrierLinehaulNoteText={currentCarrierLinehaulNoteText}
-                carrierDeliveryRateNotesArr={carrierDeliveryRateNotesArr}
-                appendCarrierDeliveryRateNotesArr={appendCarrierDeliveryRateNotesArr}
-                currentCarrierDeliveryNoteText={currentCarrierDeliveryNoteText}
-              />
-            )
-          }
-          <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+                  carrierPickupApprovalRateHistory={carrierPickupApprovalRateHistory}
+                  carrierLinehaulApprovalRateHistory={carrierLinehaulApprovalRateHistory}
+                  carrierDeliveryApprovalRateHistory={carrierDeliveryApprovalRateHistory}
+                  carrierPickupRateNotesArr={carrierPickupRateNotesArr}
+                  appendCarrierPickupRateNotesArr={appendCarrierPickupRateNotesArr}
+                  currentCarrierPickupNoteText={currentCarrierPickupNoteText}
+                  carrierLinehaulRateNotesArr={carrierLinehaulRateNotesArr}
+                  appendCarrierLinehaulRateNotesArr={appendCarrierLinehaulRateNotesArr}
+                  currentCarrierLinehaulNoteText={currentCarrierLinehaulNoteText}
+                  carrierDeliveryRateNotesArr={carrierDeliveryRateNotesArr}
+                  appendCarrierDeliveryRateNotesArr={appendCarrierDeliveryRateNotesArr}
+                  currentCarrierDeliveryNoteText={currentCarrierDeliveryNoteText}
+                />
+              )
+            }
+            <Snackbar open={errorVisible} autoHideDuration={6000} onClose={() => { setErrorVisible(false); setErrorVisibleFields(''); }} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
 
-            <Alert severity="error" variant="filled">
-              Please fill required fields: {Array.isArray(errorVisibleFields) ? errorVisibleFields.join(", ") : String(errorVisibleFields || "")}
-            </Alert>
+              <Alert severity="error" variant="filled">
+                Please fill required fields: {Array.isArray(errorVisibleFields) ? errorVisibleFields.join(", ") : String(errorVisibleFields || "")}
+              </Alert>
 
-          </Snackbar>
-          <Snackbar
-            open={handlingUnitWtFlag}
-            autoHideDuration={3000}
-            onClose={(event, reason) => {
-              // 1. Close the alert
-              setHandlingUnitWtFlag(false);
+            </Snackbar>
+            <Snackbar
+              open={handlingUnitWtFlag}
+              autoHideDuration={3000}
+              onClose={(event, reason) => {
+                // 1. Close the alert
+                setHandlingUnitWtFlag(false);
 
-              // 2. Prevent logic if the user clicked away (optional)
-              if (reason === 'clickaway') return;
+                // 2. Prevent logic if the user clicked away (optional)
+                if (reason === 'clickaway') return;
 
-              // 3. Correctly update the state/array
-              const updatedHU = [...watchedHU]; // Create a copy
-              const lastIndex = updatedHU.length - 1;
+                // 3. Correctly update the state/array
+                const updatedHU = [...watchedHU]; // Create a copy
+                const lastIndex = updatedHU.length - 1;
 
-              if (updatedHU[0] && updatedHU[lastIndex]) {
-                updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
-                setValue('handlingUnits', updatedHU); // Update the form state if needed
-              }
-              if (updatedHU[0] && updatedHU[lastIndex]) {
-                updatedHU[lastIndex].unit = updatedHU[0].unit;
-                setValue('handlingUnits', updatedHU); // Update the form state if needed
-              }
-            }}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <Alert severity="error" variant="filled">
-              All items must have the same weight unit as the first item
-            </Alert>
-          </Snackbar>
-          <Snackbar
-            open={shipmentErrorFlag}
-            autoHideDuration={3000}
-            onClose={() => {
-              setShipmentErrorFlag(false);
-              dispatch(setError());
-            }}
-            anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <Alert
+                if (updatedHU[0] && updatedHU[lastIndex]) {
+                  updatedHU[lastIndex].weightUnit = updatedHU[0].weightUnit;
+                  setValue('handlingUnits', updatedHU); // Update the form state if needed
+                }
+                if (updatedHU[0] && updatedHU[lastIndex]) {
+                  updatedHU[lastIndex].unit = updatedHU[0].unit;
+                  setValue('handlingUnits', updatedHU); // Update the form state if needed
+                }
+              }}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+            >
+              <Alert severity="error" variant="filled">
+                All items must have the same weight unit as the first item
+              </Alert>
+            </Snackbar>
+            <Snackbar
+              open={shipmentErrorFlag}
+              autoHideDuration={3000}
               onClose={() => {
                 setShipmentErrorFlag(false);
                 dispatch(setError());
               }}
-              severity="error"
-              variant="filled"
-              sx={{ width: '100%' }}
+              anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
             >
-              {snackbarMessage}
-            </Alert>
-          </Snackbar>
+              <Alert
+                onClose={() => {
+                  setShipmentErrorFlag(false);
+                  dispatch(setError());
+                }}
+                severity="error"
+                variant="filled"
+                sx={{ width: '100%' }}
+              >
+                {snackbarMessage}
+              </Alert>
+            </Snackbar>
+          </Box>
         </Box>
         {/* Place this at the end of your return block */}
         <HazmatDialog
@@ -2379,4 +2600,4 @@ const ShipmentPage = ({ type }) => {
     </ErrorBoundary>
   );
 };
-export default ShipmentPage; 
+export default ShipmentPage;

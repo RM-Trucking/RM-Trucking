@@ -361,124 +361,29 @@ const ConsolidateDelivery = ({
                                 />
                             </Box>
                             <Box sx={{ flex: '1 1 200px' }}>
-                                {(watchedDeliveryToLocationType === 'Carrier' || watchedDeliveryToLocationType === '') &&
-                                    <Controller
-                                        name="carrierInfo.deliveryDetails.toLocation"
-                                        control={control}
-                                        rules={{ required: true }}
-                                        render={({ field: { onChange, value, ref, ...fieldProps } }) => (
-                                            <Autocomplete
-                                                {...fieldProps} // Spreads ref and name from React Hook Form
-                                                fullWidth
-                                                options={carrierTerminalDropdown || []}
 
-                                                // 1. PROVIDES TOTALLY UNIQUE KEYS PER LIST ITEM DOM NODE
-                                                renderOption={(props, option, state) => {
-                                                    // FIXED: Converted to a clean, single-line concatenation string to prevent Vite parsing crashes
-                                                    const uniqueKey = "delivery-tolocation-" + option.terminalId + "-" + option.carrierId + "-" + state.index;
-                                                    return (
-                                                        <li {...props} key={uniqueKey}>
-                                                            {option.carrierName && option.terminalName
-                                                                ? option.carrierName + " | " + option.terminalName
-                                                                : ""}
-                                                        </li>
-                                                    );
-                                                }}
+                                <Controller
+                                    name="carrierInfo.deliveryDetails.toLocation"
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field: { onChange, value, ...fieldProps } }) => (
+                                        <StyledTextField
+                                            fullWidth
+                                            variant="standard"
+                                            label="To Location *"
+                                            value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}// Your hardcoded static value displayed to the user
+                                            disabled // Visual indicator showing the user it cannot be changed manually
+                                            InputLabelProps={{ shrink: true }}
+                                            sx={{
+                                                '& .MuiInputBase-input:disabled': {
+                                                    color: '#000', // Ensures high contrast visibility even when disabled
+                                                    WebkitTextFillColor: '#000'
+                                                }
+                                            }}
+                                        />
+                                    )}
+                                />
 
-                                                // 2. EQUATES INTERNAL STATE STRINGS ACCURATELY WITH THE CHOSEN OBJECTS
-                                                isOptionEqualToValue={(option, val) => {
-                                                    const optionKey = `${option?.terminalId}-${option?.carrierId}`;
-                                                    const valueKey = typeof val === 'string' ? val : `${val?.terminalId}-${val?.carrierId}`;
-                                                    return optionKey === valueKey;
-                                                }}
-
-                                                // Matches the combined string value logic from your previous MenuItem setup
-                                                getOptionLabel={(option) => {
-                                                    if (option && option.carrierName && option.terminalName) {
-                                                        return `${option.carrierName} | ${option.terminalName}`;
-                                                    }
-                                                    return "";
-                                                }}
-
-                                                // Finds the matching option object from carrierTerminalDropdown array based on the stored value
-                                                value={carrierTerminalDropdown.find(opt => `${opt.terminalId}-${opt.carrierId}` === value) || null}
-
-                                                // Updates React Hook Form state on change
-                                                onChange={(event, newValue) => {
-                                                    isSelectingToCarrierDeliveryRef.current = true;
-
-                                                    // Pass the structural string back to React Hook Form state, matching your old MenuItem structure
-                                                    const formValue = newValue ? `${newValue.terminalId}-${newValue.carrierId}` : "";
-                                                    onChange(formValue);
-                                                }}
-
-                                                onInputChange={(event, newInputValue, reason) => {
-                                                    if (reason !== "reset") {
-                                                        setCarrierDeliverySearchValue(newInputValue);
-                                                        // if (!newInputValue || newInputValue.trim() === "") {
-                                                        //   dispatch(searchCarriers(""));
-                                                        // }
-                                                    }
-                                                }}
-                                                loading={isLoading}
-                                                loadingText="Searching carriers..."
-                                                noOptionsText={carrierDeliverySearchValue ? "No carriers found" : "Type to search for carriers"}
-
-                                                renderInput={(params) => (
-                                                    <StyledTextField
-                                                        {...params}
-                                                        inputRef={ref} // Forwards focal references safely back to React Hook Form validation routines
-                                                        variant="standard"
-                                                        label="To Location *"
-                                                        error={!!errors.carrierInfo?.toLocation} // Uses React Hook Form errors
-                                                        helperText={errors.carrierInfo?.toLocation ? 'To Location is required' : ' '}
-                                                        InputLabelProps={{ shrink: true }}
-                                                        sx={{
-                                                            '& .MuiInputBase-input:disabled': {
-                                                                color: '#000',
-                                                                WebkitTextFillColor: '#000'
-                                                            }
-                                                        }}
-                                                        InputProps={{
-                                                            ...params.InputProps,
-                                                            endAdornment: (
-                                                                <>
-                                                                    {isLoading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                                    {params.InputProps.endAdornment}
-                                                                </>
-                                                            ),
-                                                        }}
-                                                    />
-                                                )}
-                                                sx={{ width: '100% !important', mt: 2 }}
-                                                disabled={type === 'View'}
-                                            />
-                                        )}
-                                    />
-                                }
-                                {
-                                    watchedDeliveryToLocationType === 'Consignee' && <Controller
-                                        name="carrierInfo.toLocation"
-                                        control={control}
-                                        rules={{ required: true }}
-                                        render={({ field: { onChange, value, ...fieldProps } }) => (
-                                            <StyledTextField
-                                                fullWidth
-                                                variant="standard"
-                                                label="To Location *"
-                                                value={watchedConsigneeName?.consigneeName ?? watchedConsigneeName?.airlineName?.split('-')?.map(item => item.trim())?.[2] ?? watchedConsigneeName?.airlineName ?? ''}// Your hardcoded static value displayed to the user
-                                                disabled // Visual indicator showing the user it cannot be changed manually
-                                                InputLabelProps={{ shrink: true }}
-                                                sx={{
-                                                    '& .MuiInputBase-input:disabled': {
-                                                        color: '#000', // Ensures high contrast visibility even when disabled
-                                                        WebkitTextFillColor: '#000'
-                                                    }
-                                                }}
-                                            />
-                                        )}
-                                    />
-                                }
                             </Box>
                             <Box>
                                 <Controller

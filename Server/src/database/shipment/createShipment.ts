@@ -80,7 +80,7 @@ export async function createNetworkShipment(
         shipmentTime: normalizeDateTimeValue(shipmentDetails.shipmentTime),
         status: shipmentDetails.status,
         createdBy: userId,
-        createdAt: { raw: "(CURRENT_TIMESTAMP - CURRENT TIMEZONE)" }
+        createdAt: { raw: "(CURRENT_TIMESTAMP - CURRENT_TIMEZONE)" }
     };
 
     return insertWithReturning<NetworkShipment>(conn, '"Network_Shipment"', payload);

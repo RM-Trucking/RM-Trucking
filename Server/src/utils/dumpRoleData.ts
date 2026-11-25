@@ -86,14 +86,14 @@ async function upsertRole(conn: Connection, source: RoleSourceRecord, actorUserI
 
     if (existing) {
         await conn.query(
-            `UPDATE ${SCHEMA}."Role" SET "name" = ?, "description" = ?, "roleKind" = ?, "status" = ?, "isSystemManaged" = ?, "updatedBy" = ?, "updatedAt" = CURRENT_TIMESTAMP WHERE "roleId" = ?`,
+            `UPDATE ${SCHEMA}."Role" SET "name" = ?, "description" = ?, "roleKind" = ?, "status" = ?, "isSystemManaged" = ?, "updatedBy" = ?, "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE) WHERE "roleId" = ?`,
             [name, source.description?.trim() || null, source.roleKind, source.status, source.isSystemManaged, actorUserId, existing.roleId] as any[],
         );
         return { roleId: existing.roleId, result: "updated" };
     }
 
     await conn.query(
-        `INSERT INTO ${SCHEMA}."Role" ("name", "description", "roleKind", "status", "isSystemManaged", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?, CURRENT_TIMESTAMP)`,
+        `INSERT INTO ${SCHEMA}."Role" ("name", "description", "roleKind", "status", "isSystemManaged", "createdBy", "createdAt", "updatedBy", "updatedAt") VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE), ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
         [name, source.description?.trim() || null, source.roleKind, source.status, source.isSystemManaged, actorUserId, actorUserId] as any[],
     );
 
@@ -118,7 +118,7 @@ async function replaceRolePermissions(conn: Connection, roleId: number, permissi
 
     for (const permissionCode of permissionCodes) {
         await conn.query(
-            `INSERT INTO ${SCHEMA}."RolePermission" ("roleId", "permissionCode", "grantedBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+            `INSERT INTO ${SCHEMA}."RolePermission" ("roleId", "permissionCode", "grantedBy", "createdAt") VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
             [roleId, permissionCode, actorUserId] as any[],
         );
     }
@@ -136,7 +136,7 @@ async function replaceParentRoleLinks(conn: Connection, roleId: number, source: 
         }
 
         await conn.query(
-            `INSERT INTO ${SCHEMA}."RoleHierarchyLink" ("parentRoleId", "childRoleId", "createdBy", "createdAt") VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
+            `INSERT INTO ${SCHEMA}."RoleHierarchyLink" ("parentRoleId", "childRoleId", "createdBy", "createdAt") VALUES (?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))`,
             [parentRoleId, roleId, actorUserId] as any[],
         );
     }

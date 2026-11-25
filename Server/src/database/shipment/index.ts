@@ -21,7 +21,7 @@ export async function createNetworkShipment(
     SELECT * FROM FINAL TABLE (
       INSERT INTO ${SCHEMA}."Network_Shipment"
         ("typeOfShipment", "serviceLevel", "shipmentDate", "shipmentTime", "status", "createdBy", "createdAt")
-      VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT TIMEZONE))
+      VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
     )
   `;
 

@@ -80,6 +80,14 @@ export default function NavVertical({ }) {
           "title": "Fuel Surcharge",
           "path": "/app/maintenance/fuel-surcharge-maintenance"
         },
+        {
+          "title": "User Maintainance",
+          "path": "/app/maintenance/user-maintenance"
+        },
+        {
+          "title": "Role Maintenance",
+          "path": "/app/maintenance/role-maintenance"
+        },
         // {
         //   "title": "Airport Code Maintenance",
         //   "path": "/app/maintenance/airport-code-maintenance"

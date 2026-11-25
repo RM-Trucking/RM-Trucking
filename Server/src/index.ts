@@ -9,6 +9,7 @@ import routes from './routes';
 import cors from 'cors';
 import { initializeDB2Pool, closeDB2Pool, getSchema } from './config/db2';
 import { enhancedShipmentImageRoute, getEnhancedShipmentImageDirectory } from './utils/enhancedShipmentImageStorage';
+import { toUtcDate } from './utils/dateFormater';
 
 // ============================================================================
 // CONFIGURATION
@@ -77,9 +78,18 @@ if (!serverConfig.database.connectionString) {
 
 // Initialize Express app
 const app: Express = express();
-app.set('json replacer', (_key: string, value: unknown) =>
-    typeof value === 'bigint' ? Number(value) : value
-);
+const UTC_TIMESTAMP_FIELDS = new Set([
+    'createdAt',
+    'updatedAt'
+]);
+
+app.set('json replacer', (key: string, value: unknown) => {
+    if (typeof value === 'bigint') return Number(value);
+    if (typeof value === 'string' && UTC_TIMESTAMP_FIELDS.has(key)) {
+        return toUtcDate(value)?.toISOString() ?? value;
+    }
+    return value;
+});
 const PORT: number = serverConfig.port;
 const NODE_ENV: string = serverConfig.env;
 

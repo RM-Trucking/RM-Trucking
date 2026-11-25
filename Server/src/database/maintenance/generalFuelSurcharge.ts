@@ -20,7 +20,7 @@ export async function insertGeneralFuelSurcharge(
     FROM FINAL TABLE (
       INSERT INTO ${SCHEMA}."Fuel_Surcharge_General"
       ("fuelPercentage","effectiveDate","effectiveTime","expireDate","expireTime","createdBy","createdAt")
-      VALUES (?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    VALUES (?, ?, ?, ?, ?, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
     )
   `;
 
@@ -122,7 +122,7 @@ export async function updateGeneralFuelSurcharge(
         "expireDate" = COALESCE(?, "expireDate"),
         "expireTime" = COALESCE(?, "expireTime"),
         "updatedBy" = ?,
-        "updatedAt" = CURRENT_TIMESTAMP
+        "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
     WHERE "fuelSurchargeId" = ?
   `;
 

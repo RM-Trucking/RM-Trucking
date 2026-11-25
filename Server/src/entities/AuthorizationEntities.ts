@@ -53,11 +53,14 @@ export interface Permission {
 export interface UserRoleAssignment {
     userId: number;
     roleId: number;
-    assignmentStatus: AuthorizationStatus;
-    validFrom: Date;
-    validTo: Date | null;
     grantedBy: number | null;
-    reason: string | null;
+    createdAt: Date;
+}
+
+export interface UserStationAssignment {
+    userId: number;
+    stationId: number;
+    createdBy: number | null;
     createdAt: Date;
 }
 

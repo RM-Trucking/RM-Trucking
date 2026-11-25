@@ -19,7 +19,7 @@ export async function insertCustomerFuelSurcharge(
       INSERT INTO ${SCHEMA}."Fuel_Surcharge_Customer"
       ("customerId","customerName","fuelPercentage","effectiveDate","effectiveTime",
        "expireDate","expireTime","createdBy","createdAt")
-      VALUES (?, ?, ?, ?, ?, NULL, NULL, ?, CURRENT_TIMESTAMP)
+    VALUES (?, ?, ?, ?, ?, NULL, NULL, ?, (CURRENT_TIMESTAMP - CURRENT_TIMEZONE))
     )
   `;
 
@@ -196,7 +196,7 @@ export async function updateCustomerFuelSurcharge(
         "effectiveDate" = COALESCE(?, "effectiveDate"),
         "effectiveTime" = COALESCE(?, "effectiveTime"),
         "updatedBy" = ?,
-        "updatedAt" = CURRENT_TIMESTAMP
+        "updatedAt" = (CURRENT_TIMESTAMP - CURRENT_TIMEZONE)
     WHERE "customerFuelSurchargeId" = ?
   `;
 

@@ -198,54 +198,54 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                 return element;
             },
         },
-        {
-            field: "isShipperAirline",
-            headerName: "Shipper airline",
-            minWidth: 200,
-            flex: 1,
-            filterable: false,
-            sortable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Typography
-                        variant='normal'
-                        sx={{
-                            p: 2,
-                            color: '#AA2222',            // Applies the dark red/amber tone
-                            textDecoration: 'underline'  // Underlines the text
-                        }}
-                    >
-                        {params?.row?.isShipperAirline ? 'Yes' : 'No'}
-                    </Typography>
+        // {
+        //     field: "isShipperAirline",
+        //     headerName: "Shipper airline",
+        //     minWidth: 200,
+        //     flex: 1,
+        //     filterable: false,
+        //     sortable: false,
+        //     renderCell: (params) => {
+        //         const element = (
+        //             <Typography
+        //                 variant='normal'
+        //                 sx={{
+        //                     p: 2,
+        //                     color: '#AA2222',            // Applies the dark red/amber tone
+        //                     textDecoration: 'underline'  // Underlines the text
+        //                 }}
+        //             >
+        //                 {params?.row?.isShipperAirline ? 'Yes' : 'No'}
+        //             </Typography>
 
-                );
-                return element;
-            },
-        },
-        {
-            field: "isConsigneeAirline",
-            headerName: "Consignee airline",
-            minWidth: 200,
-            flex: 1,
-            filterable: false,
-            sortable: false,
-            renderCell: (params) => {
-                const element = (
-                    <Typography
-                        variant='normal'
-                        sx={{
-                            p: 2,
-                            color: '#AA2222',            // Applies the dark red/amber tone
-                            textDecoration: 'underline'  // Underlines the text
-                        }}
-                    >
-                        {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
-                    </Typography>
+        //         );
+        //         return element;
+        //     },
+        // },
+        // {
+        //     field: "isConsigneeAirline",
+        //     headerName: "Consignee airline",
+        //     minWidth: 200,
+        //     flex: 1,
+        //     filterable: false,
+        //     sortable: false,
+        //     renderCell: (params) => {
+        //         const element = (
+        //             <Typography
+        //                 variant='normal'
+        //                 sx={{
+        //                     p: 2,
+        //                     color: '#AA2222',            // Applies the dark red/amber tone
+        //                     textDecoration: 'underline'  // Underlines the text
+        //                 }}
+        //             >
+        //                 {params?.row?.isConsigneeAirline ? 'Yes' : 'No'}
+        //             </Typography>
 
-                );
-                return element;
-            },
-        },
+        //         );
+        //         return element;
+        //     },
+        // },
         {
             field: "customerName",
             headerName: "Customer Name",
@@ -377,7 +377,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                         <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
-                            <IconButton onClick={() => {
+                            <IconButton disabled={isLoading} onClick={() => {
                                 dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
                                 navigate(PATH_DASHBOARD.shipmentBuilding.shipmentView);
                             }}>
@@ -385,7 +385,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow sx={{ mr: 1 }}>
-                            <IconButton onClick={() => {
+                            <IconButton disabled={isLoading} onClick={() => {
                                 dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
                                 navigate(PATH_DASHBOARD.shipmentBuilding.shipmentEdit);
                             }}>
@@ -393,12 +393,12 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             </IconButton>
                         </Tooltip>
 
-                        <IconButton sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
+                        {/* <IconButton disabled={isLoading} sx={{ mr: 1 }} onClick={(e) => handleUserMenu(e, rowId)}>
                             <Iconify icon="qlementine-icons:menu-dots-16" sx={{ color: '#000', cursor: "pointer" }} />
-                        </IconButton>
+                        </IconButton> */}
 
                         {/* Checkbox with Del Label */}
-                        <FormControlLabel
+                        {/* <FormControlLabel
                             control={
                                 <Checkbox
                                     size="small"
@@ -427,9 +427,9 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             sx={{
                                 ml: 1 // 👈 Kept your original margin-left positioning
                             }}
-                        />
+                        /> */}
 
-                        <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
+                        {/* <FormControl size="small" sx={{ minWidth: 160, my: 0.5, mr: 1 }}>
                             <InputLabel id={`carrier-select-label-${rowId}`}>Select Carrier</InputLabel>
                             <Select
                                 labelId={`carrier-select-label-${rowId}`}
@@ -447,7 +447,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                                     </MenuItem>
                                 ))}
                             </Select>
-                        </FormControl>
+                        </FormControl> */}
                         {/* CONDITION 1: Row is selected via standard row checkbox selection */}
                         {/* CONDITION 2: Row is standard selected (and NOT del checked) */}
                         {/* {isRowSelected && (
@@ -540,10 +540,10 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
     useEffect(() => {
         dispatch(setTableBeingViewed('shipment view'));
         dispatch(setSelectedShipmentBuildObj({}));
-        dispatch(getShipmentBuildData({
-            pageNo: paginationModel.page,
-            pageSize: paginationModel.pageSize,
-        }));
+        // dispatch(getShipmentBuildData({
+        //     pageNo: paginationModel.page,
+        //     pageSize: paginationModel.pageSize,
+        // }));
         // dispatch(setSelectedShipments([]));
     }, []);
     useEffect(() => {
@@ -553,7 +553,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
     }, [shipmentSuccess, operationalMessage])
     useEffect(() => {
         if (location.pathname !== PATH_DASHBOARD.shipmentBuilding.root) return;
-
+        setShipmentViewTableData([]);
         dispatch(getShipmentBuildData({
             pageNo: paginationModel.page,
             pageSize: paginationModel.pageSize,

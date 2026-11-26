@@ -81,7 +81,7 @@ const slice = createSlice({
   initialState: {
     employeeRows: [], customerRows: [], isLoading: false, error: '',
     roleCounts: {}, rolePagination: {},
-    authorityRoleOptions: [], authorityRolesLoading: false, authorityRolesError: '',
+    authorityRolesByKind: {},
     permissionCatalogs: {},
     saving: false, createError: '', createdRole: null,
   },
@@ -115,20 +115,21 @@ const slice = createSlice({
         state.error = action.payload || action.error.message;
       })
       .addCase(getAuthorityRoleOptions.pending, (state, action) => {
-        state.authorityRoleOptions = [];
-        state.authorityRolesLoading = true;
-        state.authorityRolesError = '';
-        state.authorityRolesRequestId = action.meta.requestId;
+        state.authorityRolesByKind[action.meta.arg] = {
+          options: [], loading: true, error: '', requestId: action.meta.requestId,
+        };
       })
       .addCase(getAuthorityRoleOptions.fulfilled, (state, action) => {
-        if (state.authorityRolesRequestId !== action.meta.requestId) return;
-        state.authorityRolesLoading = false;
-        state.authorityRoleOptions = action.payload;
+        const entry = state.authorityRolesByKind[action.meta.arg];
+        if (entry?.requestId !== action.meta.requestId) return;
+        entry.loading = false;
+        entry.options = action.payload;
       })
       .addCase(getAuthorityRoleOptions.rejected, (state, action) => {
-        if (state.authorityRolesRequestId !== action.meta.requestId) return;
-        state.authorityRolesLoading = false;
-        state.authorityRolesError = action.payload || action.error.message;
+        const entry = state.authorityRolesByKind[action.meta.arg];
+        if (entry?.requestId !== action.meta.requestId) return;
+        entry.loading = false;
+        entry.error = action.payload || action.error.message;
       })
       .addCase(getPermissionCatalog.pending, (state, action) => {
         state.permissionCatalogs[action.meta.arg] = { loading: true, requestId: action.meta.requestId };
@@ -170,4 +171,6 @@ const slice = createSlice({
 });
 
 export const { clearPermissionCatalog, setEmployeeRows, setCustomerRows } = slice.actions;
+const emptyAuthorityRoles = { options: [], loading: false, error: '' };
+export const selectAuthorityRoles = (state, roleKind) => state.roledata.authorityRolesByKind[roleKind] ?? emptyAuthorityRoles;
 export default slice.reducer;

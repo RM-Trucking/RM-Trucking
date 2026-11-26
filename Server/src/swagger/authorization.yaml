@@ -216,9 +216,37 @@ paths:
       tags:
         - Authorization
       summary: List all users
+      parameters:
+        - in: query
+          name: userType
+          schema:
+            type: string
+            enum: [EMPLOYEE, CUSTOMER]
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: pageSize
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - in: query
+          name: search
+          schema:
+            type: string
+        - in: query
+          name: activeStatus
+          schema:
+            type: string
+            enum: ['Y', 'N']
       responses:
         "200":
-          description: Successful response
+          description: Users, with assigned roles and pagination metadata when query parameters are supplied
     post:
       tags:
         - Authorization
@@ -227,14 +255,23 @@ paths:
         required: true
         content:
           application/json:
-            example:
-              userName: John Doe
-              loginUserName: john.doe
-              email: john.doe@warehouse.local
-              password: MySecurePass123
-              userType: EMPLOYEE
-              roleIds: [1, 2]
-              customerId: 1001
+            examples:
+              employee:
+                value:
+                  userName: Jane Smith
+                  loginUserName: jane.smith
+                  email: jane.smith@rmtrucking.com
+                  userType: EMPLOYEE
+                  roleIds: [2]
+              customer:
+                value:
+                  userName: John Doe
+                  loginUserName: john.doe
+                  email: john.doe@customer.com
+                  userType: CUSTOMER
+                  roleIds: [5]
+                  customerId: 1001
+                  stationIds: [11, 12]
       responses:
         "201":
           description: User created

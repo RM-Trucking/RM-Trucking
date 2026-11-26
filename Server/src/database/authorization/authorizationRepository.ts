@@ -4,6 +4,7 @@ import { SCHEMA } from '../../config/db2';
 const users = `${SCHEMA}."User"`;
 const roles = `${SCHEMA}."Role"`;
 const userRoles = `${SCHEMA}."UserRoleAssignment"`;
+const userStations = `${SCHEMA}."UserStationAssignment"`;
 const rolePermissions = `${SCHEMA}."RolePermission"`;
 const roleHierarchy = `${SCHEMA}."RoleHierarchyLink"`;
 const permissions = `${SCHEMA}."Permission"`;
@@ -300,6 +301,50 @@ export async function getUsers(conn: Connection): Promise<UserRecord[]> {
     )) as UserRecord[];
 }
 
+export interface UserPageOptions {
+    userType?: 'EMPLOYEE' | 'CUSTOMER';
+    page: number;
+    pageSize: number;
+    search?: string;
+    activeStatus?: 'Y' | 'N';
+}
+
+export async function getUsersPage(conn: Connection, { userType, page, pageSize, search, activeStatus }: UserPageOptions) {
+    const filters: string[] = [];
+    const values: string[] = [];
+    if (userType) {
+        filters.push('u."userType" = ?');
+        values.push(userType);
+    }
+    if (activeStatus) {
+        filters.push('u."activeStatus" = ?');
+        values.push(activeStatus);
+    }
+    if (search) {
+        filters.push(`(
+            LOCATE(?, LOWER(u."userName")) > 0 OR LOCATE(?, LOWER(u."loginUserName")) > 0
+            OR LOCATE(?, CAST(u."createdBy" AS VARCHAR(20))) > 0
+            OR EXISTS (
+                SELECT 1 FROM ${userRoles} ur JOIN ${roles} r ON r."roleId" = ur."roleId"
+                WHERE ur."userId" = u."userId" AND ur."assignmentStatus" = 'ACTIVE'
+                    AND r."status" = 'ACTIVE' AND LOCATE(?, LOWER(r."name")) > 0
+            )
+        )`);
+        values.push(...Array<string>(4).fill(search.toLowerCase()));
+    }
+    const where = filters.length ? ` WHERE ${filters.join(' AND ')}` : '';
+    const counts = await conn.query(
+        `SELECT COUNT(*) AS "totalCount" FROM ${users} u${where}`, values,
+    ) as Array<{ totalCount?: number; TOTALCOUNT?: number }>;
+    const rows = await conn.query(
+        `SELECT u."userId", u."userName", u."loginUserName", u."email", u."createdAt", u."createdBy",
+            u."activeStatus", u."userType", u."customerId" FROM ${users} u${where}
+            ORDER BY u."userName", u."userId" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`,
+        [...values, (page - 1) * pageSize, pageSize],
+    ) as UserRecord[];
+    return { rows, totalCount: Number(counts[0]?.totalCount ?? counts[0]?.TOTALCOUNT ?? 0) };
+}
+
 export async function insertUser(conn: Connection, input: {
     userName: string;
     loginUserName: string;
@@ -365,6 +410,10 @@ export async function assignRole(conn: Connection, userId: number, roleId: numbe
         `INSERT INTO ${userRoles} ("userId", "roleId", "assignmentStatus", "validFrom", "validTo", "grantedBy", "reason", "createdAt") VALUES (?, ?, 'ACTIVE', CURRENT_TIMESTAMP, NULL, ?, ?, CURRENT_TIMESTAMP)`,
         [userId, roleId, grantedBy, reason] as any[],
     );
+}
+
+export async function assignUserStation(conn: Connection, userId: number, stationId: number): Promise<void> {
+    await conn.query(`INSERT INTO ${userStations} ("userId", "stationId") VALUES (?, ?)`, [userId, stationId]);
 }
 
 export async function removeRole(conn: Connection, userId: number, roleId: number): Promise<void> {

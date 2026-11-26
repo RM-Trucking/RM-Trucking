@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Box,
+  Alert,
   Button,
   Checkbox,
   Chip,
@@ -9,6 +10,7 @@ import {
   DialogContent,
   DialogTitle,
   FormControl,
+  FormHelperText,
   IconButton,
   InputLabel,
   InputAdornment,
@@ -24,6 +26,7 @@ import {
   Typography,
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
+import { useDispatch, useSelector } from 'react-redux';
 import AddIcon from '@mui/icons-material/Add';
 import EditOutlinedIcon from '@mui/icons-material/EditOutlined';
 import FilterListIcon from '@mui/icons-material/FilterList';
@@ -34,19 +37,8 @@ import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { HEADER } from '../../config';
-
-const employeeNames = [
-  'James Smith',
-  'Emma Johnson',
-  'Michael Brown',
-  'Olivia Davis',
-  'William Miller',
-  'Sophia Wilson',
-  'Benjamin Moore',
-  'Ava Taylor',
-  'Noah Anderson',
-  'Liam Thomas',
-];
+import { getAuthorityRoleOptions, selectAuthorityRoles } from '../../redux/slices/role';
+import { createUser, getCustomerOptions, getStationOptions, getUsers, selectUserPage, updateUserRow } from '../../redux/slices/userMaintenance';
 
 const roles = [
   'Super Admin',
@@ -64,35 +56,37 @@ const customerNames = ['Ventana Customer', 'Acme Distribution', 'Northstar Logis
 const customerRoles = ['Ventana Customer', 'Account Admin', 'Shipping User', 'Billing Contact'];
 const stationOptions = ['Station 1', 'Station 2', 'Station 3'];
 
-const createRows = (count, isCustomer = false) =>
-  Array.from({ length: count }, (_, index) => {
-    const name = isCustomer
-      ? customerNames[index % customerNames.length]
-      : employeeNames[index % employeeNames.length];
-
-    return {
-      id: `${isCustomer ? 'customer' : 'employee'}-${index + 1}`,
-      serialNumber: String(index + 1).padStart(2, '0'),
-      name,
-      loginName: isCustomer ? `customer${index + 1}` : name.replace(' ', '.'),
-      email: isCustomer ? `contact${index + 1}@example.com` : `${name.replace(' ', '').toLowerCase()}@rmtruck.com`,
-      companyName: isCustomer ? ['Ventana', 'Acme', 'Northstar', 'Pioneer'][index % 4] : '',
-      stationList: isCustomer ? stationOptions.slice(0, (index % stationOptions.length) + 1) : [],
-      role: isCustomer ? customerRoles[index % customerRoles.length] : roles[index % roles.length],
-      createdDate: '1/23/25, 4:48 PM',
-      createdBy: index === 0 ? '' : 'Admin',
-      status: index === 1 ? 'Inactive' : 'Active',
-    };
-  });
-
 export default function UserMaintenance() {
-  const [employeeRows, setEmployeeRows] = useState(() => createRows(50));
-  const [customerRows, setCustomerRows] = useState(() => createRows(150, true));
+  const dispatch = useDispatch();
+  const {
+    customerOptions, customerOptionsLoading, customerOptionsError,
+    stationOptions: customerStations, stationOptionsLoading, stationOptionsError,
+  } = useSelector((state) => state.userMaintenance);
   const [activeTab, setActiveTab] = useState(0);
+  const employeeTab = activeTab === 0;
+  const roleKind = employeeTab ? 'EMPLOYEE' : 'CUSTOMER';
+  const employeePage = useSelector((state) => selectUserPage(state, 'EMPLOYEE'));
+  const customerPage = useSelector((state) => selectUserPage(state, 'CUSTOMER'));
+  const { rows, totalCount, loading, error } = employeeTab ? employeePage : customerPage;
+  const { options: authorityRoleOptions, loading: authorityRolesLoading, error: authorityRolesError } = useSelector((state) => selectAuthorityRoles(state, roleKind));
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('All');
   const [filterAnchor, setFilterAnchor] = useState(null);
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 });
+  const [employeePagination, setEmployeePagination] = useState({ page: 0, pageSize: 20 });
+  const [customerPagination, setCustomerPagination] = useState({ page: 0, pageSize: 20 });
+  const [userRefresh, setUserRefresh] = useState(0);
+  const paginationModel = employeeTab ? employeePagination : customerPagination;
+  const setPaginationModel = employeeTab ? setEmployeePagination : setCustomerPagination;
+  useEffect(() => {
+    const request = dispatch(getUsers({
+      userType: roleKind,
+      page: paginationModel.page + 1,
+      pageSize: paginationModel.pageSize,
+      search: search.trim() || undefined,
+      activeStatus: { Active: 'Y', Inactive: 'N' }[statusFilter],
+    }));
+    return () => request.abort();
+  }, [dispatch, roleKind, paginationModel, userRefresh, search, statusFilter]);
   const gridContainerRef = useRef(null);
   const [gridHeight, setGridHeight] = useState(0);
   useEffect(() => {
@@ -111,23 +105,37 @@ export default function UserMaintenance() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formError, setFormError] = useState('');
-
-  const currentRows = activeTab === 0 ? employeeRows : customerRows;
-  const setCurrentRows = activeTab === 0 ? setEmployeeRows : setCustomerRows;
-  const filteredRows = useMemo(() => {
-    const normalizedSearch = search.trim().toLowerCase();
-    return currentRows.filter((row) => {
-      const matchesSearch = !normalizedSearch ||
-        [row.name, row.loginName, row.role, row.createdBy].some((value) => value.toLowerCase().includes(normalizedSearch));
-      return matchesSearch && (statusFilter === 'All' || row.status === statusFilter);
-    });
-  }, [currentRows, search, statusFilter]);
+  const [savingUser, setSavingUser] = useState(false);
+  const savingUserRef = useRef(false);
+  const creatingEmployee = activeTab === 0 && !editingRow;
+  const creatingCustomer = activeTab === 1 && !editingRow;
+  const customerOptionStatus = creatingCustomer && (
+    customerOptionsLoading ? 'Loading customers…' : customerOptionsError || (customerOptions.length === 0 ? 'No customers available.' : '')
+  );
+  const stationOptionStatus = creatingCustomer && (
+    !formValues.customerId ? 'Select a customer first.'
+      : stationOptionsLoading ? 'Loading stations…'
+      : stationOptionsError || (customerStations.length === 0 ? 'No stations available.' : '')
+  );
+  const availableStations = creatingCustomer
+    ? (formValues.customerId ? customerStations : [])
+    : stationOptions.map((stationName) => ({ stationId: stationName, stationName }));
+  const selectedStations = (creatingCustomer ? formValues.stationIds : formValues.stationList) || [];
+  const roleOptions = !editingRow
+    ? authorityRoleOptions.filter(({ id }) => Number.isSafeInteger(Number(id)) && Number(id) > 0)
+    : [...new Set([...(employeeTab ? roles : customerRoles), formValues.role].filter(Boolean))].map((role) => ({ id: role, role }));
+  const selectedRole = roleOptions.find(({ id }) => String(id) === formValues.role);
+  const roleOptionStatus = !editingRow && (
+    authorityRolesLoading ? 'Loading roles…' : authorityRolesError || (roleOptions.length === 0 ? 'No roles available.' : '')
+  );
 
   const openNewForm = () => {
+    dispatch(getAuthorityRoleOptions(roleKind));
+    if (!employeeTab) dispatch(getCustomerOptions());
     setEditingRow(null);
     setFormValues(activeTab === 0
       ? { name: '', loginName: '', email: '', role: '' }
-      : { name: '', companyName: '', stationList: [], loginName: '', email: '', role: '', password: '', confirmPassword: '' });
+      : { name: '', companyName: '', customerId: '', stationIds: [], loginName: '', email: '', role: '', password: '', confirmPassword: '' });
     setFormError('');
     setShowPassword(false);
     setShowConfirmPassword(false);
@@ -152,49 +160,68 @@ export default function UserMaintenance() {
     setFormOpen(true);
   };
 
-  const saveUser = (event) => {
+  const closeForm = () => {
+    if (!savingUserRef.current) setFormOpen(false);
+  };
+
+  const saveUser = async (event) => {
     event.preventDefault();
-    if (activeTab === 1) {
+    if (savingUserRef.current) return;
+    if (creatingCustomer && (customerOptionStatus || stationOptionStatus || roleOptionStatus || !selectedRole || selectedStations.length === 0)) return;
+    if (!employeeTab) {
       const password = formValues.password || '';
       const confirmPassword = formValues.confirmPassword || '';
-      const hasPassword = password.length > 0;
       const passwordIsValid = password.length >= 8 && /[A-Z]/.test(password) && /[a-z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
 
-      if ((!editingRow && !hasPassword) || (hasPassword && !passwordIsValid)) {
+      if ((creatingCustomer || password) && !passwordIsValid) {
         setFormError('Use at least 8 characters, including uppercase, lowercase, and a special character.');
         return;
       }
-      if ((hasPassword || !editingRow) && password !== confirmPassword) {
+      if (password !== confirmPassword) {
         setFormError('Passwords do not match.');
         return;
       }
     }
+    if (!editingRow) {
+      if (roleOptionStatus || !selectedRole) return;
 
+      savingUserRef.current = true;
+      setSavingUser(true);
+      setFormError('');
+      try {
+        await dispatch(createUser({
+          userName: formValues.name.trim(),
+          loginUserName: formValues.loginName.trim(),
+          email: formValues.email.trim(),
+          userType: roleKind,
+          roleIds: [Number(selectedRole.id)],
+          ...(creatingCustomer && {
+            customerId: Number(formValues.customerId),
+            stationIds: selectedStations.map(Number),
+            password: formValues.password,
+          }),
+        }));
+        setUserRefresh((count) => count + 1);
+        setFormOpen(false);
+      } catch (error) {
+        setFormError(typeof error === 'string' ? error : error?.message || 'Unable to create user.');
+      } finally {
+        savingUserRef.current = false;
+        setSavingUser(false);
+      }
+      return;
+    }
     const userValues = Object.fromEntries(
       Object.entries(formValues).filter(([key]) => key !== 'password' && key !== 'confirmPassword')
     );
-    const updatedRow = editingRow
-      ? { ...editingRow, ...userValues }
-      : {
-          ...userValues,
-          id: `${activeTab === 0 ? 'employee' : 'customer'}-${Date.now()}`,
-          serialNumber: String(currentRows.length + 1).padStart(2, '0'),
-          createdDate: new Date().toLocaleString(),
-          createdBy: 'Admin',
-          status: 'Active',
-        };
-
-    setCurrentRows((rows) => editingRow
-      ? rows.map((row) => (row.id === editingRow.id ? updatedRow : row))
-      : [...rows, updatedRow]);
+    dispatch(updateUserRow({ userType: roleKind, changes: { id: editingRow.id, ...userValues } }));
     setFormError('');
     setFormOpen(false);
   };
 
-  const toggleStatus = (rowId) => {
-    setCurrentRows((rows) => rows.map((row) => (
-      row.id === rowId ? { ...row, status: row.status === 'Active' ? 'Inactive' : 'Active' } : row
-    )));
+  const toggleStatus = ({ id, status }) => {
+    const nextStatus = status === 'Active' ? 'Inactive' : 'Active';
+    dispatch(updateUserRow({ userType: roleKind, changes: { id, status: nextStatus } }));
   };
 
   const columns = [
@@ -239,7 +266,7 @@ export default function UserMaintenance() {
             </IconButton>
           </Tooltip>
           <Tooltip title={row.status === 'Active' ? 'Deactivate' : 'Activate'}>
-            <IconButton size="small" aria-label={`Toggle status for ${row.name}`} onClick={() => toggleStatus(row.id)}>
+            <IconButton size="small" aria-label={`Toggle status for ${row.name}`} onClick={() => toggleStatus(row)}>
               {row.status === 'Active'
                 ? <ToggleOnIcon sx={{ fontSize: 19, color: '#58ae6b' }} />
                 : <ToggleOffIcon sx={{ fontSize: 19, color: '#ee7777' }} />}
@@ -282,13 +309,13 @@ export default function UserMaintenance() {
           value={activeTab}
           onChange={(_, value) => {
             setActiveTab(value);
-            setPaginationModel((model) => ({ ...model, page: 0 }));
+            (value === 0 ? setEmployeePagination : setCustomerPagination)((model) => ({ ...model, page: 0 }));
           }}
           aria-label="User type"
           sx={{ minHeight: 38, '& .MuiTab-root': { minHeight: 38, px: 1, textTransform: 'none', fontSize: 12, color: '#777' }, '& .Mui-selected': { color: '#222' }, '& .MuiTabs-indicator': { bgcolor: '#b51f24', height: 2 } }}
         >
-          <Tab label={`Employee (${employeeRows.length})`} />
-          <Tab label={`Customer (${customerRows.length})`} />
+          <Tab label={`Employee (${employeePage.totalCount})`} />
+          <Tab label={`Customer (${customerPage.totalCount})`} />
         </Tabs>
 
         <Stack direction="row" justifyContent="flex-end" alignItems="center" spacing={0.5} sx={{ pb: { xs: 1, sm: 0 }, width: { xs: '100%', sm: 'auto' }, minWidth: 0 }}>
@@ -330,14 +357,23 @@ export default function UserMaintenance() {
       </Stack>
 
       <Box ref={gridContainerRef} sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, width: '100%', minWidth: 0, mt: 2 }}>
+        {error && (
+          <Alert severity="error" action={<Button color="inherit" onClick={() => setUserRefresh((count) => count + 1)}>Retry</Button>}>
+            {error}
+          </Alert>
+        )}
         <DataGrid
-          rows={filteredRows}
+          key={activeTab}
+          rows={rows}
           columns={columns}
           rowHeight={rowHeight}
           columnHeaderHeight={46}
           paginationModel={paginationModel}
+          paginationMode="server"
+          rowCount={totalCount}
+          loading={loading}
           onPaginationModelChange={setPaginationModel}
-          pageSizeOptions={[10, 25, 50]}
+          pageSizeOptions={[10, 20, 25, 50]}
           disableRowSelectionOnClick
           hideFooterSelectedRowCount
           localeText={{
@@ -358,7 +394,7 @@ export default function UserMaintenance() {
 
       <Dialog
         open={formOpen}
-        onClose={() => setFormOpen(false)}
+        onClose={closeForm}
         maxWidth={false}
         PaperProps={{
           sx: {
@@ -378,7 +414,8 @@ export default function UserMaintenance() {
                 <Button
                   size="small"
                   variant="outlined"
-                  onClick={() => setFormOpen(false)}
+                  onClick={closeForm}
+                  disabled={savingUser}
                   sx={{ minWidth: 80, py: 0.75, px: 2, color: '#333', borderColor: '#aaa', fontSize: 14, textTransform: 'none' }}
                 >
                   Cancel
@@ -387,9 +424,10 @@ export default function UserMaintenance() {
                   size="small"
                   type="submit"
                   variant="contained"
+                  disabled={savingUser || Boolean(roleOptionStatus || customerOptionStatus || stationOptionStatus)}
                   sx={{ minWidth: 80, py: 0.75, px: 2, bgcolor: '#b51f24', fontSize: 14, textTransform: 'none', '&:hover': { bgcolor: '#95191d' } }}
                 >
-                  {editingRow ? 'Save' : 'Add'}
+                  {savingUser ? 'Adding…' : editingRow ? 'Save' : 'Add'}
                 </Button>
               </Stack>
             </Stack>
@@ -416,6 +454,7 @@ export default function UserMaintenance() {
                   <TextField
                     label="Employee Name"
                     required
+                    disabled={savingUser}
                     variant="standard"
                     size="small"
                     value={formValues.name}
@@ -426,6 +465,7 @@ export default function UserMaintenance() {
                   <TextField
                     label="Login Employee Name"
                     required
+                    disabled={savingUser}
                     variant="standard"
                     size="small"
                     value={formValues.loginName}
@@ -436,6 +476,8 @@ export default function UserMaintenance() {
                   <TextField
                     label="Employee Email ID"
                     type="email"
+                    required={creatingEmployee}
+                    disabled={savingUser}
                     variant="standard"
                     size="small"
                     value={formValues.email}
@@ -443,15 +485,24 @@ export default function UserMaintenance() {
                     InputLabelProps={{ shrink: true }}
                     sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
                   />
-                  <FormControl required variant="standard" size="small">
+                  <FormControl
+                    required
+                    variant="standard"
+                    size="small"
+                    disabled={savingUser || Boolean(roleOptionStatus)}
+                    error={creatingEmployee && Boolean(authorityRolesError)}
+                  >
                     <InputLabel sx={{ fontSize: 14 }}>Role</InputLabel>
                     <Select
                       value={formValues.role}
                       onChange={(event) => setFormValues({ ...formValues, role: event.target.value })}
                       sx={{ fontSize: 16, minHeight: 36 }}
                     >
-                      {[...new Set(roles)].map((role) => <MenuItem key={role} value={role}>{role}</MenuItem>)}
+                      {roleOptions.map(({ id, role }) => (
+                        <MenuItem key={id} value={String(id)}>{role}</MenuItem>
+                      ))}
                     </Select>
+                    {roleOptionStatus && <FormHelperText>{roleOptionStatus}</FormHelperText>}
                   </FormControl>
                 </Box>
               </Box>
@@ -470,64 +521,112 @@ export default function UserMaintenance() {
                       gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))', md: 'repeat(4, minmax(0, 1fr))' },
                       columnGap: 3.25,
                       rowGap: 2,
-                      alignItems: 'end',
+                      alignItems: 'start',
                       pt: 0.5,
                     }}
                   >
-                    <FormControl required variant="standard" size="small">
+                    <FormControl
+                      required
+                      variant="standard"
+                      size="small"
+                      disabled={savingUser || Boolean(customerOptionStatus)}
+                      error={creatingCustomer && Boolean(customerOptionsError)}
+                    >
                       <InputLabel sx={{ fontSize: 14 }}>Customer Name</InputLabel>
                       <Select
-                        value={formValues.name}
-                        onChange={(event) => setFormValues({ ...formValues, name: event.target.value })}
+                        value={creatingCustomer ? formValues.customerId : formValues.name}
+                        onChange={(event) => {
+                          const value = event.target.value;
+                          if (creatingCustomer) {
+                            const customer = customerOptions.find(({ customerId }) => String(customerId) === value);
+                            if (customer) {
+                              dispatch(getStationOptions(value));
+                              setFormValues({ ...formValues, customerId: value, name: customer.customerName, stationIds: [] });
+                            }
+                          } else {
+                            setFormValues({ ...formValues, name: value });
+                          }
+                        }}
                         sx={{ fontSize: 16, minHeight: 36 }}
                       >
-                        {[...new Set([...customerNames, formValues.name].filter(Boolean))].map((name) => (
-                          <MenuItem key={name} value={name}>{name}</MenuItem>
-                        ))}
+                        {creatingCustomer
+                          ? customerOptions.map(({ customerId, customerName }) => (
+                              <MenuItem key={customerId} value={String(customerId)}>{customerName}</MenuItem>
+                            ))
+                          : [...new Set([...customerNames, formValues.name].filter(Boolean))].map((name) => (
+                              <MenuItem key={name} value={name}>{name}</MenuItem>
+                            ))}
                       </Select>
+                      {customerOptionStatus && <FormHelperText>{customerOptionStatus}</FormHelperText>}
                     </FormControl>
-                    <FormControl required variant="standard" size="small">
+                    <FormControl
+                      required
+                      variant="standard"
+                      size="small"
+                      disabled={savingUser || Boolean(stationOptionStatus)}
+                      error={creatingCustomer && Boolean(formValues.customerId && stationOptionsError)}
+                    >
                       <InputLabel sx={{ fontSize: 14 }}>Station List</InputLabel>
                       <Select
                         multiple
-                        value={formValues.stationList || []}
-                        onChange={(event) => setFormValues({ ...formValues, stationList: event.target.value })}
-                        renderValue={(selected) => selected.join(', ')}
+                        value={selectedStations}
+                        onChange={(event) => {
+                          const field = creatingCustomer ? 'stationIds' : 'stationList';
+                          setFormValues({ ...formValues, [field]: event.target.value });
+                        }}
+                        renderValue={(selected) => availableStations
+                          .filter(({ stationId }) => selected.includes(String(stationId)))
+                          .map(({ stationName }) => stationName)
+                          .join(', ')}
                         sx={{ fontSize: 16, minHeight: 36 }}
                       >
-                        {stationOptions.map((station) => (
-                          <MenuItem key={station} value={station} dense>
-                            <Checkbox size="small" checked={(formValues.stationList || []).includes(station)} sx={{ p: 0.25, mr: 0.5 }} />
-                            <ListItemText primary={station} primaryTypographyProps={{ fontSize: 16 }} />
+                        {availableStations.map(({ stationId, stationName }) => (
+                          <MenuItem key={stationId} value={String(stationId)} dense>
+                            <Checkbox size="small" checked={selectedStations.includes(String(stationId))} sx={{ p: 0.25, mr: 0.5 }} />
+                            <ListItemText primary={stationName} primaryTypographyProps={{ fontSize: 16 }} />
                           </MenuItem>
                         ))}
                       </Select>
+                      {stationOptionStatus && <FormHelperText>{stationOptionStatus}</FormHelperText>}
                     </FormControl>
                     <TextField
                       label="Customer Email ID / Username"
                       required
+                      disabled={savingUser}
                       type="email"
                       variant="standard"
                       size="small"
                       value={formValues.email}
-                      onChange={(event) => setFormValues({ ...formValues, email: event.target.value, loginName: event.target.value })}
+                      onChange={(event) => setFormValues({
+                        ...formValues,
+                        email: event.target.value,
+                        loginName: event.target.value,
+                      })}
                       InputLabelProps={{ shrink: true }}
-                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1 } }}
+                      sx={{ '& .MuiInputLabel-root': { fontSize: 14 }, '& .MuiInputBase-input': { fontSize: 16, py: 1, height: 36, boxSizing: 'border-box' } }}
                     />
-                    <FormControl required variant="standard" size="small">
+                    <FormControl
+                      required
+                      variant="standard"
+                      size="small"
+                      disabled={savingUser || Boolean(roleOptionStatus)}
+                      error={creatingCustomer && Boolean(authorityRolesError)}
+                    >
                       <InputLabel sx={{ fontSize: 14 }}>Role</InputLabel>
                       <Select
                         value={formValues.role}
                         onChange={(event) => setFormValues({ ...formValues, role: event.target.value })}
                         sx={{ fontSize: 16, minHeight: 36 }}
                       >
-                        {[...new Set([...customerRoles, formValues.role].filter(Boolean))].map((role) => (
-                          <MenuItem key={role} value={role}>{role}</MenuItem>
+                        {roleOptions.map(({ id, role }) => (
+                          <MenuItem key={id} value={String(id)}>{role}</MenuItem>
                         ))}
                       </Select>
+                      {roleOptionStatus && <FormHelperText>{roleOptionStatus}</FormHelperText>}
                     </FormControl>
                     <TextField
                       label="Company Name"
+                      disabled={savingUser}
                       variant="standard"
                       size="small"
                       value={formValues.companyName || ''}
@@ -548,7 +647,8 @@ export default function UserMaintenance() {
                   <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(145px, 1fr))' }, columnGap: 3.25, maxWidth: 500, pt: 0.5 }}>
                     <TextField
                       label="New Password"
-                      required={!editingRow}
+                      required={creatingCustomer}
+                      disabled={savingUser}
                       type={showPassword ? 'text' : 'password'}
                       variant="standard"
                       size="small"
@@ -571,7 +671,8 @@ export default function UserMaintenance() {
                     />
                     <TextField
                       label="Confirm Password"
-                      required={!editingRow}
+                      required={creatingCustomer}
+                      disabled={savingUser}
                       type={showConfirmPassword ? 'text' : 'password'}
                       variant="standard"
                       size="small"
@@ -606,10 +707,10 @@ export default function UserMaintenance() {
                       </Stack>
                     ))}
                   </Box>
-                  {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 14 }}>{formError}</Typography>}
                 </Box>
               </Stack>
             )}
+            {formError && <Typography role="alert" sx={{ mt: 1, color: 'error.main', fontSize: 14 }}>{formError}</Typography>}
           </DialogContent>
         </Box>
       </Dialog>

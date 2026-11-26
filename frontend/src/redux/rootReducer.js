@@ -14,6 +14,7 @@ import shipmentBuildingReducer from './slices/shipmentbuilding';
 import airportCodeReducer from './slices/airportcode';
 import airlineReducer from './slices/airline';
 import roleReducer from './slices/role';
+import userMaintenanceReducer from './slices/userMaintenance';
 // ----------------------------------------------------------------------
 
 const rootPersistConfig = {
@@ -38,6 +39,7 @@ const rootReducer = combineReducers({
   airportcodedata : airportCodeReducer,
   airlinedata : airlineReducer,
   roledata : roleReducer,
+  userMaintenance: userMaintenanceReducer,
 });
 
 export { rootPersistConfig, rootReducer };

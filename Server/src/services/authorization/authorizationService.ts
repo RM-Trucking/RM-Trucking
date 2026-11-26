@@ -1,4 +1,4 @@
-import { createHmac, randomInt, timingSafeEqual } from 'crypto';
+import { createHmac, randomBytes, randomInt, timingSafeEqual } from 'crypto';
 import jwt from 'jsonwebtoken';
 import { Connection } from 'odbc';
 import { Permission, PermissionApplicationCode, Role, User } from '../../entities/authorization';
@@ -6,6 +6,7 @@ import { AuthorizationRoleKind, AuthorizationStatus } from '../../entities/autho
 import { createPasswordHash, verifyStoredPassword } from '../../utils/password';
 import { sendPasswordResetOtpEmail } from '../../utils/emailService';
 import * as authorizationRepository from '../../database/authorization/authorizationRepository';
+import { getStationDropdown } from '../../database/maintenance/customer';
 
 export interface LoginRequest {
     loginUserName: string;
@@ -34,10 +35,11 @@ export interface CreateUserRequest {
     userName: string;
     loginUserName: string;
     email: string;
-    password: string;
+    password?: string;
     userType: AuthorizationRoleKind;
     customerId?: number | null;
     roleIds?: number[];
+    stationIds?: number[];
 }
 
 export interface UpdateUserRequest {
@@ -299,8 +301,19 @@ export async function createUser(conn: Connection, input: CreateUserRequest, act
     const userName = input.userName?.trim();
     const loginUserName = input.loginUserName?.trim();
     const email = input.email?.trim();
-    if (!userName || !loginUserName || !email || !input.password) throw new Error('Missing required user fields');
-    if (input.userType === 'CUSTOMER' && !input.customerId) throw new Error('Customer users require a customerId');
+    if (!userName || !loginUserName || !email || (input.password !== undefined && (typeof input.password !== 'string' || !input.password))) {
+        throw new Error('Missing required user fields');
+    }
+    if (input.userType !== 'EMPLOYEE' && input.userType !== 'CUSTOMER') throw new Error('Invalid userType');
+    const customerId = input.customerId ?? null;
+    if (input.userType === 'CUSTOMER' && (customerId === null || !Number.isSafeInteger(customerId) || customerId <= 0)) {
+        throw new Error('Customer users require a customerId');
+    }
+    const stationIds = input.stationIds === undefined ? [] : input.stationIds;
+    if (!Array.isArray(stationIds) || stationIds.some((id) => !Number.isSafeInteger(id) || id <= 0)) {
+        throw new Error('stationIds must be an array of positive integer IDs');
+    }
+    if (stationIds.length && input.userType !== 'CUSTOMER') throw new Error('Station assignments require a customer user');
     if (await authorizationRepository.getUserByLoginName(conn, loginUserName)) throw new Error('Login name already exists');
     if (await authorizationRepository.getUserByEmail(conn, email)) throw new Error('Email already exists');
 
@@ -308,16 +321,24 @@ export async function createUser(conn: Connection, input: CreateUserRequest, act
     await validateRoleIdsForUser(conn, input.userType, roleIds);
     await conn.beginTransaction();
     try {
+        if (customerId !== null && stationIds.length) {
+            const stations = await getStationDropdown(conn, customerId, '');
+            const validStationIds = new Set(stations.map(({ stationId }) => Number(stationId)));
+            if (stationIds.some((id) => !validStationIds.has(id))) {
+                throw new Error('All selected stations must be active and belong to the selected customer');
+            }
+        }
         const user = await authorizationRepository.insertUser(conn, {
             userName,
             loginUserName,
             email,
-            passwordHash: createPasswordHash(input.password),
+            passwordHash: createPasswordHash(input.password ?? randomBytes(32).toString('hex')),
             userType: input.userType,
-            customerId: input.customerId ?? null,
+            customerId,
             createdBy: actorUserId,
         });
         for (const roleId of roleIds) await authorizationRepository.assignRole(conn, user.userId, roleId, actorUserId, 'Initial assignment');
+        for (const stationId of new Set(stationIds)) await authorizationRepository.assignUserStation(conn, user.userId, stationId);
         await conn.commit();
         const { passwordHash: _passwordHash, ...safeUser } = user;
         return safeUser;
@@ -360,6 +381,16 @@ export async function updateUser(conn: Connection, userId: number, input: Update
 export async function listUsers(conn: Connection): Promise<Array<Omit<User, 'passwordHash'>>> {
     const rows = await authorizationRepository.getUsers(conn);
     return rows.map(({ passwordHash: _passwordHash, ...user }) => user);
+}
+
+export async function listUsersPage(conn: Connection, options: authorizationRepository.UserPageOptions) {
+    const { rows, totalCount } = await authorizationRepository.getUsersPage(conn, options);
+    const users = [];
+    for (const { passwordHash: _passwordHash, ...user } of rows) {
+        const roles = await authorizationRepository.getUserRoles(conn, user.userId);
+        users.push({ ...user, roles: roles.map(({ roleId, name }) => ({ roleId, name })) });
+    }
+    return { users, pagination: { page: options.page, pageSize: options.pageSize, totalCount } };
 }
 
 export async function getUserRoles(conn: Connection, userId: number): Promise<Role[]> {

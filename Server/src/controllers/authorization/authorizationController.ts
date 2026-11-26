@@ -2,6 +2,13 @@ import { Request, Response } from 'express';
 import { Connection } from 'odbc';
 import * as authorizationService from '../../services/authorization/authorizationService';
 
+function parsePositiveInteger(value: unknown, defaultValue: number): number | undefined {
+    if (value === undefined) return defaultValue;
+    if (typeof value !== 'string' || !/^\d+$/.test(value)) return undefined;
+    const parsed = Number(value);
+    return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+}
+
 export async function createRole(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const role = await authorizationService.createRole(conn, req.body, Number((req as any).user?.userId) || null);
@@ -32,12 +39,6 @@ export async function listRoles(req: Request, res: Response, conn: Connection): 
             return;
         }
         const roleName = typeof req.query.roleName === 'string' ? req.query.roleName.trim() : undefined;
-        const parsePositiveInteger = (value: unknown, defaultValue: number): number | undefined => {
-            if (value === undefined) return defaultValue;
-            if (typeof value !== 'string' || !/^\d+$/.test(value)) return undefined;
-            const parsed = Number(value);
-            return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
-        };
         const page = parsePositiveInteger(req.query.page, 1);
         const pageSize = parsePositiveInteger(req.query.pageSize, 20);
         if (page === undefined || pageSize === undefined || pageSize > 100) {
@@ -145,9 +146,28 @@ export async function removeRole(req: Request, res: Response, conn: Connection):
     }
 }
 
-export async function listUsers(_req: Request, res: Response, conn: Connection): Promise<void> {
+export async function listUsers(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
-        res.status(200).json({ success: true, data: await authorizationService.listUsers(conn) });
+        const { userType, page, pageSize, search, activeStatus } = req.query;
+        if ([userType, page, pageSize, search, activeStatus].every((value) => value === undefined)) {
+            res.status(200).json({ success: true, data: await authorizationService.listUsers(conn) });
+            return;
+        }
+
+        const pageNumber = parsePositiveInteger(page, 1);
+        const size = parsePositiveInteger(pageSize, 20);
+        if ((userType !== undefined && userType !== 'EMPLOYEE' && userType !== 'CUSTOMER')
+            || (activeStatus !== undefined && activeStatus !== 'Y' && activeStatus !== 'N')
+            || (search !== undefined && typeof search !== 'string')
+            || pageNumber === undefined || size === undefined || size > 100
+            || !Number.isSafeInteger((pageNumber - 1) * size)) {
+            res.status(400).json({ success: false, message: 'Invalid user list filters or pagination.' });
+            return;
+        }
+        const result = await authorizationService.listUsersPage(conn, {
+            userType, page: pageNumber, pageSize: size, search: search?.trim(), activeStatus,
+        });
+        res.status(200).json({ success: true, data: result.users, pagination: result.pagination });
     } catch (error) {
         res.status(500).json({ success: false, message: (error as Error).message });
     }

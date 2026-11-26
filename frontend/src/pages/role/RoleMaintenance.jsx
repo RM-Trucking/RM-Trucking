@@ -30,7 +30,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import { HEADER } from '../../config';
 import { useDispatch, useSelector } from '../../redux/store';
-import { getRoles, getRoleDetails, getAuthorityRoleOptions, getPermissionCatalog, clearPermissionCatalog, createRole, updateRole, deleteRole } from '../../redux/slices/role';
+import { getRoles, getRoleDetails, getAuthorityRoleOptions, selectAuthorityRoles, getPermissionCatalog, clearPermissionCatalog, createRole, updateRole, deleteRole } from '../../redux/slices/role';
 
 const sampleEmployees = [
   'Avery', 'Jordan', 'Taylor', 'Riley', 'Casey', 'Cameron', 'Morgan', 'Quinn', 'Skyler', 'Jamie',
@@ -71,7 +71,7 @@ const createPermissionValues = (catalog, selectedIds) => Object.fromEntries(
 export default function RoleMaintenance() {
   const dispatch = useDispatch();
   const { employeeRows, customerRows, isLoading: rolesLoading, error: rolesError, roleCounts, rolePagination, permissionCatalogs, saving } = useSelector((state) => state.roledata);
-  const { authorityRoleOptions, authorityRolesLoading, authorityRolesError } = useSelector((state) => state.roledata);
+  const { options: authorityRoleOptions, loading: authorityRolesLoading, error: authorityRolesError } = useSelector((state) => selectAuthorityRoles(state, 'EMPLOYEE'));
 
   const [activeTab, setActiveTab] = useState(0);
   const roleKind = activeTab === 0 ? 'EMPLOYEE' : 'CUSTOMER';

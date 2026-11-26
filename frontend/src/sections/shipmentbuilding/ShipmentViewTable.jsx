@@ -51,6 +51,9 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
     const carrierList = useSelector((state) => state?.shipmentbuildingdata?.carrierList);
     const selectedDelName = useSelector((state) => state?.shipmentbuildingdata?.selectedDelName);
     const selectedShipments = useSelector((state) => state?.shipmentbuildingdata?.selectedShipments);
+    const isShipmentListLoading = useSelector(
+        (state) => state?.shipmentbuildingdata?.isShipmentListLoading
+    );
     // pagination model
     const [paginationModel, setPaginationModel] = useState({
         page: 0,
@@ -377,7 +380,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                 return (
                     <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                         <Tooltip title={'View'} arrow sx={{ mr: 1 }}>
-                            <IconButton disabled={isLoading} onClick={() => {
+                            <IconButton disabled={isShipmentListLoading} onClick={() => {
                                 dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
                                 navigate(PATH_DASHBOARD.shipmentBuilding.shipmentView);
                             }}>
@@ -385,7 +388,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={'Edit'} arrow sx={{ mr: 1 }}>
-                            <IconButton disabled={isLoading} onClick={() => {
+                            <IconButton disabled={isShipmentListLoading} onClick={() => {
                                 dispatch(setSelectedShipmentBuildObj(params?.row?.rowDetails));
                                 navigate(PATH_DASHBOARD.shipmentBuilding.shipmentEdit);
                             }}>
@@ -682,7 +685,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
                     disableVirtualization={true}
                     rows={shipmentViewTableData || []}
                     columns={shipmentColumns}
-                    loading={isLoading}
+                    loading={isShipmentListLoading}
                     getRowId={(row) => row?.shipmentId}
                     pagination
                     slots={{
@@ -777,7 +780,7 @@ export default function ShipmentViewTable({ watchedConsolidateFlag, control, set
 
             <Snackbar
                 open={shipmentSuccessFlag}
-                autoHideDuration={3000}
+                autoHideDuration={2000}
                 onClose={() => {
                     setShipmentSuccessFlag(false);
                     dispatch(setOperationalMessage(''));

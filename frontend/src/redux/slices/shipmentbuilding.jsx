@@ -9,6 +9,7 @@ import { dispatch } from '../store';
 
 const initialState = {
     isLoading: false,
+    isShipmentListLoading : false,
     error: null,
     shipmentBuildSuccess: false,
     shipmentData: [],
@@ -112,10 +113,12 @@ const slice = createSlice({
             state.isLoading = false;
             state.error = action.payload || action.payload.error;
             state.shipmentViewData = [];
+            state.isShipmentListLoading = false;
         },
         // START LOADING
         startLoading(state) {
             state.isLoading = true;
+            state.isShipmentListLoading = true;
             state.shipmentBuildSuccess = false;
             state.error = null;
         },
@@ -150,6 +153,7 @@ const slice = createSlice({
         getShipmentBuildDataSuccess(state, action) {
             state.isLoading = false;
             state.shipmentBuildSuccess = true;
+            state.isShipmentListLoading = false;
             state.shipmentViewData = action.payload.data;
             state.shipmentBuildPagination.page = action.payload.pagination.page;
             state.shipmentBuildPagination.pageSize = action.payload.pagination.limit;

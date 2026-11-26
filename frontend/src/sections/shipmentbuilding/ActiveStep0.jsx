@@ -231,7 +231,7 @@ const ActiveStep0 = ({ control,
                                             onChange(newValue);
                                         }
                                     }}
-                                    label={`Select Date ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
+                                    label={`Ready Date ${watchedServiceLevel?.includes('(Date Specific)') ? '*' : ''}`}
                                     minDate={dayjs()} // NEW: Strictly disables calendar clicks for past dates
                                     slotProps={{
                                         textField: {

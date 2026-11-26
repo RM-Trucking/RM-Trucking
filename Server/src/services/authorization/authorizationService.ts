@@ -51,6 +51,13 @@ export interface UpdateUserRequest {
 }
 
 type UserWithRoleIds = Omit<User, 'passwordHash'> & { roleIds: number[]; stationIds: number[] };
+type UserListItem = Omit<User, 'passwordHash'> & {
+    roles: Array<{ roleId: number; roleName: string }>;
+    customerName: string | null;
+    stations: Array<{ stationId: number; stationName: string }>;
+    createdByName: string | null;
+    updatedByName: string | null;
+};
 type CreatedUser = UserWithRoleIds & { credentialEmailSent: boolean };
 
 export interface TokenPair {
@@ -283,7 +290,7 @@ export async function listRoles(
     page = 1,
     pageSize = 20,
 ): Promise<{
-    roles: Array<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[]; authorityRoles: Array<Pick<Role, 'roleId' | 'name'>> }>;
+    roles: Array<RoleWithAuditNames & { permissionCodes: string[]; parentRoleIds: number[]; authorityRoles: Array<Pick<Role, 'roleId' | 'name'>>; userCount: number }>;
     pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
     roleCounts: Record<'EMPLOYEE' | 'CUSTOMER', number>;
 }> {
@@ -296,11 +303,13 @@ export async function listRoles(
     const roleRows = await authorizationRepository.getRoles(conn, roleKind, roleName?.trim() || undefined, page, pageSize);
     const totalCount = await authorizationRepository.countRoles(conn, roleKind, roleName?.trim() || undefined);
     const roleCounts = await authorizationRepository.countRolesByKind(conn);
+    const userCountsByRole = await authorizationRepository.countUsersByRoleIds(conn, roleRows.map(({ roleId }) => roleId));
     const roles = await Promise.all(roleRows.map(async (role) => ({
         ...(await addRoleAuditNames(conn, role)),
         permissionCodes: await authorizationRepository.getRolePermissionCodes(conn, role.roleId),
         parentRoleIds: await authorizationRepository.getParentRoleIds(conn, role.roleId),
         authorityRoles: await authorizationRepository.getParentRoles(conn, role.roleId),
+        userCount: userCountsByRole[role.roleId] ?? 0,
     })));
     return {
         roles,
@@ -341,7 +350,7 @@ export async function createUser(conn: Connection, input: CreateUserRequest, act
         throw new Error('stationIds can only be assigned to CUSTOMER users');
     }
     if (await authorizationRepository.getUserByLoginName(conn, loginUserName)) throw new Error('Login name already exists');
-    if (await authorizationRepository.getUserByEmail(conn, email)) throw new Error('Email already exists');
+    // if (await authorizationRepository.getUserByEmail(conn, email)) throw new Error('Email already exists');
 
     const roles = await validateRoleIdsForUser(conn, input.userType, input.roleIds ?? []);
     const roleIds = roles.map(({ roleId }) => roleId);
@@ -446,7 +455,7 @@ export async function listUsers(
     page: number,
     pageSize: number,
 ): Promise<{
-    users: UserWithRoleIds[];
+    users: UserListItem[];
     pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
     userCounts: Record<'EMPLOYEE' | 'CUSTOMER', number>;
 }> {
@@ -458,29 +467,64 @@ export async function listUsers(
     const rows = await authorizationRepository.getUsers(conn, userType, normalizedSearch, page, pageSize);
     const totalCount = await authorizationRepository.countUsers(conn, userType, normalizedSearch);
     const userCounts = await authorizationRepository.countUsersByType(conn);
-    const assignments = await authorizationRepository.getUserRoleIdsForUsers(conn, rows.map(({ userId }) => userId));
-    const stationAssignments = await authorizationRepository.getUserStationIdsForUsers(conn, rows.map(({ userId }) => userId));
-    const roleIdsByUser = new Map<number, number[]>();
-    const stationIdsByUser = new Map<number, number[]>();
-    for (const { userId, roleId } of assignments) {
-        const roleIds = roleIdsByUser.get(userId) ?? [];
-        roleIds.push(roleId);
-        roleIdsByUser.set(userId, roleIds);
-    }
-    for (const { userId, stationId } of stationAssignments) {
-        const stationIds = stationIdsByUser.get(userId) ?? [];
-        stationIds.push(stationId);
-        stationIdsByUser.set(userId, stationIds);
-    }
-    const users = rows.map(({ passwordHash: _passwordHash, ...user }) => ({
-        ...user,
-        roleIds: roleIdsByUser.get(user.userId) ?? [],
-        stationIds: stationIdsByUser.get(user.userId) ?? [],
-    }));
+    const users = await mapUserListItems(conn, rows);
     return {
         users,
         pagination: { page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) },
         userCounts,
+    };
+}
+
+async function mapUserListItems(conn: Connection, rows: authorizationRepository.UserRecord[]): Promise<UserListItem[]> {
+    const assignments = await authorizationRepository.getUserRoleDetailsForUsers(conn, rows.map(({ userId }) => userId));
+    const stationAssignments = await authorizationRepository.getUserStationDetailsForUsers(conn, rows.map(({ userId }) => userId));
+    const rolesByUser = new Map<number, Array<{ roleId: number; roleName: string }>>();
+    const stationsByUser = new Map<number, Array<{ stationId: number; stationName: string }>>();
+    for (const { userId, roleId, roleName } of assignments) {
+        const roles = rolesByUser.get(userId) ?? [];
+        if (!roles.some((role) => role.roleId === roleId)) roles.push({ roleId, roleName });
+        rolesByUser.set(userId, roles);
+    }
+    for (const { userId, stationId, stationName } of stationAssignments) {
+        const stations = stationsByUser.get(userId) ?? [];
+        if (!stations.some((station) => station.stationId === stationId)) stations.push({ stationId, stationName });
+        stationsByUser.set(userId, stations);
+    }
+    const users = rows.map(({ passwordHash: _passwordHash, ...user }) => ({
+        ...user,
+        roles: rolesByUser.get(user.userId) ?? [],
+        customerName: user.customerName ?? null,
+        stations: stationsByUser.get(user.userId) ?? [],
+        createdByName: user.createdByName ?? null,
+        updatedByName: user.updatedByName ?? null,
+    }));
+    return users;
+}
+
+export async function listUsersByRoleId(
+    conn: Connection,
+    roleId: number,
+    search: string | undefined,
+    page: number,
+    pageSize: number,
+): Promise<{
+    role: Pick<Role, 'roleId' | 'name' | 'roleKind'>;
+    users: UserListItem[];
+    pagination: { page: number; pageSize: number; totalCount: number; totalPages: number };
+}> {
+    if (!Number.isSafeInteger(roleId) || roleId <= 0) throw new Error('roleId must be a positive integer');
+    if (!Number.isSafeInteger(page) || page < 1) throw new Error('page must be a positive integer');
+    if (!Number.isSafeInteger(pageSize) || pageSize < 1 || pageSize > 100) throw new Error('pageSize must be between 1 and 100');
+
+    const role = await authorizationRepository.getRoleById(conn, roleId);
+    if (!role) throw new Error('Role not found');
+    const normalizedSearch = search?.trim() || undefined;
+    const rows = await authorizationRepository.getUsersByRoleId(conn, roleId, normalizedSearch, page, pageSize);
+    const totalCount = await authorizationRepository.countUsersByRoleId(conn, roleId, normalizedSearch);
+    return {
+        role: { roleId: role.roleId, name: role.name, roleKind: role.roleKind },
+        users: await mapUserListItems(conn, rows),
+        pagination: { page, pageSize, totalCount, totalPages: Math.ceil(totalCount / pageSize) },
     };
 }
 

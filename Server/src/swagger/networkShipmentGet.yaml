@@ -32,6 +32,18 @@ paths:
             maximum: 100
             default: 25
           description: Number of shipments to return per page.
+        - in: query
+          name: routing
+          schema:
+            type: string
+            enum:
+              [
+                PICKUP_LINE_HAUL_DELIVERY,
+                PICKUP_LINE_HAUL,
+                LINE_HAUL_ONLY,
+                LINE_HAUL_DELIVERY,
+              ]
+          description: Filter by consolidated routing. LINE_HAUL_ONLY and LINE_HAUL_DELIVERY match pickup-only shipments with the corresponding linehaul routing.
       responses:
         "200":
           description: Shipment forms retrieved successfully.

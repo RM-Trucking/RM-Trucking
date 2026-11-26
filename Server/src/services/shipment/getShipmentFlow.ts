@@ -7,6 +7,12 @@ export interface ShipmentPaginationParams {
     limit: number;
 }
 
+export type ShipmentRoutingFilter =
+    | "PICKUP_LINE_HAUL_DELIVERY"
+    | "PICKUP_LINE_HAUL"
+    | "LINE_HAUL_ONLY"
+    | "LINE_HAUL_DELIVERY";
+
 export interface ShipmentPaginationMeta {
     page: number;
     limit: number;
@@ -22,6 +28,22 @@ export function normalizePaginationParams(pageInput: any, limitInput: any): Ship
     const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 100) : 10;
 
     return { page, limit };
+}
+
+export function normalizeRoutingFilter(input: unknown): ShipmentRoutingFilter | undefined {
+    if (input === undefined || input === null || input === "") return undefined;
+
+    const validValues: ShipmentRoutingFilter[] = [
+        "PICKUP_LINE_HAUL_DELIVERY",
+        "PICKUP_LINE_HAUL",
+        "LINE_HAUL_ONLY",
+        "LINE_HAUL_DELIVERY",
+    ];
+    if (typeof input !== "string" || !validValues.includes(input as ShipmentRoutingFilter)) {
+        throw new Error("Invalid routing filter");
+    }
+
+    return input as ShipmentRoutingFilter;
 }
 
 export function buildPaginationMeta(totalItems: number, page: number, limit: number): ShipmentPaginationMeta {
@@ -530,10 +552,11 @@ export async function getNetworkShipmentView(conn: Connection, shipmentId: numbe
 
 export async function getNetworkShipmentForms(
     conn: Connection,
-    pagination: ShipmentPaginationParams = { page: 1, limit: 10 }
+    pagination: ShipmentPaginationParams = { page: 1, limit: 10 },
+    routing?: ShipmentRoutingFilter
 ): Promise<{ items: Array<any>; pagination: ShipmentPaginationMeta }> {
     const normalized = normalizePaginationParams(pagination?.page, pagination?.limit);
-    const { totalItems, rows } = await shipmentDB.getShipmentList(conn, normalized.page, normalized.limit);
+    const { totalItems, rows } = await shipmentDB.getShipmentList(conn, normalized.page, normalized.limit, routing);
 
     const items = await Promise.all(
         rows.map(async (row: any) => {

@@ -52,6 +52,7 @@ export {
 
 export {
     normalizePaginationParams,
+    normalizeRoutingFilter,
     buildPaginationMeta,
     getNetworkShipmentView,
     getNetworkShipmentForms,

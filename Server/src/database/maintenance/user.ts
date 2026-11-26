@@ -65,7 +65,7 @@ export async function getUserByLoginUsername(conn: Connection, loginUserName: st
         WHERE "loginUserName" = ?
     `;
 
-    const result = (await conn.query(query, [loginUserName.toUpperCase()])) as User[];
+    const result = (await conn.query(query, [loginUserName])) as User[];
     return result[0];
 }
 

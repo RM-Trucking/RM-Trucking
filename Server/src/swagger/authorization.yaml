@@ -71,7 +71,7 @@ paths:
       tags:
         - Authorization
       summary: List all roles
-      description: Returns paginated active role records with permission codes and authority roles (parent role IDs and names). roleCounts are stable active-role totals for each kind and are not affected by roleName or roleKind filters.
+      description: Returns paginated active role records with permission codes, authority roles, and the number of users assigned to each role. roleCounts are stable active-role totals for each kind and are not affected by roleName or roleKind filters.
       parameters:
         - in: query
           name: roleKind
@@ -119,6 +119,7 @@ paths:
                     permissionCodes: [PER1, PER2]
                     parentRoleIds: []
                     authorityRoles: []
+                    userCount: 12
                 pagination:
                   page: 1
                   pageSize: 20
@@ -160,6 +161,72 @@ paths:
                   createdByName: System
                   updatedBy: 1
                   updatedByName: System
+  /api/authorization/roles/{roleId}/users:
+    get:
+      tags:
+        - Authorization
+      summary: List users assigned to a role
+      description: Returns a paginated list of users assigned to the specified role. Search matches userName, loginUserName, or email.
+      parameters:
+        - in: path
+          name: roleId
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - in: query
+          name: search
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: page
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: pageSize
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        "200":
+          description: Users assigned to the role
+          content:
+            application/json:
+              example:
+                success: true
+                role:
+                  roleId: 5
+                  name: Shipping User
+                  roleKind: CUSTOMER
+                users:
+                  - userId: 7
+                    userName: John Doe
+                    loginUserName: john.doe
+                    email: john.doe@customer.com
+                    customerId: 1001
+                    customerName: Ventana Customer
+                    roles:
+                      - roleId: 5
+                        roleName: Shipping User
+                    stations:
+                      - stationId: 11
+                        stationName: Station 1
+                    createdByName: Admin User
+                    updatedByName: Manager User
+                pagination:
+                  page: 1
+                  pageSize: 20
+                  totalCount: 1
+                  totalPages: 1
+        "404":
+          description: Role not found
   /api/authorization/roles/{roleId}:
     parameters:
       - in: path
@@ -228,7 +295,7 @@ paths:
       tags:
         - Authorization
       summary: List users by type
-      description: Returns paginated users without password hashes. Search matches userName, loginUserName, or email. userCounts are total user counts by type and are unaffected by search or the selected userType.
+      description: Returns paginated users without password hashes, including role objects, customerName, and station objects. Search matches userName, loginUserName, or email. userCounts are total user counts by type and are unaffected by search or the selected userType.
       parameters:
         - in: query
           name: userType
@@ -266,14 +333,25 @@ paths:
                 success: true
                 data:
                   - userId: 7
-                    userName: Jane Smith
-                    loginUserName: jane.smith
-                    email: jane.smith@rmtrucking.com
-                    userType: EMPLOYEE
-                    customerId: null
+                    userName: John Doe
+                    loginUserName: john.doe
+                    email: john.doe@customer.com
+                    userType: CUSTOMER
+                    customerId: 1001
+                    customerName: Ventana Customer
                     activeStatus: Y
-                    roleIds: [2]
-                    stationIds: []
+                    createdBy: 1
+                    createdByName: Admin User
+                    updatedBy: 2
+                    updatedByName: Manager User
+                    roles:
+                      - roleId: 5
+                        roleName: Shipping User
+                    stations:
+                      - stationId: 11
+                        stationName: Station 1
+                      - stationId: 12
+                        stationName: Station 2
                 pagination:
                   page: 1
                   pageSize: 20

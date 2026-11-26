@@ -92,7 +92,8 @@ export async function getNetworkShipmentView(req: Request, res: Response, conn: 
 export async function getNetworkShipmentForms(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         const pagination = shipmentService.normalizePaginationParams(req.query.page, req.query.limit);
-        const result = await shipmentService.getNetworkShipmentForms(conn, pagination);
+        const routing = shipmentService.normalizeRoutingFilter(req.query.routing);
+        const result = await shipmentService.getNetworkShipmentForms(conn, pagination, routing);
 
         res.status(200).json({
             success: true,

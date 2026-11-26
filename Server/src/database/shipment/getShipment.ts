@@ -1,5 +1,6 @@
 import { Connection } from "odbc";
 import { SCHEMA } from "../../config/db2";
+import type { ShipmentRoutingFilter } from "../../services/shipment/getShipmentFlow";
 
 export async function getShipmentById(conn: Connection, shipmentId: number) {
     const query = `
@@ -353,14 +354,48 @@ export async function getShipmentCustomerRateMapByCustomerRateId(conn: Connectio
     return result;
 }
 
-export async function getShipmentList(conn: Connection, page: number, limit: number) {
+export async function getShipmentList(
+    conn: Connection,
+    page: number,
+    limit: number,
+    routing?: ShipmentRoutingFilter
+) {
     const offset = (page - 1) * limit;
+    let routingClause = "";
+    let routingParams: string[] = [];
+
+    if (routing === "LINE_HAUL_ONLY" || routing === "LINE_HAUL_DELIVERY") {
+        routingClause = `
+            WHERE EXISTS (
+                SELECT 1
+                FROM ${SCHEMA}."Network_Shipment_Pickup_Info" AS pickup
+                JOIN ${SCHEMA}."Network_Shipment_Linehaul_Info" AS linehaul
+                  ON linehaul."shipmentId" = pickup."shipmentId"
+                WHERE pickup."shipmentId" = shipment."shipmentId"
+                  AND pickup."pickupRouting" = 'PICKUP_ONLY'
+                  AND linehaul."linehaulRouting" = ?
+            )
+        `;
+        routingParams = [routing];
+    } else if (routing) {
+        routingClause = `
+            WHERE EXISTS (
+                SELECT 1
+                FROM ${SCHEMA}."Network_Shipment_Pickup_Info" AS pickup
+                WHERE pickup."shipmentId" = shipment."shipmentId"
+                  AND pickup."pickupRouting" = ?
+            )
+        `;
+        routingParams = [routing];
+    }
+
     const countQuery = `
         SELECT COUNT(*) AS "totalItems"
-        FROM ${SCHEMA}."Network_Shipment"
+        FROM ${SCHEMA}."Network_Shipment" AS shipment
+        ${routingClause}
     `;
 
-    const countResult = await conn.query(countQuery) as any[];
+    const countResult = await conn.query(countQuery, routingParams) as any[];
     const totalItems = Number(countResult[0]?.totalItems ?? 0);
 
     const query = `
@@ -372,12 +407,13 @@ export async function getShipmentList(conn: Connection, page: number, limit: num
           "shipmentTime",
           "createdBy",
           "createdAt"
-        FROM ${SCHEMA}."Network_Shipment"
-        ORDER BY "shipmentId" DESC
+        FROM ${SCHEMA}."Network_Shipment" AS shipment
+        ${routingClause}
+        ORDER BY shipment."shipmentId" DESC
         OFFSET ? ROWS
         FETCH NEXT ? ROWS ONLY
     `;
 
-    const result = await conn.query(query, [offset, limit]) as any[];
+    const result = await conn.query(query, [...routingParams, offset, limit]) as any[];
     return { totalItems, rows: result };
 }

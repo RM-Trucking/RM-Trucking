@@ -34,6 +34,9 @@ export interface UserRecord {
     activeStatus: 'Y' | 'N';
     userType: 'EMPLOYEE' | 'CUSTOMER';
     customerId: number | null;
+    customerName?: string | null;
+    createdByName?: string | null;
+    updatedByName?: string | null;
     updatedAt: Date;
     updatedBy: number | null;
 }
@@ -208,7 +211,7 @@ export async function insertRole(conn: Connection, input: {
             [input.name, input.description, input.roleKind, input.status, input.isSystemManaged ?? 'N', input.createdBy, input.createdBy] as any[],
         );
     } catch (error) {
-        throw withCause(`Role INSERT failed for name=${input.name}`, JSON.stringify(error));
+        throw withCause(`Role INSERT failed for name=${input.name}`, error);
     }
     const role = await getRoleByName(conn, input.name, input.roleKind);
     if (!role) throw new Error('Failed to retrieve the created role');
@@ -304,17 +307,31 @@ export async function getUserByEmail(conn: Connection, email: string): Promise<U
     return rows[0] ?? null;
 }
 
-function buildUserFilters(userType: 'EMPLOYEE' | 'CUSTOMER', search?: string): { whereClause: string; values: (string | number)[] } {
-    const filters = ['"userType" = ?'];
-    const values: (string | number)[] = [userType];
+function buildUserFilters(
+    userType?: 'EMPLOYEE' | 'CUSTOMER',
+    search?: string,
+    roleId?: number,
+): { whereClause: string; values: (string | number)[] } {
+    const filters: string[] = [];
+    const values: (string | number)[] = [];
+    if (roleId !== undefined) {
+        filters.push(`EXISTS (SELECT 1 FROM ${userRoles} ur WHERE ur."userId" = u."userId" AND ur."roleId" = ?)`);
+        values.push(roleId);
+    }
+    if (userType !== undefined) {
+        filters.push('u."userType" = ?');
+        values.push(userType);
+    }
     const normalizedSearch = search?.trim();
     if (normalizedSearch) {
-        filters.push('(UPPER("userName") LIKE UPPER(?) OR UPPER("loginUserName") LIKE UPPER(?) OR UPPER("email") LIKE UPPER(?))');
+        filters.push('(UPPER(u."userName") LIKE UPPER(?) OR UPPER(u."loginUserName") LIKE UPPER(?) OR UPPER(u."email") LIKE UPPER(?))');
         const pattern = `%${normalizedSearch}%`;
         values.push(pattern, pattern, pattern);
     }
     return { whereClause: ` WHERE ${filters.join(' AND ')}`, values };
 }
+
+const userListSelect = `SELECT u."userId", u."userName", u."loginUserName", u."email", u."createdAt", u."createdBy", u."activeStatus", u."userType", u."customerId", u."updatedAt", u."updatedBy", c."customerName", creator."userName" AS "createdByName", updater."userName" AS "updatedByName" FROM ${users} u LEFT JOIN ${SCHEMA}."Customer" c ON c."customerId" = u."customerId" LEFT JOIN ${users} creator ON creator."userId" = u."createdBy" LEFT JOIN ${users} updater ON updater."userId" = u."updatedBy"`;
 
 export async function getUsers(
     conn: Connection,
@@ -326,7 +343,16 @@ export async function getUsers(
     const { whereClause, values } = buildUserFilters(userType, search);
     const offset = (page - 1) * pageSize;
     return (await conn.query(
-        `SELECT "userId", "userName", "loginUserName", "email", "createdAt", "createdBy", "activeStatus", "userType", "customerId", "updatedAt", "updatedBy" FROM ${users}${whereClause} ORDER BY "userName" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`,
+        `${userListSelect}${whereClause} ORDER BY u."userName" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`,
+        [...values, offset, pageSize],
+    )) as UserRecord[];
+}
+
+export async function getUsersByRoleId(conn: Connection, roleId: number, search: string | undefined, page: number, pageSize: number): Promise<UserRecord[]> {
+    const { whereClause, values } = buildUserFilters(undefined, search, roleId);
+    const offset = (page - 1) * pageSize;
+    return (await conn.query(
+        `${userListSelect}${whereClause} ORDER BY u."userName" OFFSET ? ROWS FETCH NEXT ? ROWS ONLY`,
         [...values, offset, pageSize],
     )) as UserRecord[];
 }
@@ -334,10 +360,34 @@ export async function getUsers(
 export async function countUsers(conn: Connection, userType: 'EMPLOYEE' | 'CUSTOMER', search?: string): Promise<number> {
     const { whereClause, values } = buildUserFilters(userType, search);
     const rows = (await conn.query(
-        `SELECT COUNT(*) AS "totalCount" FROM ${users}${whereClause}`,
+        `SELECT COUNT(*) AS "totalCount" FROM ${users} u${whereClause}`,
         values,
     )) as Array<{ totalCount?: number; TOTALCOUNT?: number }>;
     return Number(rows[0]?.totalCount ?? rows[0]?.TOTALCOUNT ?? 0);
+}
+
+export async function countUsersByRoleId(conn: Connection, roleId: number, search?: string): Promise<number> {
+    const { whereClause, values } = buildUserFilters(undefined, search, roleId);
+    const rows = (await conn.query(
+        `SELECT COUNT(*) AS "totalCount" FROM ${users} u${whereClause}`,
+        values,
+    )) as Array<{ totalCount?: number; TOTALCOUNT?: number }>;
+    return Number(rows[0]?.totalCount ?? rows[0]?.TOTALCOUNT ?? 0);
+}
+
+export async function countUsersByRoleIds(conn: Connection, roleIds: number[]): Promise<Record<number, number>> {
+    const counts: Record<number, number> = Object.fromEntries(roleIds.map((roleId) => [roleId, 0]));
+    if (roleIds.length === 0) return counts;
+    const placeholders = roleIds.map(() => '?').join(', ');
+    const rows = (await conn.query(
+        `SELECT "roleId", COUNT(DISTINCT "userId") AS "userCount" FROM ${userRoles} WHERE "roleId" IN (${placeholders}) GROUP BY "roleId"`,
+        roleIds,
+    )) as Array<{ roleId?: number; ROLEID?: number; userCount?: number; USERCOUNT?: number }>;
+    for (const row of rows) {
+        const roleId = Number(row.roleId ?? row.ROLEID);
+        counts[roleId] = Number(row.userCount ?? row.USERCOUNT ?? 0);
+    }
+    return counts;
 }
 
 export async function countUsersByType(conn: Connection): Promise<Record<'EMPLOYEE' | 'CUSTOMER', number>> {
@@ -362,16 +412,17 @@ export async function getUserRoleIds(conn: Connection, userId: number): Promise<
     return rows.map((row) => Number(row.roleId ?? row.ROLEID));
 }
 
-export async function getUserRoleIdsForUsers(conn: Connection, userIds: number[]): Promise<Array<{ userId: number; roleId: number }>> {
+export async function getUserRoleDetailsForUsers(conn: Connection, userIds: number[]): Promise<Array<{ userId: number; roleId: number; roleName: string }>> {
     if (userIds.length === 0) return [];
     const placeholders = userIds.map(() => '?').join(', ');
     const rows = (await conn.query(
-        `SELECT ur."userId", ur."roleId" FROM ${userRoles} ur INNER JOIN ${roles} r ON r."roleId" = ur."roleId" WHERE r."status" = 'ACTIVE' AND ur."userId" IN (${placeholders}) ORDER BY ur."userId", ur."roleId"`,
+        `SELECT ur."userId", ur."roleId", r."name" AS "roleName" FROM ${userRoles} ur INNER JOIN ${roles} r ON r."roleId" = ur."roleId" WHERE r."status" = 'ACTIVE' AND ur."userId" IN (${placeholders}) ORDER BY ur."userId", ur."roleId"`,
         userIds,
-    )) as Array<{ userId?: number; USERID?: number; roleId?: number; ROLEID?: number }>;
+    )) as Array<{ userId?: number; USERID?: number; roleId?: number; ROLEID?: number; roleName?: string; ROLENAME?: string }>;
     return rows.map((row) => ({
         userId: Number(row.userId ?? row.USERID),
         roleId: Number(row.roleId ?? row.ROLEID),
+        roleName: String(row.roleName ?? row.ROLENAME ?? ''),
     }));
 }
 
@@ -393,16 +444,17 @@ export async function getUserStationIds(conn: Connection, userId: number): Promi
     return rows.map((row) => Number(row.stationId ?? row.STATIONID));
 }
 
-export async function getUserStationIdsForUsers(conn: Connection, userIds: number[]): Promise<Array<{ userId: number; stationId: number }>> {
+export async function getUserStationDetailsForUsers(conn: Connection, userIds: number[]): Promise<Array<{ userId: number; stationId: number; stationName: string }>> {
     if (userIds.length === 0) return [];
     const placeholders = userIds.map(() => '?').join(', ');
     const rows = (await conn.query(
-        `SELECT "userId", "stationId" FROM ${userStations} WHERE "userId" IN (${placeholders}) ORDER BY "userId", "stationId"`,
+        `SELECT us."userId", us."stationId", s."stationName" FROM ${userStations} us INNER JOIN ${SCHEMA}."Station" s ON s."stationId" = us."stationId" WHERE us."userId" IN (${placeholders}) ORDER BY us."userId", s."stationName"`,
         userIds,
-    )) as Array<{ userId?: number; USERID?: number; stationId?: number; STATIONID?: number }>;
+    )) as Array<{ userId?: number; USERID?: number; stationId?: number; STATIONID?: number; stationName?: string; STATIONNAME?: string }>;
     return rows.map((row) => ({
         userId: Number(row.userId ?? row.USERID),
         stationId: Number(row.stationId ?? row.STATIONID),
+        stationName: String(row.stationName ?? row.STATIONNAME ?? ''),
     }));
 }
 

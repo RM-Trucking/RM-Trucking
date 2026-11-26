@@ -64,6 +64,16 @@ router.get('/roles/options', authenticateJWT, async (req, res) => {
     }
 });
 
+// GET USERS ASSIGNED TO A ROLE
+router.get('/roles/:roleId/users', authenticateJWT, async (req, res) => {
+    const conn = await db();
+    try {
+        await authorizationController.listUsersByRole(req, res, conn);
+    } finally {
+        await conn.close();
+    }
+});
+
 // ROLE SUMMARY
 router.get('/roles/summary', authenticateJWT, async (req, res) => {
     const conn = await db();

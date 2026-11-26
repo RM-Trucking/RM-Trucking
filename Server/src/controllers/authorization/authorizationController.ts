@@ -77,6 +77,43 @@ export async function getRoleOptions(req: Request, res: Response, conn: Connecti
     }
 }
 
+export async function listUsersByRole(req: Request, res: Response, conn: Connection): Promise<void> {
+    try {
+        const roleId = Number(req.params.roleId);
+        if (!Number.isSafeInteger(roleId) || roleId <= 0) {
+            res.status(400).json({ success: false, message: 'roleId must be a positive integer' });
+            return;
+        }
+        if (req.query.search !== undefined && typeof req.query.search !== 'string') {
+            res.status(400).json({ success: false, message: 'search must be a string' });
+            return;
+        }
+        const parsePositiveInteger = (value: unknown, defaultValue: number): number | undefined => {
+            if (value === undefined) return defaultValue;
+            if (typeof value !== 'string' || !/^\d+$/.test(value)) return undefined;
+            const parsed = Number(value);
+            return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : undefined;
+        };
+        const page = parsePositiveInteger(req.query.page, 1);
+        const pageSize = parsePositiveInteger(req.query.pageSize, 20);
+        if (page === undefined || pageSize === undefined || pageSize > 100) {
+            res.status(400).json({ success: false, message: 'page must be positive and pageSize must be between 1 and 100' });
+            return;
+        }
+        const result = await authorizationService.listUsersByRoleId(
+            conn,
+            roleId,
+            typeof req.query.search === 'string' ? req.query.search.trim() : undefined,
+            page,
+            pageSize,
+        );
+        res.status(200).json({ success: true, ...result });
+    } catch (error) {
+        const message = (error as Error).message;
+        res.status(message === 'Role not found' ? 404 : 500).json({ success: false, message });
+    }
+}
+
 export async function getRoleDetails(req: Request, res: Response, conn: Connection): Promise<void> {
     try {
         res.status(200).json({ success: true, data: await authorizationService.getRoleDetails(conn, Number(req.params.roleId)) });
@@ -212,6 +249,7 @@ export async function listUsers(req: Request, res: Response, conn: Connection): 
             userCounts: result.userCounts,
         });
     } catch (error) {
+        console.error('Error listing users:', error);
         res.status(500).json({ success: false, message: (error as Error).message });
     }
 }

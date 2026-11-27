@@ -84,10 +84,10 @@ export default function NavVertical({ }) {
           "title": "User Maintainance",
           "path": "/app/maintenance/user-maintenance"
         },
-        {
-          "title": "Role Maintenance",
-          "path": "/app/maintenance/role-maintenance"
-        },
+        // {
+        //   "title": "Role Maintenance",
+        //   "path": "/app/maintenance/role-maintenance"
+        // },
         // {
         //   "title": "Airport Code Maintenance",
         //   "path": "/app/maintenance/airport-code-maintenance"
